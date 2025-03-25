@@ -4,10 +4,11 @@ import LoadingSpinner from "@components/ui/LoadingSpinner";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { forwardRef, HTMLAttributes, } from "react";
 import { useForm, FormProvider } from "react-hook-form"
+import { ZodIssue } from "zod";
 
 type FormProps = {
     schema: any,
-    submit: (data: any) => Promise<{ path: string, message: string }[] | null | void>,
+    submit: (data: any) => Promise<{ path: string, message: string }[] | string | null | void | undefined | ZodIssue[]>,
     defaultVals?: any
 } & HTMLAttributes<HTMLFormElement>
 
@@ -22,8 +23,16 @@ const Form = forwardRef(({ children, schema, submit, defaultVals = {}, ...args }
     const submitForm = async (data: any) => {
         if (isSubmitting) return;
         const errors = await submit(data);
-        if (errors && errors.length)
-            errors.forEach((error) => setError(error.path, { message: error.message }))
+        if (errors) {
+            if (typeof errors === "string")
+                setError("custom", { message: errors })
+            else if (errors.length)
+                errors.forEach((error) => {
+                    if (typeof error.path === "string")
+                        setError(error.path, { message: error.message })
+                    else setError(error.path.join('.'), { message: error.message })
+                })
+        }
     }
 
     return (

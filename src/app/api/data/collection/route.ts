@@ -1,4 +1,4 @@
-import { FullCollectionData } from "@lib/types";
+import { FullCollectionData } from "@type/types";
 import { NextRequest } from "next/server";
 
 export const GET = async (req: NextRequest) => {

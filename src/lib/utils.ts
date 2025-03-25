@@ -1,11 +1,27 @@
-import mongoose from "mongoose";
+import placeholder from "@assets/placeholder.png";
+import { Types } from "mongoose";
+import { NextRequest } from "next/server";
+import { ZodIssue } from "zod";
 import {
+  cacheTags,
   cloudinary_image_uri,
   cloudinary_media_options,
   cloudinary_postKey,
+  errorCodes,
+  queryFilters,
+  queryLimit,
+  revalidateTags,
 } from "./constants";
-import { ZodIssue } from "zod";
-import placeholder from "@assets/placeholder.png";
+import { GeneralReturnType } from "../type/external";
+import {
+  AvailableCacheTags,
+  AvailableRevalidateTags,
+  CloudinaryMediaObject,
+  CloudinaryMediaOptions,
+  InfiniteQueryResponse,
+  InputFrame,
+  QueryFilterType,
+} from "@type/internal";
 
 export const scaleImage = async (file: File): Promise<Blob | null> => {
   if (!file) return null;
@@ -42,10 +58,11 @@ export const scaleImage = async (file: File): Promise<Blob | null> => {
   }
 };
 
-export const timeAgo = (timestamp: number) => {
+export const timeAgo = (timestamp: number | Date) => {
   if (!timestamp) return;
+  const time = new Date(timestamp).getTime();
 
-  const elapsed = Date.now() - timestamp;
+  const elapsed = Date.now() - time;
   const secs = Math.floor(elapsed / 1000);
   const mins = Math.floor(secs / 60);
   const hrs = Math.floor(mins / 60);
@@ -80,8 +97,9 @@ export const timeAgo = (timestamp: number) => {
 };
 
 export const numberConverter = (num: number): string => {
+  if (!num) return "0";
+  if (num < 1000) return num.toString();
   const digits = Math.ceil(Math.log10(num + 1)); //num+1 because Math.log10 returns 2 for 100 and 3 for 101
-  if (digits < 4) return num.toString();
   const category = ["", "K+", "M+", "B+", "T+", "Q+"];
   const comes = category[Math.ceil(digits / 3) - 1];
   const ignore = digits % 3; // counting the number of 0s to be ignored
@@ -108,7 +126,8 @@ export const calculateAge = (birthDate: Date): number => {
 export const objectToFormData = (object: Record<string, any>): FormData => {
   const formData = new FormData();
   Object.keys(object).forEach((key) => {
-    if (key === "file" && !!object[key]) formData.append(key, object[key]);
+    if ((key === "file" || key === "files") && !!object[key])
+      formData.append(key, object[key]);
     else formData.append(key, JSON.stringify(object[key]));
   });
   return formData;
@@ -124,21 +143,29 @@ export const formDataToObject = (response: FormData) => {
   return formDataObject;
 };
 
-const convertOptionsToUrl = (options: any): string => {
+const convertOptionsToUrl = (options: CloudinaryMediaObject): string => {
   if (!options) return "";
   let optionsArr: string[] = [];
-  Object.keys(options).forEach((key) => {
+  Object.keys(options).forEach((key: any) => {
     if (cloudinary_media_options.hasOwnProperty(key))
-      optionsArr.push(`${cloudinary_media_options[key]}${options[key]}`);
+      optionsArr.push(
+        `${cloudinary_media_options[key as CloudinaryMediaOptions]}${
+          options[key as CloudinaryMediaOptions]
+        }`
+      );
   });
   return optionsArr.join(",");
 };
 
-export const getInternalPoster = (
-  path: string,
-  options: any,
-  folder?: string
-): string => {
+export const getInternalPoster = ({
+  options,
+  folder,
+  path,
+}: {
+  path?: string;
+  options: CloudinaryMediaObject;
+  folder?: string;
+}): string => {
   if (!path) return placeholder.src;
   if (path.includes("https")) return path;
   const optionsUri = convertOptionsToUrl(options);
@@ -156,45 +183,50 @@ export const getThumbnail = (vid: string) => {
   return vidArr.join(".").concat(".jpg");
 };
 
+export const ObjectId = (id: string) => {
+  return new Types.ObjectId(id);
+};
+
 export const isValidObjectId = (id: string) => {
-  return mongoose.Types.ObjectId.isValid(id);
+  if (!id) return false;
+  return Types.ObjectId.isValid(ObjectId(id));
 };
 
-const encodeBase64 = (payload: string) => {
-  if (window && btoa) return btoa(payload);
-  return Buffer.from(payload).toString("base64");
-};
-
-const decodeBase64 = (hash: string) => {
-  if (window && atob) return atob(hash);
-  return Buffer.from(hash, "base64").toString();
-};
-
-export const encodeObject = (object: any, expiry: number): string | null => {
+export const encodeObject = (
+  object: any,
+  expiry: number
+): Buffer<ArrayBuffer> | null => {
   if (!object || !Object.keys(object).length) return null;
   if (!process.env.NEXT_PUBLIC_SALT)
     throw new Error("No Salt can be found while encoding sensetive object!");
-  const hash = encodeBase64(
+
+  const hash = Buffer.from(
     JSON.stringify({ ...object, object_expiry: Date.now() + expiry })
-  );
+  ).toString("base64");
+
   const randomIndex = Math.floor(Math.random() * (hash.length + 1));
-  return (
+  const hashWithSalt =
     hash.slice(0, randomIndex) +
     process.env.NEXT_PUBLIC_SALT +
-    hash.slice(randomIndex)
-  );
+    hash.slice(randomIndex);
+
+  return Buffer.from(hashWithSalt);
 };
 
-export const decodeObject = (hash: string): any => {
-  if (!hash) return null;
-  if (!process.env.NEXT_PUBLIC_SALT)
-    throw new Error("No Salt can be found while decoding secret hash !");
-  if (!hash.includes(process.env.NEXT_PUBLIC_SALT)) return null;
-  const decoded = hash.replace(process.env.NEXT_PUBLIC_SALT, "");
+export const decodeObject = (
+  hashArr: Buffer<ArrayBuffer> | undefined | null
+): any => {
+  if (!hashArr) return null;
+  const salt = process.env.NEXT_PUBLIC_SALT;
+  if (!salt)
+    throw new Error("No Salt can be found while decoding secret hash!");
+  const hash = Buffer.from(hashArr).toString();
+  if (!hash.includes(salt)) return null;
   try {
-    return JSON.parse(decodeBase64(decoded));
-  } catch (err) {
-    console.log(err);
+    const decoded = Buffer.from(hash.replace(salt, ""), "base64").toString();
+    return JSON.parse(decoded);
+  } catch (err: any) {
+    console.error("Error decoding Object", err.message);
     return null;
   }
 };
@@ -208,9 +240,98 @@ export const refineZodError = (
   }));
 };
 
-export const getPageParams = (params: string | null, initial: number = 1) => {
+export const getPageParams = (req: NextRequest, initial: number = 1) => {
+  const searchParams = req.nextUrl.searchParams;
+  const params = searchParams.get("p") || searchParams.get("page");
   if (!params) return initial;
   const param = parseInt(params); // could be "1" | "0" | "string";
   const page = isNaN(param) ? initial : param; // could be 1 | 0;
   return page < 1 ? initial : page; // will return number greater than 0;
+};
+
+export const convertCodeIntoError = (
+  code: string,
+  formError?: ZodIssue[] | null
+) => {
+  if (code === "pp203" && formError) return formError;
+  return errorCodes[code]?.message ?? "Something went wrong! Please try again.";
+};
+
+export const infiniteScrollerResponse = (
+  response:
+    | {
+        data: any[];
+        total: number;
+      }
+    | InfiniteQueryResponse,
+  page: number
+): InfiniteQueryResponse => {
+  if ("total_results" in response) return response;
+  return {
+    results: response.data,
+    page,
+    total_pages: Math.ceil(response.total / queryLimit),
+    total_results: response.total,
+  };
+};
+
+export const refineSearchParams = (
+  queryFilter: QueryFilterType,
+  p?: string,
+  f?: string
+) => {
+  const page: number = parseInt(p || "1") || 1;
+  const filter: string =
+    f && queryFilters[queryFilter].includes(f || "")
+      ? f
+      : queryFilters[queryFilter][0];
+  return { page, filter };
+};
+
+type CacheTagsType =
+  | {
+      type: "cache";
+      available: AvailableCacheTags;
+      options: any;
+    }
+  | {
+      type: "revalidate";
+      available: AvailableRevalidateTags;
+      options: any;
+    };
+
+export const getCacheTags = ({ available, options, type }: CacheTagsType) => {
+  const tags =
+    type === "cache"
+      ? cacheTags[available]
+      : type === "revalidate"
+      ? revalidateTags[available]
+      : undefined;
+  if (!tags) return [];
+
+  return tags.map((tag) =>
+    Object.keys(options).reduce(
+      (t, o) => t.replaceAll(`{${o}}`, options[o]),
+      tag
+    )
+  );
+};
+
+export const readyFrames = async (
+  frames: InputFrame[]
+): Promise<{ files: any[]; filesData: any[] }> => {
+  if (!frames || !frames?.length) return { files: [], filesData: [] };
+  const promises = frames.map(async ({ blob, ...data }) => {
+    if (data.isExternal || !blob) return { data };
+    const arrayBuffer = await blob.arrayBuffer();
+    const file = new File([new Uint8Array(arrayBuffer)], "Popcorn Paragon");
+    return { file, data };
+  });
+
+  const results = await Promise.all(promises);
+
+  const files = results.filter((res) => res.file).map((res) => res.file);
+  const filesData = results.map((res) => res.data);
+
+  return { files, filesData };
 };

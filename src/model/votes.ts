@@ -1,9 +1,10 @@
-import mongoose, { Schema, models } from "mongoose";
+import { VoteModelType } from "@type/modelTypes";
+import { Schema, models, model } from "mongoose";
 
-const voteModel = new Schema({
+const voteModel = new Schema<VoteModelType>({
   type: {
     type: String,
-    enum: ["upvote, downvote"],
+    enum: ["up, down"],
     required: true,
   },
   user_id: {
@@ -19,8 +20,7 @@ const voteModel = new Schema({
 });
 
 voteModel.index({ user_id: 1, comment_id: 1 }, { unique: true });
-voteModel.index({ user_id: 1, comment_id: 1 });
 
-const Vote = models.Vote || mongoose.model("Vote", voteModel);
+const Vote = models.Vote || model("Vote", voteModel);
 
 export default Vote;

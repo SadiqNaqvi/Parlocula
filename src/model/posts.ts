@@ -1,11 +1,12 @@
-import mongoose, { Schema, models } from "mongoose";
-import { linkModel } from "./general";
+import { Schema, models, model } from "mongoose";
+import { frameModel, linkModel } from "./general";
+import { PostModelType } from "@type/modelTypes";
 
-const postModel = new Schema(
+const postModel = new Schema<PostModelType>(
   {
     title: {
       type: String,
-      required: [true, "Error creating post: Title of the post is required."],
+      required: [true, "Title of the post is required."],
     },
     body: {
       type: String,
@@ -13,8 +14,7 @@ const postModel = new Schema(
     },
     links: [linkModel],
     tag: String,
-    media: String,
-    media_type: String,
+    frames: [frameModel],
     nsfw: {
       type: Boolean,
       default: false,
@@ -22,10 +22,6 @@ const postModel = new Schema(
     spoiler: {
       type: Boolean,
       default: false,
-    },
-    edited: {
-      type: Date,
-      default: 0,
     },
     thread_id: {
       type: Schema.Types.ObjectId,
@@ -37,11 +33,15 @@ const postModel = new Schema(
       ref: "User",
       required: true,
     },
-    likes: {
+    edited_at: {
+      type: Date,
+      default: null,
+    },
+    comment_count: {
       type: Number,
       default: 0,
     },
-    comments: {
+    reaction_count: {
       type: Number,
       default: 0,
     },
@@ -49,11 +49,8 @@ const postModel = new Schema(
   { timestamps: true }
 );
 
-// Prevent duplicate post-user-thread pairs
-postModel.index({ thread_id: 1, user_id: 1 }, { unique: true });
-// For fetching threads for a user
-postModel.index({ user_id: 1, thread_id: 1 });
+postModel.index({ thread_id: 1, user_id: 1 });
 
-const Post = models.Post || mongoose.model("Post", postModel);
+const Post = models.Post || model("Post", postModel);
 
 export default Post;

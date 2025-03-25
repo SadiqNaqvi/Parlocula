@@ -1,6 +1,7 @@
-import mongoose, { Schema, models } from "mongoose";
+import { ReactionModelType } from "@type/modelTypes";
+import { Schema, models, model } from "mongoose";
 
-const reactionModel = new Schema(
+const reactionModel = new Schema<ReactionModelType>(
   {
     reaction: {
       type: String,
@@ -21,8 +22,7 @@ const reactionModel = new Schema(
 );
 
 reactionModel.index({ user_id: 1, post_id: 1 }, { unique: true });
-reactionModel.index({ user_id: 1, post_id: 1 });
 
-const Reaction = models.Reaction || mongoose.model("Reaction", reactionModel);
+const Reaction = models.Reaction || model("Reaction", reactionModel);
 
 export default Reaction;

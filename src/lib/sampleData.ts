@@ -3,7 +3,7 @@ import {
   FullCompanyDetails,
   FullEpisodeDetails,
   FullSeasonDetails,
-} from "./types";
+} from "../type/types";
 
 export const exampleTrailerData = {
   id: 533535,

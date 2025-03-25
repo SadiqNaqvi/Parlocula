@@ -2,12 +2,11 @@
 
 import { BookmarkIcon, CollectionIcon, EditIcon, Ellipsis, HeartIcon, LeftChevron, PlayIcon, PlaylistIcon, ShareIcon, StarIcon, ThreadIcon, WarningIcon } from "@assets/Icons";
 import { getPoster } from "@lib/dataRefiner";
-import { RefinedMovieData } from "@lib/types";
+import { RefinedMovieData } from "@type/external";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import OptionMenu from "./OptionMenu";
-import Navigate from "./Navigate";
+import { OptionMenu, Navigate } from "./";
 
 export default function MainPageHeader({ content }: { content: RefinedMovieData }) {
     const router = useRouter();
@@ -71,17 +70,12 @@ export default function MainPageHeader({ content }: { content: RefinedMovieData 
             label: "Visit Collection",
             func: () => { }
         },
-        {
-            icon: EditIcon,
-            label: "Edit page",
-            func: () => { }
-        },
     ]
 
     return (
         <>
-            <header>
-                <nav className="backdrop-brightness-75 overflow-hidden w-full fixed top-0 z-[2] h-12 md:h-16 flex flex-cntr-between sm:px-4">
+            <header className="-mt-4">
+                <nav className="backdrop-brightness-75 overflow-hidden max-w-screen-md fixed top-0 z-[2] h-12 md:h-16 flex flex-cntr-between sm:px-4">
                     {isInvisible &&
                         <div className="background-all z-[-1] absolute inset-0 blur-sm brightness-50 -top-1" style={{ backgroundImage: `url(${getPoster("backdrop", content.backdrop, 0)})`, backgroundPosition: "center" }}></div>
                     }
@@ -114,26 +108,35 @@ export default function MainPageHeader({ content }: { content: RefinedMovieData 
                 </nav>
                 <div className="h-40 md:h-60 w-full background-all" style={{ backgroundImage: `url(${getPoster("backdrop", content.backdrop, 2)})` }}></div>
             </header>
+
             <section className="-mt-4 bg-[var(--primary)] md:mt-0 rounded-t-2xl mx-auto max-w-screen-lg relative px-2 lg:px-0">
                 <div className="flex gap-4">
+                    
                     <img src={`${getPoster("poster", content.poster, 2)}`} className="border-4 border-[var(--primary)] object-cover aspect-square w-24 sm:w-40 ml-2 md:ml-0 translate-y-[-25%] rounded-md" alt="" />
+                    
                     <div className="w-fit h-fit flex gap-2 sm:gap-4 pt-4">
                         {metadata.map(el => (
                             <div key={el.label} className="border-0 gap-1 md:gap-2 flex flex-col flex-cntr-all md:flex-row md:p-4 sm:border border-[var(--gray20)] rounded-md">
                                 <span>{el.val}</span>
-                                <label className="text-xs sm:text-sm text-zinc-500">{el.label}</label>
+                                <label className="text-xs text-zinc-500">{el.label}</label>
                             </div>
                         ))}
+                    
                     </div>
                 </div>
+                
                 <h1 ref={titleRef} className="text-xl sm:text-4xl -mt-4 md:-mt-8 font-semibold uppercase">{content.title}</h1>
+                
                 <p className="text-sm md:text-base text-zinc-500">{content.tagline}</p>
+                
                 <div className="my-4 flex gap-3 md:gap-4">
                     {content.genres.slice(0, 3).map(el => (
                         <Link key={el} href={`/explore/genre?q=${el.toLowerCase().replaceAll(' ', '-')}`} className="text-sm md:text-base">{el}</Link>
                     ))}
                 </div>
+
                 <p className="text-sm text-gray-500 line-clamp-4">{content.overview}</p>
+                
                 <div className="mt-4 text-sm flex gap-2">
                     <button className="primary textWithIcon flex-grow sm:flex-none" onClick={() => router.push(`${pathname}?action=trailer`, { scroll: false })}>
                         <PlayIcon />
@@ -144,6 +147,7 @@ export default function MainPageHeader({ content }: { content: RefinedMovieData 
                     }
                     <button className="iconBtn">
                         <BookmarkIcon />
+                        Add To List
                     </button>
                 </div>
             </section>

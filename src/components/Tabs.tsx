@@ -1,46 +1,46 @@
 "use client";
-import { Suspense, useState } from "react";
-import LoadingSpinner from "./ui/LoadingSpinner";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { Suspense } from "react";
+import LoadingSpinner from "./ui/LoadingSpinner";
 
 type TabProps = {
     Label: React.ReactNode,
     Component: JSX.Element,
     Loading?: React.ComponentType<any>,
+    tab_id: string,
+
 }[]
 
-const Tabs = ({ tabs }: { tabs: TabProps }) => {
-
-    const [currentTab, setTab] = useState(0);
+const Tabs = ({ tabs, currentTab }: { tabs: TabProps, currentTab?: string; }) => {
+    const tabIndex = tabs.findIndex(el => el.tab_id === currentTab);
+    const selectedTab = tabIndex >= 0 ? tabIndex : 0
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
 
     const ComponentToShow = () => {
-        return tabs[currentTab].Component
+        return tabs[selectedTab].Component
 
     }
 
     const LoadingComponent = () => {
-        const LoadingComp = tabs[currentTab].Loading ?? LoadingSpinner;
+        const LoadingComp = tabs[selectedTab].Loading ?? LoadingSpinner;
         return <LoadingComp />
     }
 
-    const changeTab = (index: number) => {
+    const changeTab = (tab: string) => {
         const params = new URLSearchParams(searchParams);
-        if (params.has('p')) {
-            params.delete("p");
-            router.replace(`${pathname}?${params.toString()}`);
-        }
-        setTab(index);
+        params.delete("p");
+        params.set("t", tab.trim());
+        router.replace(`${pathname}?${params.toString()}`);
     }
 
     return (
         <>
-            <ul className="flex gap-4 noScroll overflow-x-auto">
-                {tabs.map(({ Label }, ind) => (
-                    <li className={`flex-1 border-b-2 capitalise ${currentTab === ind ? "border-secondary" : "border-gray40"}`} key={ind}>
-                        <button className="w-full px-4 py-2 smallBtn" onClick={() => changeTab(ind)}>
+            <ul className="flex py-3 gap-4 noScroll overflow-x-auto">
+                {tabs.map(({ Label, tab_id }, ind) => (
+                    <li className={`flex-1 border-b-2 capitalise ${selectedTab === ind ? "border-secondary" : "border-gray40 hover:border-gray-500"}`} key={ind}>
+                        <button className="w-full px-4 py-2 smallBtn" onClick={() => changeTab(tab_id)}>
                             {Label}
                         </button>
                     </li>

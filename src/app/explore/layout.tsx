@@ -9,11 +9,8 @@ export const metadata: Metadata = {
 
 export default function Layout({ children }: Readonly<{ children: React.ReactNode }>) {
     return (
-        <div className="flex">
-            <Sidebar />
-            <main className="*:max-w-screen-md w-full *:mx-auto p-4">
-                {children}
-            </main>
-        </div>
+        <>
+            {children}
+        </>
     )
 }

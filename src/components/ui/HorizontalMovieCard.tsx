@@ -1,7 +1,7 @@
 "use Client";
 
 import { getPoster } from "@lib/dataRefiner"
-import { RefinedGeneralContentData } from "@lib/types";
+import { RefinedGeneralContentData } from "@type/types";
 import Image from "next/image"
 
 export const LoadingHorizontalMovieCard = () => (

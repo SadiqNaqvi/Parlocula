@@ -11,7 +11,7 @@ export async function connectDb(): Promise<void> {
 }
 
 export async function connectPPDB(): Promise<boolean> {
-  if (mongoose.connection.readyState) return true;
+  if (mongoose.connection.readyState === 1) return true;
 
   if (!process.env.PP_MONGODB_URI) {
     console.log("MongoDb Uri is not available");

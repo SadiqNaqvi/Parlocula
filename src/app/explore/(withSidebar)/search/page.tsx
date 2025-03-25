@@ -2,9 +2,9 @@
 
 import { SearchHeader } from "@components";
 import InfiniteScroller from "@components/InfiniteScroller";
-import { SearchTile, LoadingSearchTile } from "@components";
+import { SearchTile, LoadingSearchTile } from "@components/ui";
 import { searchAllContent, searchCollection, searchCompany, searchMovie, searchPerson, searchShow } from "@lib/contentFetcher";
-import { GeneralReturnType, RefinedSearchData } from "@lib/types";
+import { GeneralReturnType, RefinedSearchData } from "@type/external";
 import { useSearchParams } from "next/navigation";
 
 const Loading = () => (
@@ -31,28 +31,36 @@ export default function SearchPage() {
     }
 
     const fetchData = async (page = 1) => {
-        const functionToFetch = filterType ? funcMap[filterType] : funcMap["all"];
+        const functionToFetch = funcMap["all"];
         const resp = await functionToFetch(searchQuery, page);
-        if (!resp) throw new Error("Please try again and make sure your internet connection is stable. If the error persists, report it");
+        console.log(resp);
+        if (!resp) throw new Error("pp200");
         return resp;
     };
 
-    const notFoundMessages = {
-        heading: `Nothing can be found with '${searchQuery}'`,
+    const notFoundMessage = {
+        title: `Nothing can be found with '${searchQuery}'`,
         paras: ["Change the query or filter and try again."]
     }
 
-    return <main className="px-2 flex flex-col mainCont max-w-screen-md mx-auto pb-6">
-        <SearchHeader />
-        {searchQuery.trim() ?
-            <section className="mt-6">
-                <InfiniteScroller notFoundMessages={notFoundMessages} Loading={Loading} Component={SearchTile} queryKey={`searching-${searchQuery.replaceAll(' ', '-')}-with-filter-${filterType}`} fetchData={fetchData} />
-            </section>
-            :
-            <section className="mt-[30dvh] text-center">
-                <h3 className="text-lg md:text-2xl uppercase font-semibold mb-2">Search what you like!</h3>
-                <p className="text-sm md:text-base text-zinc-500">Movies, Shows, Threads, People, Users, Collections, Companies, etc...</p>
-            </section>
-        }
-    </main>
+    return (
+        <>
+            <SearchHeader />
+            {searchQuery.trim() ?
+                <section className="mt-6">
+                    <InfiniteScroller
+                        notFoundMessage={notFoundMessage}
+                        Loading={Loading}
+                        Component={SearchTile}
+                        queryKeys={[`searching-${searchQuery.replaceAll(' ', '-')}-with-filter-${filterType}`]}
+                        fetchData={fetchData} />
+                </section>
+                :
+                <section className="mt-[30dvh] text-center">
+                    <h3 className="text-lg md:text-2xl uppercase font-semibold mb-2">Search what you like!</h3>
+                    <p className="text-sm md:text-base text-zinc-500">Movies, Shows, Threads, People, Users, Collections, Companies, etc...</p>
+                </section>
+            }
+        </>
+    )
 }

@@ -1,30 +1,28 @@
 "use client";
 
-import { AppIcon, UserIcon, BellFillIcon, BellIcon, ExploreFillIcon, ExploreIcon, HomeFillIcon, HomeIcon, MagicStickFillIcon, MagicStickIcon, MessagesFillIcon, MessagesIcon, ThreadIcon } from "@assets/Icons"
+import { AppIcon, BellFillIcon, BellIcon, ExploreFillIcon, ExploreIcon, HomeFillIcon, HomeIcon, MagicStickFillIcon, MagicStickIcon, MessagesFillIcon, MessagesIcon, ThreadIcon, UserIcon } from "@assets/Icons";
+import { getInternalPoster } from "@lib/utils";
+import useCurrentUser from "@store/user";
 import { usePathname } from "next/navigation";
 import Navigate from "./Navigate";
-import useCurrentUser from "@store/user";
-import placeholder from "@assets/placeholder.png";
-import { getUser } from "@lib/utils"
 
 export default function Sidebar() {
 
     const pathname = usePathname();
 
-    const { user } = useCurrentUser();
-    // const user = { profile: '' }
+    const { user, profile, username } = useCurrentUser();
 
     const links = [
         { label: "Home", link: "/home", icon: HomeIcon, activeIcon: HomeFillIcon },
         { label: "Explore", link: "/explore", icon: ExploreIcon, activeIcon: ExploreFillIcon },
         { label: "Generate", link: "/generate", icon: MagicStickIcon, activeIcon: MagicStickFillIcon },
-        { label: "Threads", link: "/threads", icon: ThreadIcon, activeIcon: ThreadIcon },
+        { label: "Threads", link: "/t", icon: ThreadIcon, activeIcon: ThreadIcon },
         { label: "Inbox", link: "/inbox", icon: MessagesIcon, activeIcon: MessagesFillIcon },
         { label: "Notification", link: "/notification", icon: BellIcon, activeIcon: BellFillIcon },
     ];
 
     return (
-        <nav className="bg-primarylight md:bg-primary fixed md:sticky flex md:flex-col px-2 md:px-0 md:py-6 flex-cntr-between z-[10] bottom-0 md:top-0 h-16 md:h-dvh w-dvw md:w-20 border-t md:border-r md:border-t-0 border-gray20">
+        <nav className="bg-primarylight md:bg-primary fixed bottom-0 md:top-0 flex md:flex-col px-2 md:px-0 md:py-6 flex-cntr-between z-[10] h-16 md:h-dvh w-dvw md:w-20 border-t md:border-r md:border-t-0 border-gray20">
             <div className="hidden md:block">
                 <AppIcon classnames="h-8 stroke-[32] stroke-current overflow-visible" />
             </div>
@@ -44,7 +42,7 @@ export default function Sidebar() {
             </ul>
             <Navigate comp="link" goto="/me" className={`rounded-full border-2 ${pathname.startsWith("/me") ? "border-secondary" : "border-gray-500"}`}>
                 {user ?
-                    <img className="h-10 aspect-square rounded-full" src={user.profile ? user.profile : placeholder.src} />
+                    <img className="h-10 aspect-square rounded-full" src={getInternalPoster({ path: profile || "", options: { width: "40" } })} />
                     :
                     <UserIcon classnames="m-2" />
                 }

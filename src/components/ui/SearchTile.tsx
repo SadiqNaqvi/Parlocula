@@ -1,5 +1,5 @@
 import { getPoster } from "@lib/dataRefiner";
-import { RefinedSearchData } from "@lib/types";
+import { RefinedSearchData } from "@type/types";
 import Navigate from "../Navigate";
 
 export const LoadingSearchTile = () => (

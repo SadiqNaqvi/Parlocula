@@ -1,48 +1,39 @@
-import { createClient } from "redis";
+import { oneDay } from "@lib/constants";
+import { Session } from "@type/internal";
+import { Redis } from "@upstash/redis";
 
-export const redisClient = createClient({
-  password: process.env.REDIS_PASSWORD,
-  socket: {
-    host: process.env.REDIS_URI,
-    port: process.env.REDIS_PORT as number | undefined,
-  },
+export const redis = new Redis({
+  url: process.env.UPSTASH_URL,
+  token: process.env.UPSTASH_TOKEN,
 });
-
-redisClient.on("error", (err) => {
-  console.log("Redis Connection failed", err);
-  redisClient.disconnect();
-});
-redisClient.on("connect", () => console.log("Redis Connected Successfully"));
 
 export const storeSession = async (id: string, object: any) => {
-  if (!redisClient.isOpen) redisClient.connect();
   try {
-    const resp = await redisClient.setEx(
-      id,
-      60 * 60 * 24 * 30,
-      JSON.stringify(object)
-    );
-    if (resp === "OK") return true;
-    return false;
-  } catch (err) {
-    console.log("Error occured while storing sessions", err);
+    const resp = await redis.setex(id, oneDay * 30, {
+      ...object,
+      expiresOn: new Date().getTime() + oneDay * 30 * 1000,
+    });
+    return resp === "OK";
+  } catch (err: any) {
+    console.log("Error occured while storing sessions", err.message);
     return false;
   }
 };
 
-export const getSession = async (id: string) => {
-  if (!redisClient.isOpen) redisClient.connect();
+export const getSession = async (id: string): Promise<Session | null> => {
   try {
-    const resp = await redisClient.get(id);
-    if (resp) return JSON.parse(resp);
-    else return null;
+    return await redis.get(id);
   } catch (err) {
     console.log("Error getting sessions", err);
     return null;
   }
 };
 
-export const deleteSession = (id: string) => {
-  if (!redisClient.isOpen) redisClient.connect();
-  redisClient.del(id);
+export const deleteSession = async (id: string) => {
+  try {
+    return !!(await redis.del(id));
+  } catch (err) {
+    console.error("Error occured while deleting session:", err);
+    return false;
+  }
 };

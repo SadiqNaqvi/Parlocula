@@ -34,7 +34,7 @@ import {
   RefinedSearchData,
   RefinedSeasonData,
   RefinedShowData,
-} from "./types";
+} from "../type/external";
 
 export const getPoster = (type: string, path: string, size: number) => {
   if (!path)
@@ -65,13 +65,12 @@ export const getPoster = (type: string, path: string, size: number) => {
   }
 };
 
-export const refineString = (str: string) =>
-  str.replaceAll(/[^a-zA-Z0-9\s]/g, "").replaceAll(" ", "-");
-
+export const refineString = (str: string) => {
+  if (!str) return "";
+  return str.replaceAll(/[^a-zA-Z0-9\s]/g, "").replaceAll(" ", "-");
+};
 export const convertGenresIntoId = (genres: string, type: string): string => {
-  const clean = refineString(genres)
-    .toLowerCase()
-    .replaceAll("-", "");
+  const clean = refineString(genres).toLowerCase().replaceAll("-", "");
   const genArr = clean.split(",");
 
   const refinedGenres = () => {

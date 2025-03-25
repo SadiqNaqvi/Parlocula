@@ -4,11 +4,11 @@ import { CheckIcon, LeftChevron } from "@assets/Icons";
 import OptionMenu from "./OptionMenu";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
-const RouterDropdown = ({ tabs }: { tabs: { label: string, value: string }[] }) => {
+const RouterDropdown = ({ tabs }: { tabs: string[] }) => {
     const router = useRouter();
     const params = useSearchParams();
     const filter = params.get("f") || '';
-    const currentFilter = tabs.find(tab => tab.value === filter) ?? tabs[0];
+    const currentFilter = tabs.find(tab => tab === filter) ?? tabs[0];
     const pathname = usePathname();
 
     const setFilter = (filter: string) => {
@@ -18,22 +18,22 @@ const RouterDropdown = ({ tabs }: { tabs: { label: string, value: string }[] }) 
     }
 
     return (
-        <OptionMenu controls="auto" place="end" className="smallBtn p-3 rounded-md flex gap-2 flex-cntr-all border border-gray30" ButtonElement={
+        <OptionMenu controls="auto" place="end" className="smallBtn capitalize p-3 rounded-md flex gap-2 flex-cntr-all border border-gray30" ButtonElement={
             <>
-                {currentFilter.label}
+                {currentFilter}
                 <LeftChevron classnames="h-4 rotate-[270deg]" />
             </>
         }>
-            {tabs.map(({ label, value }) => (
+            {tabs.map((tab, ind) => (
                 <li
                     className="w-full list-none border-b border-gray30"
-                    key={label}
+                    key={ind}
                 >
                     <button
-                        onClick={() => setFilter(value)}
+                        onClick={() => setFilter(tab)}
                         className="smallBtn capitalize py-3 px-4 w-full flex flex-cntr-between text-left md:hover-bg-gray20">
-                        {label}
-                        {value === currentFilter.value &&
+                        {tab}
+                        {tab === currentFilter &&
                             <CheckIcon classnames="h-4" />
                         }
                     </button>

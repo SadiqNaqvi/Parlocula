@@ -1,47 +1,91 @@
-import { generateToken, getSession, verifyToken } from "@lib/auth";
-import { isValidObjectId } from "mongoose";
-import { cookies } from "next/headers";
-import { NextResponse, NextRequest } from "next/server";
+export const config = {
+  matcher: [
+    "/api/v1/user/me",
+    "/api/v1/private/:path*",
+    "/api/v1/thread/:id/:path*",
+    "/api/v1/post/:id/:path*",
+    "/api/v1/comment/:id/:path*",
+    "/api/lala",
+  ],
+};
 
-const checkTokenAndSession = async () => {
-  const token = cookies().get("token");
-  if (!token || !token.value) return false;
-  const payload = verifyToken(token.value);
-  if (
-    typeof payload === "string" ||
-    !payload.exp ||
-    !payload.user_id ||
-    !isValidObjectId(payload.user_id)
-  )
-    return false;
+import { getSession } from "@lib/auth";
+import { isValidObjectId } from "@lib/utils";
+import { NextRequest, NextResponse } from "next/server";
 
-  if (payload.exp * 1000 > Date.now()) return true;
-  const session = await getSession(payload.user_id);
-  if (!session) return false;
+const dynamicRoutes = ["thread", "post", "comment", "private/thread"];
 
-  generateToken({
-    user_id: payload.user_id,
-    dob: payload.dob,
-  });
+const staticRoutes = ["newest", "popular", "trending", "new"];
+
+const checkIsValidObjectId = (pathname: string) => {
+  for (const route in dynamicRoutes) {
+    const path = `/api/v1/${route}/`;
+    if (!pathname.includes(path)) continue;
+    const slug = pathname.split(path)[1].split("/")[0];
+    if (
+      slug &&
+      !staticRoutes.includes(slug) &&
+      !isValidObjectId(slug.split("-")[0])
+    )
+      return false;
+  }
   return true;
 };
 
 export const middleware = async (req: NextRequest) => {
-  req.headers.forEach((header) => console.log(header));
+  console.log("middleware entered");
+  const { url, nextUrl } = req;
 
-  const response = await checkTokenAndSession();
-  if (req.url.includes("/api/private") && !response)
-    return NextResponse.redirect(new URL("/join", req.url));
-  else if (req.url.includes("/api/user") && !response)
+  if (!checkIsValidObjectId(nextUrl.pathname))
     return NextResponse.json({
+      success: false,
+      errCode: "pp204",
       result: null,
-      error: "No Logged in user",
-      success: true,
     });
 
-  return NextResponse.next();
-};
+  // Check if there's a current user
+  const session_id = req.cookies.get("sid")?.value;
+  if (!session_id) return null;
+  const user = await getSession(session_id);
 
-export const config = {
-  matcher: ["/api/user", "/api/private/:path*"],
+  // If user is trying to post something but there's no current user, return the request.
+  if (url.includes("/api/v1/private")) {
+    if (!user)
+      return NextResponse.json({
+        result: null,
+        errCode: "pp202",
+        success: false,
+      });
+    else if (user.isBanned)
+      return NextResponse.json({
+        result: null,
+        success: false,
+        errCode: "pp206",
+      });
+  }
+
+  // If user is trying to fetch their details in /user/me page but there's no current user, return the request.
+  else if (url.includes("/api/v1/user/me") && !user)
+    return NextResponse.json({
+      result: null,
+      errCode: "pp202",
+      success: false,
+    });
+
+  const response = NextResponse.next();
+  if (user) {
+    response.cookies.set("uid", user.user_id, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "strict",
+      path: "/",
+    });
+    response.cookies.set("username", user.username, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "strict",
+      path: "/",
+    });
+  }
+  return response;
 };

@@ -1,16 +1,16 @@
-import mongoose, { Schema, models } from "mongoose";
-import { reportModel } from "./general";
+import { Schema, models, model } from "mongoose";
+import { CommentModelType } from "@type/modelTypes";
 
-const commentModel = new Schema(
+const commentModel = new Schema<CommentModelType>(
   {
     content: {
       type: String,
       required: true,
     },
-    thread_id: {
+    replied_to: {
       type: Schema.Types.ObjectId,
-      ref: "Thread",
-      required: true,
+      ref: "Comment",
+      default: null,
     },
     user_id: {
       type: Schema.Types.ObjectId,
@@ -22,20 +22,20 @@ const commentModel = new Schema(
       ref: "Post",
       required: true,
     },
-    upvotes: {
-      type: Number,
-      default: 0,
+    upvote_count: { type: Number, default: 0 },
+    attachment: String,
+    edited_at: {
+      type: String,
+      default: null,
     },
-    reports: [reportModel],
+    nsfw: { type: Boolean, default: false },
+    spoiler: { type: Boolean, default: false },
   },
   { timestamps: true }
 );
 
-// Prevent duplicate comments
-commentModel.index({ thread_id: 1, user_id: 1, post_id: 1 }, { unique: true });
-// For fetching using indexes
-commentModel.index({ user_id: 1, thread_id: 1, post_id: 1 });
+commentModel.index({ user_id: 1, post_id: 1 }, { unique: false });
 
-const Comment = models.Comment || mongoose.model("Comment", commentModel);
+const Comment = models.Comment || model("Comment", commentModel);
 
 export default Comment;

@@ -37,10 +37,10 @@ const LinkInputCont = ({ func, classes = "", ...props }: { func: any, classes?: 
                 minLength={15}
                 maxLength={100}
                 className="px-2 py-3 bg-gray20 mt-4"
-                placeholder="link"
-                {...register("link")} />
-            {errors.link &&
-                <p className="my-2 text-red-500">{errors.link.message?.toString()}</p>
+                placeholder="url"
+                {...register("url")} />
+            {errors.url &&
+                <p className="my-2 text-red-500">{errors.url.message?.toString()}</p>
             }
 
             <button className="secondary mt-4" type="submit">Add</button>

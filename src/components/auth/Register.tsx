@@ -1,24 +1,21 @@
 "use client";
 
-import { EditIcon, LeftChevron } from "@assets/Icons";
-import { DatePicker, Form, Input, Password, Textarea } from "@components/form";
+import { LeftChevron } from "@assets/Icons";
+import { DatePicker, Form, Input, Password, Poster, Textarea } from "@components/form";
 import Choice from "@components/form/Choice";
 import MediaInputCont from "@components/MediaInputCont";
-import OptionMenu from "@components/OptionMenu";
-import { isUsernameAvailable } from "@lib/actions";
+import { isUsernameAvailable, register } from "@lib/actions/clientActions";
 import { genresToChoose } from "@lib/constants";
 import { useCustomReducer } from "@lib/hooks";
-import { registerUserSchemaClient, registerUserSchemaServer, usernameSchema, userPrefrenceSchema } from "@lib/schemas";
-import { objectToFormData, refineZodError } from "@lib/utils";
+import { registerUserSchemaClient, usernameSchema, userPrefrenceSchema } from "@lib/schemas";
+import { convertCodeIntoError } from "@lib/utils";
 import useCurrentUser from "@store/user";
-import { User } from "@type/internal";
-import axios from "axios";
+import { InputFrame } from "@type/internal";
 import { useRouter, useSearchParams } from "next/navigation";
 
 const Register = ({ email }: { email: string }) => {
 
     const {
-        blob,
         profile,
         userData,
         username,
@@ -27,13 +24,11 @@ const Register = ({ email }: { email: string }) => {
     } = useCustomReducer<{
         username: string,
         userData: any,
-        blob: Blob | null,
         page: number,
-        profile: string
+        profile: InputFrame | null
     }>({
         username: "",
-        blob: null,
-        profile: '',
+        profile: null,
         userData: null,
         page: 0,
     });
@@ -41,35 +36,18 @@ const Register = ({ email }: { email: string }) => {
     const { setUserHash } = useCurrentUser();
     const urlToRedirect = useSearchParams().get("url");
 
-    const storeUserAndRedirect = (user: User) => {
-        setUserHash(user);
-        router.replace(urlToRedirect ?? "/home");
-    }
-
-    const getProfilePicture = (file: Blob | string) => {
-        setter({ profile: "", blob: null });
-        if (typeof file === "string")
-            setter({ profile: file });
-        else
-            setter({ blob: file, profile: URL.createObjectURL(file) });
+    const getProfilePicture = (profile: InputFrame[]) => {
+        setter({ profile: profile.pop() });
     }
 
     const mainSubmit = async (data: any) => {
+        router.prefetch(urlToRedirect ?? "/home");
         const { confirmPassword, ...restData } = userData;
         const dataToUpload = { ...restData, genres: data };
 
-        const resp: { data: { result: any, success: boolean, error: any } } = await axios.post(
-            `/api/register`,
-            objectToFormData(dataToUpload)
-        );
-
-        const { result, success, error } = resp.data;
-        if (!success) {
-            if (typeof error !== "string")
-                return refineZodError(error)
-            return [{ path: "custom", message: error }]
-        };
-        storeUserAndRedirect(result);
+        const error = await register(dataToUpload, setUserHash);
+        if (error) return error;
+        router.replace(urlToRedirect ?? "/home");
     }
 
     const UserPrefrenceContainer = () => (
@@ -104,11 +82,14 @@ const Register = ({ email }: { email: string }) => {
     )
 
     const storeUserData = async (data: any) => {
-        const file_type = profile ? "image" : null;
-        const file = blob ? new File([new Uint8Array(await blob.arrayBuffer())], "Popcorn Paragon", { type: "image/webp" }) : null;
-        const file_url = profile || null;
-        console.log(data);
-        setter({ userData: { ...data, email, username, file_type, file, file_url }, page: 2 });
+        const file = profile && !profile.isExternal ? new File(
+            [new Uint8Array(await profile.blob.arrayBuffer())],
+            `Profile Picture of ${data.name} thread - Popcorn Paragon`,
+            { type: "image/webp" })
+            : null;
+
+        const fileData = profile ? { url: profile.url, isExternal: profile.isExternal, type: profile.type } : null
+        setter({ userData: { ...data, email, username, fileData, file, }, page: 2 });
     }
 
     const UserDataContainer = () => (
@@ -119,37 +100,7 @@ const Register = ({ email }: { email: string }) => {
                 </button>
                 <h2 className="text-2xl text-center">Just few steps to go</h2>
             </div>
-            <div className="group size-48 mx-auto relative">
-                <div className="size-full absolute z-[1] rounded-full border border-dashed border-slate-500 group-has-[img]:backdrop-brightness-50 group-has-[img]:text-slate-50">
-                    {profile ?
-                        <OptionMenu ButtonElement={<EditIcon />} className="size-full smallBtn flex flex-cntr-all" controls="auto" place="end">
-                            <li className="w-full border-b border-gray30">
-                                <button className="w-full p-3 smallBtn text-left" popoverTarget="profile-picker">
-                                    Change Picture
-                                </button>
-                            </li>
-                            <li className="w-full border-b border-gray30">
-                                <button className="w-full p-3 smallBtn text-left" onClick={() => setter({ profile: "", blob: null })}>
-                                    Remove Picture
-                                </button>
-                            </li>
-                        </OptionMenu>
-                        :
-                        <button
-                            popoverTarget="profile-picker"
-                            className="smallBtn rounded-full flex flex-cntr-all size-full">
-                            <EditIcon />
-                        </button>
-                    }
-                </div>
-                {profile &&
-                    <img
-                        src={profile}
-                        alt=""
-                        className="size-full rounded-full object-cover"
-                    />
-                }
-            </div>
+            <Poster picture={profile?.url || ""} removePicture={() => setter({ profile: null })} />
             <Form
                 submit={storeUserData}
                 schema={registerUserSchemaClient}
@@ -203,11 +154,9 @@ const Register = ({ email }: { email: string }) => {
             return null;
         }
 
-        const resp = await isUsernameAvailable(data.username)
-        if (!resp.success) return [{
-            path: "custom", message: resp.error
-        }]
-        if (!resp.result) return [{
+        const { errCode, result, success } = await isUsernameAvailable(data.username);
+        if (!success) return convertCodeIntoError(errCode)
+        else if (!result) return [{
             path: "username", message: "Username is not available"
         }]
         setter({ username: data.username, page: 1 });

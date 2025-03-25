@@ -3,10 +3,12 @@
 import { UserIcon } from "@assets/Icons";
 import { Navigate } from "@components";
 import useCurrentUser from "@store/user";
-import { UserProfile } from "@components/ui";
+import { LoadingSpinner, UserProfile } from "@components/ui";
 
 const Page = () => {
-    const { user } = useCurrentUser();
+    const { user, isGuest } = useCurrentUser();
+
+    if (isGuest === null || (isGuest === false && !user)) return <LoadingSpinner />
 
     if (!user) return (
         <>

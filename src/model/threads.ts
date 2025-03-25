@@ -1,18 +1,11 @@
-import mongoose, { Schema, models } from "mongoose";
-import { linkModel, connectionModel } from "./general";
+import { Schema, models } from "mongoose";
+import { linkModel, connectionModel, lastUpdate } from "./general";
+import { ThreadModelType } from "@type/modelTypes";
+import { model } from "mongoose";
 
-const lastUpdate = new Schema({
-  title: String,
-  poster: String,
-  description: String,
-  nsfw: Boolean,
-  links: [linkModel],
-  connection: [connectionModel],
-});
-
-const threadModel = new Schema(
+const threadModel = new Schema<ThreadModelType>(
   {
-    title: {
+    name: {
       type: String,
       unique: true,
       required: true,
@@ -33,23 +26,23 @@ const threadModel = new Schema(
       required: false,
     },
     created_by: {
-      type: mongoose.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
-    members_count: {
-      type: Number,
-      default: 1,
-    },
-    lastUpdatedAt: Date,
-    lastUpdate,
-    posts_count: {
+    edited_at: Date,
+    edit: lastUpdate,
+    post_count: {
       type: Number,
       default: 0,
+    },
+    member_count: {
+      type: Number,
+      default: 1,
     },
   },
   { timestamps: true }
 );
 
-const Thread = models.Thread || mongoose.model("Thread", threadModel);
+const Thread = models.Thread || model<ThreadModelType>("Thread", threadModel);
 export default Thread;

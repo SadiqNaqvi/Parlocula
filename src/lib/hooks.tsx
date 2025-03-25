@@ -1,14 +1,12 @@
 "use client";
 
-import { useInfiniteQuery } from "@tanstack/react-query";
-import { GeneralReturnType } from "./types";
-import { useEffect, useReducer } from "react";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
+import { InfiniteQueryResponse } from "@type/internal";
+import { useReducer } from "react";
+import { oneHour } from "./constants";
 
-type DataType = GeneralReturnType & { [key: string]: any[] };
-
-export const useInfiniteScroller = <T,>(queryKey: unknown, func: (pageParams: number) => Promise<GeneralReturnType & T>, container: { current: null | Element }) => {
-
-    const returnVal = useInfiniteQuery({
+export const useInfiniteQueryHook = <T,>(queryKey: unknown, func: (pageParams: number) => Promise<InfiniteQueryResponse & T>) => {
+    return useInfiniteQuery({
         retry: 1,
         refetchOnWindowFocus: false,
         queryKey: [queryKey],
@@ -21,26 +19,29 @@ export const useInfiniteScroller = <T,>(queryKey: unknown, func: (pageParams: nu
             return;
         },
     });
+}
 
-    const { fetchNextPage, isFetchingNextPage, hasNextPage } = returnVal;
+type UseQueryProps<T,> = {
+    queryKeys: string[],
+    queryFn: () => Promise<T | null>,
+    enabled?: boolean,
+    initialData?: T,
+    staleTime?: number
+}
 
-    useEffect(() => {
-        const observer = new IntersectionObserver(([entry]) => {
-            // console.log(entry.isIntersecting && !isFetchingNextPage && hasNextPage);
-            if (entry.isIntersecting && !isFetchingNextPage && hasNextPage)
-                fetchNextPage();
-        }, { threshold: 0.1 })
-
-        if (container.current)
-            observer.observe(container.current);
-
-        return () => {
-            if (container.current)
-                observer.unobserve(container.current);
-        }
-    }, [container.current]);
-
-    return returnVal;
+export const useQueryHook = <T,>({ queryKeys, queryFn, initialData, staleTime = oneHour, enabled = true }: UseQueryProps<T>) => {
+    return useQuery({
+        queryKey: queryKeys,
+        queryFn,
+        enabled,
+        staleTime,
+        initialData,
+        retry: false,
+        refetchOnMount: false,
+        refetchOnWindowFocus: false,
+        refetchOnReconnect: false,
+        retryOnMount: false,
+    })
 }
 
 function reducer<T>(state: T, action: Partial<T>): T {

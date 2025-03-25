@@ -1,6 +1,14 @@
+import {
+  ConnectionModelType,
+  FrameModelType,
+  LastUpdateModelType,
+  LinkModelType,
+  RecentlyJoinedModelType,
+  ReportModelType,
+} from "@type/modelTypes";
 import { Schema } from "mongoose";
 
-const reportModel = new Schema(
+const reportModel = new Schema<ReportModelType>(
   {
     by: {
       type: Schema.Types.ObjectId,
@@ -8,8 +16,8 @@ const reportModel = new Schema(
       required: true,
     },
     for: {
-      type: String,
-      required: [true, "Reason for report is required."],
+      type: [String],
+      required: [true, "At least one reason to report."],
     },
   },
   { timestamps: true }
@@ -24,18 +32,52 @@ reportModel.index(
 
 export { reportModel };
 
-export const linkModel = new Schema({
+export const linkModel = new Schema<LinkModelType>({
   label: {
     type: String,
-    required: [true, "Label for Link is required."],
+    required: [true, "Label for a Link is required."],
   },
-  url: {
+  path: {
     type: String,
-    required: [true, "URL for a Link is required"],
+    required: [true, "Path for a Link is required"],
   },
 });
 
-export const connectionModel = new Schema({
-  media_type: { type: String, required: true },
-  id: { type: String, required: true },
+export const connectionModel = new Schema<ConnectionModelType>({
+  media_type: {
+    type: String,
+    required: true,
+  },
+  id: {
+    type: String,
+    required: true,
+  },
+});
+
+export const recentlyJoinedModel = new Schema<RecentlyJoinedModelType>({
+  name: String,
+  poster: String,
+  thread_id: Schema.Types.ObjectId,
+});
+
+export const lastUpdate = new Schema<LastUpdateModelType>({
+  name: String,
+  poster: String,
+  description: String,
+  nsfw: Boolean,
+  links: [linkModel],
+  connection: [connectionModel],
+});
+
+export const frameModel = new Schema<FrameModelType>({
+  path: {
+    type: String,
+    required: true,
+  },
+  type: {
+    type: String,
+    enum: ["image", "video"],
+    required: true,
+  },
+  size: { type: Number },
 });

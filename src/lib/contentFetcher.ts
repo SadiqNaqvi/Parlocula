@@ -1,4 +1,4 @@
-"use server";
+// "use server";
 
 import {
   convertGenresIntoId,
@@ -27,32 +27,34 @@ import {
   RefinedShowData,
   FullShowDetails,
   FullCompanyDetails,
-} from "./types";
-
-type MovieReturnType = { status: boolean; response: GeneralMovieReturn };
-type ShowReturnType = { status: boolean; response: GeneralShowReturn };
+} from "../type/external";
+import { getMediaItem } from "./actions/actions";
+type GeneralReturn<T = any> = { status: boolean; response: T };
+type MovieReturnType = GeneralReturn<GeneralMovieReturn>;
+type ShowReturnType = GeneralReturn<GeneralShowReturn>;
 
 export const fetchMovie = async (
   id: string
 ): Promise<RefinedMovieData | undefined> => {
   if (!id) return;
   try {
-    const data: { status: boolean; response: FullMovieDetails } = await (
-      await fetch(`https://testlalaapp.vercel.app/api/movie?id=${id}`)
-    ).json();
-    if (!data.status) {
-      console.log("Error occured while fetching movie data: " + data.response);
-      return;
-    }
 
-    const { title, release_date } = data.response;
-    const extraData: { status: boolean; response: ExtraMovieData } = await (
-      await fetch(
-        `https://testlalaapp.vercel.app/api/extra?t=${title}&y=${new Date(
-          release_date
-        ).getFullYear()}`
-      )
-    ).json();
+    const item = await getMediaItem(id, "movie");
+    if (!item) return;
+
+    const { title, year } = item;
+
+    const dataPromise = fetch(
+      `https://testlalaapp.vercel.app/api/movie?id=${id}`
+    ).then((r) => r.json());
+    const extraDataPromise = fetch(
+      `https://testlalaapp.vercel.app/api/extra?t=${title}&y=${year}`
+    ).then((r) => r.json());
+
+    const [data, extraData] = await Promise.all([
+      dataPromise,
+      extraDataPromise,
+    ]);
 
     if (!extraData.status) {
       console.log(
@@ -61,13 +63,17 @@ export const fetchMovie = async (
       return;
     }
 
-    return refineMovieData(
-      data.response,
-      data.response.credits.cast,
-      data.response.credits.crew,
-      data.response.videos.results,
-      extraData.response
-    );
+    return {
+      ...refineMovieData(
+        data.response,
+        data.response.credits.cast,
+        data.response.credits.crew,
+        data.response.videos.results,
+        extraData.response
+      ),
+      popcorn_rating: Math.round((item.rating / item.rating_count) * 10) / 10,
+      media_id: item._id,
+    };
   } catch (err: any) {
     console.error("Error occured while fetching movie  " + err.message);
     return;
@@ -314,22 +320,22 @@ export const fetchShow = async (
 ): Promise<RefinedShowData | undefined> => {
   if (!id) return;
   try {
-    const data: { status: boolean; response: FullShowDetails } = await (
-      await fetch(`https://testlalaapp.vercel.app/api/show?id=${id}`)
-    ).json();
-    if (!data.status) {
-      console.log("Error occured while fetching show data: " + data.response);
-      return;
-    }
+    const item = await getMediaItem(id, "show");
+    if (!item) return;
 
-    const { name, first_air_date } = data.response;
-    const extraData: { status: boolean; response: ExtraMovieData } = await (
-      await fetch(
-        `https://testlalaapp.vercel.app/api/extra?t=${name}&y=${new Date(
-          first_air_date
-        ).getFullYear()}`
-      )
-    ).json();
+    const { title, year } = item;
+
+    const dataPromise = fetch(
+      `https://testlalaapp.vercel.app/api/show?id=${id}`
+    ).then((r) => r.json());
+    const extraDataPromise = fetch(
+      `https://testlalaapp.vercel.app/api/extra?t=${title}&y=${year}`
+    ).then((r) => r.json());
+
+    const [data, extraData] = await Promise.all([
+      dataPromise,
+      extraDataPromise,
+    ]);
 
     if (!extraData.status) {
       console.log(
@@ -338,7 +344,11 @@ export const fetchShow = async (
       return;
     }
 
-    return refineShowData(data.response, extraData.response);
+    return {
+      ...refineShowData(data.response, extraData.response),
+      popcorn_rating: Math.round((item.rating / item.rating_count) * 10) / 10,
+      media_id: item._id,
+    };
   } catch (err: any) {
     console.error("Error occured while fetching movie  " + err.message);
     return;

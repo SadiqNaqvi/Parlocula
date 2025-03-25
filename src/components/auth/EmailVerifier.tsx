@@ -1,6 +1,5 @@
 import { LeftChevron } from "@assets/Icons";
 import { Form, Input } from "@components/form";
-import OtpInput from "@components/form/OTPInputs";
 import { useCustomReducer } from "@lib/hooks";
 import { emailSchema } from "@lib/schemas";
 import { z } from "zod";
@@ -32,23 +31,13 @@ const EmailVerifier = ({ callback }: { callback: (email: string) => Promise<stri
         const otpInput = data.otp;
         if (otpInput !== otp) {
             if (otpCount >= 3)
-                return [{
-                    path: "custom",
-                    message: "Unable to verify your email. Please try again after 24 hours."
-                }];
+                return "Unable to verify your email. Please try again after 24 hours.";
             else {
                 setter({ otpCount: 2 });
-                return [{
-                    path: "custom",
-                    message: "Wrong OTP! Please resend the OTP and try again."
-                }];
+                return "Wrong OTP! Please resend the OTP and try again.";
             }
         }
-        const respError = await callback(email);
-        return respError ? [{
-            path: "custom",
-            message: respError,
-        }] : null
+        return await callback(email);
     }
 
     const sendOTP = () => {
@@ -115,7 +104,6 @@ const EmailVerifier = ({ callback }: { callback: (email: string) => Promise<stri
                         submit={submit}
                         schema={schema}>
                         <Input
-                            label=""
                             name="email"
                             defaultValue={email}
                             autoFocus

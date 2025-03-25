@@ -8,7 +8,7 @@ export default function ExplorePage() {
     const showGenres = ["kids", "news", "reality", "soap", "talk"];
 
     return (
-        <main className="px-2 max-w-screen-md mainCont mx-auto">
+        <>
             <header className="bg-[var(--primary)] pt-4 pb-2 sticky top-0">
                 <Navigate comp="button" goto={`/explore/search`} className="noPadding justify-start border-0 h-10 md:h-12 cursor-text w-full bg-[var(--gray20)] gap-2 px-4">
                     <SearchIcon classnames="min-h-4 h-4 text-zinc-500" />
@@ -31,6 +31,6 @@ export default function ExplorePage() {
                     <DataFetcher type="movie" args={[""]} func={fetchTrendingMovies} />
                 </div>
             </section>
-        </main>
+        </>
     )
 }

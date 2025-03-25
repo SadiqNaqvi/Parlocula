@@ -1,5 +1,5 @@
 import { getPoster } from "@lib/dataRefiner"
-import { RefinedMovieData } from "@lib/types"
+import { RefinedMovieData } from "@type/types"
 import Link from "next/link"
 
 export const LoadingMovieCard = () => (

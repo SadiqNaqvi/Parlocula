@@ -5,9 +5,17 @@ import User, { UserData } from "./users";
 import Comment from "./comments";
 import Reaction from "./reactions";
 import Vote from "./votes";
-import Collection from "./collections";
+import Collection from "./lists";
+import Follow from "./follows";
+import Media from "./medias";
+import List from "./lists";
+import Item from "./items";
 
 export {
+  Item,
+  List,
+  Media,
+  Follow,
   Post,
   Thread,
   User,
