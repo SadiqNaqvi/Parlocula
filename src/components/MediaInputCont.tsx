@@ -1,26 +1,33 @@
-import { CheckIcon, XmarkIcon } from "@assets/Icons";
-import Image from "next/image"
-import logo from "@assets/logo.png"
-import React, { ChangeEvent } from "react";
+"use client";
+
+import { XmarkIcon } from "@assets/Icons";
+import logo from "@assets/logo.png";
+import { mediaUrlPattern, numberOfFrames } from "@lib/constants";
 import { useCustomReducer } from "@lib/hooks";
 import { scaleImage } from "@lib/utils";
-import { allowedFormats, numberOfFrames, urlPattern } from "@lib/constants";
-import { InputFrame } from "@type/internal";
+import { InputFrame } from "@type/schemas";
+import Image from "next/image";
+import { ChangeEvent } from "react";
+import { CloseButton } from "./Modal";
 
-type MediaInputType = { type: "image" | "video", multiple?: number, callback: (file: InputFrame[]) => void } & React.HTMLAttributes<HTMLElement>
+type MediaInputType = {
+    type: "image" | "video",
+    multiple?: number,
+    callback: (file: InputFrame[]) => void,
+    defaultFrames?: InputFrame[],
+}
 
-const MediaInputCont = ({ type, multiple = 0, callback, ...args }: MediaInputType) => {
+const MediaInputCont = ({ type, multiple = 0, callback, defaultFrames }: MediaInputType) => {
 
     const {
         error,
         frames,
+        noOfVideos,
         setter
-    } = useCustomReducer<{
-        error: string,
-        frames: InputFrame[]
-    }>({
+    } = useCustomReducer({
         error: "",
-        frames: []
+        noOfVideos: 0,
+        frames: defaultFrames ?? []
     });
 
     const inputConfig: Record<"image" | "video", { accept: string, size: { label: string, value: number } }> = {
@@ -35,27 +42,51 @@ const MediaInputCont = ({ type, multiple = 0, callback, ...args }: MediaInputTyp
 
     const returnMedia = () => {
         callback(frames);
-        setter({ frames: [] });
+        // setter({ frames: [] });
+    }
+
+    const isFrameValid = (frame: File) => {
+        const [type, ext] = frame.type.split('/');
+        if (type !== "image" && type !== "video") return setError(`Invalid Media Type! Only Images and Videos are allowed.`);
+        if (!inputConfig[type].accept.includes(ext)) return setError(`Invalid Media Extention! Please choose a valid ${type}.`);
+        else if (frame.size > inputConfig[type].size.value) return setError(`${type} is too large in size. Please choose a valid ${type}.`);
+        else return true;
     }
 
     const handleMediaUpload = async (event: ChangeEvent<HTMLInputElement>) => {
         if (!event.target.files?.length) return;
         const file: File = event.target.files[0];
-        if (file.size > inputConfig[type].size.value) {
-            setError(`${type} is too large in size. Please choose a valid ${type}.`)
+
+        // Check if the provided frame is valid. 
+        if (!isFrameValid(file)) return;
+        else if (frames.length >= numberOfFrames.total)
+            return setError(`Only ${numberOfFrames.total} frames are allowed`);
+        else if (type === "video" && noOfVideos >= numberOfFrames.videos)
+            return setError(`Only ${numberOfFrames.videos} device uploaded videos are allowed. Use URL based upload for more videos.`);
+
+        const blob = type === "image" ?
+            await scaleImage(file) :
+            new Blob([new Uint8Array(await file.arrayBuffer())], { type: file.type });
+
+        if (!blob) return setError("Unable to parse image. Please try again.");
+        setter({ frames: [{ type, path: URL.createObjectURL(blob), blob, isExternal: false }], noOfVideos: noOfVideos + (type === "video" ? 1 : 0) });
+
+    }
+
+    const getMediaTypeFromUrl = (url: string) => {
+        const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg'];
+        const videoExtensions = ['mp4', 'mov', 'avi', 'mkv', 'webm', 'flv', 'wmv'];
+
+        const extension = url.split('.').pop()?.toLowerCase().split(/[?#]/)[0];
+
+        if (!extension) return;
+
+        else if (imageExtensions.includes(extension)) {
+            return 'image';
+        } else if (videoExtensions.includes(extension)) {
+            return 'video';
+        } else {
             return;
-        }
-        if (type === "image") {
-            const blob = await scaleImage(file);
-            if (!blob) {
-                setError("Unable to parse image. Please try again.");
-                return;
-            }
-            setter({ frames: [{ type: "image", url: URL.createObjectURL(blob), blob, isExternal: false, size: blob.size }] });
-        }
-        else {
-            const blob = new Blob([new Uint8Array(await file.arrayBuffer())], { type: file.type });
-            setter({ frames: [{ type: "video", url: URL.createObjectURL(blob), blob, isExternal: false, size: blob.size }] });
         }
     }
 
@@ -66,55 +97,28 @@ const MediaInputCont = ({ type, multiple = 0, callback, ...args }: MediaInputTyp
         const url = e.target.url.value.trim().toLowerCase();
         if (!url) return;
 
-        if (!urlPattern.test(url)) return setError("Invalid URL! Please provide a valid URL with 'https'");
+        else if (!mediaUrlPattern.test(url))
+            return setError("Invalid URL! Fix: Include 'https' or media extension not supported");
 
-        const extension = url.split('.').pop();
-        if ((type === "image" && !allowedFormats.image.includes(extension)) ||
-            (type === "video" && !allowedFormats.video.includes(extension))) {
-            return setError("Invalid Format! Only listed formats are allowed");
-        }
+        const media_type = getMediaTypeFromUrl(url);
+        if (!media_type) return setError("Invalid Extension! Please provide a valid image/video type.")
 
-        try {
-            const resp = await fetch(url, { method: "HEAD" });
-            const contentType = resp.headers.get("Content-Type");
-            const contentSize = parseInt(resp.headers.get("Content-Length") || "");
+        else if (!multiple && media_type !== type)
+            return setError(`Invalid Media! Please provide a valid ${type}.`)
 
-            if (!contentType || !contentSize || isNaN(contentSize))
-                return setError("Unable to fetch media. Please check the URL and try again.");
+        if (multiple) setter({ frames: [...frames, { blob: null, isExternal: true, type: media_type, path: url }] })
+        else setter({ frames: [{ blob: null, isExternal: true, type: media_type, path: url }] })
 
-            const mediaType = contentType.split("/")[0];
-            if (!["image", "video"].includes(mediaType))
-                return setError("Invalid Media Type! Only images and videos are allowed.");
-
-            const maxSize: Record<string, number> = { image: 10 * 1024 * 1024, video: 100 * 1024 * 1024 }; // 10MB, 100MB
-            if (contentSize > maxSize[mediaType]) {
-                return setError(`The ${mediaType} is too large. Use a media hosting site and attach the link.`);
-            }
-
-            setter({ frames: [{ blob: null, isExternal: true, type: mediaType as "image" | "video", size: contentSize, url }] });
-        } catch {
-            setError("Failed to fetch media. Please check your connection and try again.");
-        }
-
-    }
-
-    const isFrameValid = (frame: File) => {
-        const [type, ext] = frame.type.split('/');
-        if (type !== "image" && type !== "video") return false;
-        if (!inputConfig[type].accept.includes(ext)) return false;
-        else if (frame.size > inputConfig[type].size.value) return false;
-        else return true;
     }
 
     const handleFrames = async (event: ChangeEvent<HTMLInputElement>) => {
         const files: FileList | null = event.target.files;
         if (!files || !files.length) return;
-        if (files.length > numberOfFrames.total) {
-            setError(`You can only choose ${numberOfFrames.total} frames`);
-            return;
-        }
-        let videos = 0; let excluded = 0;
-        const frames: InputFrame[] = [];
+        if ((frames.length + files.length) > numberOfFrames.total)
+            return setError(`Only ${numberOfFrames.total} frames are allowed for now.`);
+
+        let videos = noOfVideos; let excluded = 0;
+        const tempFrames = frames;
         for (let i = 0; i < files.length; i++) {
             const file = files[i];
             const isValid = isFrameValid(file);
@@ -122,14 +126,13 @@ const MediaInputCont = ({ type, multiple = 0, callback, ...args }: MediaInputTyp
                 excluded++;
                 continue;
             }
-            if (file.type.split('/')[0] === "image") {
+
+            else if (file.type.split('/')[0] === "image") {
                 const blob = await scaleImage(file);
-                if (!blob) {
-                    setError("Unable to parse image. Please try again.");
-                    continue;
-                }
-                frames.push({ url: URL.createObjectURL(blob), type: "image", isExternal: false, blob, size: blob.size });
+                if (!blob) continue;
+                tempFrames.push({ path: URL.createObjectURL(blob), type: "image", isExternal: false, blob });
             }
+
             else {
                 if (videos >= numberOfFrames.videos) {
                     excluded++;
@@ -137,105 +140,111 @@ const MediaInputCont = ({ type, multiple = 0, callback, ...args }: MediaInputTyp
                 }
                 videos++;
                 const blob = new Blob([new Uint8Array(await file.arrayBuffer())], { type: file.type });
-                frames.push({ url: URL.createObjectURL(blob), type: "video", isExternal: false, blob, size: blob.size });
+                tempFrames.push({ path: URL.createObjectURL(blob), type: "video", isExternal: false, blob });
             }
         }
         excluded && setError(`${excluded} frames are excluded from the chosen frames since you've voilated the rules.`)
-        setter({ frames });
+        setter({ frames: tempFrames, noOfVideos: videos });
     }
 
     const removeFrame = (ind: number) => {
         setter({ frames: frames.filter((_, i) => i !== ind) });
     }
 
-    //We can take multiple files from inputs but not from urls. I need to implement a way to take multiple files from urls.
-
 
     return (
-        <section {...args} className="bg-transparent text-inherit max-w-full">
-            <div className="size-[26rem] max-w-full p-4 bg-primarylight rounded-md border flex flex-col flex-cntr-all border-dashed border-gray-500">
-                {!!frames.length ?
-                    <>
-                        <div className="h-[80%] w-full flex overflow-x-auto gap-4">
-                            {frames.map((frame, ind) => (
-                                <div key={frame.url} className="relative aspect-square h-full mx-auto border border-gray40 rounded-md">
-                                    {
-                                        frame.type === "image" ?
-                                            <Image
-                                                className="aspect-square h-full object-contain"
-                                                src={frame.url}
-                                                alt=""
-                                                width={1000} height={1000}
-                                            />
-                                            :
-                                            <video controls className="size-full object-contain">
-                                                <source src={frame.url} />
-                                            </video>
-                                    }
-                                    <button
-                                        onClick={() => removeFrame(ind)}
-                                        className="absolute smallBtn p-1 right-0 top-0 mt-1 mr-1 bg-gray30 border border-gray40 rounded-md">
-                                        <XmarkIcon classnames="h-4" />
-                                    </button>
-                                </div>
-                            ))}
-                        </div>
-                        <div className="flex w-full gap-4 justify-end mt-4">
-                            <button onClick={() => setter({ frames: [] })}>Cancel</button>
-                            <button className="secondary" onClick={returnMedia}>Add</button>
-                        </div>
-                        <p className="mt-3 text-sm text-red-500">{error}</p>
-                    </>
-                    :
-                    <>
-                        <div className="relative">
-                            <Image className="size-12 cursor-pointer object-contain" src={logo} width={50} height={50} alt="" />
-                            {multiple ?
-                                <input
-                                    type="file"
-                                    multiple
-                                    className="absolute inset-0 opacity-0"
-                                    onChange={handleFrames}
-                                    accept=".jpg, .png, .jpeg, .webp, .avif, .mp4, .3gp, .mkv, .mov, .m4v" />
-                                :
-                                <input
-                                    onChange={handleMediaUpload}
-                                    className="absolute inset-0 opacity-0"
-                                    title="" type="file"
-                                    accept={inputConfig[type].accept}
-                                />}
-                        </div>
-                        {multiple ?
-                            <>
-                                <p className="mt-4 text-sm text-zinc-500">Click on the popcorn above to start uploading frames. </p>
-                                <p className="mt-2 text-sm text-zinc-500">
-                                    Rules: The size of the images should be less than {inputConfig["image"].size.label} and the videos should be less than {inputConfig["video"].size.label}. Only {numberOfFrames.videos} videos are allowed for now.
-                                </p>
-                            </>
-                            :
-                            <p className="mt-4 text-zinc-500 text-center">
-                                Click on the popcorn above to upload {type === "image" ? "an image" : "a video"}. The size of the chosen {type} should be less than {inputConfig[type].size.label}.
-                            </p>
-                        }
-                        <p className="mt-4 text-zinc-500">or</p>
-                        <form className="mt-4 flex gap-3 w-full" onSubmit={uploadMediaUrl}>
-                            <input
-                                name="url"
-                                max={100}
-                                type="text"
-                                className="noControl outline-none px-2 py-3 text-center placeholder:text-center bg-primary flex-1 rounded-md"
-                                placeholder="Upload using a URL"
-                            />
-                            <button className="iconBtn mx-2" type="submit">
-                                <CheckIcon />
+        <div className="size-[500px] *:w-full p-4 bg-primarylight rounded-md border flex flex-col justify-evenly border-dashed border-gray-500">
+            {!!frames.length ?
+                <section className="flex-1 max-h-[80%] flex overflow-x-auto gap-4">
+                    {frames.map((frame, ind) => (
+                        <div key={frame.path} className="relative aspect-square h-full mx-auto border border-gray40 rounded-md">
+                            {
+                                frame.type === "image" ?
+                                    <Image
+                                        className="aspect-square h-full object-contain"
+                                        src={frame.path}
+                                        alt=""
+                                        width={1000} height={1000}
+                                    />
+                                    :
+                                    <video controls className="size-full object-contain">
+                                        <source src={frame.path} />
+                                    </video>
+                            }
+                            <button
+                                onClick={() => removeFrame(ind)}
+                                className="absolute smallBtn p-1 right-0 top-0 mt-1 mr-1 bg-gray30 border border-gray40 rounded-md">
+                                <XmarkIcon classnames="h-4" />
                             </button>
-                        </form>
-                        <p className="mt-2 text-zinc-500 text-sm text-center">Uploading from URL has no size limit and is recommended for now.</p>
-                        {error && <p className="text-red-500 text-center mt-4">{error}</p>}
-                    </>
+                        </div>
+                    ))}
+                </section>
+                :
+                <ul className="space-y-3 text-zinc-500 text-sm text-center">
+                    <li>Click on the popcorn icon to start uploading. </li>
+                    {multiple ?
+                        <>
+                            <li>
+                                Rules: The size of the images should be less than {inputConfig["image"].size.label} and the videos should be less than {inputConfig["video"].size.label}. Only {numberOfFrames.videos} videos are allowed for now.
+                            </li>
+                        </>
+                        :
+                        <li>
+                            The size of the chosen {type} should be less than {inputConfig[type].size.label}.
+                        </li>
+                    }
+                </ul>
+            }
+            <section>
+                <div className="flex gap-3 items-center">
+                    <div className="relative">
+                        <Image className="size-8 cursor-pointer object-contain" src={logo} width={50} height={50} alt="" />
+                        {multiple ?
+                            <input
+                                disabled={frames.length >= numberOfFrames.total}
+                                type="file"
+                                multiple
+                                className="absolute inset-0 opacity-0"
+                                onChange={handleFrames}
+                                accept=".jpg, .png, .jpeg, .webp, .avif, .mp4, .3gp, .mkv, .mov, .m4v" />
+                            :
+                            <input
+                                disabled={frames.length >= numberOfFrames.total}
+                                onChange={handleMediaUpload}
+                                className="absolute inset-0 opacity-0"
+                                title="" type="file"
+                                accept={inputConfig[type].accept}
+                            />}
+                    </div>
+                    <span className="text-zinc-500">or</span>
+                    <form className="flex-1" onSubmit={uploadMediaUrl}>
+                        <input
+                            disabled={frames.length >= numberOfFrames.total}
+                            name="url"
+                            max={200}
+                            type="text"
+                            className="noControl outline-none px-2 py-3 text-center placeholder:text-center bg-primary w-full rounded-md"
+                            placeholder="Upload using a URL"
+                        />
+                        {/* <button className="iconBtn mx-2" type="submit">
+                                <CheckIcon />
+                            </button> */}
+                    </form>
+
+                    {Boolean(frames.length) &&
+                        <div className="flex gap-2">
+                            <button onClick={() => setter({ frames: [] })}>Cancel</button>
+                            <CloseButton className="secondary" onClick={returnMedia}>Add</CloseButton>
+                        </div>
+                    }
+                </div>
+                {Boolean(!frames.length) &&
+                    <p className="mt-2 text-zinc-500 text-xs text-center">Uploading from URL has no size limit and is recommended for now.</p>
                 }
-            </div>
-        </section>
+
+                {error && <p className="text-red-500 text-center mt-4">{error}</p>}
+            </section>
+        </div>
     )
 }
 

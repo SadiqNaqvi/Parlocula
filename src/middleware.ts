@@ -9,7 +9,7 @@ export const config = {
   ],
 };
 
-import { getSession } from "@lib/auth";
+import { generateToken, getSession, verifyToken } from "@lib/auth";
 import { isValidObjectId } from "@lib/utils";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -32,6 +32,31 @@ const checkIsValidObjectId = (pathname: string) => {
   return true;
 };
 
+const validateUser = async (rq: NextRequest, rs: NextResponse) => {
+  const token = rq.cookies.get("token")?.value;
+  const session_id = rq.cookies.get("sid")?.value;
+  if (!token || !session_id) return false;
+
+  const payload = await verifyToken(token);
+  console.log(payload);
+  if (!payload || !payload.exp) return false;
+
+  const cuid = rq.nextUrl.pathname.slice(16).split("/")[0];
+  if (payload.user_id === cuid && payload.exp > Date.now()) return true;
+
+  const session = await getSession(session_id);
+  if (!session || session.user_id !== cuid) return false;
+
+  const newToken = await generateToken({ user_id: session.user_id });
+  rs.cookies.set("token", newToken, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "strict",
+    path: "/",
+  });
+  return true;
+};
+
 export const middleware = async (req: NextRequest) => {
   console.log("middleware entered");
   const { url, nextUrl } = req;
@@ -43,10 +68,11 @@ export const middleware = async (req: NextRequest) => {
       result: null,
     });
 
+  const response = NextResponse.next();
+
   // Check if there's a current user
-  const session_id = req.cookies.get("sid")?.value;
-  if (!session_id) return null;
-  const user = await getSession(session_id);
+  const user = await validateUser(req, response);
+  // const user = true;
 
   // If user is trying to post something but there's no current user, return the request.
   if (url.includes("/api/v1/private")) {
@@ -56,12 +82,12 @@ export const middleware = async (req: NextRequest) => {
         errCode: "pp202",
         success: false,
       });
-    else if (user.isBanned)
-      return NextResponse.json({
-        result: null,
-        success: false,
-        errCode: "pp206",
-      });
+    // else if (user.isBanned)
+    //   return NextResponse.json({
+    //     result: null,
+    //     success: false,
+    //     errCode: "pp206",
+    //   });
   }
 
   // If user is trying to fetch their details in /user/me page but there's no current user, return the request.
@@ -72,20 +98,5 @@ export const middleware = async (req: NextRequest) => {
       success: false,
     });
 
-  const response = NextResponse.next();
-  if (user) {
-    response.cookies.set("uid", user.user_id, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "strict",
-      path: "/",
-    });
-    response.cookies.set("username", user.username, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "strict",
-      path: "/",
-    });
-  }
   return response;
 };

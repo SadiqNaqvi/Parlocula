@@ -1,6 +1,6 @@
 import { InfiniteScroller } from "@components";
 import { NotFound, PostTile } from "@components/ui";
-import { getPostsOfUser } from "@lib/actions/actions";
+import { getPostsOfUser } from "@lib/helpers/common";
 import { infiniteScrollerResponse } from "@lib/utils";
 
 const fetchData = async (username: string, page: number, filter: string) => {

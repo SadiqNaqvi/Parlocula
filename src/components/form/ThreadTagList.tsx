@@ -1,25 +1,26 @@
 "use client";
 
+import { CloseButton } from "@components/Modal";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { postTags } from "@lib/constants";
-import { TagSchemaType, tagSchema } from "@lib/schemas";
+import { tagSchema } from "@lib/schemas";
 import { useForm } from "react-hook-form";
 
-const ThreadTagList = ({ func, defaultTag = "", ...props }: { func: any, defaultTag?: string } & React.HTMLAttributes<HTMLElement>) => {
+const ThreadTagList = ({ func, defaultTag = "" }: { func: any, defaultTag?: string }) => {
 
-    const { handleSubmit, register } = useForm<TagSchemaType>({
+    // console.log(defaultTag);
+
+    const { handleSubmit, register } = useForm({
         resolver: zodResolver(tagSchema),
         defaultValues: { tag: defaultTag }
     });
 
-    const submitTag = (data: TagSchemaType, event: any) => {
+    const submitTag = (data: any) => {
         func(data.tag);
-        if (event.target.hasAttribute("popover")) event.target.hidePopover();
     }
 
     return (
         <form
-            {...props}
             className="bg-primary text-inherit w-96 border border-dashed rounded-md p-4 border-gray-500"
             onSubmit={handleSubmit(submitTag)}>
             {postTags.map(el => (
@@ -33,11 +34,15 @@ const ThreadTagList = ({ func, defaultTag = "", ...props }: { func: any, default
                         {...register("tag")}
                         className="size-4 pointer"
                         name="tag" />
-
                 </label>
             ))}
 
-            <button className="ml-auto secondary mt-6" type="submit">Apply</button>
+            <div className="justify-end mt-6 flex gap-3">
+                <CloseButton type="button" onClick={() => func("")}>Clear</CloseButton>
+                <CloseButton className="secondary" type="button">Cancel</CloseButton>
+                <CloseButton className="primary" type="submit">Apply</CloseButton>
+            </div>
+
         </form>
     )
 

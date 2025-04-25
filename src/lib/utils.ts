@@ -1,4 +1,13 @@
 import placeholder from "@assets/placeholder.png";
+import {
+  AvailableCacheTags,
+  AvailableRevalidateTags,
+  CloudinaryMediaObject,
+  CloudinaryMediaOptions,
+  QueryFilterType,
+} from "@type/other";
+import { InfiniteQueryResponse } from "@type/internal";
+import { InputFrame } from "@type/schemas";
 import { Types } from "mongoose";
 import { NextRequest } from "next/server";
 import { ZodIssue } from "zod";
@@ -12,16 +21,6 @@ import {
   queryLimit,
   revalidateTags,
 } from "./constants";
-import { GeneralReturnType } from "../type/external";
-import {
-  AvailableCacheTags,
-  AvailableRevalidateTags,
-  CloudinaryMediaObject,
-  CloudinaryMediaOptions,
-  InfiniteQueryResponse,
-  InputFrame,
-  QueryFilterType,
-} from "@type/internal";
 
 export const scaleImage = async (file: File): Promise<Blob | null> => {
   if (!file) return null;
@@ -85,7 +84,7 @@ export const timeAgo = (timestamp: number | Date) => {
     },
     {
       limit: 365 * 24 * 60 * 60 * 1000,
-      message: `${days / 30} month${days / 30 > 1 ? "s" : ""} ago`,
+      message: `${Math.ceil(days / 30)} month${days / 30 > 1 ? "s" : ""} ago`,
     },
     {
       limit: Infinity,
@@ -126,20 +125,22 @@ export const calculateAge = (birthDate: Date): number => {
 export const objectToFormData = (object: Record<string, any>): FormData => {
   const formData = new FormData();
   Object.keys(object).forEach((key) => {
-    if ((key === "file" || key === "files") && !!object[key])
-      formData.append(key, object[key]);
+    if (key === "files" && Array.isArray(object.files) && object.files.length)
+      object.files.forEach((file) => formData.append("files", file));
     else formData.append(key, JSON.stringify(object[key]));
   });
   return formData;
 };
 
-export const formDataToObject = (response: FormData) => {
+export const formDataToObject = (formData: FormData) => {
   const formDataObject: Record<string, any> = {};
-  response.forEach((value, key) => {
-    if (key === "file" && response.get("file") !== "null")
-      formDataObject[key] = value;
-    else formDataObject[key] = JSON.parse(value as string);
-  });
+  for (const [key, value] of formData.entries()) {
+    if (key === "files") {
+      const prevFiles = formDataObject.files ?? [];
+      formDataObject.files =
+        value instanceof File ? [...prevFiles, value] : formDataObject.files??[];
+    } else formDataObject[key] = JSON.parse(value as string);
+  }
   return formDataObject;
 };
 
@@ -334,4 +335,13 @@ export const readyFrames = async (
   const filesData = results.map((res) => res.data);
 
   return { files, filesData };
+};
+
+export const trycatch = async <T = any>(func: () => T, msg?: string) => {
+  try {
+    return await func();
+  } catch (err: any) {
+    console.error(msg || "Error occured:", err.message);
+    return { success: false, errCode: "pp500" };
+  }
 };

@@ -1,4 +1,4 @@
-import { getRequest } from "@lib/actions/actions";
+import { getRequest } from "@lib/helpers/common";
 import { User } from "@model";
 
 export const GET = getRequest(async (r: any, params: { username: string }) => {

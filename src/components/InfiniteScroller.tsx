@@ -2,13 +2,13 @@
 
 import { oneHour } from "@lib/constants";
 import { infiniteScrollerResponse } from "@lib/utils";
-import { useInfiniteQuery } from "@tanstack/react-query";
+import useCurrentUser from "@store/user";
+import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { InfiniteQueryResponse } from "@type/internal";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect, useRef } from "react";
 import { LoadingSpinner, ShowError } from "./ui";
 import NotFound from "./ui/NotFound";
-import useCurrentUser from "@store/user";
 
 type InfiniteScrollerType = {
     Component: React.ComponentType<any>,
@@ -16,6 +16,7 @@ type InfiniteScrollerType = {
     queryKeys: string[],
     notFoundMessage?: { title: string, paras: string[] },
     callback?: (arg: any) => any;
+    additional?: any;
     staleTime?: number;
     initialPage?: number,
     initialData?: { data: any[], total: number },
@@ -31,7 +32,7 @@ const defaultNotFoundMessages = {
     paras: ["Please search the resouce using it's name, title, username, etc."],
 }
 
-export default function InfiniteScroller({ Loading, Component, fetchData, queryKeys, notFoundMessage = defaultNotFoundMessages, initialPage = 1, initialData, callback, className = defaultClasses, paginate = true, staleTime }: InfiniteScrollerType) {
+export default function InfiniteScroller({ Loading, Component, fetchData, queryKeys, notFoundMessage = defaultNotFoundMessages, initialPage = 1, initialData, callback, className = defaultClasses, paginate = true, staleTime, additional }: InfiniteScrollerType) {
 
     const container = useRef(null);
     const searchParams = useSearchParams();
@@ -59,17 +60,15 @@ export default function InfiniteScroller({ Loading, Component, fetchData, queryK
         queryFn: async ({ pageParam }) => await fetchData(pageParam)
             .then(res => {
                 const resp = infiniteScrollerResponse(res, pageParam);
-                if (resp.results.length) updateSearchParams(resp.page + 1)
+                if (resp.results?.length && resp.page > 1) updateSearchParams(resp.page)
                 return resp;
             }),
         initialData: initialData ? { pageParams: [1], pages: [infiniteScrollerResponse(initialData, initialPage)] } : undefined,
         getNextPageParam: (lp: any): number | undefined => {
-            console.log(lp);
             return lp && lp.page < lp.total_pages ? lp.page + 1 : undefined;
         },
         enabled: !initialData,
-        retry: false,
-        refetchOnWindowFocus: false, retryOnMount: false, refetchOnMount: false, refetchOnReconnect: false
+        retry: false, refetchOnWindowFocus: false, retryOnMount: false, refetchOnMount: false, refetchOnReconnect: false
     });
 
     const LoadingComponent = () => {
@@ -92,7 +91,7 @@ export default function InfiniteScroller({ Loading, Component, fetchData, queryK
         }
     }, [container.current]);
 
-    if (initialData && !initialData.data.length && initialPage !== 1)
+    if (initialData && !initialData.data?.length && initialPage !== 1)
         return (
             <NotFound
                 title="Looks like you came across too far"
@@ -113,19 +112,18 @@ export default function InfiniteScroller({ Loading, Component, fetchData, queryK
             />
         )
 
-    console.log(data);
-
-    if (!data.pages[0]?.total_results)
+    if (!data || !data.pages[0]?.total_results)
         return <NotFound {...notFoundMessage} />
+
 
     return (
         <>
-            <ul className={className}>
+            <ul className={className} id="infiniteScroller">
                 {data?.pages.map((content, ind) => (
                     <React.Fragment key={ind}>
                         {content.results.map((el: any, i: any) => (
                             <li key={el.id || el._id || el.tmdb_id || i} className="list-none">
-                                <Component {...el} callback={callback} user={user} />
+                                <Component {...el} callback={callback} additional={additional} user={user} />
                             </li>
                         ))}
                     </React.Fragment>

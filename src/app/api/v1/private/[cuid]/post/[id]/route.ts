@@ -1,0 +1,49 @@
+import { deleteRequest, updateRequest } from "@lib/helpers/common";
+import { deletePosts } from "@lib/helpers/deletion";
+import { postUpdateSchema } from "@lib/schemas";
+import { Post } from "@model";
+
+// Delete a post;
+export const DELETE = deleteRequest(
+  async ({ params, username, session, user_id }) => {
+    const { id } = params;
+
+    const posts = await deletePosts({ _id: id, user_id }, session);
+    if (!posts.length) return { success: false, errCode: "pp104" };
+
+    const { thread_id } = posts[0];
+
+    return {
+      success: true,
+      available: "postDeletion_pid_tid_username",
+      options: { pid: id, tid: thread_id.toString(), username },
+      files: [],
+    };
+  }
+);
+
+// Update a post;
+export const PATCH = updateRequest({
+  handler: async ({ data, frames, params, session, username, user_id }) => {
+    const { id } = params;
+    if (frames.length) data.frames = frames;
+
+    const post = await Post.findOneAndUpdate(
+      { _id: id, user_id },
+      {
+        $set: { ...data, edited_at: new Date() },
+      },
+      { session }
+    );
+
+    if (!post) return { success: false, errCode: "pp500" };
+
+    return {
+      success: true,
+      available: "postCreation_pid_tid_username",
+      options: { pid: id, tid: post.thread_id, username },
+      result: null,
+    };
+  },
+  schema: postUpdateSchema,
+});

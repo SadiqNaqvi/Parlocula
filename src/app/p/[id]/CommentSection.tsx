@@ -4,7 +4,7 @@ import CommentInput from "@components/CommentInput";
 import InfiniteScroller from "@components/InfiniteScroller";
 import RouterDropdown from "@components/RouterDropdown";
 import { CommentTile, LoadingCommentTile, NotFound } from "@components/ui";
-import { getCommentsOnPost } from "@lib/actions/actions";
+import { getCommentsOnPost } from "@lib/helpers/common";
 import { queryFilters } from "@lib/constants";
 import { convertCodeIntoError, infiniteScrollerResponse } from "@lib/utils";
 import useCurrentUser from "@store/user";

@@ -35,10 +35,15 @@ import {
   RefinedSeasonData,
   RefinedShowData,
 } from "../type/external";
+import placeholder from "@assets/placeholder.png";
+import { MediaItemType } from "@type/internal";
 
-export const getPoster = (type: string, path: string, size: number) => {
-  if (!path)
-    return "https://cdn.create.vista.com/api/media/small/296552646/stock-vector-picture-image-icon-vector-illustration";
+export const getPoster = (
+  type: string,
+  path: string | null | undefined,
+  size: number
+) => {
+  if (!path) return placeholder.src;
   switch (type) {
     case "poster":
       return `${imgUrl}${
@@ -105,6 +110,43 @@ export const refineSearchData = (
   }));
 };
 
+type searchResult = {
+  title: string;
+  name: string;
+  id: string;
+  first_air_date: Date;
+  release_date: Date;
+  poster_path: string | null;
+  media_type: "movie" | "tv" | "person";
+  known_for: [];
+};
+
+type SearchData = searchResult & {
+  media_type: "person";
+  known_for: searchResult[];
+};
+
+export const refineMediaItemsFromSearch = (
+  data: SearchData[]
+): MediaItemType[] => {
+  return data.reduce((acc, item) => {
+    if (item.media_type === "person")
+      return [...acc, ...refineMediaItemsFromSearch(item.known_for)];
+    else if (!item.release_date && !item.first_air_date) return acc;
+
+    const dataToAdd = {
+      title: item.media_type === "movie" ? item.title : item.name,
+      poster: item.poster_path ?? "",
+      year: new Date(
+        item.media_type === "movie" ? item.release_date : item.first_air_date
+      ).getFullYear(),
+      media_type: item.media_type,
+      tmdb_id: item.id,
+    };
+    return [...acc, dataToAdd];
+  }, [] as any[]);
+};
+
 const refineTrailers = (videos: GeneralVideoResult[]) =>
   videos.filter(
     (el: GeneralVideoResult) =>
@@ -163,6 +205,7 @@ export const refineGeneralContent = (
       rating: refineRating(el.vote_average),
       title: el.title || el.name,
       tmdb_id: el.id.toString(),
+      media_type: el.media_type,
       release_date: el.release_date
         ? new Date(el.release_date).getTime()
         : new Date(el.first_air_date).getTime(),
@@ -175,7 +218,7 @@ export const refineMovieData = (
   crew: GeneralCrewData[],
   videos: GeneralVideoResult[],
   extra: ExtraMovieData
-): RefinedMovieData => {
+): Omit<RefinedMovieData, "media_id" | "popcorn_rating"> => {
   const {
     backdrop_path,
     belongs_to_collection,
@@ -250,7 +293,7 @@ export const refineMovieData = (
 export const refineShowData = (
   details: FullShowDetails,
   extra: ExtraMovieData
-): RefinedShowData => {
+): Omit<RefinedShowData, "media_id" | "popcorn_rating"> => {
   const {
     name,
     tagline,

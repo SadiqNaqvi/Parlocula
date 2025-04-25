@@ -1,26 +1,27 @@
 import { deleteSession } from "@lib/auth";
+import { deleteRequest } from "@lib/helpers/common";
+import { User } from "@model";
 import { cookies } from "next/headers";
-import { NextResponse } from "next/server";
 
-export const DELETE = () => {
+export const DELETE = deleteRequest(async () => {
   const cookieStore = cookies();
   const session_id = cookieStore.get("sid")?.value;
+  if (!session_id) return { success: false, errCode: "pp500" };
 
-  if (session_id && !deleteSession(session_id))
-    return NextResponse.json({
-      result: null,
-      success: false,
-      error:
-        "Failed to perform logout! Please try again but if the error persists, report it.",
-    });
+  const user = await User.findOneAndUpdate(
+    { session_id },
+    { $set: { session_id: null } }
+  );
+  await deleteSession(session_id);
 
   cookieStore.delete("sid");
-  cookieStore.delete("uid");
-  cookieStore.delete("username");
+  cookieStore.delete("token");
 
-  return NextResponse.json({
+  return {
     result: null,
     success: true,
-    errCode: null,
-  });
-};
+    available: "logout_uid",
+    options: { uid: user._id },
+    files: [],
+  };
+});

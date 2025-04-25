@@ -1,4 +1,4 @@
-import { getRequest } from "@lib/actions/actions";
+import { getRequest } from "@lib/helpers/common";
 import { queryLimit } from "@lib/constants";
 import { ObjectId, getPageParams } from "@lib/utils";
 import { Member } from "@model";

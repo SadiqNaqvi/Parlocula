@@ -1,7 +1,7 @@
 import { AddIcon } from "@assets/Icons";
 import { Navigate, RouterDropdown } from "@components";
 import { NotFound } from "@components/ui";
-import { getThreads } from "@lib/actions/actions";
+import { getThreads } from "@lib/helpers/common";
 import { queryFilters } from "@lib/constants";
 import { MereThread } from "@type/internal";
 import { Metadata } from "next";

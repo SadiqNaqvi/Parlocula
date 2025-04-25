@@ -1,17 +1,16 @@
 "use client";
 
-import { AddIcon, AlertIcon, LinkIcon, XmarkIcon } from "@assets/Icons";
+import { AddIcon, AlertIcon, LeftChevron, LinkIcon, XmarkIcon } from "@assets/Icons";
 import placeholder from "@assets/placeholder.png";
-import { LinkInputCont, MediaInputCont, OptionMenu, ThreadTagList } from "@components";
+import { LinkInputCont, MediaInputCont, Modal, Navigate, OptionMenu, ThreadTagList } from "@components";
 import { Form, Textarea, ToggleButton } from "@components/form";
 import { useCustomReducer } from "@lib/hooks";
-import { LinkSchema, postSchemaClient, postSchemaServer } from "@lib/schemas";
-import { readyFrames } from "@lib/utils";
-import { InputFrame } from "@type/internal";
+import { InputFrame, LinkSchema } from "@type/schemas";
 import Image from "next/image";
 import { useRef } from "react";
+import { Popover, Triggerer } from "./Modal";
 
-type MediaLinksTags = {
+type ReducerProps = {
     frames: InputFrame[],
     links: LinkSchema[]
     tag: string,
@@ -19,7 +18,14 @@ type MediaLinksTags = {
 
 type PostClientCommon = { title: string, body: string, nsfw: boolean, spoiler: boolean };
 
-const CreateEditPost = ({ defaultVals, callback }: { defaultVals?: any, callback: (arg: any) => void }) => {
+type CallbackVal = PostClientCommon & ReducerProps
+
+type Props = {
+    defaultVals?: CallbackVal,
+    callback: (arg: CallbackVal) => void
+} & (| { isEditing: false, goBack: () => void } | { isEditing: true, goBack: undefined })
+
+const CreateEditPost = ({ defaultVals, callback, isEditing, goBack }: Props) => {
 
     const formRef = useRef<HTMLFormElement | null>(null);
 
@@ -28,10 +34,10 @@ const CreateEditPost = ({ defaultVals, callback }: { defaultVals?: any, callback
         links,
         tag,
         setter
-    } = useCustomReducer<MediaLinksTags>({
-        links: [],
-        frames: [],
-        tag: "",
+    } = useCustomReducer<ReducerProps>({
+        links: defaultVals?.links ?? [],
+        frames: defaultVals?.frames ?? [],
+        tag: defaultVals?.tag ?? "",
     });
 
     const addTag = (tag: string) => {
@@ -39,12 +45,12 @@ const CreateEditPost = ({ defaultVals, callback }: { defaultVals?: any, callback
     }
 
     const addLink = (data: LinkSchema) => {
-        if (links.find(el => el.label === data.label || el.url === data.url)) return;
+        if (links.find(el => el.path === data.path)) return;
         setter({ links: [...links, data] });
     }
 
     const removeLink = (obj: LinkSchema) => {
-        setter({ links: links.filter(el => el.url != obj.url) });
+        setter({ links: links.filter(el => el.path != obj.path) });
     }
 
     const getFrames = (frames: InputFrame[]) => {
@@ -55,19 +61,9 @@ const CreateEditPost = ({ defaultVals, callback }: { defaultVals?: any, callback
         setter({ frames: frames.filter((_, i) => i !== ind) });
     }
 
-    const readyFormData = async (data: PostClientCommon) => {
-        const { files, filesData } = await readyFrames(frames);
-        return { ...data, tag, links, files, filesData };
-    }
-
     const submitForm = async (data: PostClientCommon) => {
-        const formData = await readyFormData(data);
-        const { success, error } = postSchemaServer.safeParse(formData);
-        if (!success) return error?.errors;
-
-        callback(formData);
-        // const resp = await createPost(objectToFormData(formData), thread_id);
-        // console.log(resp);
+        const formDataObj = { ...data, tag, links, frames };
+        return await callback(formDataObj);
     }
 
     const requestSubmit = () => {
@@ -75,29 +71,35 @@ const CreateEditPost = ({ defaultVals, callback }: { defaultVals?: any, callback
     }
 
     const options: any[] = [
-        links.length < 5 && { label: "Link", args: { popovertarget: "link-popover" } },
-        tag === "Frames" && { label: "Frames", args: { popovertarget: "frames-popover" } },
-        (!frames.length && tag !== "Frames") && { label: "Video", args: { popovertarget: "video-popover" } },
-        (!frames.length && tag !== "Frames") && { label: "Image", args: { popovertarget: "image-popover" } },
+        links.length < 5 && { label: "Link", src: "link-popover" },
+        tag === "frames" && { label: "frames", src: "frames-popover" },
+        (!frames.length && tag !== "frames") && { label: "Video", src: "video-popover" },
+        (!frames.length && tag !== "frames") && { label: "Image", src: "image-popover" },
     ].filter(Boolean);
 
     return (
         <>
-            <header className="h-16 -mt-4 mb-4 flex items-center gap-4">
-                <button className="iconBtn">
-                    <XmarkIcon />
-                </button>
+            <header className="h-16 mb-4 flex items-center gap-4">
+                {isEditing ?
+                    <Navigate comp="button" goto="back">
+                        <LeftChevron />
+                    </Navigate>
+                    :
+                    <button className="iconBtn" onClick={goBack}>
+                        <LeftChevron />
+                    </button>
+                }
                 <h1 className="inline text-2xl">New Post</h1>
-                <OptionMenu ButtonElement={<AddIcon />} className="ml-auto iconBtn" controls="manual" heading="Add">
+                <OptionMenu id="post-modal" ButtonElement={<AddIcon />} className="ml-auto iconBtn" controls="manual" heading="Add">
                     <ul>
                         {options.map(el => (
                             <li key={el.label} className="w-full md:hover:bg-gray-500 md:hover:bg-opacity-30 transition-colors border-b border-gray30 ">
-                                <button
+                                <Triggerer
+                                    id={el.src}
                                     className="smallBtn w-full text-left capitalize py-3 px-4"
-                                    {...el.args}
                                 >
                                     {el.label}
-                                </button>
+                                </Triggerer>
                             </li>
                         ))}
                     </ul>
@@ -105,18 +107,23 @@ const CreateEditPost = ({ defaultVals, callback }: { defaultVals?: any, callback
                 <button className="primary" onClick={requestSubmit}>Post</button>
             </header>
 
-            <section className="flex mb-4 gap-2">
-                {tag ?
-                    <span className="flex gap-2 items-center py-2 px-3 rounded-full bg-gray10 select-none">
-                        <AlertIcon classnames="h-4" />
-                        <span className="text-sm">{tag}</span>
-                    </span>
-                    :
-                    <button className="smallBtn py-2 px-3 rounded-full bg-gray10" popoverTarget="tag-popover">Choose Tag</button>
-                }
+            <section className="flex mb-4 gap-2 overflow-x-auto">
+                <Modal
+                    className="gap-3 py-2 px-3 rounded-full bg-gray10"
+                    id="tag-popover"
+                    buttonChildren={tag ?
+                        <>
+                            <AlertIcon classnames="h-4" />
+                            <span className="text-sm">{tag}</span>
+                        </>
+                        :
+                        "Choose Tag"
+                    }>
+                    <ThreadTagList defaultTag={tag} func={addTag} />
+                </Modal>
             </section>
 
-            <Form defaultVals={defaultVals} className="space-y-4" schema={postSchemaClient} ref={formRef} submit={submitForm}>
+            <Form defaultVals={defaultVals} className="space-y-4" ref={formRef} submit={submitForm}>
                 <Textarea
                     required
                     autoFocus
@@ -139,20 +146,19 @@ const CreateEditPost = ({ defaultVals, callback }: { defaultVals?: any, callback
                 <ToggleButton label="spoiler" className="py-3 capitalize" />
             </Form>
 
-            <MediaInputCont type="image" callback={getFrames} popover="auto" id="image-popover" />
-            <MediaInputCont type="video" callback={getFrames} popover="auto" id="video-popover" />
-            <MediaInputCont type="image" multiple={5} callback={getFrames} popover="auto" id="frames-popover" />
-            <LinkInputCont popover="auto" id="link-popover" func={addLink} />
-            <ThreadTagList popover="auto" id="tag-popover" func={addTag} />
+            <Popover id="image-popover"><MediaInputCont defaultFrames={frames} type="image" callback={getFrames} /></Popover>
+            <Popover id="video-popover"><MediaInputCont defaultFrames={frames} type="video" callback={getFrames} /></Popover>
+            <Popover id="frames-popover"><MediaInputCont defaultFrames={frames} type="image" multiple={5} callback={getFrames} /></Popover>
+            <Popover id="link-popover"><LinkInputCont func={addLink} /></Popover>
 
             {
                 !!links.length &&
                 <section className="my-4 overflow-x-auto flex gap-4 noScroll">
                     {links.map(el => (
-                        <div key={el.url} className="px-2 py-3 flex gap-2 bg-gray10 rounded-md">
+                        <div key={el.path} className="px-2 py-3 flex gap-2 bg-gray10 rounded-md">
                             <LinkIcon classnames="h-4 text-zinc-500" />
                             <span className="text-sky-500 text-nowrap">
-                                {el.url}
+                                {el.path}
                             </span>
                             <button className="smallBtn" onClick={() => removeLink(el)}>
                                 <XmarkIcon classnames="h-4" />
@@ -168,9 +174,9 @@ const CreateEditPost = ({ defaultVals, callback }: { defaultVals?: any, callback
                             <XmarkIcon classnames="h-4" />
                         </button>
                         {frame.type === "image" ?
-                            <Image className="size-64 object-contain" style={{ backgroundImage: `url(${placeholder})` }} src={frame.url} alt="" width={500} height={500} />
+                            <Image className="size-64 object-contain" style={{ backgroundImage: `url(${placeholder})` }} src={frame.path} alt="" width={500} height={500} />
                             :
-                            <video controls className="size-64 object-contain" src={frame.url} />
+                            <video controls className="size-64 object-contain" src={frame.path} />
                         }
                     </div>
                 ))}

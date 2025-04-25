@@ -1,6 +1,6 @@
 import { Schema, models, model } from "mongoose";
 
-const mediaModel = new Schema({
+export const mediaModel = new Schema({
   title: {
     type: String,
     required: true,
@@ -21,6 +21,7 @@ const mediaModel = new Schema({
   tmdb_id: {
     type: String,
     required: true,
+    index: true,
   },
   rating: {
     type: Number,
@@ -33,8 +34,5 @@ const mediaModel = new Schema({
   },
 });
 
-mediaModel.index({ tmdb_id: 1 }, { unique: true });
-
 const Media = models.Media || model("Media", mediaModel);
-export { mediaModel };
 export default Media;

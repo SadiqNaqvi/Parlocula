@@ -1,4 +1,4 @@
-import { getRequest } from "@lib/actions/actions";
+import { getRequest } from "@lib/helpers/common";
 import { Thread } from "@model";
 import { Types } from "mongoose";
 

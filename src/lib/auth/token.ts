@@ -1,7 +1,6 @@
 import { isValidObjectId } from "@lib/utils";
-import { EncryptJWT, JWTPayload, decodeJwt } from "jose";
-import { RequestCookies } from "next/dist/compiled/@edge-runtime/cookies";
-import { NextRequest, NextResponse } from "next/server";
+import { JWTPayload, SignJWT, jwtVerify } from "jose";
+import { NextRequest } from "next/server";
 
 export function getEncryptionKey(): Uint8Array {
   const secret = process.env.JWT_SECRET!;
@@ -10,33 +9,32 @@ export function getEncryptionKey(): Uint8Array {
 
 export const generateToken = async (details: any) => {
   const secret = getEncryptionKey();
-  return await new EncryptJWT(details)
-    .setProtectedHeader({ alg: "dir", enc: "A256GCM" })
+  return await new SignJWT(details)
+    .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
-    .setExpirationTime("2h")
-    .encrypt(secret);
+    .setExpirationTime("1d")
+    .sign(secret);
 };
 
-export const verifyToken = (token: string) => {
+export const verifyToken = async (token: string) => {
   if (!token) return null;
+  const secret = getEncryptionKey();
+
   try {
-    return decodeJwt(token) as JWTPayload & { user_id: string };
-  } catch (err) {
-    console.log("Error verifying token:", err);
+    const { payload } = await jwtVerify(token, secret);
+    return payload as JWTPayload & { user_id: string; username: string };
+  } catch (err: any) {
+    console.error("Error verifying token:", err.message);
+    if (err.message.includes(`"exp" claim timestamp check failed`))
+      return err.payload;
     return null;
   }
 };
 
-export const getPayloadFromToken = (
-  r: NextRequest
-):
-  | (JWTPayload & {
-      user_id: string;
-    })
-  | null => {
+export const getPayloadFromToken = async (r: NextRequest) => {
   const token = r.cookies.get("token")?.value;
   if (!token) return null;
-  const payload = verifyToken(token);
+  const payload = await verifyToken(token);
   if (
     !payload ||
     typeof payload === "string" ||
@@ -44,5 +42,5 @@ export const getPayloadFromToken = (
     !isValidObjectId(payload.user_id)
   )
     return null;
-  return payload as JWTPayload & { user_id: string };
+  return payload;
 };

@@ -1,4 +1,4 @@
-import { FollowModelType } from "@type/modelTypes";
+import { FollowModelType } from "@type/model";
 import { Schema, models, model } from "mongoose";
 
 const followModel = new Schema<FollowModelType>({

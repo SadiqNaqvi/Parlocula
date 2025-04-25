@@ -32,115 +32,10 @@ export type GeneralPostReturn<T = any> =
       success: false;
     };
 
-export type GeneralMultipleReturn<T = any> =
-  | {
-      result: { data: T[]; total: number };
-      errCode: undefined;
-      success: true;
-    }
-  | {
-      result: undefined;
-      errCode: string;
-      success: false;
-    };
-
-export type AvailableCacheTags =
-  | "user_username"
-  | "currentUser_uid"
-  | "connection_rid_uid"
-  | "usernameAvailability_username"
-  | "userExistence_email"
-  | "threadsByUser_username"
-  | "filteredPostsOfUser_username_filter_page"
-  | "thread_tid"
-  | "filteredThreads_filter_page"
-  | "filteredPostsOfThread_filter_tid_page"
-  | "filteredFramesOfThread_filter_tid_page"
-  | "filteredLinksOfThread_filter_tid_page"
-  | "member_tid_uid"
-  | "post_pid"
-  | "reaction_pid_uid"
-  | "filteredComments_pid_filter_page"
-  | "comment_cid"
-  | "replies_cid"
-  | "vote_cid_uid"
-  | "media_tmdbid"
-  | "list_lid"
-  | "items_lid_filter_page";
-
-export type AvailableRevalidateTags =
-  | "registration_email_username"
-  | "login_uid"
-  | "logout_uid"
-  | "connection_rid_uid"
-  | "threadCreation_tid_username"
-  | "joiningThread_tid_username_uid"
-  | "leavingThread_uid_username_tid"
-  | "postCreation_pid_tid_username"
-  | "postUpdation_pid"
-  | "postDeletion_pid_tid_username"
-  | "reactionCreation_pid_uid"
-  | "reactionDeletion_pid_uid"
-  | "commentCreation_cid_username_pid"
-  | "commentDeletion_cid_username_pid"
-  | "voteCreation_cid_uid"
-  | "voteDeletion_cid_uid"
-  | "media_tmdbid"
-  | "listCreation_lid"
-  | "addItemsInList_lid";
-
-export type PostResponseWithCacheOptions =
-  | {
-      result: any;
-      success: true;
-      errCode?: null;
-      options: any;
-      available: AvailableRevalidateTags;
-    }
-  | {
-      result?: null;
-      success: false;
-      errCode: string;
-      options?: any;
-      available?: AvailableRevalidateTags;
-    };
-
-export type DeleteResponseWithCacheOptions =
-  | {
-      success: true;
-      errCode?: null;
-      files: any[];
-      options: any;
-      available: AvailableRevalidateTags;
-    }
-  | {
-      success: false;
-      files: undefined;
-      errCode: string;
-      options?: any;
-      available?: AvailableRevalidateTags;
-    };
-
-export type CloudinaryMediaOptions =
-  | "aspect_ratio"
-  | "crop"
-  | "width"
-  | "height"
-  | "quality"
-  | "filter"
-  | "round";
-
-export type CloudinaryMediaObject = Partial<
-  Record<CloudinaryMediaOptions, string>
->;
-
-export type QueryFilterType =
-  | "threads"
-  | "posts"
-  | "comments"
-  | "userPosts"
-  | "lists"
-  | "items";
+export type GeneralMultipleReturn<T = any> = GeneralGetReturn<{
+  data: T[];
+  total: number;
+}>;
 
 export type Session = {
   user_id: string;
@@ -157,45 +52,45 @@ export type InfiniteQueryResponse<T = any> = {
   total_results: number;
 };
 
-export type MutationFnProps<T = any> = {
-  state: T;
-  user: User;
-  setUser: (data: User) => void;
-  updateUser: (data: Partial<User>) => void;
-  setUserHash: (data: User) => void;
-  clearUser: () => void;
+export type document = {
+  _id: string;
+  createdAt: Date;
+};
+
+export type Link = {
+  path: string;
+  label: string;
+};
+
+export type Frame = {
+  path: string;
+  type: "image" | "video";
+  isExternal: boolean;
 };
 
 export type User = {
   _id: string;
-  dob: Date;
   name: string;
-  bio: string;
   username: string;
   email: string;
-  lastUpdatedAt: Date;
-  genres: string[];
-  celebs: string[];
-  watch: string[];
   profile: string;
+  bio: string;
+  dob: Date;
+  bioLinks: Link[];
+  edited_at: Date | null;
+
   followers: number;
   following: number;
-  post_count: number;
-  comments_count: number;
-  collection_count: number;
-  public_collection_count: number;
-  recommend_items_count: number;
-  favourites_count: number;
-  recently_joined: {
-    _id: string;
-    name: string;
-    poster: string;
-  }[];
-};
+  posts: number;
+  comments: number;
+  public_lists: number;
+  total_lists: number;
 
-export type Links = {
-  label: string;
-  url: string;
+  favourite_id: string;
+  recommended_id: string;
+  watched_id: string;
+
+  // genres: string[];
 };
 
 export type ThreadConnection = {
@@ -206,129 +101,69 @@ export type ThreadConnection = {
 export type MereThread = {
   _id: string;
   name: string;
-  description: string;
   poster: string;
 };
 
-export type Thread = timestamp & {
-  _id: string;
+export type Thread = document & {
   name: string;
   description: string;
   poster: string;
   nsfw: boolean;
-  links: Links[];
+  links: Link[];
   connection: ThreadConnection[];
   created_by: string | Partial<User>;
   member_count: number;
   post_count: number;
 };
 
-export type timestamp = {
-  createdAt: Date;
-  updatedAt: Date;
-};
-
-export type Link = {
-  path: string;
-  label: string;
-};
-
-export type FullPost = timestamp & {
-  _id: string;
+type PostBasic = document & {
   title: string;
-  body: string;
-  tag: string;
   nsfw: boolean;
   spoiler: boolean;
   thread_id: string;
   user_id: string;
-  username?: string;
+  name?: string;
   poster?: string;
+  reaction_count: number;
+  comment_count: number;
+  saved_count: number;
+};
+
+export type FullPost = PostBasic & {
+  body: string;
+  tag: string;
+  username?: string;
   frames: Frame[];
   links: Link[];
-  reaction_count: number;
-  comment_count: number;
 };
 
-export type MerePost = timestamp & {
-  _id: string;
-  title: string;
+export type MerePost = PostBasic & {
   tag: string;
-  nsfw: boolean;
-  frame?: Frame;
-  spoiler: boolean;
-  thread_id: string;
-  name?: string;
-  poster: string;
-  reaction_count: number;
-  comment_count: number;
+  frames?: Frame[];
+  username?: string;
 };
 
-export type Frame = {
-  path: string;
-  type: "image" | "video";
+export type MereFrame = PostBasic & {
+  frames: Frame[];
 };
 
-export type MereFrame = {
-  _id: string;
-  title: string;
-  thread_id: {
-    _id: string;
-    name: string;
-  };
-  user_id: {
-    _id: string;
-    profile: string | null;
-  };
-  frames: {
-    url: string;
-    type: "image" | "video";
-  }[];
-  nsfw: boolean;
-  spoiler: boolean;
-  likes: number;
-  comments: number;
-  createdAt: Date;
+export type MereLink = PostBasic & {
+  links: Link[];
 };
 
-export type MereLink = {
-  _id: string;
-  createdAt: Date;
-  title: string;
-  thread_id: {
-    _id: string;
-    name: string;
-  };
-  user_id: {
-    _id: string;
-    profile: string | null;
-  };
-  links: Links[];
-  nsfw: boolean;
-  spoiler: boolean;
-  likes: number;
-  comments: number;
-};
-
-export type MereComment = timestamp & {
+export type MereComment = document & {
   _id: string;
   content: string;
   post_id: string;
   upvote_count: number;
   nsfw: boolean;
   spoiler: boolean;
-  post_author: string;
   replied_to?: string;
   username?: string;
   profile?: string;
   parent?: string;
   attachment?: string;
 };
-
-type CommanInputFrame = { url: string; type: "image" | "video"; size: number };
-
-export type InputFrame = CommanInputFrame &
-  ({ blob: null; isExternal: true } | { blob: Blob; isExternal: false });
 
 export type MediaItemType = {
   title: string;
@@ -347,16 +182,17 @@ export type FullMediaItemType = MediaItemType & {
 export type MereList = {
   _id: string;
   name: string;
+  list_type: string;
   item_count: number;
+  saved_count: number;
   poster: string;
 };
 
 export type FullList = MereList &
-  timestamp & {
-    description: string;
+  document & {
+    user_id: string;
     username: string;
     isPrivate: boolean;
     key: string;
     last_added: Date;
-    save_count: number;
   };

@@ -79,7 +79,8 @@ export type GeneralCollectionData = {
   backdrop_path: string | null;
 };
 
-export type GeneralReturnType = {
+export type GeneralReturnType<T = any> = {
+  results: T[];
   page: number;
   total_pages: number;
   total_results: number;

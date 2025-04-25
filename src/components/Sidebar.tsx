@@ -10,7 +10,7 @@ export default function Sidebar() {
 
     const pathname = usePathname();
 
-    const { user, profile, username } = useCurrentUser();
+    const { user, isHydrated } = useCurrentUser();
 
     const links = [
         { label: "Home", link: "/home", icon: HomeIcon, activeIcon: HomeFillIcon },
@@ -29,7 +29,7 @@ export default function Sidebar() {
             <ul className="flex md:block w-full flex-cntr-between md:space-y-8">
                 {links.map(el => (
                     <li key={el.label} className="text-lg w-full">
-                        <Navigate comp="link" className={`flex flex-cntr-all w-full active:text-secondary md:hover:text-secondary transition-colors ${pathname.includes(el.link) ? "nav-active color-secondary" : ""}`} goto={el.link} role="button" >
+                        <Navigate comp="link" className={`flex flex-cntr-all w-full active:text-secondary md:hover:text-secondary transition-colors ${pathname.includes(el.link) ? "nav-active color-secondary" : ""}`} goto={el.link}>
                             {pathname.startsWith
                                 (el.link) ?
                                 <el.activeIcon classnames="h-6" />
@@ -40,9 +40,9 @@ export default function Sidebar() {
                     </li>
                 ))}
             </ul>
-            <Navigate comp="link" goto="/me" className={`rounded-full border-2 ${pathname.startsWith("/me") ? "border-secondary" : "border-gray-500"}`}>
+            <Navigate comp="link" goto="/me" className={`rounded-full ${isHydrated ? "" : "userIconLoading"} border-2 ${pathname.startsWith("/me") ? "border-secondary" : "border-gray-500"}`}>
                 {user ?
-                    <img className="h-10 aspect-square rounded-full" src={getInternalPoster({ path: profile || "", options: { width: "40" } })} />
+                    <img className="h-10 aspect-square rounded-full" src={getInternalPoster({ path: user.profile, options: { width: "40" } })} />
                     :
                     <UserIcon classnames="m-2" />
                 }

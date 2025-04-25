@@ -11,7 +11,7 @@ export default function HomeLayout({ children }: Readonly<{ children: React.Reac
     return (
         <div className="flex">
             <Sidebar />
-            <main className="*:max-w-screen-md w-full *:mx-auto p-4">
+            <main>
                 {children}
             </main>
         </div>

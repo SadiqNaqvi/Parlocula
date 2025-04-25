@@ -13,15 +13,15 @@ const UserProfile = ({ user, posts, page, filter }: { user: User, page: number, 
     const userMeta = [
         { label: "followers", value: user.followers },
         { label: "following", value: user.following },
-        { label: "posts", value: user.post_count }
+        { label: "posts", value: user.posts }
     ]
 
     const { bio, name, username, profile } = user;
 
     const tabs = [
-        { Label: "Posts", tab_id: "posts", Component: <UserPost username={username} postCount={user.post_count} filter={filter} initialData={posts} page={page} isCurrentUser={currentUser?.username === username} /> },
-        { Label: "Comments", tab_id: "comments", Component: <UserPost username={username} postCount={user.post_count} filter={filter} initialData={posts} page={page} isCurrentUser={currentUser?.username === username} /> },
-        { Label: "Lists", tab_id: "lists", Component: <UserPost username={username} postCount={user.post_count} filter={filter} initialData={posts} page={page} isCurrentUser={currentUser?.username === username} /> },
+        { Label: "Posts", tab_id: "posts", Component: <UserPost username={username} postCount={user.posts} filter={filter} initialData={posts} page={page} isCurrentUser={currentUser?.username === username} /> },
+        { Label: "Comments", tab_id: "comments", Component: <UserPost username={username} postCount={user.posts} filter={filter} initialData={posts} page={page} isCurrentUser={currentUser?.username === username} /> },
+        { Label: "Lists", tab_id: "lists", Component: <UserPost username={username} postCount={user.posts} filter={filter} initialData={posts} page={page} isCurrentUser={currentUser?.username === username} /> },
     ]
 
 

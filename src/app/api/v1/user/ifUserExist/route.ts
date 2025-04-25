@@ -1,4 +1,4 @@
-import { getRequest } from "@lib/actions/actions";
+import { getRequest } from "@lib/helpers/common";
 import { emailPattern } from "@lib/constants";
 import { User } from "@model";
 import { NextRequest } from "next/server";

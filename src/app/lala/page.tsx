@@ -2,10 +2,10 @@
 import { useState } from "react";
 
 export default function Page() {
-    const [data, setData] = useState<any>("")
+    const [data, setData] = useState<any>("");
 
     const getData = () => {
-        fetch("/api/lala", { next: { revalidate: 0 } }).then(res => setData(res.text()));
+        fetch("https://ipinfo.io/json").then(r => r.json()).then(r => setData(JSON.stringify(r)));
     }
 
 

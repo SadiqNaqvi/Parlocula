@@ -1,5 +1,5 @@
 const LoadingSpinner = () => (
-    <div className="size-full flex flex-cntr-all">
+    <div className="stretchContainer">
         <div className="loadingSpinner"></div>
     </div>
 )

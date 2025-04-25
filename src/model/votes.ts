@@ -1,4 +1,4 @@
-import { VoteModelType } from "@type/modelTypes";
+import { VoteModelType } from "@type/model";
 import { Schema, models, model } from "mongoose";
 
 const voteModel = new Schema<VoteModelType>({

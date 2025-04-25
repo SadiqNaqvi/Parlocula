@@ -2,7 +2,7 @@ import Navbar from "@app/explore/(withoutSidebar)/exploreComponents/Navbar";
 import { CommentIcon } from "@assets/Icons";
 import { Navigate, DynamicComponent } from "@components";
 import { LinkTile } from "@components/ui";
-import { getCommentsOnPost, getPostById } from "@lib/actions/actions";
+import { getCommentsOnPost, getPostById } from "@lib/helpers/common";
 import { getInternalPoster, isValidObjectId, numberConverter, refineSearchParams, timeAgo } from "@lib/utils";
 import { FullPost, GeneralGetReturn } from "@type/internal";
 import { Metadata } from "next";

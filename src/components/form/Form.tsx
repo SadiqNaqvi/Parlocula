@@ -6,16 +6,17 @@ import { forwardRef, HTMLAttributes, } from "react";
 import { useForm, FormProvider } from "react-hook-form"
 import { ZodIssue } from "zod";
 
+type SubmitReturnType = { path: string, message: string }[] | string | null | void | undefined | ZodIssue[]
 type FormProps = {
-    schema: any,
-    submit: (data: any) => Promise<{ path: string, message: string }[] | string | null | void | undefined | ZodIssue[]>,
+    schema?: any,
+    submit: (data: any) => SubmitReturnType | Promise<SubmitReturnType>,
     defaultVals?: any
 } & HTMLAttributes<HTMLFormElement>
 
 const Form = forwardRef(({ children, schema, submit, defaultVals = {}, ...args }: FormProps, ref?: React.LegacyRef<HTMLFormElement>) => {
 
     const formMethod = useForm({
-        resolver: zodResolver(schema),
+        resolver: schema ? zodResolver(schema) : undefined,
         defaultValues: defaultVals
     });
     const { handleSubmit, setError, formState: { errors, isSubmitting } } = formMethod;
@@ -24,14 +25,14 @@ const Form = forwardRef(({ children, schema, submit, defaultVals = {}, ...args }
         if (isSubmitting) return;
         const errors = await submit(data);
         if (errors) {
-            if (typeof errors === "string")
-                setError("custom", { message: errors })
-            else if (errors.length)
+            if (Array.isArray(errors))
                 errors.forEach((error) => {
                     if (typeof error.path === "string")
                         setError(error.path, { message: error.message })
                     else setError(error.path.join('.'), { message: error.message })
                 })
+            else
+                setError("custom", { message: errors })
         }
     }
 

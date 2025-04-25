@@ -17,8 +17,11 @@ import VerticleMovieCard, {
 } from "./VerticleMovieCard";
 import ListPage from "./ListPage";
 import ThreadTile from "./ThreadTile";
+import ItemTile, { ItemCheckTile } from "./ItemTile";
 
 export {
+  ItemTile,
+  ItemCheckTile,
   ListPage,
   ThreadTile,
   VerticleMovieCardSkeleton,

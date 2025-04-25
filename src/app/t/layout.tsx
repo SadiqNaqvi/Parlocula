@@ -12,9 +12,7 @@ export default function Layout({ children }: Readonly<{ children: React.ReactNod
     return (
         <>
             <Sidebar />
-            <main className="*:max-w-screen-md w-full *:mx-auto p-4">
-                {children}
-            </main>
+            <main>{children}</main>
         </>
     )
 }

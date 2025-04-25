@@ -1,12 +1,13 @@
 "use client";
 
-import { Montserrat } from "next/font/google";
 import "@/app/globals.css";
+import Fancybox from "@components/Fancybox";
+import { fetchCurrentUser } from "@lib/helpers/client";
 import ReactQueryProvider from "@lib/queryClient";
 import useCurrentUser from "@store/user";
+import { Montserrat } from "next/font/google";
 import { useEffect } from "react";
-import { fetchCurrentUser } from "@lib/actions/clientActions";
-import { ToastBar, Toaster } from "react-hot-toast";
+import { Toaster } from "react-hot-toast";
 
 const fontFam = Montserrat({ subsets: ["latin"], weight: ["100", "200", "300", "400", "500", "600", "700"] });
 
@@ -16,18 +17,20 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
 
-  const { isGuest, clearUser, getUserFromHash, setUser, setUserHash } = useCurrentUser();
+  const { isHydrated, clearUser, getUserFromHash, setUser, setUserHash } = useCurrentUser();
   useEffect(() => {
-    if (isGuest === false)
+    if (isHydrated)
       fetchCurrentUser({ clearUser, getUserFromHash, setUser, setUserHash });
-  }, [isGuest])
+  }, [isHydrated])
 
   return (
     <html lang="en">
       <body className={`${fontFam.className} dark`}>
-        <Toaster  position="top-center" />
+        <Toaster position="top-center" />
         <ReactQueryProvider>
-          {children}
+          <Fancybox>
+            {children}
+          </Fancybox>
         </ReactQueryProvider>
         {/* <script src="https://kit.fontawesome.com/5d93eb1089.js"></script> */}
       </body>

@@ -1,4 +1,4 @@
-import { ReactionModelType } from "@type/modelTypes";
+import { ReactionModelType } from "@type/model";
 import { Schema, models, model } from "mongoose";
 
 const reactionModel = new Schema<ReactionModelType>(

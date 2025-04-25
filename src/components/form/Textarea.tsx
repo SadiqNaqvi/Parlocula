@@ -9,8 +9,8 @@ const Textarea = ({ label, name, description, ...args }: { label?: string, name:
 
 
     return (
-        <div className={`space-y-2 pb-2 border-b ${error ? "border-red-500" : "border-gray20"}`}>
-            {label && <label htmlFor={name}>{label}</label>}
+        <div className={`space-y-2 max-h-[200px] overflow-y-auto pb-2 border-b ${error ? "border-red-500" : "border-gray20"}`}>
+            {label && <label className="capitalize" htmlFor={name}>{label}</label>}
             <textarea
                 {...args}
                 {...register(name)}

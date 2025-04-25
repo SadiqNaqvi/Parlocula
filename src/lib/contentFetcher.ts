@@ -2,6 +2,8 @@
 
 import {
   convertGenresIntoId,
+  refineCollectionData,
+  refineMediaItemsFromSearch,
   refineMovieData,
   refineSearchData,
   refineShowData,
@@ -28,7 +30,9 @@ import {
   FullShowDetails,
   FullCompanyDetails,
 } from "../type/external";
-import { getMediaItem } from "./actions/actions";
+import { getMediaItem } from "./helpers/common";
+import { oneDay } from "./constants";
+import { GeneralGetReturn } from "@type/internal";
 type GeneralReturn<T = any> = { status: boolean; response: T };
 type MovieReturnType = GeneralReturn<GeneralMovieReturn>;
 type ShowReturnType = GeneralReturn<GeneralShowReturn>;
@@ -38,7 +42,6 @@ export const fetchMovie = async (
 ): Promise<RefinedMovieData | undefined> => {
   if (!id) return;
   try {
-
     const item = await getMediaItem(id, "movie");
     if (!item) return;
 
@@ -238,7 +241,7 @@ export const fetchCollection = async (id: string) => {
     const data: { status: boolean; response: FullCollectionData } = await (
       await fetch(`https://testlalaapp.vercel.app/api/collection?id=${id}`)
     ).json();
-    if (data.status) return data.response;
+    if (data.status) return refineCollectionData(data.response);
     console.error(
       "Some erorr occoured while fetching collection: " + data.response
     );
@@ -561,7 +564,8 @@ export const searchAllContent = async (
       response: GeneralReturnType & { results: any[] };
     } = await (
       await fetch(
-        `https://testlalaapp.vercel.app/api/search?q=${query}&t=multi&p=${page}`
+        `https://testlalaapp.vercel.app/api/search?q=${query}&t=multi&p=${page}`,
+        { next: { revalidate: oneDay } }
       )
     ).json();
     if (data.status)
@@ -576,6 +580,40 @@ export const searchAllContent = async (
   } catch (err: any) {
     console.error("Error occured while searching content:" + err.message);
     return;
+  }
+};
+
+export const searchOnlyMediaItems = async (
+  query: string,
+  page = 1
+): Promise<GeneralGetReturn> => {
+  try {
+    const data: {
+      status: boolean;
+      response: GeneralReturnType & { results: any[] };
+    } = await fetch(
+      `https://testlalaapp.vercel.app/api/search?q=${query}&t=multi&p=${page}`,
+      { next: { revalidate: oneDay } }
+    ).then((r) => r.json());
+
+    if (!data.status) return { success: false, errCode: "pp500" };
+
+    return {
+      success: true,
+      result: {
+        ...data.response,
+        results: refineMediaItemsFromSearch(data.response.results),
+      },
+    };
+  } catch (err: any) {
+    console.error(
+      "Something went wrong while searching media items",
+      err.message
+    );
+    return {
+      success: false,
+      errCode: "pp500",
+    };
   }
 };
 

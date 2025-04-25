@@ -4,7 +4,7 @@ import { LeftChevron } from "@assets/Icons";
 import { DatePicker, Form, Input, Password, Poster, Textarea } from "@components/form";
 import Choice from "@components/form/Choice";
 import MediaInputCont from "@components/MediaInputCont";
-import { isUsernameAvailable, register } from "@lib/actions/clientActions";
+import { isUsernameAvailable, register } from "@lib/helpers/client";
 import { genresToChoose } from "@lib/constants";
 import { useCustomReducer } from "@lib/hooks";
 import { registerUserSchemaClient, usernameSchema, userPrefrenceSchema } from "@lib/schemas";

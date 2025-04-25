@@ -2,7 +2,7 @@ import { AddIcon, SendIcon, XmarkIcon } from "@assets/Icons";
 import { useCustomReducer } from "@lib/hooks";
 import GiphyComponent from "./GiphyComponent";
 import OptionMenu from "./OptionMenu";
-import { createCommentOnPost } from "@lib/actions/clientActions";
+import { createCommentOnPost } from "@lib/helpers/client";
 import toast from "react-hot-toast";
 
 type Props = {

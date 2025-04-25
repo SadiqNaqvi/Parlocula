@@ -2,7 +2,7 @@
 
 import { InfiniteScroller } from "@components";
 import { NotFound, PostTile } from "@components/ui";
-import { getPostsOfThread } from "@lib/actions/actions";
+import { getPostsOfThread } from "@lib/helpers/common";
 import { infiniteScrollerResponse } from "@lib/utils";
 
 const notFoundMessages = {

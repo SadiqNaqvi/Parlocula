@@ -1,10 +1,10 @@
-import { getRequest } from "@lib/actions/actions";
+import { getRequest } from "@lib/helpers/common";
 import { ObjectId } from "@lib/utils";
 import { Post } from "@model";
 
 export const GET = getRequest(async (r: any, params: { post_id: string }) => {
   const { post_id } = params;
-  const post = await Post.aggregate([
+  const result = await Post.aggregate([
     { $match: { _id: ObjectId(post_id) } },
     {
       $lookup: {
@@ -22,12 +22,10 @@ export const GET = getRequest(async (r: any, params: { post_id: string }) => {
         as: "user",
       },
     },
-    { $unwind: { path: "$thread", preserveNullAndEmptyArrays: true } },
-    { $unwind: { path: "$user", preserveNullAndEmptyArrays: true } },
     {
       $addFields: {
-        username: "$user.username",
-        poster: "$thread.poster",
+        username: { $ifNull: [{ $arrayElemAt: ["$user.username", 0] }, ""] },
+        poster: { $ifNull: [{ $arrayElemAt: ["$thread.poster", 0] }, ""] },
       },
     },
     {
@@ -37,5 +35,7 @@ export const GET = getRequest(async (r: any, params: { post_id: string }) => {
       },
     },
   ]);
-  return { result: post[0], success: true, errCode: null };
+  const post = result[0];
+  if (!post) return { success: false, errCode: "pp104" };
+  return { result: post, success: true };
 });

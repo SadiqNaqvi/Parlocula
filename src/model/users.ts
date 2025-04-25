@@ -1,6 +1,6 @@
-import { UserDataModelType, UserModelType } from "@type/modelTypes";
+import { UserModelType } from "@type/model";
 import { Schema, model, models } from "mongoose";
-import { linkModel, reportModel } from "./general";
+import { linkModel } from "./general";
 
 const userModel = new Schema<UserModelType>(
   {
@@ -11,11 +11,13 @@ const userModel = new Schema<UserModelType>(
     username: {
       type: String,
       unique: true,
+      index: true,
       required: [true, "Name of the user is required"],
     },
     email: {
       type: String,
       unique: true,
+      index: true,
       required: [true, "Email of the user is required"],
     },
     dob: {
@@ -24,7 +26,7 @@ const userModel = new Schema<UserModelType>(
     },
     bio: { type: String, default: "" },
     bioLinks: [linkModel],
-    genres: {
+    initialGenres: {
       type: [String],
       required: [true, "Initial Genres are required"],
     },
@@ -33,45 +35,50 @@ const userModel = new Schema<UserModelType>(
       required: [true, "Password of the user is required"],
     },
     profile: { type: String, default: "" },
-    editedAt: { type: Date, default: null },
-    session_id: { type: String, default: null },
-    follower_count: { type: Number, default: 0 },
-    following_count: { type: Number, default: 0 },
-    post_count: { type: Number, default: 0 },
+    isActive: { type: Boolean, default: true },
+
+    // Metadata
+    edited_at: { type: Date, default: null },
+    session_id: { type: String, index: true },
     lastLoginAt: { type: Date, default: Date.now() },
     isBanned: { type: Boolean, default: false },
+    banEndsAt: { type: Date, default: null },
+    followers: { type: Number, default: 0 },
+    following: { type: Number, default: 0 },
+    posts: { type: Number, default: 0 },
+    comments: { type: Number, default: 0 },
+    public_lists: { type: Number, default: 0 },
+    total_lists: { type: Number, default: 0 },
+
+    // Predefined Lists
+    favourite_id: { type: Schema.Types.ObjectId, ref: "List", required: true },
+    recommended_id: {
+      type: Schema.Types.ObjectId,
+      ref: "List",
+      required: true,
+    },
+    watched_id: { type: Schema.Types.ObjectId, ref: "List", required: true },
   },
   { timestamps: true }
 );
 
-userModel.index({ username: 1, email: 1 });
+userModel.index(
+  {
+    name: "text",
+    username: "text",
+  },
+  {
+    background: true,
+    weights: { username: 10 }, // Prioritize username matches
+    name: "user_username_text_index",
+    default_language: "english", // Handles stemming (e.g., "review" matches "reviews")
+    collation: {
+      locale: "en", // Case and punctuation-insensitive
+      strength: 2,
+    },
+  }
+);
 
 const User = models.User || model<UserModelType>("User", userModel);
-
-const userMetadataModel = new Schema<UserDataModelType>({
-  user_id: {
-    type: Schema.Types.ObjectId,
-    ref: "User",
-    required: [true, "User Id is required to store metadata."],
-  },
-  email: {
-    type: String,
-    required: [true, "User's email is required"],
-    unique: true,
-  },
-  username: {
-    type: String,
-    required: true,
-    unique: true,
-  },
-  genres: [String],
-  celebs: { type: [String], default: [] },
-  watch: { type: [String], default: [] },
-  reports: { type: [reportModel], default: [] },
-});
-
-userMetadataModel.index({ user_id: 1, email: 1, username: 1 });
-
-export const UserData = models.UserData || model("UserData", userMetadataModel);
 
 export default User;

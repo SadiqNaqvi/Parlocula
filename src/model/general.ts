@@ -5,7 +5,7 @@ import {
   LinkModelType,
   RecentlyJoinedModelType,
   ReportModelType,
-} from "@type/modelTypes";
+} from "@type/model";
 import { Schema } from "mongoose";
 
 const reportModel = new Schema<ReportModelType>(

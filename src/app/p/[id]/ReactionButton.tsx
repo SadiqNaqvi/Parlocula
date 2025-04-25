@@ -1,25 +1,11 @@
 "use client";
 
 import { UserBasedButton } from "@components";
-import { addReactionOnPost, getReactionOnPost, removeReactionOnPost } from "@lib/actions/clientActions";
+import { addReactionOnPost, getReactionOnPost, removeReactionOnPost } from "@lib/helpers/client";
 import { convertCodeIntoError, numberConverter } from "@lib/utils";
-import { MutationFnProps } from "@type/internal";
-import toast from "react-hot-toast";
 import EmojiPicker, { Theme } from "emoji-picker-react"
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-
-const queryFn = async (pid: string, uid?: string) => {
-    if (!uid) return null;
-    const { errCode, result, success } = await getReactionOnPost({ pid, uid })
-    if (!success) throw new Error(convertCodeIntoError(errCode) as string)
-    return result ? result : null
-}
-
-type ButtonProps = {
-    state?: string,
-    isPending: boolean,
-    onClick: (state?: string | null) => void;
-}
+import { MutationFnProps, UserBasedButtonProps } from "@type/other";
 
 const ReactionButton = ({ id, count }: { id: string, count: number }) => {
 
@@ -28,15 +14,16 @@ const ReactionButton = ({ id, count }: { id: string, count: number }) => {
     const pathname = usePathname();
     const router = useRouter();
 
-    const mutationFn = async ({ state }: MutationFnProps<string | null>) => {
-        console.log(state);
-        // if (state) {
-        //     const error = await addReactionOnPost(state, id);
-        //     if (error) toast.error(error);
-        // } else {
-        //     const error = await removeReactionOnPost(id);
-        //     if (error) toast.error(error);
-        // }
+    const queryFn = async (uid: string) => {
+        if (!uid) return null;
+        const { errCode, result, success } = await getReactionOnPost(id, uid);
+        if (!success) throw new Error(convertCodeIntoError(errCode) as string)
+        return result ? result : null
+    }
+
+    const mutationFn = async ({ newState, action, user_id }: MutationFnProps<string>) => {
+        if (action === "react") await addReactionOnPost(user_id, id, newState);
+        else await removeReactionOnPost(id, user_id);
     }
 
     const handleReactionState = (newState?: boolean) => {
@@ -45,7 +32,7 @@ const ReactionButton = ({ id, count }: { id: string, count: number }) => {
         router.push(`${pathname}?${params.toString()}`)
     }
 
-    const Button = ({ onClick, state }: ButtonProps) => (
+    const Button = ({ onClick, state }: UserBasedButtonProps<string>) => (
         <span className="flex p-2 border border-gray30 rounded-md">
             {action === "react" &&
                 <section className="fixed inset-0 z-[11] flex justify-center backdrop-brightness-75" onClick={() => handleReactionState()}>
@@ -72,7 +59,7 @@ const ReactionButton = ({ id, count }: { id: string, count: number }) => {
         className="flex p-2 border border-gray-500 border-opacity-30 rounded-md"
         Button={Button}
         mutationFn={mutationFn}
-        queryFn={(user) => queryFn(id, user?._id)}
+        queryFn={queryFn}
         queryKeys={[`reaction`, id]}
     />
 }

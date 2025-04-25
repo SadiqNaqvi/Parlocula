@@ -61,15 +61,13 @@ const dobSchema = z
     return age > 12 && age < 80;
   }, "Your age is not valid to use this app!");
 
-export type TagSchemaType = z.infer<typeof tagSchema>;
-
 export const linkSchema = z.object({
   label: z
     .string()
     .trim()
     .min(5, "Label must contain 5 characters.")
     .max(20, "Label connot have more than 20 characters."),
-  url: z
+  path: z
     .string()
     .trim()
     .min(15, "URL must have 15 characters")
@@ -79,16 +77,11 @@ export const linkSchema = z.object({
     }),
 });
 
-export type LinkSchema = z.infer<typeof linkSchema>;
-
 export const frameDataSchema = z.object({
   type: z.enum(["image", "video"]),
-  size: z.number(),
   isExternal: z.boolean(),
-  url: z.string(),
+  path: z.string(),
 });
-
-export type FrameDataSchemaType = z.infer<typeof frameDataSchema>;
 
 export const fileSchema = z
   .any()
@@ -107,15 +100,16 @@ export const extraFieldForUpdateMethod = z.object({
   oldFiles: z.array(frameDataSchema).optional(),
 });
 
-export const threadSchemaClient = z.object({
+const threadSchemaBase = z.object({
   name: z
     .string()
     .trim()
+    .toLowerCase()
     .min(5, "Thread name must contain 5 characters.")
     .max(25, "Thread name cannot have more than 25 characters.")
     .refine(
-      (val) => val.includes(" "),
-      "Thread name cannot have white spaces, use underscores ( _ )"
+      (val) => !val.includes(" "),
+      "Thread name cannot have white spaces, use underscores ( _ ) instead"
     )
     .refine(
       (val) => usernamePattern.test(val),
@@ -127,29 +121,33 @@ export const threadSchemaClient = z.object({
     .min(15, "Description must have 15 characters.")
     .max(500, "Description cannot have more than 500 characters."),
   nsfw: z.boolean(),
-  tags: z
-    .string()
-    .trim()
-    .transform((tags) => tags.split(","))
-    .refine((tags) => tags.length <= 10, "Only 10 tags are allowed.")
-    .transform((tags) => tags.map((tag) => tag.trim().toLowerCase())),
-  links: z
-    .array(linkSchema)
-    .refine(
-      (links) => links.length <= 1,
-      "A link is required to create a thread"
-    )
-    .refine((links) => links.length <= 5, "Only 5 links are allowed"),
 });
+
+export const threadSchemaClient = z
+  .object({
+    tags: z
+      .string()
+      .trim()
+      .transform((tags) => tags.split(","))
+      .refine((tags) => tags.length <= 10, "Only 10 tags are allowed.")
+      .transform((tags) => tags.map((tag) => tag.trim().toLowerCase())),
+  })
+  .merge(threadSchemaBase);
 
 export const threadSchemaServer = z
   .object({
-    filesData: z.array(frameDataSchema).optional(),
-    files: z.array(fileSchema).optional(),
+    links: z
+      .array(linkSchema)
+      .refine(
+        (links) => links.length <= 1,
+        "A link is required to create a thread"
+      )
+      .refine((links) => links.length <= 5, "Only 5 links are allowed"),
+    tags: z.array(z.string().min(3)),
+    filesData: z.array(frameDataSchema).optional().default([]),
+    files: z.array(fileSchema).optional().default([]),
   })
-  .merge(threadSchemaClient);
-
-export type ThreadSchemaServer = z.infer<typeof threadSchemaServer>;
+  .merge(threadSchemaBase);
 
 const postClientSuperRefine = (data: any, ctx: any) => {
   const { title, body, tag } = data;
@@ -228,7 +226,7 @@ const postServerSuperRefine = (data: any, ctx: any) => {
       message:
         "Links based post must have at least 1 link attached and only 5 links are allowed!",
     });
-  } else if (filesData?.length > 1) {
+  } else if (tag !== "frames" && filesData?.length > 1) {
     ctx.addIssue({
       inclusive: true,
       type: "array",
@@ -243,7 +241,6 @@ const postServerSuperRefine = (data: any, ctx: any) => {
 const postClientBase = z.object({
   title: z.string().trim().min(15, "Title must contain 15 characters."),
   body: z.string().trim(),
-  tag: tagEnum.default(""),
   nsfw: z.boolean(),
   spoiler: z.boolean(),
 });
@@ -254,8 +251,9 @@ export const postSchemaClient = postClientBase.superRefine(
 
 const postServerBase = z.object({
   links: z.array(linkSchema),
-  filesData: z.array(frameDataSchema),
-  files: z.array(fileSchema),
+  tag: tagEnum.default(""),
+  filesData: z.array(frameDataSchema).default([]),
+  files: z.array(fileSchema).default([]),
   thread_id: z.string(),
 });
 
@@ -263,8 +261,6 @@ export const postSchemaServer = postClientBase
   .merge(postServerBase)
   .superRefine(postClientSuperRefine)
   .superRefine(postServerSuperRefine);
-
-export type PostSchemaType = z.infer<typeof postSchemaServer>;
 
 export const postUpdateSchema = postClientBase
   .merge(postServerBase)
@@ -330,8 +326,8 @@ export const registerUserSchemaServer = z
         "You can only choose between the given genres"
       ),
     bioLinks: z.array(linkSchema).default([]),
-    files: z.array(fileSchema).optional(),
-    filesData: z.array(frameDataSchema).optional(),
+    files: z.array(fileSchema).optional().default([]),
+    filesData: z.array(frameDataSchema).optional().default([]),
   })
   .merge(registerUserCommon);
 
@@ -361,9 +357,12 @@ export const commentSchema = commentSchemaBase.refine(
   (data) => data.content || data.attachment
 );
 
-export type CommentSchemaType = z.infer<typeof commentSchema>;
-
 export const commentSchemaUpdate = commentSchemaBase.partial().strict();
+
+export const voteSchema = z.object({
+  type: z.enum(["up", "down"]),
+  comment_author: z.string(),
+});
 
 const itemsSchema = z.array(
   z.object({
@@ -378,21 +377,18 @@ const itemsSchema = z.array(
 );
 
 export const listClientSchema = z.object({
-  title: z.string().min(3).max(40),
-  description: z.string().max(500).optional(),
+  name: z
+    .string()
+    .min(3, "Name must contain at least 3 characters")
+    .max(40, "Title must contain at most 40 characters"),
   isPrivate: z.boolean(),
 });
 
 export const listServerSchema = z.object({
-  title: z.string().min(3).max(40),
-  description: z.string().max(500).optional(),
-  files: z.array(fileSchema),
-  filesData: z.array(frameDataSchema),
+  name: z.string().min(3).max(40),
   isPrivate: z.boolean(),
-  items: itemsSchema.optional().default([]),
+  items: itemsSchema,
 });
-
-export type ListSchemaType = z.infer<typeof listServerSchema>;
 
 export const itemsForListSchema = z.object({ items: itemsSchema });
 
@@ -403,4 +399,8 @@ export const itemToAddAndRemove = z.object({
   remove: z.array(z.string()),
 });
 
-export type ItemToAddAndRemoveType = z.infer<typeof itemToAddAndRemove>;
+export const bookmarkSchema = z.object({
+  content_id: z.string(),
+  content_type: z.enum(["Post", "Comment", "List"]),
+  content_author: z.string(),
+});

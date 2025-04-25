@@ -1,5 +1,6 @@
-import { getRequest } from "@lib/actions/actions";
-import { filterToSort, queryLimit } from "@lib/constants";
+import { filterToSort, postTags } from "@lib/constants";
+import { getRequest } from "@lib/helpers/common";
+import { postsAggregationPipeline } from "@lib/pipelines";
 import { ObjectId, getPageParams } from "@lib/utils";
 import { Post } from "@model";
 import { NextRequest } from "next/server";
@@ -7,70 +8,30 @@ import { NextRequest } from "next/server";
 export const GET = getRequest(
   async (r: NextRequest, params: { id: string }) => {
     const { id } = params;
+
     const page = getPageParams(r) - 1;
-    const filter = r.nextUrl.searchParams.get("f")?.trim() || "latest";
+
+    const searchParams = r.nextUrl.searchParams;
+    const filter = searchParams.get("f")?.trim() || "latest";
+    const tag = searchParams.get("tag");
+
     const sort = filterToSort.posts[filter] ?? filterToSort.posts.latest;
 
-    const response = await Post.aggregate([
-      { $match: { thread_id: ObjectId(id) } },
-      {
-        $facet: {
-          total: [{ $count: "count" }],
-          data: [
-            { $sort: sort },
-            { $skip: page * queryLimit },
-            { $limit: queryLimit },
-            {
-              $lookup: {
-                from: "users",
-                localField: "user_id",
-                foreignField: "_id",
-                as: "user",
-              },
-            },
-            {
-              $unwind: {
-                path: "$user",
-                preserveNullAndEmptyArrays: true,
-              },
-            },
-            {
-              $addFields: {
-                name: "$user.username",
-                poster: "$user.profile",
-                frame: {
-                  $ifNull: [{ $arrayElemAt: ["$frames", 0] }, null],
-                },
-              },
-            },
-            {
-              $project: {
-                user: 0,
-                user_id: 0,
-                body: 0,
-                frames: 0,
-                links: 0,
-              },
-            },
-          ],
-        },
-      },
-      { $unwind: "$total" },
-      {
-        $project: {
-          total: "$total.count",
-          data: 1,
-        },
-      },
-    ]);
+    const filters: any = { thread_id: ObjectId(id) };
+    if (tag && postTags.includes(tag)) filters.tag = tag;
+
+    const response = await Post.aggregate(
+      postsAggregationPipeline({
+        filters: [{ $match: filters }],
+        sort,
+        page,
+      })
+    );
 
     const posts = response[0];
     if (!posts) return { success: false, errCode: "pp104" };
 
-    return {
-      result: posts,
-      success: true,
-    };
+    return { result: posts, success: true };
   }
 );
 

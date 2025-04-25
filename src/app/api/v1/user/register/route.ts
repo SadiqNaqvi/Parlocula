@@ -1,10 +1,13 @@
-import { postRequest } from "@lib/actions/actions";
-import { storeSession } from "@lib/auth";
+import { postRequest } from "@lib/helpers/common";
+import { generateToken, storeSession } from "@lib/auth";
 import { registerUserSchemaServer } from "@lib/schemas";
-import { User, UserData } from "@model";
-import { UserDataModelType, UserModelType } from "@type/modelTypes";
+import { List, User } from "@model";
+import { UserModelType } from "@type/models";
 import bcrypt from "bcrypt";
 import { cookies } from "next/headers";
+import { User as UserType } from "@type/internal";
+import { preLists } from "@lib/constants";
+import { Types } from "mongoose";
 
 type id = { _id: string };
 
@@ -19,7 +22,24 @@ export const POST = postRequest({
     );
 
     const session_id = crypto.randomUUID();
+    const id = new Types.ObjectId();
+
+    const presefinedLists = preLists.map((l) => ({
+      name: l,
+      user_id: id,
+      isPrivate: true,
+      item_count: 0,
+      list_type: l,
+    }));
+
+    const lists = await List.create(presefinedLists, {
+      session,
+      ordered: true,
+    });
+    const idMap = new Map(lists.map((l) => [l.name, l._id]));
+
     const dataToStore = {
+      _id: id,
       name,
       bio,
       bioLinks,
@@ -28,29 +48,20 @@ export const POST = postRequest({
       dob,
       genres,
       password: encryptedPassword,
+      favourite_id: idMap.get("favourite"),
+      recommended_id: idMap.get("recommended"),
+      watched_id: idMap.get("watched"),
       profile: frames.pop()?.path ?? "",
       session_id,
     };
 
-    const createdUser: UserModelType & id = (
-      await User.create([dataToStore], { session })
-    )[0].toObject();
+    const response = await User.create([dataToStore], {
+      session,
+      ordered: true,
+    });
 
-    if (!createdUser) return { success: false, errCode: "pp105" };
-
-    const udata: UserDataModelType & id = (
-      await UserData.create(
-        [{
-          user_id: createdUser._id,
-          genres,
-          email,
-          username,
-        }],
-        { session }
-      )
-    )[0].toObject();
-
-    const id = createdUser._id;
+    const user: UserModelType & id = response[0];
+    if (!user) return { success: false, errCode: "pp105" };
 
     const sessionStored = await storeSession(session_id, {
       user_id: id,
@@ -60,6 +71,13 @@ export const POST = postRequest({
     });
     if (!sessionStored) return { success: false, errCode: "pp106" };
 
+    const token = await generateToken({ user_id: user._id, username });
+    cookies().set("token", token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "strict",
+      path: "/",
+    });
     cookies().set("sid", session_id, {
       httpOnly: true,
       secure: true,
@@ -67,21 +85,17 @@ export const POST = postRequest({
       path: "/",
     });
 
-    const { _id, user_id, ...userData } = udata;
+    const result: UserType = {
+      ...user,
+      favourite_id: user.favourite_id.toString(),
+      recommended_id: user.recommended_id.toString(),
+      watched_id: user.watched_id.toString(),
+      lists: [],
+      threads: [],
+    };
 
     return {
-      result: {
-        _id: id,
-        follower_count: 0,
-        following_count: 0,
-        post_count: 0,
-        bioLinks,
-        bio,
-        dob,
-        name,
-        profile: createdUser.profile,
-        ...userData,
-      },
+      result,
       success: true,
       available: "registration_email_username",
       options: { email, username },

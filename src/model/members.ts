@@ -1,4 +1,4 @@
-import { MemberModelType } from "@type/modelTypes";
+import { MemberModelType } from "@type/model";
 import { Schema, models, model } from "mongoose";
 
 const memberModel = new Schema<MemberModelType>(

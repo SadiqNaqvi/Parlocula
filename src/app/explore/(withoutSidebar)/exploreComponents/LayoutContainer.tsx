@@ -2,7 +2,7 @@ import Image from "next/image";
 import Navbar from "./Navbar";
 import { getPoster } from "@lib/dataRefiner";
 
-export default function LayoutContainer({ backdrop, poster, poster_type, poster_classname, children, classnames = "" }: { backdrop: string, poster: string, poster_type: string, poster_classname: string, children: React.ReactNode, classnames?: string }) {
+export default function LayoutContainer({ backdrop, poster, poster_type, poster_classname, children, classnames = "" }: { backdrop: string, poster: string|null, poster_type: string, poster_classname: string, children: React.ReactNode, classnames?: string }) {
     return (
         <>
             <Navbar />

@@ -1,4 +1,4 @@
-import { getRequest } from "@lib/actions/actions";
+import { getRequest } from "@lib/helpers/common";
 import { filterToSort, queryLimit } from "@lib/constants";
 import { ObjectId, getPageParams } from "@lib/utils";
 import Item from "@model/items";
@@ -20,7 +20,7 @@ export const GET = getRequest(async (r: any, params: { id: string }) => {
           { $limit: queryLimit },
           {
             $lookup: {
-              from: "items",
+              from: "media",
               localField: "media_id",
               foreignField: "_id",
               as: "item",
@@ -29,13 +29,21 @@ export const GET = getRequest(async (r: any, params: { id: string }) => {
           {
             $addFields: {
               title: { $arrayElemAt: ["$item.title", 0] },
+              media_type: { $arrayElemAt: ["$item.media_type", 0] },
               poster: {
                 $ifNull: [{ $arrayElemAt: ["$item.poster", 0] }, ""],
               },
-              tmdb_id: { $arrayElemAt: ["$user.tmdb_id", 0] },
+              tmdb_id: { $arrayElemAt: ["$item.tmdb_id", 0] },
             },
           },
+          { $project: { item: 0, media_id: 0, user_id: 0 } },
         ],
+      },
+    },
+    {
+      $project: {
+        total: { $arrayElemAt: ["$total.count", 0] },
+        data: 1,
       },
     },
   ]);

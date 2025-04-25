@@ -1,3 +1,4 @@
+import { formDataToObject } from "@lib/utils";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -15,7 +16,7 @@ export const POST = async (r: NextRequest) => {
   const formData = await r.formData();
 
   console.log("data", data);
-  console.log("formdata", formData);
+  console.log("formdataOBJ", formDataToObject(formData).files);
 
   return NextResponse.json({ success: true });
 };

@@ -1,5 +1,6 @@
-import { getRequest } from "@lib/actions/actions";
-import { filterToSort, queryLimit } from "@lib/constants";
+import { filterToSort } from "@lib/constants";
+import { getRequest } from "@lib/helpers/common";
+import { postsAggregationPipeline } from "@lib/pipelines";
 import { getPageParams } from "@lib/utils";
 import { User } from "@model";
 
@@ -9,7 +10,7 @@ export const GET = getRequest(async (r: any, params: { username: string }) => {
   const filter = r.nextUrl.searchParams.get("f")?.trim() || "latest";
   const sort = filterToSort.userPosts[filter] ?? filterToSort.userPosts.latest;
 
-  const posts = await User.aggregate([
+  const filters = [
     { $match: { username } },
     {
       $lookup: {
@@ -20,63 +21,18 @@ export const GET = getRequest(async (r: any, params: { username: string }) => {
       },
     },
     {
-      $project: {
-        total: { $size: "$posts" },
-        posts: {
-          $slice: [
-            {
-              $sortArray: {
-                input: "$posts",
-                sortBy: sort,
-              },
-            },
-            page * queryLimit,
-            queryLimit,
-          ],
-        },
+      $replaceRoot: {
+        newRoot: { $arrayElemAt: ["$posts", 0] },
       },
     },
-    { $unwind: "$posts" },
-    {
-      $lookup: {
-        from: "threads",
-        localField: "posts.thread_id",
-        foreignField: "_id",
-        as: "posts.thread",
-      },
-    },
-    {
-      $unwind: {
-        path: "$posts.thread",
-        preserveNullAndEmptyArrays: true,
-      },
-    },
-    {
-      $addFields: {
-        posts: {
-          name: "$posts.thread.name",
-          poster: "$posts.thread.poster",
-        },
-      },
-    },
-    {
-      $project: {
-        posts: { thread: 0, user_id: 0 },
-      },
-    },
-    {
-      $group: {
-        _id: "$_id",
-        posts: { $push: "$posts" },
-        total: { $first: "$total" },
-      },
-    },
-  ]);
+  ];
 
-  const result = posts[0] ?? { data: [], total: 0 };
+  const response = await User.aggregate(
+    postsAggregationPipeline({ filters, sort, page })
+  );
 
-  return {
-    result,
-    success: true,
-  };
+  const posts = response[0];
+  if (!posts) return { success: false, errCode: "pp104" };
+
+  return { result: posts, success: true };
 });

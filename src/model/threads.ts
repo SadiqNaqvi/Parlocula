@@ -1,6 +1,6 @@
 import { Schema, models } from "mongoose";
 import { linkModel, connectionModel, lastUpdate } from "./general";
-import { ThreadModelType } from "@type/modelTypes";
+import { ThreadModelType } from "@type/model";
 import { model } from "mongoose";
 
 const threadModel = new Schema<ThreadModelType>(
@@ -42,6 +42,22 @@ const threadModel = new Schema<ThreadModelType>(
     },
   },
   { timestamps: true }
+);
+
+threadModel.index(
+  {
+    name: "text",
+  },
+  {
+    background: true,
+    weights: { name: 10 }, // Prioritize name matches
+    name: "thread_name_text_index",
+    default_language: "english", // Handles stemming (e.g., "review" matches "reviews")
+    collation: {
+      locale: "en", // Case and punctuation-insensitive
+      strength: 2,
+    },
+  }
 );
 
 const Thread = models.Thread || model<ThreadModelType>("Thread", threadModel);

@@ -2,7 +2,7 @@
 
 import InfiniteScroller from "@components/InfiniteScroller";
 import { FrameTile, NotFound } from "@components/ui";
-import { getFramesOfThread } from "@lib/actions/actions";
+import { getFramesOfThread } from "@lib/helpers/common";
 import { infiniteScrollerResponse } from "@lib/utils";
 
 const notFoundMessages = {

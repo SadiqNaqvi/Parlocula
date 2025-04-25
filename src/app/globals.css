@@ -6,6 +6,12 @@
   box-sizing: border-box !important;
 }
 
+.fancybox__content {
+  padding: 0 !important;
+  background: inherit !important;
+  color: inherit !important;
+}
+
 .items-end {
   align-items: flex-end;
 }
@@ -203,6 +209,32 @@ li {
   list-style-position: inside;
 }
 
+.userIconLoading {
+  position: relative;
+}
+
+.userIconLoading::before {
+  content: "";
+  inset: -2px;
+  position: absolute;
+  border: 2px solid var(--secondary);
+  border-bottom-color: transparent;
+  border-radius: 25px;
+  animation: spin 1000ms infinite ease;
+}
+
+*:has(.stretchContainer) {
+  display: flex;
+  flex-direction: column;
+}
+
+.stretchContainer {
+  flex-grow: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 dialog.fullControl {
   all: unset;
   width: 100%;
@@ -229,6 +261,13 @@ body {
   color-scheme: light dark;
   background-color: light-dark(#f5f5fa, var(--primary));
   color: light-dark(#213547, var(--primaryText));
+}
+
+main > *:not(.ppModal) {
+  width: 100%;
+  max-width: 768px;
+  margin-inline: auto;
+  padding-inline: 8px;
 }
 
 body main:not(.noPadding) {
@@ -263,7 +302,14 @@ body.dark {
   --primaryText: #f5f5fa;
 }
 
-body:has([popover]:popover-open, dialog:open) {
+.ppModal {
+  margin: 0;
+  padding: 0;
+  z-index: 20;
+  inset: 0;
+}
+
+body:has([popover]:popover-open, dialog:open, .ppModal) {
   overflow: hidden;
 }
 
@@ -330,10 +376,6 @@ input:not(.noControl) {
   outline: none;
 }
 
-input:-webkit-autofill {
-  -webkit-background-clip: text;
-}
-
 input,
 textarea {
   max-width: 100%;
@@ -365,7 +407,8 @@ button:focus-visible {
   outline: 2px solid var(--primaryText);
 }
 
-button:is(.bigBtn, .primary, .secondary) {
+button:is(.bigBtn, .primary, .secondary),
+a[role="button"].btn {
   height: 40px;
   padding-inline: 1.2rem;
   display: flex;
@@ -376,12 +419,14 @@ button:is(.bigBtn, .primary, .secondary) {
   border-radius: var(--globalRadius);
 }
 
-button.primary {
+button.primary,
+a[role="button"].btn {
   background-color: var(--secondary);
   color: var(--secondaryText);
 }
 
-button.secondary {
+button.secondary,
+a[role="button"].btn {
   border-color: var(--secondary);
 }
 

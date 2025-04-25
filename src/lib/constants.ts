@@ -3,7 +3,7 @@ import {
   AvailableRevalidateTags,
   CloudinaryMediaOptions,
   QueryFilterType,
-} from "@type/internal";
+} from "@type/other";
 
 export const movie_genres: Record<string, number> = {
   action: 28,
@@ -71,8 +71,21 @@ export const genresToChoose = [
   "western",
 ];
 
+export const searchFilters = [
+  "all",
+  "movies",
+  "shows",
+  "threads",
+  "users",
+  "posts",
+  "comments",
+  "lists",
+  "people",
+  "collections",
+  "companies",
+];
+
 export const postTags = [
-  "",
   "discussion",
   "question",
   "roast/joke",
@@ -92,6 +105,9 @@ export const postLinksLength = 5;
 
 export const urlPattern =
   /^https:\/\/(www\.)?[a-zA-Z0-9-]{2,}(\.[a-zA-Z0-9-]{2,})+(\/[^\s]*)?(\?[^\s]*)?$/;
+
+export const mediaUrlPattern =
+  /^(https:\/\/)?([\w\-]+\.)+[\w\-]+(\/[\w\- .\/]*)*\/?\.(jpg|jpeg|png|bmp|webp|mp4|mov|avi|mkv|flv|wmv|webm|3gp)(\?.*)?$/;
 
 export const passwordValidator =
   /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$/;
@@ -135,20 +151,6 @@ export const allowedFormats: Record<string, string[]> = {
   video: ["mp4", "webm", "mkv"],
 };
 
-export const allowedImageMimeTypes = [
-  "image/png",
-  "image/jpeg",
-  "image/webp",
-  "image/bmp",
-  "image/tiff",
-  "image/heic",
-];
-export const allwedVideoMimeTypes = [
-  "video/mp4",
-  "video/webm",
-  "video/x-matroska",
-];
-
 export const cloudinary_media_options: Record<CloudinaryMediaOptions, string> =
   {
     aspect_ratio: "ar_",
@@ -167,6 +169,9 @@ export const cloudinary_video_uri =
 export const cloudinary_postKey = "v1731487676";
 
 export const queryLimit = 20;
+export const recentlyJoinedLimit = 20;
+
+export const clientThreadsAndListsLimit = 50;
 
 export const errorCodes: Record<string, { reason: string; message: string }> = {
   pp100: {
@@ -210,7 +215,7 @@ export const errorCodes: Record<string, { reason: string; message: string }> = {
   },
   pp202: {
     reason: "Un-Authenticated user trying to perform an action.",
-    message: "You need to log in to get this resource or perform this action.",
+    message: "You need to log in to perform this action.",
   },
   pp203: {
     reason: "Form Errors issued by zod.",
@@ -231,8 +236,9 @@ export const errorCodes: Record<string, { reason: string; message: string }> = {
       "You're temporarily banned to perform any post requests. Please try again in some days.",
   },
   pp207: {
-    reason: "User has blocked the current user.",
-    message: "You cannot follow this account since this user has blocked you.",
+    reason:
+      "A post request could not complete because the current user is blocked by the user related to the content.",
+    message: "Something went wrong.",
   },
   pp208: {
     reason: "User has not joined the thread but trying to post in it.",
@@ -256,7 +262,7 @@ export const queryFilters: Record<QueryFilterType, string[]> = {
 
 export const filterToSort: Record<QueryFilterType, any> = {
   threads: {
-    hot: { createdAt: -1, post_count: -1, user_count: -1 },
+    hot: { createdAt: -1, post_count: -1, member_count: -1 },
     popular: { user_count: -1 },
     latest: { createdAt: -1 },
   },
@@ -286,6 +292,7 @@ export const filterToSort: Record<QueryFilterType, any> = {
     recently_added: { last_added: -1 },
   },
 };
+
 export const oneHour = 60 * 60;
 export const oneDay = oneHour * 24;
 export const oneWeek = oneDay * 7;
@@ -308,7 +315,7 @@ export const cacheTags: Record<AvailableCacheTags, string[]> = {
     "filter-{filter}-links-thread-{tid}-page-{page}",
   ],
   filteredThreads_filter_page: ["filter-{filter}-threads-page-{page}"],
-  threadsByUser_username: ["threads-user-{username}"],
+  threadsByUser_uid: ["threads-user-{uid}"],
   post_pid: ["post-{pid}"],
   filteredComments_pid_filter_page: [
     "comments-post-{pid}-filter-{filter}-page-{page}",
@@ -323,6 +330,10 @@ export const cacheTags: Record<AvailableCacheTags, string[]> = {
   media_tmdbid: ["media-{tmdbid}"],
   list_lid: ["list-{lid}"],
   items_lid_filter_page: ["items-{lid}-{page}-{filter}"],
+  savedPosts_uid_page: ["savedPosts", "user-{uid}", "page-{page}"],
+  savedComments_uid_page: ["savedComments", "user-{uid}", "page-{page}"],
+  savedLists_uid_page: ["savedLists", "user-{uid}", "page-{page}"],
+  isSaved_uid_id: ["isSaved-uid-{uid}-content-{id}"],
 };
 
 export const revalidateTags: Record<AvailableRevalidateTags, string[]> = {
@@ -346,7 +357,6 @@ export const revalidateTags: Record<AvailableRevalidateTags, string[]> = {
   ],
   login_uid: ["currentUser-{uid}"],
   logout_uid: ["currentUser-{uid}"],
-  connection_rid_uid: ["connection-requestedUser-{rid}-user-{uid}"],
   postCreation_pid_tid_username: [
     "post-{pid}",
     "latest-posts-thread-{tid}-page-1",
@@ -375,6 +385,12 @@ export const revalidateTags: Record<AvailableRevalidateTags, string[]> = {
   media_tmdbid: ["media-{tmdbid}"],
   listCreation_lid: ["list-{lid}"],
   addItemsInList_lid: ["items-{lid}-1-latest"],
+  savedPosts_uid: ["savedPosts", "user-{uid}", "page-1"],
+  savedComments_uid: ["savedComments", "user-{uid}", "page-1"],
+  savedLists_uid: ["savedLists", "user-{uid}", "page-1"],
+  isSaved_uid_id: ["isSaved-uid-{uid}-content-{id}"],
+  followUnfollow_rid_uid: ["connection-requestedUser-{rid}-user-{uid}"],
+  blockUnblock_rid_uid: ["connection-requestedUser-{uid}-user-{rid}"],
 };
 
 export const optimisedImageProps: Record<
@@ -389,3 +405,6 @@ export const optimisedImageProps: Record<
     className: "size-32 object-cover rounded-full",
   },
 };
+
+export const preLists = ["favourite", "recommended", "watched"];
+export const predefinedUserLists = ["favourite", "suggested"];

@@ -1,8 +1,8 @@
-import { getRequest } from "@lib/actions/actions";
+import { getRequest } from "@lib/helpers/common";
 import { ObjectId } from "@lib/utils";
 import { Comment } from "@model";
 
-export const GET = getRequest(async (r: any, params: { id: string }) => {
+export const GET = getRequest(async (_, params: { id: string }) => {
   const { id } = params;
   const replies = await Comment.aggregate([
     { $match: { replied_to: ObjectId(id) } },

@@ -1,14 +1,18 @@
 "use client";
 
 import { AddIcon, LinkIcon, XmarkIcon } from "@assets/Icons";
-import { LinkInputCont, MediaInputCont } from "@components";
+import { LinkInputCont } from "@components";
 import { Form, Input, Poster, Textarea, ToggleButton } from "@components/form";
-import { NotFound } from "@components/ui";
-import { createThread } from "@lib/actions/clientActions";
+import { Popover, Triggerer } from "@components/Modal";
+import { LoadingSpinner, NotFound } from "@components/ui";
+import { createThread } from "@lib/helpers/client";
 import { useCustomReducer } from "@lib/hooks";
-import { type LinkSchema, threadSchemaClient } from "@lib/schemas";
+import { threadSchemaClient } from "@lib/schemas";
+import { readyFrames } from "@lib/utils";
 import useCurrentUser from "@store/user";
-import { InputFrame } from "@type/internal";
+import { Link } from "@type/internal";
+import { InputFrame } from "@type/schemas";
+import { useRouter } from "next/navigation";
 import { useRef } from "react";
 
 export default function Page() {
@@ -19,15 +23,17 @@ export default function Page() {
         links,
         poster,
         setter
-    } = useCustomReducer<{
-        links: LinkSchema[],
-        poster: InputFrame | null,
-    }>({
-        links: [],
-        poster: null,
+    } = useCustomReducer({
+        links: [] as Link[],
+        poster: [] as InputFrame[],
     });
 
-    const { user, setUserHash } = useCurrentUser();
+    const router = useRouter();
+
+    const { user, updateThreads, isHydrated } = useCurrentUser();
+
+    if (!isHydrated) return <LoadingSpinner />
+
     if (!user) return (
         <NotFound
             title="Unauthorized access! You are not allowed to create a thread."
@@ -36,39 +42,34 @@ export default function Page() {
     )
 
     const submit = async (formData: any) => {
+
         if (!links.length) return "At least one link is required to create a thread.";
 
-        const file = poster && !poster.isExternal ? new File(
-            [new Uint8Array(await poster.blob.arrayBuffer())],
-            `Poster of ${formData.name} thread - Popcorn Paragon`,
-            { type: "image/webp" })
-            : null;
-
-        const fileData = poster ? { ...poster, blob: undefined } : null
+        const { files, filesData } = await readyFrames(poster)
         const { name, description, nsfw, tags } = formData;
         const data = {
             name,
             description,
-            files: file ? [file] : [],
             nsfw,
             tags,
             links,
-            filesData: fileData ? [fileData] : [],
+            files,
+            filesData,
         };
-        return createThread({ user, setUserHash, data });
+        return await createThread(data, user._id, router, updateThreads);
     };
 
-    const addLink = async (link: LinkSchema) => {
-        if (links.find(el => el.url === link.url) || links.length >= 5) return;
+    const addLink = async (link: Link) => {
+        if (links.find(el => el.path === link.path) || links.length >= 5) return;
         setter({ links: [...links, link] });
     }
 
     const getImage = (poster: InputFrame[]) => {
-        setter({ poster: poster.pop() });
+        setter({ poster });
     }
 
     const removeLink = (item: string) => {
-        setter({ links: links.filter(el => el.url !== item) })
+        setter({ links: links.filter(el => el.path !== item) })
     }
 
     const requestSubmit = () => {
@@ -78,7 +79,7 @@ export default function Page() {
     return (
         <>
             <section className="space-y-3">
-                <Poster className="size-48 mx-auto" picture={poster?.url || ""} removePicture={() => setter({ poster: null })} />
+                <Poster getImage={getImage} removePicture={() => setter({ poster: [] })} />
 
                 <Form
                     schema={threadSchemaClient}
@@ -122,18 +123,16 @@ export default function Page() {
             <section className="mt-6">
                 <div className="flex flex-cntr-between">
                     <h2 className="text-2xl uppercase font-semibold">Related Links</h2>
-                    <button className="smallBtn" popoverTarget="link-popover">
-                        <AddIcon />
-                    </button>
+                    <Triggerer id="link-input"><AddIcon /></Triggerer>
                 </div>
-                <ul className="flex gap-4 my-4">
+                <ul className="flex gap-4 my-4 overflow-x-auto noScroll">
                     {links.map(el => (
-                        <li key={el.url} className="flex items-center gap-4 bg-gray30 border border-gray40 rounded-md py-2 px-3">
+                        <li key={el.path} className="flex items-center gap-4 bg-gray30 border border-gray40 rounded-md py-2 px-3">
                             <LinkIcon classnames="h-4" />
-                            <span>{el.url}</span>
+                            <span>{el.path}</span>
                             <button
                                 className="smallBtn p-1 rounded-md bg-gray20"
-                                onClick={() => removeLink(el.url)}
+                                onClick={() => removeLink(el.path)}
                             >
                                 <XmarkIcon classnames="h-4" />
                             </button>
@@ -144,9 +143,9 @@ export default function Page() {
             </section>
 
             <button className="my-6 primary ml-auto" onClick={requestSubmit}>Create Thread</button>
-
-            <LinkInputCont popover="auto" id="link-popover" func={addLink} />
-            <MediaInputCont popover="auto" id="poster-picker" type="image" callback={getImage} />
+            <Popover id="link-input">
+                <LinkInputCont func={addLink} />
+            </Popover>
         </>
     )
 }

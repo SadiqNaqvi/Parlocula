@@ -2,7 +2,7 @@
 
 import { ThumbDownIcon, ThumbUpIcon } from "@assets/Icons";
 import UserBasedButton from "@components/UserBasedButton";
-import { getVoteOnComment } from "@lib/actions/clientActions";
+import { getVoteOnComment } from "@lib/helpers/client";
 import { numberConverter } from "@lib/utils";
 
 type ButtonProps = {

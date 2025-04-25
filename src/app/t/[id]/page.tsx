@@ -1,6 +1,6 @@
 import Navbar from "@app/explore/(withoutSidebar)/exploreComponents/Navbar"
 import { DynamicComponent, Navigate, Tabs } from "@components"
-import { getFramesOfThread, getLinksOfThread, getPostsOfThread, getThreadById } from "@lib/actions/actions"
+import { getFramesOfThread, getLinksOfThread, getPostsOfThread, getThreadById } from "@lib/helpers/common"
 import { getInternalPoster, isValidObjectId, numberConverter, refineSearchParams, timeAgo } from "@lib/utils"
 import { GeneralGetReturn, GeneralMultipleReturn, Thread } from "@type/internal"
 import { Metadata } from "next"

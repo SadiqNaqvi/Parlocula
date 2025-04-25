@@ -1,58 +1,48 @@
 "use client";
 
 import { listClientSchema } from "@lib/schemas";
-import { Form, Input, Poster, Textarea, ToggleButton } from "./form";
-import { useState } from "react";
-import MediaInputCont from "./MediaInputCont";
-import { InputFrame } from "@type/internal";
-import { createList } from "@lib/actions/clientActions";
-import { readyFrames } from "@lib/utils";
+import { InputMediaType } from "@type/internal";
+import { Form, Input, ToggleButton } from "./form";
+import useCurrentUser from "@store/user";
+import { createList } from "@lib/helpers/client";
+import Navigate from "./Navigate";
 
-const ListForm = ({ defaultVals, media_id }: { defaultVals?: any, media_id?: string }) => {
+const ListForm = ({ defaultVals, medias, callback }: { defaultVals?: any, medias: InputMediaType[], callback?: (arg: any) => void }) => {
 
-    const [poster, setPoster] = useState<InputFrame | null>(null);
+    const { user, setUserHash } = useCurrentUser();
+
+    if (!user) return (
+        <div className="bg-primary border border-dashed border-gray30 rounded-md flex flex-col gap-4 flex-cntr-all">
+            <p>You need to log-in to do this.</p>
+            <Navigate goto="/join" role="button" comp="link">Join Now</Navigate>
+        </div>
+    )
 
     const submit = async (formdata: any) => {
-        console.log(formdata);
-        // const data = { ...formdata, ...readyFrames(poster ? [poster] : []), items: media_id ? [media_id] : [] }
-        // return createList(data, user, setUserHash);
-    }
-
-    const getPoster = (poster: InputFrame[]) => {
-        setPoster(poster[0]);
+        if (!medias.length) return;
+        const data = { ...formdata, items: medias }
+        callback?.(data);
+        return createList(data, user, setUserHash);
     }
 
     return (
-        <>
-            <Form defaultVals={defaultVals} submit={submit} schema={listClientSchema} className="space-y-3 p-2 w-full max-w-screen-sm">
-                <div className="flex items-center gap-4">
-                    <Poster
-                        picture={poster?.url || ""}
-                        removePicture={() => setPoster(null)}
-                        className="size-40"
-                    />
-
-                    <Input
-                        name="title"
-                        placeholder="Eg: Horror Movies"
-                        label="Title"
-                        required
-                    />
-
-                </div>
-                <Textarea
-                    name="description"
-                    placeholder="Describe the list for visitors"
-                    label="Description"
+        <section className="bg-primary border border-dashed border-gray30 rounded-md space-y-4 p-6 w-full max-w-[500px]">
+            <Form defaultVals={defaultVals} submit={submit} schema={listClientSchema} className="space-y-3">
+                <Input
+                    name="name"
+                    placeholder="Eg: Horror Movies"
+                    label="name"
+                    required
                 />
                 <ToggleButton
-                    label="private"
+                    label="isPrivate"
                     className="capitalize"
                 />
-                <button type="submit" className="bigBtn primary">Create</button>
+                <button type="submit" className="primary mt-4">Create</button>
             </Form>
-            <MediaInputCont popover="auto" id="poster-picker" type="image" callback={getPoster} />
-        </>
+
+            <p className="text-sm text-zinc-500 text-center">Note: A list without at least one item would be automatically deleted.</p>
+        </section>
     )
 }
 

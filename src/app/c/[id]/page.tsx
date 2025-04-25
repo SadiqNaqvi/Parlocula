@@ -1,7 +1,7 @@
 import Navbar from "@app/explore/(withoutSidebar)/exploreComponents/Navbar";
 import { BookmarkIcon, Ellipsis, ShareIcon } from "@assets/Icons";
 import { DynamicComponent, Navigate } from "@components";
-import { getCommentById } from "@lib/actions/actions";
+import { getCommentById } from "@lib/helpers/common";
 import { getInternalPoster, timeAgo } from "@lib/utils";
 import { MereComment } from "@type/internal";
 import Image from "next/image";

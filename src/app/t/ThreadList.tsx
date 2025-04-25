@@ -2,7 +2,7 @@
 
 import { InfiniteScroller } from "@components";
 import { ThreadTile } from "@components/ui";
-import { getThreads } from "@lib/actions/actions";
+import { getThreads } from "@lib/helpers/common";
 import { infiniteScrollerResponse } from "@lib/utils";
 
 const fetchData = async (page: number, filter: string) => {

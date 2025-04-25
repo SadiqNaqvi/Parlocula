@@ -7,8 +7,10 @@ import DatePicker from "./DatePicker";
 import Poster from "./Poster";
 import ThreadTagList from "./ThreadTagList";
 import RadioThreadTile from "./RadioThreadTile";
+import CheckTile from "./CheckTile";
 
 export {
+  CheckTile,
   Form,
   RadioThreadTile,
   Input,

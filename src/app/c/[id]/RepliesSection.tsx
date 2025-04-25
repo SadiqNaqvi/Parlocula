@@ -2,7 +2,7 @@
 
 import CommentInput from "@components/CommentInput";
 import { CommentTile, LoadingSpinner, NotFound, ShowError } from "@components/ui";
-import { getRepliesOnComment } from "@lib/actions/actions";
+import { getRepliesOnComment } from "@lib/helpers/common";
 import { useCustomReducer, useQueryHook } from "@lib/hooks";
 import useCurrentUser from "@store/user";
 import { MereComment } from "@type/internal";
