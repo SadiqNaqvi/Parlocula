@@ -10,8 +10,8 @@ export default function ExplorePage() {
     return (
         <>
             <header className="bg-[var(--primary)] pt-4 pb-2 sticky top-0">
-                <Navigate comp="button" goto={`/explore/search`} className="noPadding justify-start border-0 h-10 md:h-12 cursor-text w-full bg-[var(--gray20)] gap-2 px-4">
-                    <SearchIcon classnames="min-h-4 h-4 text-zinc-500" />
+                <Navigate comp="link" role="button" goto={`/explore/search`} className="flex items-center rounded-md justify-start h-10 md:h-12 cursor-text w-full bg-gray20 gap-2 px-4">
+                    <SearchIcon className="min-h-4 h-4 text-zinc-500" />
                     <span className="text-zinc-500 line-clamp-1 leading-tight select-none">
                         What are you looking for?
                     </span>
@@ -28,7 +28,7 @@ export default function ExplorePage() {
             <section className="my-3 space-y-3">
                 <h3 className="uppercase text-lg font-semibold">Trending Movies</h3>
                 <div className="w-full">
-                    <DataFetcher type="movie" args={[""]} func={fetchTrendingMovies} />
+                    <DataFetcher type="movie" args={[]} func="fetchShowsWithGenres" />
                 </div>
             </section>
         </>

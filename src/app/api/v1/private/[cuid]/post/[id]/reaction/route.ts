@@ -15,8 +15,7 @@ export const GET = getRequest(
       { reaction: 1 }
     );
 
-    if (!reaction) return { success: false, errCode: "pp104" };
-    return { result: reaction.reaction, success: true };
+    return { result: reaction?.reaction, success: true };
   }
 );
 
@@ -26,11 +25,13 @@ export const POST = postRequest({
     const { id } = params;
     const { reaction } = data;
     await Reaction.create(
-      {
-        reaction,
-        user_id: ObjectId(user_id),
-        post_id: ObjectId(id),
-      },
+      [
+        {
+          reaction,
+          user_id: ObjectId(user_id),
+          post_id: ObjectId(id),
+        },
+      ],
       { session }
     );
     await Post.findByIdAndUpdate(
@@ -43,8 +44,7 @@ export const POST = postRequest({
     return {
       result: true,
       success: true,
-      errCode: null,
-      available: "reactionCreation_pid_uid",
+      available: "reactionMutation_pid_uid",
       options: { pid: id, uid: user_id },
     };
   },
@@ -64,13 +64,14 @@ export const DELETE = deleteRequest(async ({ params, user_id, session }) => {
     id,
     {
       $inc: { reaction_count: -1 },
+      $max: { reaction_count: 0 },
     },
     { session }
   );
   return {
     success: true,
-    errCode: null,
-    available: "reactionDeletion_pid_uid",
+    result: null,
+    available: "reactionMutation_pid_uid",
     options: { pid: id, uid: user_id },
     files: [],
   };

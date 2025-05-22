@@ -1,13 +1,15 @@
 import {
   commentSchema,
   frameDataSchema,
-  itemToAddAndRemove,
+  cinementToAddAndRemove,
   linkSchema,
   listServerSchema,
   postSchemaServer,
   bookmarkSchema,
   tagSchema,
   threadSchemaServer,
+  listEditSchema,
+  voteSchema,
 } from "@lib/schemas";
 import { z } from "zod";
 
@@ -18,8 +20,10 @@ export type ThreadSchemaServer = z.infer<typeof threadSchemaServer>;
 export type PostSchemaType = z.infer<typeof postSchemaServer>;
 export type CommentSchemaType = z.infer<typeof commentSchema>;
 export type ListSchemaType = z.infer<typeof listServerSchema>;
-export type ItemToAddAndRemoveType = z.infer<typeof itemToAddAndRemove>;
+export type ListEditSchema = z.infer<typeof listEditSchema>;
+export type CinementToAddAndRemoveType = z.infer<typeof cinementToAddAndRemove>;
 export type bookmarkSchemaType = z.infer<typeof bookmarkSchema>;
+export type VoteSchemaType = z.infer<typeof voteSchema>;
 
 export type InputMediaType = {
   title: string;
@@ -31,7 +35,17 @@ export type InputMediaType = {
   media_id?: string;
 };
 
-type CommanInputFrame = { path: string; type: "image" | "video" };
+type CommanInputFrame = {
+  path: string;
+  type: "image" | "video";
+  shouldUpload: boolean;
+};
+
+export type ThreadConnectionType = {
+  type: "person" | "movie" | "show";
+  path: string;
+  name: string;
+};
 
 export type InputFrame = CommanInputFrame &
   ({ blob: null; isExternal: true } | { blob: Blob; isExternal: false });

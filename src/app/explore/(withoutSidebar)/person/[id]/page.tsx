@@ -1,57 +1,91 @@
-import { refinePersonData } from "@lib/dataRefiner"
-import { VerticleMovieCard } from "@components";
-import { FullPersonDetails, RefinedPersonData } from "@type/types";
-import LayoutContainer from "@app/explore/exploreComponents/LayoutContainer";
+import FancyImage from "@components/FancyImage";
+import ObserverHeader from "@components/ObserverHeader";
+import { NotFound } from "@components/ui";
+import { fetchPerson } from "@lib/contentFetcher";
+import { getPoster } from "@lib/dataRefiner";
+import { Metadata } from "next";
+import { MediaFetcher, ThreadFetcher } from "../../components";
+import { Navigate } from "@components";
 
-const fetchData = async (id: string): Promise<RefinedPersonData> => {
-    try {
-        console.count("aaya")
-        const data: { status: boolean; response: FullPersonDetails } = await (
-            await fetch(`https://testlalaapp.vercel.app/api/person?id=${id}`)
-        ).json();
-        if (data.status) return refinePersonData(data.response);
-        throw new Error(
-            "Some erorr occoured while fetching person in try: " + data.response
-        );
-    } catch (err: any) {
-        // console.error("Error occured while fetching person in catch:" + err.message);
-        throw new Error("Error occured while fetching person in catch" + err.message)
-    }
+const fetchData = async (params: { id: string }) => {
+    const company_id = params.id.split('-')[0];
+    return await fetchPerson(company_id);
 }
 
-export default async function Page({ params: { id } }: { params: { id: string } }) {
+type Props = { params: { id: string } };
 
-    const content = await fetchData(id);
-    // const content = refinePersonData(examplePersonDetails);
+export const generateMetadata = async ({ params }: Props): Promise<Metadata> => {
+    const data = await fetchData(params);
+
+    if (!data) return { title: "Popcorn Paragon" };
+    return {
+        title: `${data.name} - Popcorn Paragon`,
+        description: data.biography,
+    };
+};
+
+export const generateStaticParams = async () => {
+    return []
+}
+
+const Page = async ({ params }: Props) => {
+
+    const content = await fetchData(params);
+
+    if (!content) return (
+        <NotFound
+            title="Oops! Looks like the popcorn is missing"
+            paras={[
+                `Possible reasons: person id is incorrect`,
+                `Please search the person with its name in the Explore Page`
+            ]}
+        />
+    )
+
     return (
         <>
-            <LayoutContainer backdrop="" poster={content.profile} poster_type="profile" poster_classname="object-cover object-top">
-                <h1 className="-mt-10 md:-mt-20 text-2xl md:text-4xl uppercase font-semibold">{content.name}</h1>
-                <div className="mt-1 text-sm w-fit py-1 md:py-2 px-2 md:px-4 rounded-xl bg-gray20">Profession: {content.department}</div>
-                <p className="my-2 text-zinc-500 text-xs md:text-sm">Born on: {new Date(content.birth).toDateString()} at {content.place_of_birth}</p>
-                {content.death &&
-                    <p className="my-2 text-zinc-500 text-xs md:text-sm">Died on: {new Date(content.death).toDateString()} at {content.place_of_death}</p>
-                }
-                <details className="mt-3 bioDetail">
-                    <summary className="cursor-pointer line-clamp-3 relative text-sm md:text-base">{content.biography}</summary>
-                </details>
-                <div className="mt-4">
-                    <button className="primary">Add to Favourite</button>
+            <ObserverHeader
+                titleToShare={`Check out ${content.name} on Popcorn Paragon`}
+                navTitle={content.name}>
+
+                <div className="flex gap-4">
+                    <FancyImage
+                        id="profile"
+                        thumbnail={getPoster("profile", content.profile, 2)}
+                        src={getPoster("profile", content.profile, 10)}
+                        height={160}
+                        width={160}
+                        download={`Profile Picture of ${content.name} - Popcorn Paragon`}
+                        className="border-4 border-primary object-cover size-24 sm:size-40 rounded-full"
+                        alt={`Profile Picture of ${content.name}`}
+                    />
                 </div>
-            </LayoutContainer>
-            <main className="-mt-4 md:mt-0 max-w-screen-lg mx-auto *:px-2 *:md:px-4">
-                <section className="mt-6">
-                    <div className="flex mt-2">
-                        <span className="py-2 cursor-pointer px-4 border-b-2 border-orange-500">As Cast</span>
-                        <span className="py-2 cursor-pointer px-4">As Crew</span>
-                    </div>
-                    <div className="flex flex-wrap gap-4 mt-3">
-                        {content.credits.cast.map(el => (
-                            <VerticleMovieCard link={`/explore/${el.media_type}/${el.tmdb_id}`} poster={el.poster} title={el.title} key={el.tmdb_id} year={new Date(el.release_date).getFullYear().toString()} />
-                        ))}
-                    </div>
-                </section>
-            </main>
+
+                <h1 data-observe className="text-xl sm:text-4xl mt-4 font-semibold uppercase">{content.name}</h1>
+                <p className="text-sm md:text-base text-zinc-500">Profession: {content.department}</p>
+
+                <p className="text-sm text-gray-500 mt-6 line-clamp-6">{content.biography}</p>
+                <div className="mt-4">
+                    <p className="my-2 text-zinc-500 text-xs md:text-sm">Born on: {new Date(content.birth).toDateString()} at {content.place_of_birth}</p>
+                    {content.death &&
+                        <p className="my-2 text-zinc-500 text-xs md:text-sm">Died on: {new Date(content.death).toDateString()} at {content.place_of_death}</p>
+                    }
+                </div>
+            </ObserverHeader>
+            <section className="space-y-2 py-4 my-2">
+                <div className="flex-flex-cntr-between">
+                    <h3 className="uppercase text-sm font-semibold">Connected Threads</h3>
+                    <Navigate comp="link" goto={`${content.tmdb_id}/threads`}>More</Navigate>
+                </div>
+                <ThreadFetcher id={content.tmdb_id} type="person" />
+            </section>
+            <MediaFetcher id={content.tmdb_id.toString()}
+                sections={[
+                    { label: "Work as Cast", section: "cast", data: content.credits.cast },
+                    { label: "Work as Crew", section: "crew", data: content.credits.crew }
+                ]} />
         </>
     )
 }
+
+export default Page;

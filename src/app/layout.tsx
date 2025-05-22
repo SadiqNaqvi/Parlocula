@@ -1,15 +1,18 @@
-"use client";
-
 import "@/app/globals.css";
 import Fancybox from "@components/Fancybox";
-import { fetchCurrentUser } from "@lib/helpers/client";
-import ReactQueryProvider from "@lib/queryClient";
-import useCurrentUser from "@store/user";
+import ReactQueryProvider from "@lib/provider";
+import { Metadata } from "next";
 import { Montserrat } from "next/font/google";
-import { useEffect } from "react";
 import { Toaster } from "react-hot-toast";
+import UserHydrator from "./UserHydrator";
 
 const fontFam = Montserrat({ subsets: ["latin"], weight: ["100", "200", "300", "400", "500", "600", "700"] });
+
+export const metadata: Metadata = {
+  title: "Popcorn Paragon",
+  description: "Stop Searching Start Watching",
+  keywords: "movies, tv shows, web series, movie recommendation, movie recommendation system, tv show recommendation system, movies suggestion, movie suggestion, show suggestion, series suggestion",
+};
 
 export default function RootLayout({
   children,
@@ -17,22 +20,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
 
-  const { isHydrated, clearUser, getUserFromHash, setUser, setUserHash } = useCurrentUser();
-  useEffect(() => {
-    if (isHydrated)
-      fetchCurrentUser({ clearUser, getUserFromHash, setUser, setUserHash });
-  }, [isHydrated])
-
   return (
     <html lang="en">
       <body className={`${fontFam.className} dark`}>
         <Toaster position="top-center" />
         <ReactQueryProvider>
           <Fancybox>
+            <UserHydrator />
             {children}
+            {/* <main>
+            </main> */}
           </Fancybox>
         </ReactQueryProvider>
-        {/* <script src="https://kit.fontawesome.com/5d93eb1089.js"></script> */}
+        <script src="https://kit.fontawesome.com/5d93eb1089.js"></script>
       </body>
     </html>
   );

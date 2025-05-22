@@ -1,4 +1,4 @@
-import { Ellipsis, ThumbUpIcon } from "@assets/Icons";
+import { ThumbUpIcon } from "@assets/Icons";
 import { Navigate } from "@components";
 import { getInternalPoster, numberConverter, timeAgo } from "@lib/utils";
 import { MereComment } from "@type/internal";
@@ -13,7 +13,7 @@ const options = {
 const Link = ({ children, link, className }: { children: React.ReactNode, link: string | undefined, className?: string }) => (
     <>{
         link ?
-            <Navigate className={className} comp="link" goto={link}> {children}</Navigate >
+            <Navigate className={className} comp="link" goto={link}>{children}</Navigate>
             : <>{children}</>
     }</>
 )
@@ -25,7 +25,7 @@ export default function CommentTile({ _id, attachment, nsfw, spoiler, callback, 
             toast.error("You need to log-in to reply a comment")
             return;
         }
-        callback && callback({ parent: content, replied_to: _id });
+        callback?.({ parent: content, replied_to: _id });
     }
 
     return (
@@ -39,33 +39,30 @@ export default function CommentTile({ _id, attachment, nsfw, spoiler, callback, 
                 </Navigate>
             }
             <details className="w-full p-2 border-l border-gray30" open={!nsfw && !spoiler}>
-                <summary className="flex flex-cntr-between">
-                    <div className="flex gap-2 items-center">
-                        <Image
-                            src={getInternalPoster({ path: profile, options })}
-                            className="size-8 rounded-full"
-                            height={32}
-                            width={32}
-                            alt={`profile picture of ${username}`}
-                        />
+                <summary className="flex gap-3">
+                    <Image
+                        src={getInternalPoster({ path: profile, options })}
+                        className="size-8 rounded-full"
+                        height={32}
+                        width={32}
+                        alt={`profile picture of ${username}`}
+                    />
 
-                        {username ?
-                            <Navigate comp="link" role="button" goto={`/u/${username}`} className="font-semibold">{username}</Navigate>
-                            :
-                            <span className="text-gray-500 font-semibold">[deleted]</span>
-                        }
-                        <ul className="flex gap-2 items-center">
-                            <li className="text-gray-500 text-xs">{timeAgo(createdAt)}</li>
-                            {createdAt !== updatedAt && <li className="bg-gray20 rounded-md text-xs px-2 py-1">Edited</li>}
-                            {nsfw && <li className="bg-red-400 bg-opacity-20 rounded-md text-xs px-2 py-1">NSFW</li>}
-                            {spoiler && <li className="bg-yellow-400 bg-opacity-20 rounded-md text-xs px-2 py-1">Spoiler</li>}
-                        </ul>
+                    {username ?
+                        <Navigate comp="link" role="button" goto={`/u/${username}`} className="font-semibold">{username}</Navigate>
+                        :
+                        <span className="text-gray-500 font-semibold">[deleted]</span>
+                    }
 
+                    <ul className="flex gap-2 items-center">
+                        <li className="text-gray-500 text-xs">{timeAgo(createdAt)}</li>
 
-                    </div>
-                    <button className="iconBtn">
-                        <Ellipsis classnames="h-4" />
-                    </button>
+                        {createdAt !== updatedAt && <li className="bg-gray20 rounded-md text-xs px-2 py-1">Edited</li>}
+
+                        {nsfw && <li className="bg-red-400 bg-opacity-20 rounded-md text-xs px-2 py-1">NSFW</li>}
+
+                        {spoiler && <li className="bg-yellow-400 bg-opacity-20 rounded-md text-xs px-2 py-1">Spoiler</li>}
+                    </ul>
                 </summary>
                 <div className="my-2 space-y-4">
                     <Link link={_id ? `/c/${_id}` : ''} className="space-y-4 my-2">
@@ -79,11 +76,14 @@ export default function CommentTile({ _id, attachment, nsfw, spoiler, callback, 
                         }
                     </Link>
                     <section className="flex mt-2 gap-3">
+
                         <span className="flex gap-1 text-gray-500">
-                            <ThumbUpIcon classnames="h-4" />
+                            <ThumbUpIcon className="h-4" />
                             {numberConverter(upvote_count)}
                         </span>
-                        <button className="smallBtn my-auto border-0" onClick={reply}>Reply</button>
+                        {_id &&
+                            <button className="smallBtn my-auto border-0" onClick={reply}>Reply</button>
+                        }
                     </section>
                 </div>
             </details>

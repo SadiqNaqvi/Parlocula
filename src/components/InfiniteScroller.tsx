@@ -3,23 +3,23 @@
 import { oneHour } from "@lib/constants";
 import { infiniteScrollerResponse } from "@lib/utils";
 import useCurrentUser from "@store/user";
-import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
+import { InfiniteData, useInfiniteQuery } from "@tanstack/react-query";
 import { InfiniteQueryResponse } from "@type/internal";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect, useRef } from "react";
 import { LoadingSpinner, ShowError } from "./ui";
 import NotFound from "./ui/NotFound";
 
-type InfiniteScrollerType = {
+type InfiniteScrollerProps = {
     Component: React.ComponentType<any>,
     fetchData: (pageParams: number) => Promise<InfiniteQueryResponse>,
-    queryKeys: string[],
+    queryKeys: (string | number)[],
+    NotFoundSection?: React.ReactNode,
     notFoundMessage?: { title: string, paras: string[] },
     callback?: (arg: any) => any;
     additional?: any;
-    staleTime?: number;
     initialPage?: number,
-    initialData?: { data: any[], total: number },
+    initialData?: { data: any[], total: number } | null,
     Loading?: React.ComponentType<any>,
     className?: string;
     paginate?: boolean;
@@ -32,7 +32,7 @@ const defaultNotFoundMessages = {
     paras: ["Please search the resouce using it's name, title, username, etc."],
 }
 
-export default function InfiniteScroller({ Loading, Component, fetchData, queryKeys, notFoundMessage = defaultNotFoundMessages, initialPage = 1, initialData, callback, className = defaultClasses, paginate = true, staleTime, additional }: InfiniteScrollerType) {
+export default function InfiniteScroller({ Loading, Component, fetchData, queryKeys, NotFoundSection, notFoundMessage = defaultNotFoundMessages, initialPage = 1, initialData, callback, className = defaultClasses, paginate = true, additional }: InfiniteScrollerProps) {
 
     const container = useRef(null);
     const searchParams = useSearchParams();
@@ -41,7 +41,6 @@ export default function InfiniteScroller({ Loading, Component, fetchData, queryK
     const { user } = useCurrentUser();
 
     const updateSearchParams = (page: number) => {
-        if (!paginate) return;
         const params = new URLSearchParams(searchParams);
         params.set("p", page.toString());
         router.replace(`${pathname}?${params.toString()}`)
@@ -53,14 +52,17 @@ export default function InfiniteScroller({ Loading, Component, fetchData, queryK
         router.replace(`${pathname}?${params.toString()}`)
     }
 
-    const { data, refetch, isFetching, error, isFetchingNextPage, hasNextPage, fetchNextPage } = useInfiniteQuery({
+    const { data, refetch, isFetching, error, isFetchingNextPage, hasNextPage, fetchNextPage } = useInfiniteQuery<
+        InfiniteQueryResponse, Error, InfiniteData<InfiniteQueryResponse>, (string | number)[], number
+    >({
         queryKey: queryKeys,
-        staleTime: staleTime ?? oneHour * 1000,
+        staleTime: oneHour * 1000,
         initialPageParam: initialData ? initialPage + 1 : initialPage,
         queryFn: async ({ pageParam }) => await fetchData(pageParam)
             .then(res => {
+                // console.log(res);
                 const resp = infiniteScrollerResponse(res, pageParam);
-                if (resp.results?.length && resp.page > 1) updateSearchParams(resp.page)
+                if (resp.results?.length && resp.page > 1 && paginate) updateSearchParams(resp.page)
                 return resp;
             }),
         initialData: initialData ? { pageParams: [1], pages: [infiniteScrollerResponse(initialData, initialPage)] } : undefined,
@@ -70,11 +72,6 @@ export default function InfiniteScroller({ Loading, Component, fetchData, queryK
         enabled: !initialData,
         retry: false, refetchOnWindowFocus: false, retryOnMount: false, refetchOnMount: false, refetchOnReconnect: false
     });
-
-    const LoadingComponent = () => {
-        const LoadingComp = Loading ?? LoadingSpinner
-        return <LoadingComp />
-    }
 
     useEffect(() => {
         const observer = new IntersectionObserver(([entry]) => {
@@ -91,14 +88,20 @@ export default function InfiniteScroller({ Loading, Component, fetchData, queryK
         }
     }, [container.current]);
 
-    if (initialData && !initialData.data?.length && initialPage !== 1)
-        return (
-            <NotFound
-                title="Looks like you came across too far"
-                paras={[`No data is available at page ${initialPage}`]}
-                ActionButton={<button className="primary" onClick={gotoTop}>Go to top</button>}
-            />
-        )
+    const LoadingComponent = () => {
+        const LoadingComp = Loading ?? LoadingSpinner
+        return <LoadingComp />
+    }
+
+    const NotFoundComponent = ({ ActionButton, paras, title }: {
+        title: string;
+        paras: string[];
+        ActionButton?: React.ReactNode;
+    }) => {
+        if (NotFoundSection === undefined)
+            return <NotFound paras={paras} title={title} ActionButton={ActionButton} />
+        else return NotFoundSection;
+    }
 
     if (isFetching && !isFetchingNextPage)
         return <LoadingComponent />
@@ -112,8 +115,17 @@ export default function InfiniteScroller({ Loading, Component, fetchData, queryK
             />
         )
 
-    if (!data || !data.pages[0]?.total_results)
-        return <NotFound {...notFoundMessage} />
+    else if (!data.pages[0]?.results?.length && initialPage !== 1)
+        return (
+            <NotFoundComponent
+                title="Looks like you came across too far"
+                paras={[`No data is available at page ${initialPage}`]}
+                ActionButton={<button className="primary" onClick={gotoTop}>Go to top</button>}
+            />
+        )
+
+    else if (!data || !data.pages[0]?.total_results)
+        return <NotFoundComponent {...notFoundMessage} />
 
 
     return (

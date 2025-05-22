@@ -14,7 +14,7 @@ export const deleteBookmarks: func = async (filter, session) => {
 export const deleteLists: func = async (filter, session) => {
   const lists: Doc[] = await List.find(filter, { _id: 1 }, { session });
 
-  if(!lists.length) return lists;
+  if (!lists.length) return lists;
 
   const ids = lists.map((el) => el._id);
 
@@ -29,7 +29,7 @@ export const deleteLists: func = async (filter, session) => {
 export const deleteComments: func = async (filter, session) => {
   const comments: Doc[] = await Comment.find(filter, { _id: 1 }, { session });
 
-  if(!comments.length)  return comments;
+  if (!comments.length) return comments;
 
   const ids = comments.map((el) => el._id);
 
@@ -45,7 +45,7 @@ export const deleteComments: func = async (filter, session) => {
 };
 
 export const deletePosts: func = async (filter, session) => {
-  type Post = Doc & { frames: { path: string }[] };
+  type Post = Doc & { frames: { path: string; type: "image" | "video" }[] };
 
   const posts: Post[] = await Post.find(
     filter,
@@ -53,12 +53,12 @@ export const deletePosts: func = async (filter, session) => {
     { session, ordered: true }
   );
 
-  if(!posts.length) return posts;
+  if (!posts.length) return posts;
 
   const paths = posts.flatMap((post) =>
     post.frames
       .filter((frame) => !frame.path.includes("https"))
-      .map((frame) => frame.path)
+      .map(({ path, type }) => ({ path, type }))
   );
 
   deleteMultipleMedia(paths);

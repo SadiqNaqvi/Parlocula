@@ -1,73 +1,36 @@
-import { UserBasedButton } from "@components";
-import { checkIfItemSaved, saveItem, unsaveItem } from "@lib/helpers/client";
-import useCurrentUser from "@store/user";
-import { MutationFnProps, UserBasedButtonProps } from "@type/other";
+"use client";
+
+import { Navigate } from "@components";
+import Modal from "@components/Modal";
+import SaveButton from "@components/SaveButton";
+import { getQueryKeys } from "@lib/utils";
+import Search from "./Search";
 
 type Props = {
     id: string;
     isPrivate: boolean,
-    disabled: boolean,
     author: string,
-    searchModal: () => void,
-    deletionModal: () => void
+    cuid: string | undefined,
+    filter: string,
+    saved_count: number,
 }
 
+const ActionButton = ({ isPrivate, cuid, author, id, filter, saved_count }: Props) => {
 
-const Savebutton = ({ id, author }: { id: string, author: string }) => {
-    const isSaved = async (uid: string) => {
-        if (!id) return false;
-        const { errCode, result, success } = await checkIfItemSaved(id, uid);
-        if (!success) throw new Error(errCode);
-        return result;
-    }
-
-    const mutationFn = async ({ newState, action, user_id }: MutationFnProps) => {
-        if (action === "save")
-            await saveItem({ content_id: id, content_type: "List", content_author: author }, user_id)
-        else await unsaveItem(id, user_id);
-        // if (!done) throw new Error();
-    }
-
-    const Button = ({ isPending, onClick, state }: UserBasedButtonProps<boolean>) => (
-        <button
-            className={state ? "secondary" : "primary"}
-            disabled={isPending}
-            onClick={() => onClick(!state, state ? "unsave" : "save")}
-        >
-            Save{state ? "d" : ""}
-        </button>
-    )
-
-    return <UserBasedButton
-        Button={Button}
-        queryFn={() => isSaved(id)}
-        queryKeys={[`saved`, "list", id]}
-        mutationFn={mutationFn}
-        className="p-2 border border-gray-500 rounded-md"
-    />
-}
-
-const ActionButton = ({ isPrivate, disabled, author, deletionModal, searchModal, id }: Props) => {
-    const { user } = useCurrentUser();
-
-    return (
-        <div className="flex gap-3">
-            {user?._id === author ?
-                <>
-                    <button className="primary" disabled={disabled} onClick={searchModal}>Add Items</button>
-                    <button className="secondary" disabled={disabled} onClick={deletionModal}>Remove Items</button>
-                </>
-                : isPrivate ?
-                    <button className="primary">Share</button>
-                    :
-                    <>
-                        <Savebutton author={author} id={id} />
-                        <button className="bigbtn border-gray30">Share</button>
-                    </>
-            }
+    if (cuid === author) return (
+        <div className="flex gap-2">
+            <Modal buttonChildren="Add Items" className="primary" id="searchPopover">
+                <Search uid={cuid} list_id={id} queryKeys={getQueryKeys("itemsOfList_lid_filter_page", { lid: id, filter, page: 1 })} />
+            </Modal>
+            <Navigate className="secondary btn" comp="link" goto={`/l/${id}/edit`} role="button">Edit List</Navigate>
         </div>
-
     )
+
+    else if (!isPrivate) return (
+        <SaveButton count={saved_count} type="List" id={id} />
+    )
+
+    return null;
 }
 
 export default ActionButton;

@@ -34,11 +34,13 @@ export const getRequest = (
     try {
       const isDbConnected = await connectPPDB();
       if (!isDbConnected)
-        return NextResponse.json({
-          result: null,
-          success: false,
-          errCode: "pp101",
-        });
+        return NextResponse.json(
+          {
+            success: false,
+            errCode: "pp101",
+          },
+          { status: 500 }
+        );
 
       const data = await handler(req, params);
       return NextResponse.json(data, { status: data.success ? 200 : 500 });
@@ -95,9 +97,10 @@ const uploadFiles = async ({
   const promises =
     files &&
     files.map(async (file) => {
+      const [type, extension] = file.type.split("/");
       const resp = await mediaUploader(file, {
-        format: "auto",
-        resource_type: "auto",
+        format: extension,
+        resource_type: type as "image" | "video",
       });
       return resp.success ? resp.result.public_id : null;
     });
@@ -105,8 +108,8 @@ const uploadFiles = async ({
   const results = await Promise.all(promises);
 
   return filesData
-    .map(({ isExternal, path, type }) => {
-      if (isExternal) return { path, type, isExternal };
+    .map(({ isExternal, path, type, shouldUpload }) => {
+      if (!shouldUpload) return { path, type, isExternal };
       const url = results.shift();
       if (url) return { path: url, type, isExternal };
       else return false;
@@ -117,7 +120,7 @@ const uploadFiles = async ({
 const deleteFiles = async (files: Frame[]) => {
   if (!files.length) return;
   const ids = files.filter((file) => !file.path.includes("https"));
-  await deleteMultipleMedia(ids.map((id) => id.path));
+  await deleteMultipleMedia(ids.map(({ path, type }) => ({ path, type })));
 };
 
 type postReqProps = {
@@ -271,9 +274,7 @@ export const postRequest = ({
       if (tagOptions) {
         const { available, options } = tagOptions;
         getCacheTags({ type: "revalidate", available, options }).forEach(
-          (tag) => {
-            revalidateTag(tag);
-          }
+          (tag) => revalidateTag(tag)
         );
       }
     }
@@ -296,7 +297,7 @@ export const deleteRequest = (
     const username = payload.username;
     let tagOptions: cacheOptions | null = null;
 
-    const session = await startSession();
+    let session: ClientSession | null = null;
 
     try {
       const isDbConnected = await connectPPDB();
@@ -307,6 +308,8 @@ export const deleteRequest = (
         const { success, errCode } = await precheck(req, params);
         if (!success) return NextResponse.json({ success, errCode });
       }
+
+      session = await startSession();
 
       session.startTransaction();
       const { errCode, success, available, options, files } = await handler({
@@ -325,13 +328,14 @@ export const deleteRequest = (
 
       return NextResponse.json({ success, errCode });
     } catch (err) {
+      await session?.abortTransaction().catch(console.error);
       console.error("Error occured while deleting resource", err);
       return NextResponse.json({
         success: false,
         errCode: "pp100",
       });
     } finally {
-      session.endSession();
+      session?.endSession();
       if (tagOptions) {
         const { available, options } = tagOptions;
         getCacheTags({ type: "revalidate", available, options }).forEach(
@@ -342,13 +346,6 @@ export const deleteRequest = (
       }
     }
   };
-};
-
-const checkFilesToRemove = ({ n, o }: { n: Frame[]; o: Frame[] }) => {
-  if (!n.length || !o.length) return [];
-  return o
-    .map((file) => (n.find((el) => el.path === file.path) ? false : file))
-    .filter(Boolean) as Frame[];
 };
 
 export const updateRequest = ({
@@ -384,8 +381,8 @@ export const updateRequest = ({
     }
 
     let tagOptions: cacheOptions | null = null;
-    let frames = [];
-    const session = await startSession();
+    let frames: Frame[] = [];
+    let session: ClientSession | null = null;
     try {
       const isDbConnected = await connectPPDB();
       if (!isDbConnected)
@@ -394,6 +391,8 @@ export const updateRequest = ({
           success: false,
           errCode: "pp101",
         });
+
+      session = await startSession();
 
       if (preCheck) {
         const { errCode, success } = await preCheck({
@@ -407,7 +406,7 @@ export const updateRequest = ({
           return NextResponse.json({ success, errCode }, { status: 500 });
       }
 
-      const { files, filesData, ...data } = formData;
+      const { files, filesData, filesToRemove, ...data } = formData;
       frames = filesData?.length ? await uploadFiles({ files, filesData }) : [];
 
       session.startTransaction();
@@ -422,7 +421,8 @@ export const updateRequest = ({
       });
 
       if (success) {
-        deleteFiles(checkFilesToRemove({ n: frames, o: data.oldFiles }));
+        const isFilesRemoved = await deleteMultipleMedia(filesToRemove);
+        console.log(isFilesRemoved);
         tagOptions = { available, options };
         await session.commitTransaction();
       } else {
@@ -431,18 +431,19 @@ export const updateRequest = ({
       }
       return NextResponse.json({ result, success, errCode });
     } catch (err: any) {
-      await session.abortTransaction().catch(console.error);
+      await session?.abortTransaction().catch(console.error);
       console.error(
         `Error occured at path ${req.nextUrl.pathname} while updating data`,
         err.message
       );
+      await deleteFiles(frames);
       return NextResponse.json({
         result: null,
         success: false,
         errCode: "pp100",
       });
     } finally {
-      session.endSession();
+      session?.endSession();
       if (tagOptions) {
         const { available, options } = tagOptions;
         getCacheTags({ type: "revalidate", available, options }).forEach(
@@ -456,6 +457,38 @@ export const updateRequest = ({
 };
 
 // FUNCTIONS TO FETCH DATA BOTH ON SERVER AND CLIENT SIDE
+
+export const fetchCurrentUser = async (id: string) =>
+  await ppGetData({
+    url: `private/${id}/user/me`,
+    revalidate: oneWeek,
+    tag: "currentUser_uid",
+    options: { uid: id },
+  });
+
+export const isUsernameAvailable = async (
+  username: string
+): Promise<GeneralGetReturn> => {
+  if (!username) return { success: true, result: false };
+  const response = await ppGetData({
+    url: `user/isUsernameAvailable?username=${username}`,
+    revalidate: oneWeek,
+    tag: "usernameAvailability_username",
+    options: { username },
+  });
+
+  if (!response.success && response.errCode === "pp104")
+    return { success: true, result: true };
+  else return response;
+};
+
+export const checkIfUserExist = async (email: string) =>
+  await ppGetData({
+    url: `user/ifUserExist?email=${email}`,
+    revalidate: oneWeek,
+    tag: "userExistence_email",
+    options: { email },
+  });
 
 export const getThreadById = async (
   id: string
@@ -478,6 +511,44 @@ export const getThreads = async (
     options: { filter: filter || queryFilters.threads[0], page },
   });
 
+export const getMembers = async (tid: string, page: string) =>
+  await ppGetData({
+    url: `thread/${tid}/members?p=${page}`,
+    revalidate: oneDay,
+    tag: "membersOfThread_tid_page",
+    options: { page, tid },
+  });
+
+export const isMember = async (
+  tid: string,
+  uid: string
+): Promise<GeneralGetReturn> => {
+  if (!uid) return { success: false, errCode: "pp202" };
+  const response = await ppGetData({
+    url: `private/${uid}/thread/${tid}/member`,
+    revalidate: oneWeek,
+    tag: "member_tid_uid",
+    options: { tid, uid },
+  });
+
+  return response;
+};
+
+export const searchMembers = async (tid: string, query: string, page: string) =>
+  await ppGetData({
+    url: `search/members/${tid}?q=${query}&p=${page}`,
+    revalidate: 0,
+    options: null,
+  });
+
+export const threadsByUser = async (uid: string, page = 1) =>
+  await ppGetData({
+    url: `private/${uid}/user/me/threads?p=${page}`,
+    revalidate: oneWeek,
+    tag: "threadsByUser_uid_page",
+    options: { uid, page },
+  });
+
 export const getPostsOfThread = async (
   tid: string,
   page: number,
@@ -485,10 +556,17 @@ export const getPostsOfThread = async (
   tag?: string
 ): Promise<GeneralMultipleReturn> =>
   await ppGetData({
-    url: `post/thread/${tid}?p=${page}&f=${filter || "latest"}${tag || ""}`,
+    url: `post/thread/${tid}?p=${page}&f=${filter || "latest"}${
+      tag ? `&t=${tag}` : ""
+    }`,
     revalidate: oneDay,
-    tag: "filteredPostsOfThread_filter_tid_page",
-    options: { filter: filter || queryFilters.posts[0], tid, page },
+    tag: "postsOfThread_filter_tid_page_tag",
+    options: {
+      filter: filter || queryFilters.posts[0],
+      tid,
+      page,
+      tag: tag || "",
+    },
   });
 
 export const getPostsOfUser = async (
@@ -499,8 +577,46 @@ export const getPostsOfUser = async (
   await ppGetData({
     url: `post/user/${username}?p=${page}&f=${filter || "latest"}`,
     revalidate: oneDay * 3,
-    tag: "filteredPostsOfUser_username_filter_page",
+    tag: "postsOfUser_username_filter_page",
     options: { filter: filter || queryFilters.posts[0], username, page },
+  });
+
+export const getReactionOnPost = async (
+  pid: string,
+  uid: string
+): Promise<GeneralGetReturn> => {
+  if (!uid) return { success: true, result: null };
+  const response = await ppGetData({
+    url: `private/${uid}/post/${pid}/reaction`,
+    revalidate: oneWeek,
+    tag: "reaction_pid_uid",
+    options: { pid, uid },
+  });
+  return response;
+};
+
+export const getCommentsOfUser = async (
+  username: string,
+  page: number,
+  filter: string
+) =>
+  await ppGetData({
+    url: `comment/user/${username}?p=${page}&f=${filter || "loved"}`,
+    revalidate: oneDay * 3,
+    tag: "postsOfUser_username_filter_page",
+    options: { filter: filter || "loved", username, page },
+  });
+
+export const getListsOfUser = async (
+  username: string,
+  page: number,
+  filter: string
+) =>
+  await ppGetData({
+    url: `list/user/${username}?p=${page}&f=${filter || "recently_added"}`,
+    revalidate: oneDay * 3,
+    tag: "listsOfUser_filter_username_page",
+    options: { filter: filter || "recently_added", username, page },
   });
 
 export const getPostById = async (
@@ -511,6 +627,14 @@ export const getPostById = async (
     revalidate: oneDay,
     tag: "post_pid",
     options: { pid: id },
+  });
+
+export const getReposts = async (id: string, page: number) =>
+  await ppGetData({
+    url: `post/${id}/reposts?p=${page || 1}`,
+    revalidate: oneDay,
+    tag: "reposts_pid_page",
+    options: { pid: id, page },
   });
 
 export const getCommentsOnPost = async ({
@@ -537,18 +661,47 @@ export const getCommentById = async (id: string) =>
     options: { cid: id },
   });
 
-export const getRepliesOnComment = async (id: string) =>
+export const getVoteOnComment = async (
+  cid: string,
+  uid: string
+): Promise<GeneralGetReturn> => {
+  if (!uid) return { success: false, errCode: "pp202" };
+  const response = await ppGetData({
+    url: `private/${uid}/comment/${cid}/vote`,
+    revalidate: oneWeek,
+    tag: "vote_cid_uid",
+    options: { cid, uid },
+  });
+  return response;
+};
+
+export const getRepliesOnComment = async (
+  id: string,
+  page: number,
+  filter: string
+) =>
   await ppGetData({
-    url: `comment/${id}/replies`,
+    url: `comment/${id}/replies?p=${page ?? 1}${filter ? `&f=${filter}` : ""}`,
     revalidate: oneDay,
-    tag: "replies_cid",
-    options: { cid: id },
+    tag: "replies_cid_filter_page",
+    options: { cid: id, filter, page },
+  });
+
+export const getThreadsForMedia = async (
+  id: string,
+  page: string,
+  filter: string
+) =>
+  await ppGetData({
+    url: `thread/media/${id}?p=${page}f=${filter || "popular"}`,
+    revalidate: oneDay * 3,
+    options: null,
   });
 
 export const getUserByUsername = async (username: string) =>
   await ppGetData({
     url: `user/${username}`,
-    revalidate: oneDay * 3,
+    revalidate: oneWeek,
     tag: "user_username",
     options: { username },
   });
@@ -597,6 +750,14 @@ export const getMediaItem = async (
   return result;
 };
 
+export const getListsForMedia = async (id: string, uid: string) =>
+  await ppGetData({
+    url: `/private/${uid}/media/${id}`,
+    tag: "listsForMedia_mid_uid",
+    options: { mid: id, uid },
+    revalidate: oneDay,
+  });
+
 export const getList = async (id: string): Promise<GeneralGetReturn> => {
   if (!id) return { success: false, errCode: "pp104" };
 
@@ -619,7 +780,7 @@ export const getItems = async (
     url: `list/${id}/items?p=${page}&f=${filter}`,
     revalidate: oneDay,
     tag: "items_lid_filter_page",
-    options: { lid: id },
+    options: { lid: id, filter, page },
   });
 };
 
@@ -671,4 +832,27 @@ export const searchLists = async (query: string, page = 1) => {
     options: null,
   });
   if (success) return result;
+};
+
+export const checkIfItemSaved = async (id: string, uid: string) => {
+  const response = await ppGetData({
+    url: `private/${uid}/bookmark/${id}`,
+    revalidate: oneWeek,
+    tag: "isSaved_uid_id",
+    options: { uid, id },
+  });
+  return response;
+};
+
+export const checkUserConnection = async (
+  uid: string,
+  rid: string
+): Promise<GeneralGetReturn> => {
+  const response = await ppGetData({
+    url: `private/${uid}/user/${rid}/follow`,
+    revalidate: oneWeek,
+    tag: "connection_rid_uid",
+    options: { uid, rid },
+  });
+  return response;
 };

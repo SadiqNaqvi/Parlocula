@@ -1,53 +1,147 @@
-import logo from "@assets/logo.png"
+import {
+    Body,
+    Container,
+    Head,
+    Heading,
+    Hr,
+    Html,
+    Img,
+    Link,
+    Preview,
+    Section,
+    Text,
+} from '@react-email/components';
 
-const EmailVerificationTemplate = ({ code }: { code: number }) => {
-    return (
-        <section className="max-w-screen-md px-4 bg-zinc-50 text-zinc-900">
-            <header className="h-28 flex flex-cntr-all">
-                <img src={logo.src} alt="logo" className="invert size-10 object-contain z-[15]" />
-            </header>
-            <div className="">
-                <h2>Hello Popcorn User,</h2>
-                <p className="mt-4">This email is for you to verify your email. Please use the 8 Digit OTP and verify your email.</p>
-                <div className="my-6 text-center text-4xl font-semibold">{code}</div>
-                <p className="text-zint-500 text-sm text-center">Not you? Don't worry nobody can use your email without your permission.</p>
-            </div>
-            <footer className="py-6">
-                <p className="text-center">Popcorn Paragon | QC Technology</p>
-            </footer>
-        </section>
-    )
+interface EmailVerificationProps {
+    verificationCode: string;
 }
 
-export default EmailVerificationTemplate;
-/*<body class="body" style="width:100%;height:100%;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%;padding:0;Margin:0"><div dir="ltr" class="es-wrapper-color" lang="und" style="background-color:#F6F6F6"><!--[if gte mso 9]>
-            <v:background xmlns:v="urn:schemas-microsoft-com:vml" fill="t">
-                <v:fill type="tile" color="#f6f6f6"></v:fill>
-            </v:background>
-        <![endif]--><table width="100%" cellspacing="0" cellpadding="0" class="es-wrapper" role="none" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;padding:0;Margin:0;width:100%;height:100%;background-repeat:repeat;background-position:center top;background-color:#F6F6F6"><tbody><tr><td valign="top" style="padding:0;Margin:0"><table cellspacing="0" cellpadding="0" align="center" class="es-header" role="none" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;width:100%;table-layout:fixed !important;background-color:transparent;background-repeat:repeat;background-position:center top"><tbody><tr><td align="center" style="padding:0;Margin:0"><table cellspacing="0" cellpadding="0" bgcolor="#ffffff" align="center" class="es-header-body" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;background-color:#FFFFFF;border-radius:20px 20px 0 0;width:600px" role="none"><tbody><tr><td align="left" data-custom-paddings="true" style="Margin:0;padding-top:30px;padding-right:20px;padding-bottom:20px;padding-left:20px"><table cellspacing="0" cellpadding="0" width="100%" role="none" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px"><tbody><tr><td align="left" style="padding:0;Margin:0;width:560px"><table width="100%" cellspacing="0" cellpadding="0" role="presentation" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px"><tbody><tr><td align="center" style="padding:0;Margin:0;font-size:0px"><a target="_blank" href="https://viewstripo.email" style="mso-line-height-rule:exactly;text-decoration:underline;color:#1BD79B;font-size:14px"><img src="https://tlr.stripocdn.email/content/guids/CABINET_8b5e474e81c4e451743e688436903b88154bd4a89788b5422d281d38b1133dc2/images/group_4078087.png" alt="Logo" height="50" title="Logo" style="display:block;font-size:16px;border:0;outline:none;text-decoration:none"></a>
-</td></tr></tbody></table></td></tr></tbody></table></td></tr>
- <tr><td align="left" data-custom-paddings="true" style="padding:0;Margin:0"><table cellpadding="0" cellspacing="0" width="100%" role="none" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px"><tbody><tr><td align="center" valign="top" style="padding:0;Margin:0;width:600px"><table cellpadding="0" cellspacing="0" width="100%" role="presentation" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px"><tbody><tr><td align="center" style="padding:0;Margin:0;font-size:0px"><a target="_blank" href="https://viewstripo.email" style="mso-line-height-rule:exactly;text-decoration:underline;color:#1BD79B;font-size:14px"><img src="https://tlr.stripocdn.email/content/guids/CABINET_36c2c06d408629c8f90743d943b3f1ddff561c466ab0325553a0c97545b183cd/images/georgecjneodduzjfiunsplash_2.png" alt="" width="600" class="adapt-img" style="display:block;font-size:16px;border:0;outline:none;text-decoration:none"></a>
-</td></tr></tbody></table></td></tr></tbody></table></td></tr></tbody></table></td></tr></tbody></table>
- <table cellspacing="0" cellpadding="0" align="center" class="es-content" role="none" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;width:100%;table-layout:fixed !important"><tbody><tr><td align="center" style="padding:0;Margin:0"><table cellspacing="0" cellpadding="0" bgcolor="#ffffff" align="center" class="es-content-body" role="none" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;background-color:#FFFFFF;width:600px"><tbody><tr><td align="left" data-custom-paddings="true" style="Margin:0;padding-top:30px;padding-right:20px;padding-left:20px;padding-bottom:30px"><table width="100%" cellspacing="0" cellpadding="0" role="none" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px"><tbody><tr><td valign="top" align="center" class="es-m-p0r es-m-p20b" style="padding:0;Margin:0;width:560px"><table width="100%" cellspacing="0" cellpadding="0" role="presentation" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px"><tbody><tr><td align="left" style="padding:0;Margin:0;padding-bottom:10px"><h1 style="Margin:0;font-family:Inter, Arial, sans-serif;mso-line-height-rule:exactly;letter-spacing:0;font-size:32px;font-style:normal;font-weight:bold;line-height:38.4px;color:#191335">Verify Your Account</h1>
-</td></tr><tr><td align="left" style="padding:0;Margin:0;padding-bottom:20px;padding-top:10px"><p style="Margin:0;mso-line-height-rule:exactly;font-family:Inter, Arial, sans-serif;line-height:24px;letter-spacing:0;color:#191335;font-size:16px">Hello Merilyn Parks,</p><p style="Margin:0;mso-line-height-rule:exactly;font-family:Inter, Arial, sans-serif;line-height:24px;letter-spacing:0;color:#191335;font-size:16px"><br></p><p style="Margin:0;mso-line-height-rule:exactly;font-family:Inter, Arial, sans-serif;line-height:24px;letter-spacing:0;color:#191335;font-size:16px">To finalize your account setup with FinTech and unlock all features, we need to verify your identity. This ensures the highest level of security for your account and protects your personal information. Click the link below to verify your email address.</p></td></tr>
- <tr><td align="left" style="padding:0;Margin:0"><!--[if mso]><a href="https://viewstripo.email" target="_blank" hidden>
-    <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" esdevVmlButton href="https://viewstripo.email" 
-                style="height:41px; v-text-anchor:middle; width:187px" arcsize="50%" stroke="f"  fillcolor="#2b5d68">
-        <w:anchorlock></w:anchorlock>
-        <center style='color:#ffffff; font-family:Nunito, Roboto, sans-serif; font-size:15px; font-weight:700; line-height:15px;  mso-text-raise:1px'>Verify my email</center>
-    </v:roundrect></a>
-<![endif]--><!--[if !mso]><!-- --><span class="es-button-border msohide" style="border-style:solid;border-color:#2CB543;background:#2B5D68;border-width:0px;display:inline-block;border-radius:30px;width:auto;mso-hide:all"><a href="https://viewstripo.email" target="_blank" class="es-button" style="mso-style-priority:100 !important;text-decoration:none !important;mso-line-height-rule:exactly;color:#FFFFFF;font-size:18px;padding:10px 20px 10px 20px;display:inline-block;background:#2B5D68;border-radius:30px;font-family:Nunito, Roboto, sans-serif;font-weight:bold;font-style:normal;line-height:21.6px;width:auto;text-align:center;letter-spacing:0;mso-padding-alt:0;mso-border-alt:10px solid #2B5D68">Verify my email</a>
-</span><!--<![endif]--></td></tr></tbody></table></td></tr></tbody></table></td></tr></tbody></table></td></tr></tbody></table>
- <table cellpadding="0" cellspacing="0" align="center" class="es-content" role="none" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;width:100%;table-layout:fixed !important"><tbody><tr><td align="center" style="padding:0;Margin:0"><table bgcolor="#ffffff" align="center" cellpadding="0" cellspacing="0" class="es-content-body" role="none" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;background-color:#FFFFFF;width:600px"><tbody><tr><td align="left" data-custom-paddings="true" style="padding:0;Margin:0;padding-top:30px;padding-right:20px;padding-left:20px"><!--[if mso]><table style="width:570px" cellpadding="0" cellspacing="0"><tr><td style="width:41px" valign="top"><![endif]--><table cellpadding="0" cellspacing="0" align="left" class="es-left" role="none" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;float:left"><tbody><tr><td align="left" class="es-m-p20b" style="padding:0;Margin:0;width:41px"><table cellpadding="0" cellspacing="0" width="100%" role="presentation" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px"><tbody><tr><td align="center" style="padding:0;Margin:0;font-size:0px"><a target="_blank" href="https://viewstripo.email" style="mso-line-height-rule:exactly;text-decoration:underline;color:#1BD79B;font-size:16px"><img src="https://tlr.stripocdn.email/content/guids/CABINET_8b5e474e81c4e451743e688436903b88154bd4a89788b5422d281d38b1133dc2/images/shieldcheck_1.png" alt="" width="41" style="display:block;font-size:16px;border:0;outline:none;text-decoration:none"></a>
-</td></tr></tbody></table></td></tr></tbody></table><!--[if mso]></td><td style="width:20px"></td><td style="width:499px" valign="top"><![endif]--><table cellpadding="0" cellspacing="0" align="right" class="es-right" role="none" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;float:right"><tbody><tr><td align="left" style="padding:0;Margin:0;width:499px"><table cellpadding="0" cellspacing="0" width="100%" role="presentation" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px"><tbody><tr><td align="left" style="padding:0;Margin:0;padding-top:5px;padding-bottom:5px"><h2 style="Margin:0;font-family:Inter, Arial, sans-serif;mso-line-height-rule:exactly;letter-spacing:0;font-size:24px;font-style:normal;font-weight:bold;line-height:28.8px;color:#191335">Why Verification Matters</h2></td></tr></tbody></table></td></tr></tbody></table>
- <!--[if mso]></td></tr></table><![endif]--></td></tr><tr><td align="left" data-custom-paddings="true" style="Margin:0;padding-right:20px;padding-left:20px;padding-bottom:30px;padding-top:10px"><table cellpadding="0" cellspacing="0" width="100%" role="none" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px"><tbody><tr><td align="center" valign="top" style="padding:0;Margin:0;width:560px"><table cellpadding="0" cellspacing="0" width="100%" role="presentation" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px"><tbody><tr><td align="left" style="padding:0;Margin:0"><ul style="font-family:Inter, Arial, sans-serif;padding:0px 0px 0px 40px;margin-top:15px;margin-bottom:15px"> 
-<li style="color:#191335;margin:0px 0px 15px;font-size:16px"><strong>Enhanced Security</strong>: Identity verification helps prevent unauthorized access and protects your financial information.</li> <li style="color:#191335;margin:0px 0px 15px;font-size:16px"><strong>Compliance</strong>: This process helps us comply with financial regulations and ensures a safe experience for all our clients.</li> </ul></td></tr></tbody></table></td></tr></tbody></table></td></tr></tbody></table></td></tr></tbody></table>
- <table cellspacing="0" cellpadding="0" align="center" class="es-footer" role="none" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;width:100%;table-layout:fixed !important;background-color:transparent;background-repeat:repeat;background-position:center top"><tbody><tr><td align="center" style="padding:0;Margin:0"><table cellspacing="0" cellpadding="0" bgcolor="#ffffff" align="center" class="es-footer-body" role="none" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;background-color:#2B5D68;width:600px"><tbody><tr><td align="left" data-custom-paddings="true" style="Margin:0;padding-top:30px;padding-right:20px;padding-left:20px;padding-bottom:30px"><!--[if mso]><table style="width:570px" cellpadding="0" cellspacing="0"><tr><td style="width:224px" valign="top"><![endif]--><table cellspacing="0" cellpadding="0" align="left" class="es-left" role="none" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;float:left"><tbody><tr><td align="left" class="es-m-p20b" style="padding:0;Margin:0;width:224px"><table width="100%" cellspacing="0" cellpadding="0" role="presentation" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px"><tbody><tr><td align="left" class="es-m-txt-c" style="padding:0;Margin:0;padding-bottom:20px;font-size:0px"><a target="_blank" href="https://viewstripo.email" style="mso-line-height-rule:exactly;text-decoration:underline;color:#FFFFFF;font-size:14px"><img src="https://tlr.stripocdn.email/content/guids/CABINET_8b5e474e81c4e451743e688436903b88154bd4a89788b5422d281d38b1133dc2/images/group_4078087_zyF.png" alt="Logo" height="40" title="Logo" style="display:block;font-size:16px;border:0;outline:none;text-decoration:none"></a>
-</td></tr><tr><td align="left" style="padding:0;Margin:0"><h3 class="es-m-txt-c" style="Margin:0;font-family:Inter, Arial, sans-serif;mso-line-height-rule:exactly;letter-spacing:0;font-size:18px;font-style:normal;font-weight:bold;line-height:21.6px;color:#49e2b6"><a target="_blank" href="https://viewstripo.email" style="mso-line-height-rule:exactly;text-decoration:none;color:#49e2b6;font-size:18px">FinTech.com</a></h3></td></tr></tbody></table></td></tr></tbody></table>
- <!--[if mso]></td><td style="width:20px"></td><td style="width:316px" valign="top"><![endif]--><table cellspacing="0" cellpadding="0" align="right" class="es-right" role="none" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;float:right"><tbody><tr><td align="left" style="padding:0;Margin:0;width:316px"><table width="100%" cellspacing="0" cellpadding="0" role="presentation" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px"><tbody><tr><td align="right" class="es-m-txt-c" style="padding:0;Margin:0;padding-bottom:30px;padding-top:10px;font-size:0"><table cellpadding="0" cellspacing="0" dir="ltr" class="es-table-not-adapt es-social" role="presentation" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px"><tbody><tr><td align="center" valign="top" style="padding:0;Margin:0;padding-right:20px"><a target="_blank" href="https://viewstripo.email" style="mso-line-height-rule:exactly;text-decoration:underline;color:#FFFFFF;font-size:14px"><img src="https://tlr.stripocdn.email/content/assets/img/social-icons/circle-white/facebook-circle-white.png" alt="Fb" title="Facebook" width="24" height="24" style="display:block;font-size:16px;border:0;outline:none;text-decoration:none"></a>
-</td><td align="center" valign="top" style="padding:0;Margin:0;padding-right:20px"><a target="_blank" href="https://viewstripo.email" style="mso-line-height-rule:exactly;text-decoration:underline;color:#FFFFFF;font-size:14px"><img src="https://tlr.stripocdn.email/content/assets/img/social-icons/circle-white/instagram-circle-white.png" alt="Ig" title="Instagram" width="24" height="24" style="display:block;font-size:16px;border:0;outline:none;text-decoration:none"></a></td><td align="center" valign="top" style="padding:0;Margin:0;padding-right:20px"><a target="_blank" href="https://viewstripo.email" style="mso-line-height-rule:exactly;text-decoration:underline;color:#FFFFFF;font-size:14px"><img src="https://tlr.stripocdn.email/content/assets/img/social-icons/circle-white/youtube-circle-white.png" alt="Yt" title="YouTube" width="24" height="24" style="display:block;font-size:16px;border:0;outline:none;text-decoration:none"></a></td>
- <td align="center" valign="top" style="padding:0;Margin:0"><a target="_blank" href="https://viewstripo.email" style="mso-line-height-rule:exactly;text-decoration:underline;color:#FFFFFF;font-size:14px"><img src="https://localfiles.stripocdn.email/content/assets/img/social-icons/circle-white/x-circle-white.png" alt="X" title="X" width="24" height="24" style="display:block;font-size:16px;border:0;outline:none;text-decoration:none"></a></td></tr></tbody></table></td></tr>
- <tr><td align="right" style="padding:0;Margin:0"><p class="es-m-txt-c" style="Margin:0;mso-line-height-rule:exactly;font-family:Inter, Arial, sans-serif;line-height:21px;letter-spacing:0;color:#FFFFFF;font-size:14px"><a target="_blank" href="https://viewstripo.email" style="mso-line-height-rule:exactly;text-decoration:none;color:#FFFFFF;font-size:14px">Privacy Policy</a>&nbsp; &nbsp;•&nbsp; &nbsp;<a target="_blank" href="https://viewstripo.email" style="mso-line-height-rule:exactly;text-decoration:none;color:#FFFFFF;font-size:14px">Contact Us</a>&nbsp; &nbsp;•&nbsp; &nbsp;<a target="_blank" style="mso-line-height-rule:exactly;text-decoration:none;color:#FFFFFF;font-size:14px" href="">Unsubscribe</a></p></td></tr></tbody></table></td></tr></tbody></table><!--[if mso]></td></tr></table><![endif]--></td></tr></tbody></table></td>
- </tr></tbody></table>
- <table cellpadding="0" cellspacing="0" align="center" class="es-content" role="none" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;width:100%;table-layout:fixed !important"><tbody><tr><td align="center" style="padding:0;Margin:0"><table align="center" cellpadding="0" cellspacing="0" class="es-content-body" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;background-color:transparent;width:600px" role="none"><tbody><tr><td align="left" data-custom-paddings="true" style="padding:20px;Margin:0"><table cellpadding="0" cellspacing="0" width="100%" role="none" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px"><tbody><tr><td align="center" valign="top" style="padding:0;Margin:0;width:560px"><table cellpadding="0" cellspacing="0" width="100%" role="presentation" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px"><tbody><tr><td align="center" class="es-infoblock made_with" style="padding:0;Margin:0;font-size:0"><a target="_blank" href="https://viewstripo.email/?utm_source=templates&amp;utm_medium=email&amp;utm_campaign=fintech_1&amp;utm_content=verify_your_account" style="mso-line-height-rule:exactly;text-decoration:underline;color:#CCCCCC;font-size:12px"><img src="https://tlr.stripocdn.email/content/guids/CABINET_09023af45624943febfa123c229a060b/images/7911561025989373.png" alt="" width="125" style="display:block;font-size:16px;border:0;outline:none;text-decoration:none"></a>
-</td></tr></tbody></table></td></tr></tbody></table></td></tr></tbody></table></td></tr></tbody></table></td></tr></tbody></table></div></body> */
+const main = {
+    backgroundColor: '#fff',
+    color: '#212121',
+};
+
+const container = {
+    padding: '20px',
+    margin: '0 auto',
+    backgroundColor: '#eee',
+};
+
+const h1 = {
+    color: '#333',
+    fontFamily:
+        "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif",
+    fontSize: '20px',
+    fontWeight: 'bold',
+    marginBottom: '15px',
+};
+
+const text = {
+    color: '#333',
+    fontFamily:
+        "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif",
+    fontSize: '14px',
+    margin: '24px 0',
+};
+
+const imageSection = {
+    backgroundColor: '#252f3d',
+    display: 'flex',
+    padding: '20px 0',
+    alignItems: 'center',
+    justifyContent: 'center',
+};
+
+const coverSection = { backgroundColor: '#fff' };
+
+const upperSection = { padding: '25px 35px' };
+
+const lowerSection = { padding: '25px 35px' };
+
+const footerText = {
+    ...text,
+    fontSize: '12px',
+    padding: '0 20px',
+};
+
+const verifyText = {
+    ...text,
+    margin: 0,
+    fontWeight: 'bold',
+    textAlign: 'center' as const,
+};
+
+const codeText = {
+    ...text,
+    fontWeight: 'bold',
+    fontSize: '36px',
+    margin: '10px 0',
+    textAlign: 'center' as const,
+};
+
+const validityText = {
+    ...text,
+    margin: '0px',
+    textAlign: 'center' as const,
+};
+
+const verificationSection = {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+};
+
+const mainText = { ...text, marginBottom: '14px' };
+
+const cautionText = { ...text, margin: '0px' };
+
+
+const EmailVerification = ({
+    verificationCode,
+}: EmailVerificationProps) => (
+    <Html>
+        <Head />
+        <Body style={main}>
+            <Preview>Popcorn Paragon Email Verification</Preview>
+            <Container style={container}>
+                <Section style={coverSection}>
+                    <Section style={imageSection}>
+                        <Img
+                            src={`https://react-email-demo-ear4wll4x-resend.vercel.app/static/aws-logo.png`}
+                            width="75"
+                            height="45"
+                            alt="AWS's Logo"
+                        />
+                    </Section>
+                    <Section style={upperSection}>
+                        <Heading style={h1}>Verify your email address</Heading>
+                        <Text style={mainText}>
+                            We want to make sure it's really you. Please enter the following
+                            verification code when prompted. If you didn&apos;t requested this, you can safely ignore this message.
+                        </Text>
+                        <Section style={verificationSection}>
+                            <Text style={verifyText}>Verification code</Text>
+
+                            <Text style={codeText}>{verificationCode}</Text>
+                            <Text style={validityText}>
+                                (This code is valid for 10 minutes)
+                            </Text>
+                        </Section>
+                    </Section>
+                    <Hr />
+                    <Section style={lowerSection}>
+                        <Text style={cautionText}>
+                            Popcorn Paragon or any other application or services from QCore Technology will never email you and ask you to disclose
+                            or verify your password, credit card, or banking account number.
+                        </Text>
+                    </Section>
+                </Section>
+                <Text style={footerText}>
+                    This message was produced and distributed by Popcorn Paragon Web Application powered by Q-Core Technologies Pvt. Inc. | All rights reserved
+                </Text>
+            </Container>
+        </Body>
+    </Html>
+)
+
+export default EmailVerification;

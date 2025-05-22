@@ -1,5 +1,6 @@
 import { getPageParams } from "@lib/utils";
-import { GeneralGetReturn, PipelineFunc } from "@type/internal";
+import { GeneralGetReturn } from "@type/internal";
+import { PipelineFunc } from "@type/other";
 import { Model } from "mongoose";
 
 export const searchHandler = async (
@@ -37,8 +38,6 @@ export const searchHandler = async (
       : nsfw === "true"
       ? { $or: regex }
       : { $or: regex, nsfw: false };
-
-  console.log(match);
 
   const result = await Model.aggregate(
     pipelineFunc({ filters: [{ $match: match }], page, sort: undefined })

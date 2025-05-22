@@ -8,15 +8,15 @@ type TabProps = {
     Component: JSX.Element,
     Loading?: React.ComponentType<any>,
     tab_id: string,
-
 }[]
 
-const Tabs = ({ tabs, currentTab }: { tabs: TabProps, currentTab?: string; }) => {
-    const tabIndex = tabs.findIndex(el => el.tab_id === currentTab);
-    const selectedTab = tabIndex >= 0 ? tabIndex : 0
+const Tabs = ({ tabs }: { tabs: TabProps, }) => {
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
+    const currentTab = searchParams.get("t");
+    const tabIndex = tabs.findIndex(el => el.tab_id === currentTab);
+    const selectedTab = tabIndex >= 0 ? tabIndex : 0
 
     const ComponentToShow = () => {
         return tabs[selectedTab].Component

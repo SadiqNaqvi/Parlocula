@@ -2,13 +2,15 @@
 
 import { AddIcon, AlertIcon, LeftChevron, LinkIcon, XmarkIcon } from "@assets/Icons";
 import placeholder from "@assets/placeholder.png";
-import { LinkInputCont, MediaInputCont, Modal, Navigate, OptionMenu, ThreadTagList } from "@components";
-import { Form, Textarea, ToggleButton } from "@components/form";
+import { LinkInputCont, MediaInputCont, Modal, Navigate, OptionMenu } from "@components";
+import { Form, Textarea, ToggleButton, PostTagList } from "@components/form";
 import { useCustomReducer } from "@lib/hooks";
 import { InputFrame, LinkSchema } from "@type/schemas";
 import Image from "next/image";
 import { useRef } from "react";
 import { Popover, Triggerer } from "./Modal";
+import { numberOfFrames, postLinksLength, postTags } from "@lib/constants";
+import { getInternalPoster } from "@lib/utils";
 
 type ReducerProps = {
     frames: InputFrame[],
@@ -61,8 +63,20 @@ const CreateEditPost = ({ defaultVals, callback, isEditing, goBack }: Props) => 
         setter({ frames: frames.filter((_, i) => i !== ind) });
     }
 
+    const validateExtraFields = () => {
+        if (!postTags.includes(tag)) return "Invalid Tag! Please choose a valid tag."
+
+        if (tag === "frames" && !(frames.length >= 1 && frames.length <= numberOfFrames.total))
+            return `Frames based post must have at least 1 frame and upto ${numberOfFrames.total} frames are allowed`
+        else if (tag === "links" && !(links.length >= 1 && links.length <= postLinksLength))
+            return `Links based post must have at least 1 link and upto ${postLinksLength} links are allowed`
+        else if (tag !== "frames" && frames.length > 1) return "Only one frame is allowed in non-frame post"
+    }
+
     const submitForm = async (data: PostClientCommon) => {
         const formDataObj = { ...data, tag, links, frames };
+        const error = validateExtraFields();
+        if (error) return error;
         return await callback(formDataObj);
     }
 
@@ -71,7 +85,7 @@ const CreateEditPost = ({ defaultVals, callback, isEditing, goBack }: Props) => 
     }
 
     const options: any[] = [
-        links.length < 5 && { label: "Link", src: "link-popover" },
+        links.length < postLinksLength && { label: "Link", src: "link-popover" },
         tag === "frames" && { label: "frames", src: "frames-popover" },
         (!frames.length && tag !== "frames") && { label: "Video", src: "video-popover" },
         (!frames.length && tag !== "frames") && { label: "Image", src: "image-popover" },
@@ -113,13 +127,13 @@ const CreateEditPost = ({ defaultVals, callback, isEditing, goBack }: Props) => 
                     id="tag-popover"
                     buttonChildren={tag ?
                         <>
-                            <AlertIcon classnames="h-4" />
+                            <AlertIcon className="h-4" />
                             <span className="text-sm">{tag}</span>
                         </>
                         :
                         "Choose Tag"
                     }>
-                    <ThreadTagList defaultTag={tag} func={addTag} />
+                    <PostTagList defaultTag={tag} func={addTag} />
                 </Modal>
             </section>
 
@@ -142,13 +156,13 @@ const CreateEditPost = ({ defaultVals, callback, isEditing, goBack }: Props) => 
                     className="w-full mt-2"
                 >
                 </Textarea>
-                <ToggleButton label="nsfw" className="py-3 uppercase" />
-                <ToggleButton label="spoiler" className="py-3 capitalize" />
+                <ToggleButton label="nsfw" className="mt-3 uppercase w-full" />
+                <ToggleButton label="spoiler" className="mt-3 capitalize w-full" />
             </Form>
 
-            <Popover id="image-popover"><MediaInputCont defaultFrames={frames} type="image" callback={getFrames} /></Popover>
+            {/* <Popover id="image-popover"><MediaInputCont defaultFrames={frames} type="image" callback={getFrames} /></Popover>
             <Popover id="video-popover"><MediaInputCont defaultFrames={frames} type="video" callback={getFrames} /></Popover>
-            <Popover id="frames-popover"><MediaInputCont defaultFrames={frames} type="image" multiple={5} callback={getFrames} /></Popover>
+            <Popover id="frames-popover"><MediaInputCont defaultFrames={frames} type="image" multiple={5} callback={getFrames} /></Popover> */}
             <Popover id="link-popover"><LinkInputCont func={addLink} /></Popover>
 
             {
@@ -156,35 +170,34 @@ const CreateEditPost = ({ defaultVals, callback, isEditing, goBack }: Props) => 
                 <section className="my-4 overflow-x-auto flex gap-4 noScroll">
                     {links.map(el => (
                         <div key={el.path} className="px-2 py-3 flex gap-2 bg-gray10 rounded-md">
-                            <LinkIcon classnames="h-4 text-zinc-500" />
+                            <LinkIcon className="h-4 text-zinc-500" />
                             <span className="text-sky-500 text-nowrap">
                                 {el.path}
                             </span>
                             <button className="smallBtn" onClick={() => removeLink(el)}>
-                                <XmarkIcon classnames="h-4" />
+                                <XmarkIcon className="h-4" />
                             </button>
                         </div>
                     ))}
                 </section>
             }
+
             <section className="my-4 flex gap-4 overflow-x-auto">
-                {frames.map((frame, ind) => (
-                    <div className="relative bg-gray30 border border-gray40">
-                        <button className="absolute z-[1] p-2 rounded-md bg-gray30 border border-gray40 iconBtn mt-1 mr-1 right-0 top-0" onClick={() => removeFrame(ind)}>
-                            <XmarkIcon classnames="h-4" />
+                {frames.map(({ isExternal, path, type }, ind) => (
+                    <div key={path} className="relative bg-gray30 border border-gray40">
+                        <button className="absolute z-[1] p-1 rounded-md bg-gray30 border border-gray40 iconBtn mt-1 mr-1 right-0 top-0" onClick={() => removeFrame(ind)}>
+                            <XmarkIcon className="h-4" />
                         </button>
-                        {frame.type === "image" ?
-                            <Image className="size-64 object-contain" style={{ backgroundImage: `url(${placeholder})` }} src={frame.path} alt="" width={500} height={500} />
+                        {type === "image" ?
+                            <img className="min-w-64 size-64 object-contain" src={isExternal ? getInternalPoster({ path }) : path} alt="" width={500} height={500} />
                             :
-                            <video controls className="size-64 object-contain" src={frame.path} />
+                            <video className="min-w-64 size-64 object-contain" src={isExternal ? getInternalPoster({ path, type: "video" }) : path} />
                         }
                     </div>
                 ))}
             </section>
 
-            <p className="text-zinc-500 text-center mt-4">If any content (title, body, links, image or video) in this post contains Spoilers or NSFW content, please use the relevent tags or your post will be flagged as inappropriate.</p>
-            <p className="text-zinc-500 text-center mt-3">If your post is media/links based, please choose specific tag.</p>
-            <p className="mt-2 text-sm text-zinc-500">Media based post requires atleast 1 media. Same goes for links based post.</p>
+            <p className="mt-2 text-center text-sm text-zinc-500">Frames based post requires atleast 1 frame. Same goes for links based post.</p>
 
         </>
     )

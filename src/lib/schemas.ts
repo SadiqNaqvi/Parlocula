@@ -10,12 +10,12 @@ import {
   allowedSizes,
   numberOfFrames,
 } from "./constants";
-import { calculateAge } from "./utils";
+import { calculateAge, isValidObjectId } from "./utils";
 
 export const tagEnum = z
   .string()
   .trim()
-  .refine((val) => postTags.includes(val), {
+  .refine((val) => [...postTags, ""].includes(val), {
     message: "Invalid Tag",
   });
 
@@ -81,6 +81,7 @@ export const frameDataSchema = z.object({
   type: z.enum(["image", "video"]),
   isExternal: z.boolean(),
   path: z.string(),
+  shouldUpload: z.boolean(),
 });
 
 export const fileSchema = z
@@ -97,24 +98,23 @@ export const fileSchema = z
   );
 
 export const extraFieldForUpdateMethod = z.object({
-  oldFiles: z.array(frameDataSchema).optional(),
+  filesToRemove: z
+    .array(
+      z.object({
+        path: z.string(),
+        type: z.enum(["image", "video"]),
+      })
+    )
+    .default([]),
 });
 
-const threadSchemaBase = z.object({
+export const threadSchemaClient = z.object({
   name: z
     .string()
     .trim()
     .toLowerCase()
     .min(5, "Thread name must contain 5 characters.")
-    .max(25, "Thread name cannot have more than 25 characters.")
-    .refine(
-      (val) => !val.includes(" "),
-      "Thread name cannot have white spaces, use underscores ( _ ) instead"
-    )
-    .refine(
-      (val) => usernamePattern.test(val),
-      "Thread name cannot start with number and cannot have special symbols except underscore ( _ )"
-    ),
+    .max(30, "Thread name cannot have more than 30 characters."),
   description: z
     .string()
     .trim()
@@ -123,151 +123,86 @@ const threadSchemaBase = z.object({
   nsfw: z.boolean(),
 });
 
-export const threadSchemaClient = z
-  .object({
-    tags: z
-      .string()
-      .trim()
-      .transform((tags) => tags.split(","))
-      .refine((tags) => tags.length <= 10, "Only 10 tags are allowed.")
-      .transform((tags) => tags.map((tag) => tag.trim().toLowerCase())),
-  })
-  .merge(threadSchemaBase);
+const threadConnectionSchema = z.object({
+  type: z.enum(["person", "movie", "show"]),
+  path: z.string(),
+  name: z.string(),
+});
 
 export const threadSchemaServer = z
   .object({
+    connections: z
+      .array(threadConnectionSchema)
+      .refine(
+        (c) => c.length >= 1,
+        "A connection is required to create a thread"
+      )
+      .refine((c) => c.length <= 10, "At most 10 connections are allowed"),
     links: z
       .array(linkSchema)
-      .refine(
-        (links) => links.length <= 1,
-        "A link is required to create a thread"
-      )
-      .refine((links) => links.length <= 5, "Only 5 links are allowed"),
-    tags: z.array(z.string().min(3)),
+      .refine((l) => l.length <= 5, "At most 5 links are allowed"),
     filesData: z.array(frameDataSchema).optional().default([]),
     files: z.array(fileSchema).optional().default([]),
   })
-  .merge(threadSchemaBase);
+  .merge(threadSchemaClient);
 
-const postClientSuperRefine = (data: any, ctx: any) => {
-  const { title, body, tag } = data;
-
-  const validations: {
-    path: string;
-    label: string;
-    addMsg: string;
-    max: number;
-  }[] = [];
-
-  if (tag === "frames" || tag === "links") {
-    if (title?.length > 300)
-      validations.push({
-        label: "Title",
-        max: 300,
-        addMsg: " for frames or links based post.",
-        path: "title",
-      });
-    else if (body?.length > 1000)
-      validations.push({
-        label: "Body",
-        max: 1000,
-        addMsg: " for frames or links based post.",
-        path: "body",
-      });
-  } else {
-    if (title?.length > 500)
-      validations.push({
-        label: "Title",
-        max: 500,
-        addMsg: "",
-        path: "title",
-      });
-    else if (body?.length > 5000)
-      validations.push({
-        label: "Body",
-        max: 5000,
-        addMsg: " for frames or links based post.",
-        path: "body",
-      });
-  }
-  validations.forEach((v) => {
-    ctx.addIssue({
-      code: "too_big",
-      path: [v.path],
-      maximum: v.max,
-      inclusive: true,
-      type: "string",
-      message: `${v.label} should not have more than ${v.max} characters`,
-    });
-  });
-};
-
-const postServerSuperRefine = (data: any, ctx: any) => {
+const postRefineFunc = (data: any) => {
   const { filesData, links, tag } = data;
   if (
     tag === "frames" &&
     !(filesData.length > 0 && filesData.length < numberOfFrames.total)
-  ) {
-    ctx.addIssue({
-      inclusive: true,
-      type: "array",
-      code: "too_big",
-      maximum: numberOfFrames.total,
+  )
+    return {
       path: ["custom"],
       message: `Frames based post must have at least 1 frame attached and only ${numberOfFrames.total} frames are allowed!`,
-    });
-  } else if (tag === "links" && !(links.length > 0 && filesData.length < 5)) {
-    ctx.addIssue({
-      inclusive: true,
-      type: "array",
-      code: "too_big",
-      maximum: 5,
+    };
+  else if (tag === "links" && !(links.length > 0 && links.length < 5))
+    return {
       path: ["custom"],
       message:
         "Links based post must have at least 1 link attached and only 5 links are allowed!",
-    });
-  } else if (tag !== "frames" && filesData?.length > 1) {
-    ctx.addIssue({
-      inclusive: true,
-      type: "array",
-      code: "too_big",
-      maximum: 1,
+    };
+  else if (tag !== "frames" && filesData?.length > 1)
+    return {
       path: ["custom"],
       message: "Only 1 frame is allowed to attach!",
-    });
-  }
+    };
+  else return true;
 };
 
-const postClientBase = z.object({
-  title: z.string().trim().min(15, "Title must contain 15 characters."),
-  body: z.string().trim(),
+export const postClientSchema = z.object({
+  title: z
+    .string()
+    .trim()
+    .min(15, "Title must contain 15 characters.")
+    .max(500, "Title must contain at most 500 characters."),
+  body: z
+    .string()
+    .trim()
+    .max(5000, "Body must contain at most 5000 characters."),
   nsfw: z.boolean(),
   spoiler: z.boolean(),
 });
 
-export const postSchemaClient = postClientBase.superRefine(
-  postClientSuperRefine
-);
-
 const postServerBase = z.object({
-  links: z.array(linkSchema),
   tag: tagEnum.default(""),
+  links: z.array(linkSchema),
   filesData: z.array(frameDataSchema).default([]),
   files: z.array(fileSchema).default([]),
   thread_id: z.string(),
+  repost_id: z.string().optional(),
+  repost_author: z.string().optional(),
 });
 
-export const postSchemaServer = postClientBase
+export const postSchemaServer = postClientSchema
   .merge(postServerBase)
-  .superRefine(postClientSuperRefine)
-  .superRefine(postServerSuperRefine);
+  .refine(postRefineFunc);
 
-export const postUpdateSchema = postClientBase
+export const postUpdateSchema = postClientSchema
   .merge(postServerBase)
   .merge(extraFieldForUpdateMethod)
   .partial()
-  .superRefine(postClientSuperRefine)
-  .superRefine(postServerSuperRefine);
+  .refine(postRefineFunc);
 
 const registerUserCommon = z.object({
   name: z
@@ -390,13 +325,23 @@ export const listServerSchema = z.object({
   items: itemsSchema,
 });
 
+export const listEditSchema = z
+  .object({
+    itemsToDelete: z.array(z.string()).default([]),
+  })
+  .merge(listClientSchema)
+  .partial();
+
 export const itemsForListSchema = z.object({ items: itemsSchema });
 
-export const itemToAddAndRemove = z.object({
+export const cinementToAddAndRemove = z.object({
   tmdb_id: z.string(),
   year: z.number(),
   add: z.array(z.string()),
   remove: z.array(z.string()),
+  favourite: z.enum(["added", "removed", "none"]).default("none"),
+  watched: z.enum(["added", "removed", "none"]).default("none"),
+  recommended: z.enum(["added", "removed", "none"]).default("none"),
 });
 
 export const bookmarkSchema = z.object({

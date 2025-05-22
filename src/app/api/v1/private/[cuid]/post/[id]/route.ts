@@ -11,12 +11,12 @@ export const DELETE = deleteRequest(
     const posts = await deletePosts({ _id: id, user_id }, session);
     if (!posts.length) return { success: false, errCode: "pp104" };
 
-    const { thread_id } = posts[0];
+    const { thread_id, tag } = posts[0];
 
     return {
       success: true,
-      available: "postDeletion_pid_tid_username",
-      options: { pid: id, tid: thread_id.toString(), username },
+      available: "postMutation_pid_tid_username_tag",
+      options: { pid: id, tid: thread_id.toString(), username, tag },
       files: [],
     };
   }
@@ -40,7 +40,7 @@ export const PATCH = updateRequest({
 
     return {
       success: true,
-      available: "postCreation_pid_tid_username",
+      available: "postUpdation_pid",
       options: { pid: id, tid: post.thread_id, username },
       result: null,
     };

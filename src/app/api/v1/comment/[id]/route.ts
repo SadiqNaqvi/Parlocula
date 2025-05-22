@@ -18,12 +18,21 @@ export const GET = getRequest(async (r: any, params: { id: string }) => {
       },
     },
     {
+      $lookup: {
+        from: "posts",
+        localField: "post_id",
+        foreignField: "_id",
+        as: "post",
+      },
+    },
+    {
       $addFields: {
         username: { $arrayElemAt: ["$user.username", 0] },
+        post_author: { $arrayElemAt: ["$post.user_id", 0] },
         profile: { $arrayElemAt: ["$user.profile", 0] },
       },
     },
-    { $project: { user: 0 } },
+    { $project: { user: 0, post: 0 } },
   ]);
   const comment = result[0];
   if (!comment) return { success: false, errCode: "pp104" };

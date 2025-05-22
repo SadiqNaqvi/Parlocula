@@ -2,13 +2,13 @@
 
 import { useFormContext } from "react-hook-form"
 
-const Input = ({ label, name, description, ...args }: { label?: string, name: string, description?: string } & React.InputHTMLAttributes<HTMLInputElement>) => {
+const Input = ({ label, name, description, containerClasses, ...args }: { label?: string, name: string, description?: string, containerClasses?: string } & React.InputHTMLAttributes<HTMLInputElement>) => {
 
     const { register, formState: { errors, isSubmitting } } = useFormContext();
     const error = errors[name]?.message?.toString() || "";
 
     return (
-        <div className={`space-y-2 pb-2 border-b focus-within:border-gray-500 invalid:border-red-500 ${error ? "border-red-500" : "border-gray20"}`}>
+        <div className={`focus-within:border-gray-500 invalid:border-red-500 ${error ? "border-red-500" : "border-gray20"} ${containerClasses || "space-y-2 pb-2 border-b"}`}>
             {label &&
                 <label htmlFor={name} className="capitalize">
                     {label}

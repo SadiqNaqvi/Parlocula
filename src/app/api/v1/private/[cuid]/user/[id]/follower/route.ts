@@ -1,6 +1,7 @@
 import { deleteRequest } from "@lib/helpers/common";
 import { Follow, User } from "@model";
 
+// Removing the current user from a user's following
 export const DELETE = deleteRequest(async ({ params, user_id, session }) => {
   const { id } = params;
   const doc = await Follow.findOneAndDelete(
@@ -14,11 +15,15 @@ export const DELETE = deleteRequest(async ({ params, user_id, session }) => {
   if (doc) {
     await User.findByIdAndUpdate(
       user_id,
-      { $inc: { followers: -1 } },
+      { $inc: { followers: -1 }, $max: { followers: 0 } },
       { session }
     );
 
-    await User.findByIdAndUpdate(id, { $inc: { following: 1 } }, { session });
+    await User.findByIdAndUpdate(
+      id,
+      { $inc: { following: -1 }, $max: { following: 0 } },
+      { session }
+    );
   }
 
   return {

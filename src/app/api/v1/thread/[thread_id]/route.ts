@@ -5,7 +5,7 @@ import { Types } from "mongoose";
 export const GET = getRequest(async (r: any, params: { thread_id: string }) => {
   const { thread_id } = params;
 
-  const thread = await Thread.aggregate([
+  const results = await Thread.aggregate([
     { $match: { _id: new Types.ObjectId(thread_id) } },
     {
       $lookup: {
@@ -28,9 +28,7 @@ export const GET = getRequest(async (r: any, params: { thread_id: string }) => {
     },
   ]);
 
-  return {
-    result: thread[0],
-    success: true,
-    errCode: null,
-  };
+  if (!results.length) return { success: false, errCode: "pp104" };
+
+  return { result: results[0], success: true };
 });

@@ -1,5 +1,5 @@
 import { AddIcon } from "@assets/Icons";
-import { Navigate, RouterDropdown } from "@components";
+import { Navigate, RouterDropdown, Tabs } from "@components";
 import { NotFound } from "@components/ui";
 import { getThreads } from "@lib/helpers/common";
 import { queryFilters } from "@lib/constants";
@@ -7,11 +7,7 @@ import { MereThread } from "@type/internal";
 import { Metadata } from "next";
 import ThreadList from "./ThreadList";
 import { refineSearchParams } from "@lib/utils";
-
-export const metadata: Metadata = {
-    title: "Threads - Popcorn Paragon",
-    description: "Welcome to Threads. Explore the fandom of your favourite movies, shows, celebrities, characters and connect with the die hard fans."
-}
+import JoinedThreads from "./JoinedThreads";
 
 const fetchInitialData = async (page: number, filter: string): Promise<{ data: MereThread[], total: number } | undefined> => {
     const { result, success } = await getThreads(page, filter);
@@ -43,15 +39,28 @@ export default async function Page({ searchParams }: { searchParams: { p?: strin
     if (initialData && !initialData.total) return (
         <>
             <ThreadHeader />
-            <NotFound title="Not even a thread? lala" paras={["Be the first to create a thread."]} />
+            <NotFound title="Not even a thread?" paras={["Be the first to create a thread."]} />
         </>
     )
+
+    const tabs = [
+        {
+            Label: "Joined",
+            tab_id: "joined",
+            Component: <JoinedThreads />
+        },
+        {
+            Label: "Popular",
+            tab_id: "popular",
+            Component: <ThreadList page={page} filter={filter} initialData={initialData} />
+        },
+    ]
 
     return (
         <>
             <ThreadHeader />
             <section className="mt-4">
-                <ThreadList page={page} filter={filter} initialData={initialData} />
+                <Tabs tabs={tabs} />
             </section>
         </>
     )

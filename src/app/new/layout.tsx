@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+
 export const metadata: Metadata = {
     title: "Create Post - Popcorn Paragon",
     description: "Stop Searching Start Watching",
@@ -7,9 +8,5 @@ export const metadata: Metadata = {
 
 export default function Layout({ children }: Readonly<{ children: React.ReactNode }>) {
 
-    return (
-        <>
-            <main className="withoutSidebar">{children}</main>
-        </>
-    )
+    return <main className="withoutSidebar">{children}</main>
 }

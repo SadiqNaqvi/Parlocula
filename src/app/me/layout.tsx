@@ -1,4 +1,3 @@
-import { Sidebar } from "@components";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -8,12 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function UserLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-    return (
-        <>
-            <Sidebar />
-            <main className="*:max-w-screen-md *:mx-auto p-4">
-                {children}
-            </main>
-        </>
-    )
+    return <main>{children}</main>
 }

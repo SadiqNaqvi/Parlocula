@@ -7,8 +7,10 @@ export type RecentlyJoinedModelType = {
 };
 
 export type ReportModelType = {
-  by: Types.ObjectId;
-  for: string[];
+  user_id: Types.ObjectId;
+  reasons: string[];
+  content_id: Types.ObjectId;
+  content_type: string;
 };
 
 export type LinkModelType = {
@@ -17,8 +19,9 @@ export type LinkModelType = {
 };
 
 export type ConnectionModelType = {
-  media_type: string;
-  id: string;
+  type: string;
+  path: string;
+  name: string;
 };
 
 export type LastUpdateModelType = {
@@ -28,7 +31,6 @@ export type LastUpdateModelType = {
   name: string;
   nsfw: boolean;
   poster: string;
-  tags: string[];
 };
 
 export type FrameModelType = {
@@ -54,16 +56,12 @@ export type UserModelType = {
   lastLoginAt: Date;
   isBanned: boolean;
   banEndsAt: Date | null;
+  tempBanned: number;
   followers: number;
   following: number;
   posts: number;
   comments: number;
   public_lists: number;
-  total_lists: number;
-
-  favourite_id: Types.ObjectId;
-  recommended_id: Types.ObjectId;
-  watched_id: Types.ObjectId;
 };
 
 export type UserRecommendationModelType = {
@@ -92,6 +90,7 @@ export type PostModelType = {
   spoiler: boolean;
   thread_id: Types.ObjectId;
   user_id: Types.ObjectId;
+  repost_id: Types.ObjectId;
   edited_at: Date;
   reaction_count: number;
   comment_count: number;
@@ -116,6 +115,7 @@ export type CommentModelType = {
 export type MemberModelType = {
   thread_id: Types.ObjectId;
   user_id: Types.ObjectId;
+  notification: boolean;
 };
 
 export type ReactionModelType = {

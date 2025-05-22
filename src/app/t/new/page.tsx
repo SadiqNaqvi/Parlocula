@@ -11,9 +11,11 @@ import { threadSchemaClient } from "@lib/schemas";
 import { readyFrames } from "@lib/utils";
 import useCurrentUser from "@store/user";
 import { Link } from "@type/internal";
-import { InputFrame } from "@type/schemas";
+import { InputFrame, ThreadConnectionType } from "@type/schemas";
 import { useRouter } from "next/navigation";
 import { useRef } from "react";
+import ConnectionsInput from "./ConnectionsInput";
+import toast from "react-hot-toast";
 
 export default function Page() {
 
@@ -21,10 +23,12 @@ export default function Page() {
 
     const {
         links,
+        connections,
         poster,
         setter
     } = useCustomReducer({
         links: [] as Link[],
+        connections: [] as ThreadConnectionType[],
         poster: [] as InputFrame[],
     });
 
@@ -43,18 +47,21 @@ export default function Page() {
 
     const submit = async (formData: any) => {
 
-        if (!links.length) return "At least one link is required to create a thread.";
+        if (!connections.length || connections.length > 10) {
+            toast.error("At least 1 connections are required to create a thread. Upto 10 connections are allowed.")
+            return;
+        }
 
         const { files, filesData } = await readyFrames(poster)
-        const { name, description, nsfw, tags } = formData;
+        const { name, description, nsfw } = formData;
         const data = {
             name,
             description,
             nsfw,
-            tags,
             links,
             files,
             filesData,
+            connections
         };
         return await createThread(data, user._id, router, updateThreads);
     };
@@ -76,11 +83,16 @@ export default function Page() {
         formRef.current && formRef.current.requestSubmit();
     }
 
+    const getConnections = (c: ThreadConnectionType[]) => {
+        setter({ connections: c });
+    }
+
     return (
         <>
             <section className="space-y-3">
+                
                 <Poster getImage={getImage} removePicture={() => setter({ poster: [] })} />
-
+                
                 <Form
                     schema={threadSchemaClient}
                     ref={formRef}
@@ -89,9 +101,8 @@ export default function Page() {
                 >
                     <Input
                         name="name"
-                        placeholder="Eg: Spider_Man"
+                        placeholder="Eg: Spider Man"
                         label="Name"
-                        description="No white spaces or special symbols are allowed except underscore ( _ )"
                         required
                         minLength={5}
                         maxLength={30}
@@ -106,46 +117,71 @@ export default function Page() {
                     />
                     <p className="text-zinc-500 text-center text-sm">A name and description help people understand what the thread is about.</p>
 
-                    <Textarea
-                        name="tags"
-                        label="Tags"
-                        className="placeholder:text-sm"
-                        description="Tags help users find a thread easily. 10 tags are allowed for now."
-                        placeholder="Eg: spider_man, comics, character, miles_morales, marvel, sony..."
-                        maxLength={500}
-                    />
+                    <ToggleButton label="nsfw" className="w-full py-4 uppercase" />
 
-                    <ToggleButton label="nsfw" className="py-4 uppercase" />
-                    <p className="text-sm text-center text-zinc-500 -mt-2 mb-4">If any of the content (title, description, poster or attached links) contains NSFW content or you want to make a NSFW Thread, please mark the above tag as true.</p>
+                    <p className="text-sm text-center text-zinc-500 -mt-2 mb-4">Turn the above on if this thread is going to be a NSFW thread.</p>
                 </Form>
+
             </section>
 
-            <section className="mt-6">
+            <section className="my-6 space-y-4">
+
                 <div className="flex flex-cntr-between">
-                    <h2 className="text-2xl uppercase font-semibold">Related Links</h2>
+                    <h2 className="text-2xl uppercase font-semibold">Add Connections</h2>
+                    <Triggerer id="connection-input"><AddIcon /></Triggerer>
+                </div>
+
+                {Boolean(connections.length) ?
+                    <ul className="flex gap-3 flex-1 overflow-x-auto noScroll">
+                        {connections.map(({ path, name }) => (
+                            <li key={path} className="inline-flex text-sm gap-3 whitespace-nowrap text-nowrap flex-cntr-between px-2 py-2 rounded-md bg-gray20 border border-gray30">
+                                {name}
+                            </li>
+                        ))}
+                    </ul>
+                    :
+                    <ul className="text-sm space-y-1 text-zinc-500">
+                        <li>Help others understand what your thread is about by linking it to relevant Celebrities, Movies, or Shows.</li>
+                        <li>This helps your thread show up in the right places and reach the right fans.</li>
+                        <li>You must add at least 1 and at most 10 connections to continue.</li>
+                    </ul>
+                }
+            </section>
+
+            <section className="my-6 space-y-4">
+
+                <div className="flex flex-cntr-between">
+                    <h2 className="text-2xl uppercase font-semibold">Attach Links</h2>
                     <Triggerer id="link-input"><AddIcon /></Triggerer>
                 </div>
-                <ul className="flex gap-4 my-4 overflow-x-auto noScroll">
+
+                <ul className="flex gap-4 overflow-x-auto noScroll">
                     {links.map(el => (
                         <li key={el.path} className="flex items-center gap-4 bg-gray30 border border-gray40 rounded-md py-2 px-3">
-                            <LinkIcon classnames="h-4" />
+                            <LinkIcon className="h-4" />
                             <span>{el.path}</span>
                             <button
-                                className="smallBtn p-1 rounded-md bg-gray20"
+                                className="p-1 rounded-md bg-gray20"
                                 onClick={() => removeLink(el.path)}
                             >
-                                <XmarkIcon classnames="h-4" />
+                                <XmarkIcon className="h-4" />
                             </button>
-
                         </li>
                     ))}
                 </ul>
+
             </section>
 
             <button className="my-6 primary ml-auto" onClick={requestSubmit}>Create Thread</button>
+
             <Popover id="link-input">
                 <LinkInputCont func={addLink} />
             </Popover>
+
+            <Popover id="connection-input">
+                <ConnectionsInput callback={getConnections} />
+            </Popover>
+
         </>
     )
 }

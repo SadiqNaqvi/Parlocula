@@ -1,6 +1,10 @@
-import { OptionMenu, UserBasedButton } from "@components";
+import { Navigate, OptionMenu, UserBasedButton } from "@components";
 import OptionList from "@components/ui/OptionList";
-import { block, checkUserConnection, follow, modifyNotification, removeFollower, unblock, unfollow } from "@lib/helpers/client";
+import { LoadingButton } from "@components/UserBasedButton";
+import { block, follow, modifyNotification, removeFollower, unblock, unfollow } from "@lib/helpers/client";
+import { checkUserConnection } from "@lib/helpers/common";
+import { queryFunction } from "@lib/utils";
+import useCurrentUser from "@store/user";
 import { MutationFnProps, UserBasedButtonProps } from "@type/other";
 
 type ConnectionType = {
@@ -24,30 +28,31 @@ const Button = ({ isPending, onClick, state }: Prop) => {
 
     const { followBack, follows, haveBlocked, notification } = state;
 
-
     if (haveBlocked) return <button className="secondary" onClick={() => handleClick({ haveBlocked: false, follows: false }, "unblock")}>Unblock</button>
 
     else if (!follows) return <button className="primary" onClick={() => handleClick({ haveBlocked: false, follows: false }, "follow")}>{followBack ? "Follow back" : "Follow"}</button>
 
-    else return <OptionMenu
-        ButtonElement={"Unfollow"}
-        className="secondary"
-    >
-        <OptionList onClick={() => handleClick({ haveBlocked: false, follows: false }, "unfollow")}>Unfollow</OptionList>
-        <OptionList onClick={() => handleClick({ haveBlocked: true }, "block")}>Block</OptionList>
-        <OptionList onClick={() => handleClick({ followBack: false }, "remove")}>Remove Follower</OptionList>
-        <OptionList onClick={() => handleClick({ notification: !notification }, "notification")}>{notification ? "Disable" : "Enable"} Notification</OptionList>
-    </OptionMenu >
-
+    else return (
+        <OptionMenu
+            id="connection-options"
+            ButtonElement={"Unfollow"}
+            className="secondary"
+        >
+            <OptionList onClick={() => handleClick({ haveBlocked: false, follows: false }, "unfollow")}>Unfollow</OptionList>
+            <OptionList onClick={() => handleClick({ haveBlocked: true }, "block")}>Block</OptionList>
+            <OptionList onClick={() => handleClick({ followBack: false }, "remove")}>Remove Follower</OptionList>
+            <OptionList onClick={() => handleClick({ notification: !notification }, "notification")}>{notification ? "Disable" : "Enable"} Notification</OptionList>
+        </OptionMenu>
+    )
 }
 
 const ActionButton = ({ rid }: { rid: string }) => {
 
-    const queryFn = async (uid: string) => {
-        const { success, errCode, result } = await checkUserConnection(uid, rid);
-        if (!success) throw Error();
-        return result;
-    }
+    const { user, isHydrated } = useCurrentUser();
+
+    if (!isHydrated) return <LoadingButton />
+
+    if (user?._id === rid) return <Navigate className="primary btn w-full sm:w-fit" role="button" goto="/me/edit" comp="link" >Edit Profile</Navigate>
 
     const mutationFn = async ({ action, user_id, newState }: MutationFnProps) => {
         switch (action) {
@@ -62,7 +67,7 @@ const ActionButton = ({ rid }: { rid: string }) => {
 
     return <UserBasedButton
         Button={Button}
-        queryFn={queryFn}
+        queryFn={(uid) => queryFunction(checkUserConnection, [uid, rid])}
         mutationFn={mutationFn}
         queryKeys={["connection", rid]}
     />

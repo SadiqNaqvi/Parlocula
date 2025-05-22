@@ -20,7 +20,7 @@ export const DELETE = deleteRequest(async () => {
   return {
     result: null,
     success: true,
-    available: "logout_uid",
+    available: "loginLogout_uid",
     options: { uid: user._id },
     files: [],
   };

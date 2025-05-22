@@ -1,32 +1,25 @@
+import { filterToSort } from "@lib/constants";
 import { getRequest } from "@lib/helpers/common";
-import { ObjectId } from "@lib/utils";
+import { commentsAggregationPipeline } from "@lib/pipelines";
+import { getPageParams, ObjectId } from "@lib/utils";
 import { Comment } from "@model";
 
-export const GET = getRequest(async (_, params: { id: string }) => {
+export const GET = getRequest(async (r: any, params: { id: string }) => {
   const { id } = params;
-  const replies = await Comment.aggregate([
-    { $match: { replied_to: ObjectId(id) } },
-    {
-      $lookup: {
-        from: "users",
-        localField: "user_id",
-        foreignField: "_id",
-        as: "user",
-      },
-    },
-    {
-      $addFields: {
-        username: { $ifNull: [{ $arrayElemAt: ["$user.username", 0] }, ""] },
-        profile: { $ifNull: [{ $arrayElemAt: ["$user.profile", 0] }, ""] },
-      },
-    },
-    {
-      $project: {
-        user_id: 0,
-        user: 0,
-      },
-    },
-  ]);
+  const page = getPageParams(r) - 1;
+  const filter = r.nextUrl.searchParams.get("f")?.trim() || "latest";
+  const sort = filterToSort.comments[filter] ?? filterToSort.comments.latest;
 
-  return { result: replies, success: true };
+  const results = await Comment.aggregate(
+    commentsAggregationPipeline({
+      filters: [{ $match: { replied_to: ObjectId(id) } }],
+      sort,
+      page,
+    })
+  );
+
+  const comments = results[0];
+  if (!comments) return { success: false, errCode: "pp104" };
+
+  return { result: comments, success: true };
 });

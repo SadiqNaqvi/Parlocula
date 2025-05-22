@@ -1,35 +1,71 @@
-import { DynamicComponent } from "@components";
-import { UserProfile } from "@components/ui";
-import { getPostsOfUser, getUserByUsername } from "@lib/helpers/common";
-import { refineSearchParams } from "@lib/utils";
-import { GeneralGetReturn } from "@type/internal";
+import { checkUserConnection, fetchCurrentUser, getPostsOfUser, getUserByUsername } from "@lib/helpers/common";
+import { getQueryClient } from "@lib/queryClient";
+import { getQueryKeys, queryFunction, refineSearchParams } from "@lib/utils";
+import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
+import PostSection from "./tabs/PostSection";
+import { getUserFromToken } from "@lib/auth";
+import { cookies } from "next/headers";
+import { NotFound } from "@components/ui";
+import { GeneralGetReturn, RequestedUser } from "@type/internal";
 
-type Props = { params: { username: string }, searchParams: { p?: string, f?: string, t?: string } }
+type Props = { params: { username: string }, searchParams: { p?: string, f?: string } }
 
-export const generateMetadata = async ({ params: { username } }: Props) => {
-    const { result, success } = await getUserByUsername(username);
-    if (!success || !result) return { title: "Popcorn Paragon" }
-    return { title: `${result.username} - Popcorn Paragon`, description: result.bio }
+export const generateStaticParams = async () => {
+    return []
 }
 
-const getUserAndPosts = async ({ params, searchParams }: Props): Promise<GeneralGetReturn> => {
-    const { username } = params;
-    const user = await getUserByUsername(username);
-    if (!user.success || !user.result) return user;
-    // else if (!user.result.post_count)
-    //     return { ...user, result: { user: user.result, posts: null } }
+const Page = async ({ params: { username }, searchParams: { f, p } }: Props) => {
 
-    const { filter, page } = refineSearchParams("userPosts", searchParams.p, searchParams.f)
-    const posts = await getPostsOfUser(username, page, filter);
-    return {
-        success: true,
-        result: { user: user.result, posts: posts.result }
-    }
+    const queryClient = getQueryClient();
+
+    const { filter, page } = refineSearchParams("userPosts", p, f);
+
+    const user = await getUserFromToken(cookies());
+    const current = user?.username === username;
+
+    await Promise.all([
+        queryClient.prefetchQuery({
+            queryKey: getQueryKeys("user_username", { username }),
+            queryFn: () => queryFunction(current ? fetchCurrentUser : getUserByUsername, [current ? user.user_id : username]),
+            staleTime: 60 * 60 * 1000,
+        }),
+
+        queryClient.prefetchInfiniteQuery({
+            queryKey: getQueryKeys("postsOfUser_username_filter_page", { username, filter, page }),
+            queryFn: () => queryFunction(getPostsOfUser, [username, page, filter], page),
+            initialPageParam: page,
+            staleTime: 60 * 60 * 1000
+        }),
+    ]);
+
+    const response = queryClient.getQueryData<GeneralGetReturn<RequestedUser>>(getQueryKeys("user_username", { username }));
+
+    if (!response || !response.success) return (
+        <section className="size-screen">
+            <NotFound
+                title="Nothing is found"
+                paras={[
+                    "The user might have changed their username, deactivated their account or not exist at all.",
+                    "Please search the user by their username in the explore page."
+                ]}
+            />
+        </section>
+    )
+
+    const requestedUser = response.result;
+
+    if (user && !current)
+        queryClient.prefetchQuery({
+            queryKey: getQueryKeys("connection_ruid", { ruid: requestedUser._id }),
+            queryFn: () => queryFunction(checkUserConnection, [user.user_id, requestedUser._id]),
+            staleTime: 60 * 60 * 1000
+        });
+
+    return (
+        <HydrationBoundary state={dehydrate(queryClient)}>
+            <PostSection username={username} filter={filter} page={page} />
+        </HydrationBoundary>
+    )
 }
-
-const Page = DynamicComponent((data, props) => {
-
-    return <UserProfile {...data} />
-}, getUserAndPosts)
 
 export default Page;

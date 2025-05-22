@@ -39,7 +39,7 @@ export const DELETE = deleteRequest(async ({ params, session, user_id }) => {
   if (Model && doc)
     await Model.findOneAndUpdate(
       { _id: ObjectId(doc.content_id) },
-      { $inc: { saved_count: -1 } },
+      { $inc: { saved_count: -1 }, $max: { saved_count: 0 } },
       { session }
     );
 

@@ -1,13 +1,13 @@
 "use client";
 
-import { BookmarkIcon, CollectionIcon, Ellipsis, HeartIcon, LeftChevron, PlayIcon, PlaylistIcon, ShareIcon, StarIcon, ThreadIcon } from "@assets/Icons";
+import { Ellipsis, LeftChevron, PlayIcon, ShareIcon } from "@assets/Icons";
 import { getPoster } from "@lib/dataRefiner";
 import { RefinedMovieData } from "@type/external";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Navigate } from "./";
-import AddToList from "./AddToList";
+import AddToList from "../app/explore/(withoutSidebar)/components/AddToList";
 
 export default function MainPageHeader({ content }: { content: RefinedMovieData }) {
     const router = useRouter();
@@ -39,39 +39,6 @@ export default function MainPageHeader({ content }: { content: RefinedMovieData 
         { label: "Year", val: content.year },
     ]
 
-    const menuOptions = [
-        {
-            icon: StarIcon,
-            label: "Mark as Favourite",
-            func: () => { console.log("click hua") },
-        },
-        {
-            icon: HeartIcon,
-            label: "Add to Suggestion",
-            func: () => { }
-        },
-        {
-            icon: BookmarkIcon,
-            label: "Add to Watchlist",
-            func: () => { }
-        },
-        {
-            icon: PlaylistIcon,
-            label: "Add to Playlist",
-            func: () => { }
-        },
-        {
-            icon: ThreadIcon,
-            label: "Visit Thread",
-            func: () => { }
-        },
-        {
-            icon: CollectionIcon,
-            label: "Visit Collection",
-            func: () => { }
-        },
-    ]
-
     const mediaForList = {
         title: content.title,
         poster: content.poster,
@@ -86,9 +53,6 @@ export default function MainPageHeader({ content }: { content: RefinedMovieData 
         <>
             <header className="-mt-4">
                 <nav className="backdrop-brightness-75 overflow-hidden max-w-screen-md fixed top-0 z-[2] h-12 md:h-16 flex flex-cntr-between sm:px-4">
-                    {isInvisible &&
-                        <div className="background-all z-[-1] absolute inset-0 blur-sm brightness-50 -top-1" style={{ backgroundImage: `url(${getPoster("backdrop", content.backdrop, 0)})`, backgroundPosition: "center" }}></div>
-                    }
                     <div className="flex sm:gap-4 items-center">
                         <Navigate comp="button" goto="back" className="iconBtn">
                             <LeftChevron />
@@ -101,16 +65,6 @@ export default function MainPageHeader({ content }: { content: RefinedMovieData 
                         <button className="iconBtn">
                             <ShareIcon />
                         </button>
-                        {/* <OptionMenu>
-                        {menuOptions.map(el => (
-                            <li key={el.label} className="h-12 border-b px-2 md:px-4 border-[var(--gray20)] active:bg-[var(--gray10)] md:hover:bg-[var(--gray10)] transition-colors">
-                                <button className="noPadding justify-start border-0 h-full w-full" onClick={el.func}>
-                                    <el.icon />
-                                    {el.label}
-                                </button>
-                            </li>
-                        ))}
-                    </OptionMenu> */}
                         <button className="iconBtn">
                             <Ellipsis />
                         </button>

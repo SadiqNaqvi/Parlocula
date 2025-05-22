@@ -8,14 +8,16 @@ import { InputFrame } from "@type/schemas";
 import React, { useState } from "react";
 
 
-const Poster = ({ removePicture, getImage, className }: { getImage: (args: any) => void, removePicture: () => void } & React.HTMLAttributes<HTMLDivElement>) => {
+const Poster = ({ removePicture, getImage, defaultPoster = "", className, }: { getImage: (args: any) => void, removePicture: () => void, defaultPoster?: string } & React.HTMLAttributes<HTMLDivElement>) => {
 
-    const [poster, setPoster] = useState("");
+    const [poster, setPoster] = useState(defaultPoster);
 
     const togglePoster = (files?: InputFrame[]) => {
-        if (files) {
-            setPoster(files[0].url);
-            getImage(files)
+        if (files && files.length) {
+            const { path } = files[0];
+            console.log(path);
+            setPoster(path);
+            // getImage?.(files);
         }
         else {
             setPoster("");

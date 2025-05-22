@@ -56,7 +56,7 @@ export default function RatingComponent({ title }: { title: string }) {
     return (
         <div className="absolute inset-0 top-0 z-[2] backdrop-brightness-50 backdrop-blur-md flex flex-cntr-all">
             <button className="absolute iconBtn top-2 right-2" onClick={() => router.push(`${pathname.replace('?action=rate', '')}`, { scroll: false })}>
-                <XmarkIcon classnames="text-zinc-200" />
+                <XmarkIcon className="text-zinc-200" />
             </button>
             <div className="bg-[var(--primary)] p-8 rounded-lg w-[80%] h-[90%] overflow-y-auto">
                 <section className="border-b p-6 border-[var(--gray30)]">

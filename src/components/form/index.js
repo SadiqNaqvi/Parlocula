@@ -1,23 +1,11 @@
-import Form from "./Form";
-import Input from "./Input";
-import Textarea from "./Textarea";
-import ToggleButton from "./ToggleButton";
-import Password from "./Password";
-import DatePicker from "./DatePicker";
-import Poster from "./Poster";
-import ThreadTagList from "./ThreadTagList";
-import RadioThreadTile from "./RadioThreadTile";
-import CheckTile from "./CheckTile";
-
-export {
-  CheckTile,
-  Form,
-  RadioThreadTile,
-  Input,
-  Textarea,
-  ThreadTagList,
-  Poster,
-  ToggleButton,
-  Password,
-  DatePicker,
-};
+export { default as Form } from "./Form";
+export { default as Input } from "./Input";
+export { default as Textarea } from "./Textarea";
+export { default as ToggleButton } from "./ToggleButton";
+export { default as Password } from "./Password";
+export { default as DatePicker } from "./DatePicker";
+export { default as Poster } from "./Poster";
+export { default as ThreadTagList } from "./ThreadTagList";
+export { default as RadioThreadTile } from "./RadioThreadTile";
+export { default as CheckTile } from "./CheckAndRadioTile";
+export { default as PostTagList } from "./ThreadTagList";

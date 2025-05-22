@@ -3,37 +3,7 @@ import {
   FullCompanyDetails,
   FullEpisodeDetails,
   FullSeasonDetails,
-} from "../type/types";
-
-export const exampleTrailerData = {
-  id: 533535,
-  results: [
-    {
-      iso_639_1: "en",
-      iso_3166_1: "US",
-      name: "Final Trailer",
-      key: "Idh8n5XuYIA",
-      site: "YouTube",
-      size: 1080,
-      type: "Trailer",
-      official: true,
-      published_at: "2024-07-19T14:00:23.000Z",
-      id: "669a8ad15777920d534e6606",
-    },
-    {
-      iso_639_1: "en",
-      iso_3166_1: "US",
-      name: "Official Trailer",
-      key: "73_1biulkYk",
-      site: "YouTube",
-      size: 1080,
-      type: "Trailer",
-      official: true,
-      published_at: "2024-04-22T13:00:09.000Z",
-      id: "662668b62dda890149e08b9b",
-    },
-  ],
-};
+} from "../type/external";
 
 export const exampleSeasonDetails: FullSeasonDetails = {
   _id: "5ab187efc3a36861b3015bef",
@@ -5650,71 +5620,6 @@ export const exampleEpisodeDetails: FullEpisodeDetails = {
     ],
     guest_stars: [],
   },
-};
-
-export const exampleCollectionDetails: FullCollectionData = {
-  id: 448150,
-  name: "Deadpool Collection",
-  overview:
-    "A film series on the anti-superhero of the same name. A funnier and humorous side of X-Men.",
-  poster_path: "/30c5jO7YEXuF8KiWXLg9m28GWDA.jpg",
-  backdrop_path: "/hBQOWY8qWXJVFAc8yLTh1teIu43.jpg",
-  parts: [
-    {
-      backdrop_path: "/en971MEXui9diirXlogOrPKmsEn.jpg",
-      id: 293660,
-      title: "Deadpool",
-      original_title: "Deadpool",
-      overview:
-        "The origin story of former Special Forces operative turned mercenary Wade Wilson, who, after being subjected to a rogue experiment that leaves him with accelerated healing powers, adopts the alter ego Deadpool. Armed with his new abilities and a dark, twisted sense of humor, Deadpool hunts down the man who nearly destroyed his life.",
-      poster_path: "/3E53WEZJqP6aM84D8CckXx4pIHw.jpg",
-      media_type: "movie",
-      adult: false,
-      original_language: "en",
-      genre_ids: [28, 12, 35],
-      popularity: 158.652,
-      release_date: "2016-02-09",
-      video: false,
-      vote_average: 7.6,
-      vote_count: 30865,
-    },
-    {
-      backdrop_path: "/3P52oz9HPQWxcwHOwxtyrVV1LKi.jpg",
-      id: 383498,
-      title: "Deadpool 2",
-      original_title: "Deadpool 2",
-      overview:
-        "Wisecracking mercenary Deadpool battles the evil and powerful Cable and other bad guys to save a boy's life.",
-      poster_path: "/to0spRl1CMDvyUbOnbb4fTk3VAd.jpg",
-      media_type: "movie",
-      adult: false,
-      original_language: "en",
-      genre_ids: [28, 35, 12],
-      popularity: 104.852,
-      release_date: "2018-05-10",
-      video: false,
-      vote_average: 7.5,
-      vote_count: 17811,
-    },
-    {
-      backdrop_path: "/yDHYTfA3R0jFYba16jBB1ef8oIt.jpg",
-      id: 533535,
-      title: "Deadpool & Wolverine",
-      original_title: "Deadpool & Wolverine",
-      overview:
-        "A listless Wade Wilson toils away in civilian life with his days as the morally flexible mercenary, Deadpool, behind him. But when his homeworld faces an existential threat, Wade must reluctantly suit-up again with an even more reluctant Wolverine.",
-      poster_path: "/8cdWjvZQUExUUTzyp4t6EDMubfO.jpg",
-      media_type: "movie",
-      adult: false,
-      original_language: "en",
-      genre_ids: [28, 35, 878],
-      popularity: 2958.871,
-      release_date: "2024-07-24",
-      video: false,
-      vote_average: 7.715,
-      vote_count: 4655,
-    },
-  ],
 };
 
 export const exampleCompanyDetails: FullCompanyDetails = {

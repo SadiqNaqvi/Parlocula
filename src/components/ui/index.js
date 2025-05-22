@@ -10,19 +10,15 @@ import PostTile from "./PostTile";
 import RatingComponent from "./RatingComponent";
 import SearchTile, { LoadingSearchTile } from "./SearchTile";
 import ShowError from "./ShowError";
-import UserProfile from "../../app/u/[username]/UserProfile";
 import FrameTile from "./FrameTile";
 import VerticleMovieCard, {
   VerticleMovieCardSkeleton,
 } from "./VerticleMovieCard";
-import ListPage from "./ListPage";
 import ThreadTile from "./ThreadTile";
-import ItemTile, { ItemCheckTile } from "./ItemTile";
+import ItemTile from "./ItemTile";
 
 export {
   ItemTile,
-  ItemCheckTile,
-  ListPage,
   ThreadTile,
   VerticleMovieCardSkeleton,
   FrameTile,
@@ -40,6 +36,5 @@ export {
   SearchTile,
   LoadingSearchTile,
   ShowError,
-  UserProfile,
   VerticleMovieCard,
 };

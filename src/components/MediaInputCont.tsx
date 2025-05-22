@@ -69,7 +69,7 @@ const MediaInputCont = ({ type, multiple = 0, callback, defaultFrames }: MediaIn
             new Blob([new Uint8Array(await file.arrayBuffer())], { type: file.type });
 
         if (!blob) return setError("Unable to parse image. Please try again.");
-        setter({ frames: [{ type, path: URL.createObjectURL(blob), blob, isExternal: false }], noOfVideos: noOfVideos + (type === "video" ? 1 : 0) });
+        setter({ frames: [{ type, path: URL.createObjectURL(blob), blob, isExternal: false, shouldUpload: true }], noOfVideos: noOfVideos + (type === "video" ? 1 : 0) });
 
     }
 
@@ -94,11 +94,12 @@ const MediaInputCont = ({ type, multiple = 0, callback, defaultFrames }: MediaIn
         e.preventDefault();
         e.stopPropagation();
 
-        const url = e.target.url.value.trim().toLowerCase();
+        const url = e.target.url?.value?.trim().toLowerCase();
         if (!url) return;
 
         else if (!mediaUrlPattern.test(url))
             return setError("Invalid URL! Fix: Include 'https' or media extension not supported");
+        else if (frames.find(el => el.path === url)) return;
 
         const media_type = getMediaTypeFromUrl(url);
         if (!media_type) return setError("Invalid Extension! Please provide a valid image/video type.")
@@ -106,9 +107,9 @@ const MediaInputCont = ({ type, multiple = 0, callback, defaultFrames }: MediaIn
         else if (!multiple && media_type !== type)
             return setError(`Invalid Media! Please provide a valid ${type}.`)
 
-        if (multiple) setter({ frames: [...frames, { blob: null, isExternal: true, type: media_type, path: url }] })
-        else setter({ frames: [{ blob: null, isExternal: true, type: media_type, path: url }] })
-
+        if (multiple) setter({ frames: [...frames, { blob: null, isExternal: true, type: media_type, path: url, shouldUpload: false }] })
+        else setter({ frames: [{ blob: null, isExternal: true, type: media_type, path: url, shouldUpload: false }] })
+        e.target.reset();
     }
 
     const handleFrames = async (event: ChangeEvent<HTMLInputElement>) => {
@@ -130,7 +131,7 @@ const MediaInputCont = ({ type, multiple = 0, callback, defaultFrames }: MediaIn
             else if (file.type.split('/')[0] === "image") {
                 const blob = await scaleImage(file);
                 if (!blob) continue;
-                tempFrames.push({ path: URL.createObjectURL(blob), type: "image", isExternal: false, blob });
+                tempFrames.push({ path: URL.createObjectURL(blob), type: "image", isExternal: false, blob, shouldUpload: true });
             }
 
             else {
@@ -140,7 +141,7 @@ const MediaInputCont = ({ type, multiple = 0, callback, defaultFrames }: MediaIn
                 }
                 videos++;
                 const blob = new Blob([new Uint8Array(await file.arrayBuffer())], { type: file.type });
-                tempFrames.push({ path: URL.createObjectURL(blob), type: "video", isExternal: false, blob });
+                tempFrames.push({ path: URL.createObjectURL(blob), type: "video", isExternal: false, blob, shouldUpload: true });
             }
         }
         excluded && setError(`${excluded} frames are excluded from the chosen frames since you've voilated the rules.`)
@@ -160,7 +161,7 @@ const MediaInputCont = ({ type, multiple = 0, callback, defaultFrames }: MediaIn
                         <div key={frame.path} className="relative aspect-square h-full mx-auto border border-gray40 rounded-md">
                             {
                                 frame.type === "image" ?
-                                    <Image
+                                    <img
                                         className="aspect-square h-full object-contain"
                                         src={frame.path}
                                         alt=""
@@ -174,7 +175,7 @@ const MediaInputCont = ({ type, multiple = 0, callback, defaultFrames }: MediaIn
                             <button
                                 onClick={() => removeFrame(ind)}
                                 className="absolute smallBtn p-1 right-0 top-0 mt-1 mr-1 bg-gray30 border border-gray40 rounded-md">
-                                <XmarkIcon classnames="h-4" />
+                                <XmarkIcon className="h-4" />
                             </button>
                         </div>
                     ))}
@@ -226,14 +227,11 @@ const MediaInputCont = ({ type, multiple = 0, callback, defaultFrames }: MediaIn
                             className="noControl outline-none px-2 py-3 text-center placeholder:text-center bg-primary w-full rounded-md"
                             placeholder="Upload using a URL"
                         />
-                        {/* <button className="iconBtn mx-2" type="submit">
-                                <CheckIcon />
-                            </button> */}
                     </form>
 
                     {Boolean(frames.length) &&
                         <div className="flex gap-2">
-                            <button onClick={() => setter({ frames: [] })}>Cancel</button>
+                            <button className="flex-cntr-all" onClick={() => setter({ frames: [] })}>Cancel</button>
                             <CloseButton className="secondary" onClick={returnMedia}>Add</CloseButton>
                         </div>
                     }

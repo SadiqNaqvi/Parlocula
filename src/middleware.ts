@@ -2,10 +2,10 @@ export const config = {
   matcher: [
     "/api/v1/user/me",
     "/api/v1/private/:path*",
-    "/api/v1/thread/:id/:path*",
-    "/api/v1/post/:id/:path*",
-    "/api/v1/comment/:id/:path*",
-    "/api/lala",
+    // "/api/v1/thread/:id/:path*",
+    // "/api/v1/post/:id/:path*",
+    // "/api/v1/comment/:id/:path*",
+    // "/api/lala",
   ],
 };
 
@@ -71,8 +71,8 @@ export const middleware = async (req: NextRequest) => {
   const response = NextResponse.next();
 
   // Check if there's a current user
-  const user = await validateUser(req, response);
-  // const user = true;
+  // const user = await validateUser(req, response);
+  const user = true;
 
   // If user is trying to post something but there's no current user, return the request.
   if (url.includes("/api/v1/private")) {

@@ -1,4 +1,4 @@
-import { MemberModelType } from "@type/model";
+import { MemberModelType } from "@type/models";
 import { Schema, models, model } from "mongoose";
 
 const memberModel = new Schema<MemberModelType>(
@@ -13,6 +13,7 @@ const memberModel = new Schema<MemberModelType>(
       ref: "User",
       required: true,
     },
+    notification: { type: Boolean, default: true },
   },
   { timestamps: true }
 );

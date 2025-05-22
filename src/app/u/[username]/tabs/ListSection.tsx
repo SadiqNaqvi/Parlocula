@@ -1,0 +1,59 @@
+"use client"
+
+import { InfiniteScroller } from "@components";
+import ListTile, { UsersListTile } from "@components/ui/ListTile";
+import { getListsOfUser } from "@lib/helpers/common";
+import { generateInitialData, getQueryKeys, queryFunction } from "@lib/utils";
+import useCurrentUser from "@store/user";
+import { useQueryClient } from "@tanstack/react-query";
+import { RequestedUser } from "@type/internal";
+import { UsersListType } from "@type/other";
+
+type Props = {
+  username: string;
+  page: number;
+  filter: string;
+};
+
+const Lists = ({ filter, page, username }: Props) => {
+
+  const queryClient = useQueryClient();
+
+  const data = queryClient.getQueryData<RequestedUser>(getQueryKeys("user_username", { username }))
+  if (!data) return null;
+
+  const { user, lists } = useCurrentUser();
+
+  const requestedUser = user?._id === data._id ? user : data;
+
+  return (
+    <>
+      <ul className="mb-2 space-y-2">
+        {requestedUser.predefine_lists.map(({ _id, name, poster }) => (
+          <li>
+            <UsersListTile _id={_id} name={name as UsersListType} poster={poster} />
+          </li>
+        ))}
+        {user?._id === requestedUser._id &&
+          ["saved", "private"].map(l => (
+            <li>
+              <UsersListTile _id={l} name={l as UsersListType} />
+            </li>
+          ))
+        }
+      </ul>
+
+      <InfiniteScroller
+        initialPage={page}
+        className="space-y-2"
+        queryKeys={getQueryKeys("listsOfUser_username_filter", { username, filter })}
+        fetchData={(p) => queryFunction(getListsOfUser, [username, p, filter])}
+        // initialData={user?._id === requestedUser._id ? generateInitialData(lists) : undefined}
+        Component={ListTile}
+        NotFoundSection={null}
+      />
+    </>
+  );
+};
+
+export default Lists;

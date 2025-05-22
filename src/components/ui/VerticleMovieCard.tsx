@@ -11,18 +11,24 @@ export const VerticleMovieCardSkeleton = () => (
     </div>
 )
 
-type props = { link: string, poster: string, title: string, year: string };
+type props = {
+    link: string,
+    poster: string,
+    title: string,
+    year: string,
+    rating: string | number,
+};
 
-export default function VerticleMovieCard({ link, poster, title, year }: props) {
+export default function VerticleMovieCard({ link, poster, title, year, rating }: props) {
     return (
-        <Navigate comp="link" goto={link}>
+        <Navigate key={link} comp="link" goto={link}>
             <figure className="min-w-44 w-44 relative cursor-pointer">
                 <img src={getPoster("poster", poster, 2)} loading="lazy" alt='' className="w-full aspect-[2/3] object-cover" />
                 <figcaption className="absolute *:px-2 inset-0 fade-effect flex flex-col justify-end">
                     <h3 className="font-bold line-clamp-2 text-wrap">{title}</h3>
                     <div className="flex flex-cntr-between my-1">
                         <span className="text-xs">{year}</span>
-                        <span className="text-xs px-2 py-1 rounded-md bg-gray40">8.6</span>
+                        <span className="text-xs px-2 py-1 rounded-md bg-gray40">{rating}/10</span>
                     </div>
                 </figcaption>
             </figure>

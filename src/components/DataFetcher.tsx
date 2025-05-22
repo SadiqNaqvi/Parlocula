@@ -1,7 +1,8 @@
 "use client";
 
 import { fetchMoviesWithCast, fetchMoviesWithCompany, fetchMoviesWithGenres, fetchMoviesWithYear, fetchShowsWithGenres, fetchSimilarMovies, fetchSimilarShows, fetchTrendingMovies, fetchTrendingShows } from "@lib/contentFetcher";
-import { refineGeneralData, refineString } from "@lib/dataRefiner";
+import { refineGeneralData, } from "@lib/dataRefiner";
+import { refineString } from "@lib/utils";
 import { useQueryHook } from "@lib/hooks";
 import { GeneralReturnType, RefinedGeneralData } from "@type/external";
 import { useEffect, useRef, useState } from "react";
@@ -31,9 +32,8 @@ const funcMap: Record<FuncMapType, (...arg: any) => any> = {
     fetchTrendingShows: fetchTrendingShows,
 }
 
-export default function DataFetcher({ func, args, type, classnames = '', except }: { func: FuncMapType, args: any[], type: string, classnames?: string, except?: string, }) {
+export default function DataFetcher({ func, args, type, className = '', except }: { func: FuncMapType, args: any[], type: string, className?: string, except?: string, }) {
 
-    const [loading, setLoading] = useState(true);
     const [startLoading, setStartLoading] = useState(false);
     const [isVisible, setIsVisible] = useState(false);
     const container = useRef(null);
@@ -60,28 +60,22 @@ export default function DataFetcher({ func, args, type, classnames = '', except 
     const fetchDataWithNew = async () => {
         const functionToFetch = funcMap[func];
         const res: DataType = await functionToFetch(...args);
-        console.log(res);
-        if (!res) {
-            setLoading(false);
-            throw new Error("no result found")
-        };
+        if (!res) throw new Error("");
 
         let contents = res.results;
         if (except) contents = contents.filter((el: any) => String(el.id) !== except)
 
-        setLoading(false);
         return refineGeneralData(contents);
     }
 
     const { refetch, isFetching, error, data } = useQueryHook({
         enabled: isVisible,
-        queryKeys: ['genres_with_id=28'],
+        queryKeys: [func, ...args],
         queryFn: fetchDataWithNew,
-        initialData: [],
     });
 
-    if (loading || isFetching) return (
-        <div className={"flex gap-4 pb-2 overflow-x-hidden" + classnames} ref={container}>
+    if (isFetching) return (
+        <div className={"flex gap-4 pb-2 overflow-x-hidden" + className} ref={container}>
             {startLoading ?
                 [1, 2, 3, 4, 5, 6, 7, 8].map(el => (
                     <VerticleMovieCardSkeleton key={el} />
@@ -92,20 +86,25 @@ export default function DataFetcher({ func, args, type, classnames = '', except 
         </div>
     )
 
-    if (error)
+    else if (error || !data)
         return (
-            <ShowError
-                heading="Error found us before we find the resource"
-                errCode="pp200"
-                retry={refetch}
-            />
+            <section className="py-4 w-full border-dashed border-red-500 space-x-4">
+                <p className="text-lg">Something Went Wrong! Please Try again</p>
+                <button className="secondary" onClick={() => refetch()}>Try again</button>
+            </section>
         )
 
-    if (!data) return null;
-
-    return <div className={"flex gap-4 pb-2 overflow-x-auto" + classnames}>
-        {data.slice(0, 20).map((el: RefinedGeneralData) => (
-            <VerticleMovieCard link={`/explore/${type}/${el.id}-${refineString(el.title)}`} poster={el.poster} title={el.title} year={el.year.toString()} key={el.id} />
-        ))}
-    </div>
+    return (
+        <div className={"flex gap-4 pb-2 overflow-x-auto" + className}>
+            {data.slice(0, 20).map((el: RefinedGeneralData) => (
+                <VerticleMovieCard
+                    link={`/explore/${type}/${el.id}-${refineString(el.title)}`}
+                    poster={el.poster}
+                    title={el.title}
+                    rating={el.rating}
+                    year={el.year.toString()}
+                    key={el.id} />
+            ))}
+        </div>
+    )
 }

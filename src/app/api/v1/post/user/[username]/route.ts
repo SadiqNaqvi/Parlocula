@@ -20,10 +20,9 @@ export const GET = getRequest(async (r: any, params: { username: string }) => {
         as: "posts",
       },
     },
+    { $unwind: "$posts" },
     {
-      $replaceRoot: {
-        newRoot: { $arrayElemAt: ["$posts", 0] },
-      },
+      $replaceRoot: { newRoot: "$posts" },
     },
   ];
 

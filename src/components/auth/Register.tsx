@@ -3,14 +3,13 @@
 import { LeftChevron } from "@assets/Icons";
 import { DatePicker, Form, Input, Password, Poster, Textarea } from "@components/form";
 import Choice from "@components/form/Choice";
-import MediaInputCont from "@components/MediaInputCont";
-import { isUsernameAvailable, register } from "@lib/helpers/client";
 import { genresToChoose } from "@lib/constants";
+import { isUsernameAvailable, register } from "@lib/helpers/client";
 import { useCustomReducer } from "@lib/hooks";
 import { registerUserSchemaClient, usernameSchema, userPrefrenceSchema } from "@lib/schemas";
-import { convertCodeIntoError } from "@lib/utils";
+import { convertCodeIntoError, readyFrames } from "@lib/utils";
 import useCurrentUser from "@store/user";
-import { InputFrame } from "@type/internal";
+import { InputFrame } from "@type/schemas";
 import { useRouter, useSearchParams } from "next/navigation";
 
 const Register = ({ email }: { email: string }) => {
@@ -21,23 +20,19 @@ const Register = ({ email }: { email: string }) => {
         username,
         page,
         setter,
-    } = useCustomReducer<{
-        username: string,
-        userData: any,
-        page: number,
-        profile: InputFrame | null
-    }>({
+    } = useCustomReducer({
         username: "",
-        profile: null,
-        userData: null,
+        profile: [] as InputFrame[],
+        userData: null as any,
         page: 0,
     });
+
     const router = useRouter();
     const { setUserHash } = useCurrentUser();
     const urlToRedirect = useSearchParams().get("url");
 
     const getProfilePicture = (profile: InputFrame[]) => {
-        setter({ profile: profile.pop() });
+        setter({ profile: profile });
     }
 
     const mainSubmit = async (data: any) => {
@@ -82,14 +77,8 @@ const Register = ({ email }: { email: string }) => {
     )
 
     const storeUserData = async (data: any) => {
-        const file = profile && !profile.isExternal ? new File(
-            [new Uint8Array(await profile.blob.arrayBuffer())],
-            `Profile Picture of ${data.name} thread - Popcorn Paragon`,
-            { type: "image/webp" })
-            : null;
-
-        const fileData = profile ? { url: profile.url, isExternal: profile.isExternal, type: profile.type } : null
-        setter({ userData: { ...data, email, username, fileData, file, }, page: 2 });
+        const { files, filesData } = await readyFrames(profile);
+        setter({ userData: { ...data, email, username, filesData, files }, page: 2 });
     }
 
     const UserDataContainer = () => (
@@ -100,7 +89,9 @@ const Register = ({ email }: { email: string }) => {
                 </button>
                 <h2 className="text-2xl text-center">Just few steps to go</h2>
             </div>
-            <Poster picture={profile?.url || ""} removePicture={() => setter({ profile: null })} />
+
+            <Poster getImage={getProfilePicture} removePicture={() => setter({ profile: [] })} />
+
             <Form
                 submit={storeUserData}
                 schema={registerUserSchemaClient}
@@ -144,7 +135,6 @@ const Register = ({ email }: { email: string }) => {
                 /> */}
                 <button className="primary w-full" type="submit">Next</button>
             </Form>
-            <MediaInputCont callback={getProfilePicture} type="image" popover="auto" id="profile-picker" />
         </>
     )
 

@@ -13,13 +13,13 @@ type FormProps = {
     defaultVals?: any
 } & HTMLAttributes<HTMLFormElement>
 
-const Form = forwardRef(({ children, schema, submit, defaultVals = {}, ...args }: FormProps, ref?: React.LegacyRef<HTMLFormElement>) => {
+const Form = forwardRef(({ children, schema, submit, defaultVals, ...args }: FormProps, ref?: React.LegacyRef<HTMLFormElement>) => {
 
     const formMethod = useForm({
         resolver: schema ? zodResolver(schema) : undefined,
         defaultValues: defaultVals
     });
-    const { handleSubmit, setError, formState: { errors, isSubmitting } } = formMethod;
+    const { handleSubmit, setError, formState: { errors, isSubmitting }, reset } = formMethod;
 
     const submitForm = async (data: any) => {
         if (isSubmitting) return;
@@ -31,15 +31,14 @@ const Form = forwardRef(({ children, schema, submit, defaultVals = {}, ...args }
                         setError(error.path, { message: error.message })
                     else setError(error.path.join('.'), { message: error.message })
                 })
-            else
-                setError("custom", { message: errors })
-        }
+            else setError("custom", { message: errors })
+        } else reset();
     }
 
     return (
         <>
             {isSubmitting &&
-                <div className="absolute inset-0 backdrop-brightness-[25%] z-[10] cursor-not-allowed">
+                <div style={{ margin: 0, padding: 0 }} className="fixed inset-0 backdrop-brightness-[25%] z-[10] cursor-not-allowed">
                     <LoadingSpinner />
                 </div>
             }

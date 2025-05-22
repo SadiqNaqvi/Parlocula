@@ -1,4 +1,4 @@
-import { UserModelType } from "@type/model";
+import { UserModelType } from "@type/models";
 import { Schema, model, models } from "mongoose";
 import { linkModel } from "./general";
 
@@ -42,22 +42,37 @@ const userModel = new Schema<UserModelType>(
     session_id: { type: String, index: true },
     lastLoginAt: { type: Date, default: Date.now() },
     isBanned: { type: Boolean, default: false },
-    banEndsAt: { type: Date, default: null },
-    followers: { type: Number, default: 0 },
-    following: { type: Number, default: 0 },
-    posts: { type: Number, default: 0 },
-    comments: { type: Number, default: 0 },
-    public_lists: { type: Number, default: 0 },
-    total_lists: { type: Number, default: 0 },
-
-    // Predefined Lists
-    favourite_id: { type: Schema.Types.ObjectId, ref: "List", required: true },
-    recommended_id: {
-      type: Schema.Types.ObjectId,
-      ref: "List",
-      required: true,
+    tempBanned: {
+      type: Number,
+      default: 0,
+      set: (value: number) => Math.max(value, 0),
     },
-    watched_id: { type: Schema.Types.ObjectId, ref: "List", required: true },
+    banEndsAt: { type: Date, default: null },
+    followers: {
+      type: Number,
+      default: 0,
+      set: (value: number) => Math.max(value, 0),
+    },
+    following: {
+      type: Number,
+      default: 0,
+      set: (value: number) => Math.max(value, 0),
+    },
+    posts: {
+      type: Number,
+      default: 0,
+      set: (value: number) => Math.max(value, 0),
+    },
+    comments: {
+      type: Number,
+      default: 0,
+      set: (value: number) => Math.max(value, 0),
+    },
+    public_lists: {
+      type: Number,
+      default: 0,
+      set: (value: number) => Math.max(value, 0),
+    },
   },
   { timestamps: true }
 );

@@ -1,5 +1,6 @@
 "use client";
 
+import { EyeIcon, EyeSlashIcon } from "@assets/Icons";
 import { useState } from "react";
 import { useFormContext } from "react-hook-form"
 
@@ -11,12 +12,7 @@ const Password = ({ label, name, description, ...args }: { label?: string, name:
 
     return (
         <div className={`space-y-2 pb-2 invalid:border-red-500 border-b ${error ? "border-red-500" : "focus-within:border-gray-500 border-gray20"}`}>
-            {label && <label
-                className="text-zinc-500"
-                htmlFor={name}
-            >
-                {label}
-            </label>}
+            {label && <label className="text-zinc-500" htmlFor={name}>{label}</label>}
             <div className="flex w-full gap-2">
                 <input
                     type={isPassword ? "password" : "text"}
@@ -25,11 +21,16 @@ const Password = ({ label, name, description, ...args }: { label?: string, name:
                     {...register(name)}
                     className={"inline flex-1 bg-transparent"}
                 />
-                <span className="pointer" onClick={() => setIsPassword(!isPassword)}>
-                    Show
-                </span>
+                <button type="button" onClick={() => setIsPassword(!isPassword)}>
+                    {isPassword ?
+                        <EyeIcon />
+                        :
+                        <EyeSlashIcon />
+                    }
+                </button>
             </div>
-            {error ? <p className="text-sm text-red-500">{error}</p>
+            {error ?
+                <p className="text-sm text-red-500">{error}</p>
                 :
                 description && <p className="text-zinc-500 text-sm">{description}</p>
             }

@@ -24,7 +24,7 @@ export const GET = getRequest(async (r: any, params: { cuid: string }) => {
 
 // Creating a new list
 export const POST = postRequest({
-  handler: async ({ data, session, user_id }) => {
+  handler: async ({ data, session, user_id, username }) => {
     const listKey = data.isPrivate
       ? crypto.randomUUID().replaceAll("-", "")
       : null;
@@ -47,8 +47,8 @@ export const POST = postRequest({
 
     return {
       success: true,
-      available: "listCreation_lid",
-      options: { lid: list._id },
+      available: "listMutation_lid_username",
+      options: { lid: list._id, username },
       result: list,
     };
   },

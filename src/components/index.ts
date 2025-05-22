@@ -1,42 +1,18 @@
-import DataFetcher from "./DataFetcher";
-import HeaderCarosel from "./HeaderCarosel";
-import MainPageHeader from "./MainPageHeader";
-import Sidebar from "./Sidebar";
-import TrailerComponent from "./TrailerComponent";
-import OptionMenu from "./OptionMenu";
-import Navigate from "./Navigate";
-import Tabs from "./Tabs";
-import SearchHeader from "./SearchHeader";
-import CommentTile from "./ui/CommentTile";
-import MediaInputCont from "./MediaInputCont";
-import LinkInputCont from "./LinkInputCont";
-import ThreadTagList from "./form/ThreadTagList";
-import CreateEditPost from "./CreateEditPost";
-import InfiniteScroller from "./InfiniteScroller";
-import RouterDropdown from "./RouterDropdown";
-import DynamicComponent from "./DynamicComponent";
-import UserBasedButton from "./UserBasedButton";
-import ListForm from "./ListForm";
-import Modal from "./Modal";
-export {
-  ListForm,
-  Modal,
-  UserBasedButton,
-  DynamicComponent,
-  RouterDropdown,
-  InfiniteScroller,
-  Tabs,
-  CreateEditPost,
-  MediaInputCont,
-  LinkInputCont,
-  ThreadTagList,
-  CommentTile,
-  SearchHeader,
-  Navigate,
-  OptionMenu,
-  TrailerComponent,
-  DataFetcher,
-  HeaderCarosel,
-  MainPageHeader,
-  Sidebar,
-};
+export { default as DynamicComponent } from "./DynamicComponent";
+export { default as CommentTile } from "./ui/CommentTile";
+export { default as CreateEditPost } from "./CreateEditPost";
+export { default as DataFetcher } from "./DataFetcher";
+export { default as HeaderCarosel } from "./HeaderCarosel";
+export { default as InfiniteScroller } from "./InfiniteScroller";
+export { default as LinkInputCont } from "./LinkInputCont";
+export { default as ListForm } from "./ListForm";
+export { default as MainPageHeader } from "./MainPageHeader";
+export { default as MediaInputCont } from "./MediaInputCont";
+export { default as Modal } from "./Modal";
+export { default as Navbar } from "./Navbar";
+export { default as Navigate } from "./Navigate";
+export { default as OptionMenu } from "./OptionMenu";
+export { default as RouterDropdown } from "./FiltersDropdown";
+export { default as Sidebar } from "./Sidebar";
+export { default as Tabs } from "./Tabs";
+export { default as UserBasedButton } from "./UserBasedButton";

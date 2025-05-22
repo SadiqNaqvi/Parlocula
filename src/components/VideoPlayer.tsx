@@ -81,7 +81,7 @@ export default function VideoPlayer({ src }: { src: string }) {
                         {isOptionShown &&
                             <>
                                 <div className="flex flex-cntr-even w-full">
-                                    <button><VideoBackwardIcon classnames="h-12" /></button>
+                                    <button><VideoBackwardIcon className="h-12" /></button>
                                     {loading ?
                                         <span>
                                             <LoadingCont />
@@ -89,27 +89,27 @@ export default function VideoPlayer({ src }: { src: string }) {
                                         :
                                         <button onClick={togglePlay}>
                                             {isPlaying ?
-                                                <VideoPauseIcon classnames="h-12" />
+                                                <VideoPauseIcon className="h-12" />
                                                 :
-                                                <VideoPlayIcon classnames="h-12" />
+                                                <VideoPlayIcon className="h-12" />
                                             }
                                         </button>
                                     }
-                                    <button><VideoForwardIcon classnames="h-12" /></button>
+                                    <button><VideoForwardIcon className="h-12" /></button>
                                 </div>
                                 <span className="flex gap-4 absolute right-0 bottom-0 mb-4 mr-4">
                                     <button onClick={toggleSound}>
                                         {isMute ?
-                                            <VideoMuteIcon classnames="h-6" />
+                                            <VideoMuteIcon className="h-6" />
                                             :
-                                            <VideoSoundIcon classnames="h-6" />
+                                            <VideoSoundIcon className="h-6" />
                                         }
                                     </button>
                                     <button onClick={toggleFullScreen}>
                                         {isFullScreen ?
-                                            <VideoShrinkIcon classnames="h-6" />
+                                            <VideoShrinkIcon className="h-6" />
                                             :
-                                            <VideoExpandIcon classnames="h-6" />
+                                            <VideoExpandIcon className="h-6" />
                                         }
                                     </button>
                                 </span>
@@ -122,7 +122,7 @@ export default function VideoPlayer({ src }: { src: string }) {
                     <div className="absolute inset-0 flex flex-cntr-all">
                         <span className="backdrop-brightness-[0.2] rounded-full">
                             <button className="iconBtn h-auto" onClick={() => setter({ source: src })}>
-                                <VideoPlayIcon classnames="h-12" />
+                                <VideoPlayIcon className="h-12" />
                             </button>
                         </span>
                     </div>

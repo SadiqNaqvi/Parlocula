@@ -58,6 +58,7 @@ export const POST = postRequest({
         user_id,
         {
           $inc: { following_count: -1 },
+          $max: { following_count: 0 },
         },
         { session }
       );
@@ -65,6 +66,7 @@ export const POST = postRequest({
         id,
         {
           $inc: { follower_count: -1 },
+          $max: { follower_count: 0 },
         },
         { session }
       );
@@ -75,6 +77,7 @@ export const POST = postRequest({
         user_id,
         {
           $inc: { follower_count: -1 },
+          $max: { follower_count: 0 },
         },
         { session }
       );
@@ -82,6 +85,7 @@ export const POST = postRequest({
         id,
         {
           $inc: { following_count: -1 },
+          $max: { following_count: 0 },
         },
         { session }
       );
@@ -90,7 +94,7 @@ export const POST = postRequest({
     return {
       result: null,
       success: true,
-      available: "connection_rid_uid",
+      available: "blockUnblock_rid_uid",
       options: { rid: id, uid: user_id },
     };
   },
@@ -109,7 +113,7 @@ export const DELETE = deleteRequest(async ({ params, user_id }) => {
   return {
     result: null,
     success: true,
-    available: "connection_rid_uid",
+    available: "blockUnblock_rid_uid",
     options: { rid: id, uid: user_id },
     files: [],
   };

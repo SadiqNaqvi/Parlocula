@@ -8,8 +8,6 @@ import { useForm } from "react-hook-form";
 
 const ThreadTagList = ({ func, defaultTag = "" }: { func: any, defaultTag?: string }) => {
 
-    // console.log(defaultTag);
-
     const { handleSubmit, register } = useForm({
         resolver: zodResolver(tagSchema),
         defaultValues: { tag: defaultTag }

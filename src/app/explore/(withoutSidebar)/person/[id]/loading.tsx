@@ -1,4 +1,4 @@
-import Loading from "@app/explore/exploreComponents/Loading";
+import Loading from "../../components/Loading";
 
 export default function loading() {
     return <Loading />

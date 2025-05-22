@@ -40,12 +40,15 @@ const preCheck = async ({ data, user_id }: any) => {
   return { success: true };
 };
 
+// Posting a comment
 export const POST = postRequest({
   handler: async ({ data, username, session, user_id }) => {
     const { post_author, comment_author, ...commentToPost } = data;
+    
     const comment = (
       await Comment.create([{ ...commentToPost, user_id }], { session })
     )[0];
+    
     await Post.findByIdAndUpdate(data.post_id, {
       $inc: { comment_count: 1 },
     });
@@ -53,7 +56,7 @@ export const POST = postRequest({
     return {
       success: true,
       result: null,
-      available: "commentCreation_cid_username_pid",
+      available: "commentMutation_cid_username_pid",
       options: { username, cid: comment._id, pid: data.post_id },
     };
   },

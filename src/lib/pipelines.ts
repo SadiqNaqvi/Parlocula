@@ -1,11 +1,9 @@
 import { PipelineFunc } from "@type/other";
 import { queryLimit, recentlyJoinedLimit } from "./constants";
 
-export const postsAggregationPipeline: PipelineFunc = ({
-  filters,
-  sort,
-  page = 1,
-}) => [
+export const postsAggregationPipeline: PipelineFunc<{
+  isLinkBased?: boolean;
+}> = ({ filters, sort, page = 1, isLinkBased }) => [
   ...filters,
   {
     $facet: {
@@ -35,6 +33,7 @@ export const postsAggregationPipeline: PipelineFunc = ({
             name: { $arrayElemAt: ["$thread.name", 0] },
             username: { $arrayElemAt: ["$user.username", 0] },
             poster: { $arrayElemAt: ["$user.profile", 0] },
+            links_count: { $size: "$links" },
           },
         },
         {
@@ -43,7 +42,7 @@ export const postsAggregationPipeline: PipelineFunc = ({
             thread: 0,
             user_id: 0,
             body: 0,
-            links: 0,
+            [isLinkBased ? "frames" : "links"]: 0,
           },
         },
       ].filter(Boolean),
@@ -239,6 +238,48 @@ export const listsAggregationPipeline: PipelineFunc = ({
   },
 ];
 
+export const itemsAggregationPipeline: PipelineFunc = ({
+  filters,
+  page,
+  sort,
+}) => [
+  ...filters,
+  {
+    $facet: {
+      total: [{ $count: "count" }],
+      data: [
+        { $sort: sort },
+        { $skip: page * queryLimit },
+        { $limit: queryLimit },
+        {
+          $lookup: {
+            from: "media",
+            localField: "media_id",
+            foreignField: "_id",
+            as: "media",
+          },
+        },
+        {
+          $addFields: {
+            title: { $arrayElemAt: ["$media.title", 0] },
+            media_type: { $arrayElemAt: ["$media.media_type", 0] },
+            poster: {
+              $ifNull: [{ $arrayElemAt: ["$media.poster", 0] }, ""],
+            },
+          },
+        },
+        { $project: { media: 0 } },
+      ],
+    },
+  },
+  {
+    $project: {
+      total: { $arrayElemAt: ["$total.count", 0] },
+      data: 1,
+    },
+  },
+];
+
 export const usersAggregationPipeline: PipelineFunc = ({
   filters,
   page,
@@ -308,6 +349,26 @@ export const currentUserPipeline = (filter: any) => [
 
   {
     $lookup: {
+      from: "lists",
+      let: { id: "$_id" },
+      pipeline: [
+        {
+          $match: {
+            $expr: {
+              $and: [
+                { $eq: ["$user_id", "$$id"] },
+                { $ne: ["$list_type", "custom"] },
+              ],
+            },
+          },
+        },
+      ],
+      as: "predefine_lists",
+    },
+  },
+
+  {
+    $lookup: {
       from: "members",
       let: { id: "$_id" },
       pipeline: [
@@ -335,7 +396,9 @@ export const currentUserPipeline = (filter: any) => [
 
   {
     $project: {
-      genres: 0,
+      initialGenres: 0,
+      isActive: 0,
+      lastLoginAt: 0,
       password: 0,
       session_id: 0,
       members: 0,
@@ -344,6 +407,14 @@ export const currentUserPipeline = (filter: any) => [
         user_id: 0,
         save_count: 0,
         createdAt: 0,
+        updatedAt: 0,
+      },
+      predefine_lists: {
+        key: 0,
+        user_id: 0,
+        save_count: 0,
+        createdAt: 0,
+        updatedAt: 0,
       },
       threads: {
         connection: 0,

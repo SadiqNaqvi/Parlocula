@@ -1,33 +1,59 @@
 "use client";
 
+import { setDataMutation } from "@lib/mutation";
+import { QueryClient } from "@tanstack/react-query";
+import { GeneralGetReturn, GeneralPostReturn } from "@type/internal";
+import { AvailableCacheTags, ContentMutationProps } from "@type/other";
 import {
+  bookmarkSchemaType,
+  CinementToAddAndRemoveType,
   CommentSchemaType,
-  ItemToAddAndRemoveType,
+  InputMediaType,
+  ListEditSchema,
   ListSchemaType,
   PostSchemaType,
-  bookmarkSchemaType,
   ThreadSchemaServer,
-  InputMediaType,
+  VoteSchemaType,
 } from "@type/schemas";
-import { GeneralGetReturn, GeneralPostReturn, User } from "@type/internal";
 import axios from "axios";
 import toast from "react-hot-toast";
-import { oneWeek } from "../constants";
-import { convertCodeIntoError, objectToFormData, trycatch } from "../utils";
-import { ppGetData } from "./common";
-import { AvailableCacheTags } from "@type/other";
-import { NextRouter } from "next/router";
-import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
-import { refineString } from "@lib/dataRefiner";
+import { oneDay, oneWeek } from "../constants";
+import {
+  convertCodeIntoError,
+  getCacheTags,
+  getQueryKeys,
+  objectToFormData,
+  refineString,
+  trycatch,
+} from "../utils";
+import { AppRouterInstance } from "@type/nextjs";
 
-const clientGetRequests = async (args: {
+const clientGetRequests = async ({
+  options,
+  revalidate,
+  url,
+  tag,
+}: {
   url: string;
   revalidate: number;
   tag?: AvailableCacheTags;
   options: any;
 }): Promise<GeneralGetReturn> => {
   if (!navigator.onLine) return { success: false, errCode: "pp200" };
-  return await ppGetData(args);
+  const cacheTags =
+    tag && getCacheTags({ type: "cache", available: tag, options });
+  try {
+    return await fetch(
+      `${process.env.__NEXT_PRIVATE_ORIGIN || ""}/api/v1/${url}`,
+      {
+        next: { revalidate, tags: cacheTags },
+        cache: revalidate ? "force-cache" : "no-store",
+      }
+    ).then((res) => res.json());
+  } catch (err: any) {
+    console.error(`Error occured at path ${url}`, err.message);
+    return { success: false, errCode: "200" };
+  }
 };
 
 export const ppPostData = async ({
@@ -158,55 +184,6 @@ export const logout = async (uid: string, clearUser: any) => {
   clearUser();
 };
 
-export const fetchCurrentUser = async ({
-  clearUser,
-  setUser,
-  setUserHash,
-  getUserFromHash,
-}: {
-  clearUser: any;
-  setUser: any;
-  setUserHash: any;
-  getUserFromHash: any;
-}) => {
-  const user = getUserFromHash();
-
-  if (!user) return;
-
-  setUser(user);
-  // if (user.object_expiry < Date.now()) {
-  //   await clientGetRequests({
-  //     url: `private/${user._id}/user/me`,
-  //     revalidate: oneWeek,
-  //     tag: "currentUser_uid",
-  //     options: { uid: user._id },
-  //   }).then(({ result, success, errCode }) => {
-  //     if (!success && errCode === "pp202") clearUser();
-  //     else if (success && result) setUserHash(result);
-  //   });
-  // }
-};
-
-export const isUsernameAvailable = async (
-  username: string
-): Promise<GeneralGetReturn> => {
-  if (!username) return { success: true, result: false };
-  return await clientGetRequests({
-    url: `user/isUsernameAvailable?username=${username}`,
-    revalidate: oneWeek,
-    tag: "usernameAvailability_username",
-    options: { username },
-  });
-};
-
-export const checkIfUserExist = async (email: string) =>
-  await clientGetRequests({
-    url: `user/ifUserExist?email=${email}`,
-    revalidate: oneWeek,
-    tag: "userExistence_email",
-    options: { email },
-  });
-
 export const createThread = async (
   data: ThreadSchemaServer,
   uid: string,
@@ -262,24 +239,43 @@ export const createPost = async (
   }
 };
 
+export const updatePost = async (
+  pid: string,
+  uid: string,
+  data: any,
+  router: AppRouterInstance,
+  queryClient: QueryClient
+) => {
+  if (!pid || !uid)
+    return "Something Went Wrong! Please go back and try again.";
+
+  const { success, errCode, formError, result } = await ppUpdateData({
+    url: `post/${pid}`,
+    data,
+    uid,
+  });
+
+  if (success) {
+    await setDataMutation(
+      result,
+      getQueryKeys("post_id", { id: pid }),
+      queryClient
+    );
+    router.replace(`/p/${pid}`);
+  } else {
+    if (errCode === "pp203") return convertCodeIntoError(errCode, formError);
+    else {
+      toast.error("Unable to create post.");
+      toast.error(convertCodeIntoError(errCode) as string);
+    }
+  }
+};
+
 export const deletePost = async (id: string, uid: string) => {
   const { errCode, success } = await ppDeleteData(`post/${id}`, uid);
   if (success) return true;
   toast.error("Unable to delte your post");
   toast.error(convertCodeIntoError(errCode) as string);
-};
-
-export const isMember = async (
-  tid: string,
-  uid: string
-): Promise<GeneralGetReturn> => {
-  if (!uid) return { success: false, errCode: "pp202" };
-  return await clientGetRequests({
-    url: `private/${uid}/thread/${tid}/member`,
-    revalidate: oneWeek,
-    tag: "member_tid_uid",
-    options: { tid, uid },
-  });
 };
 
 export const joinThread = async (tid: string, uid: string) => {
@@ -301,25 +297,21 @@ export const leaveThread = async (tid: string, uid: string) => {
   toast.error(convertCodeIntoError(errCode) as string);
 };
 
-export const threadsByUser = async (uid: string) =>
-  await clientGetRequests({
-    url: `private/${uid}/user/me/threads`,
-    revalidate: oneWeek,
-    tag: "threadsByUser_uid",
-    options: { uid },
+export const changeThreadNotification = async (
+  tid: string,
+  uid: string,
+  newState: boolean
+) => {
+  const { errCode, success } = await ppUpdateData({
+    url: `thread/${tid}/member`,
+    uid,
+    data: { notification: newState },
   });
-
-export const getReactionOnPost = async (
-  pid: string,
-  uid: string
-): Promise<GeneralGetReturn> => {
-  if (!uid) return { success: true, result: null };
-  return await clientGetRequests({
-    url: `private/${uid}/post/${pid}/reaction`,
-    revalidate: oneWeek,
-    tag: "reaction_pid_uid",
-    options: { pid, uid },
-  });
+  if (success) return true;
+  toast.error(
+    `Unable to ${newState ? "Enable" : "Disable"} notification of the thread`
+  );
+  toast.error(convertCodeIntoError(errCode) as string);
 };
 
 export const addReactionOnPost = async (
@@ -346,19 +338,6 @@ export const removeReactionOnPost = async (pid: string, uid: string) => {
   toast.error(convertCodeIntoError(errCode) as string);
 };
 
-export const getVoteOnComment = async (
-  cid: string,
-  uid: string
-): Promise<GeneralGetReturn> => {
-  if (!uid) return { success: false, errCode: "pp202" };
-  return await clientGetRequests({
-    url: `private/${uid}/comment/${cid}/vote`,
-    revalidate: oneWeek,
-    tag: "vote_cid_uid",
-    options: { cid, uid },
-  });
-};
-
 export const createCommentOnPost = async (
   data: CommentSchemaType,
   uid: string
@@ -373,7 +352,33 @@ export const createCommentOnPost = async (
   toast.error(convertCodeIntoError(formError ? "pp500" : errCode) as string);
 };
 
-export const createList = async (data: ListSchemaType, uid: string) => {
+export const voteOnComment = async (
+  cid: string,
+  uid: string,
+  data: VoteSchemaType
+) => {
+  const { errCode, success } = await ppPostData({
+    url: `comment/${cid}/vote`,
+    data,
+    uid,
+  });
+  if (success) return true;
+  toast.error("Unable to comment");
+  toast.error(convertCodeIntoError(errCode) as string);
+};
+
+export const removeVoteOnComment = async (cid: string, uid: string) => {
+  const { errCode, success } = await ppDeleteData(`comment/${cid}/vote`, uid);
+  if (success) return true;
+  toast.error("Unable to comment");
+  toast.error(convertCodeIntoError(errCode) as string);
+};
+
+export const createList = async (
+  data: ListSchemaType,
+  uid: string,
+  updateFunc: (__0: ContentMutationProps) => void
+) => {
   const { success, errCode, formError, result } = await ppPostData({
     url: "list",
     data,
@@ -382,14 +387,17 @@ export const createList = async (data: ListSchemaType, uid: string) => {
 
   if (!success && formError) return convertCodeIntoError(errCode, formError);
 
-  if (success) return true;
+  if (success) {
+    const { _id, name, poster } = result;
+    return updateFunc({ data: { _id, name, poster }, action: "add" });
+  }
   toast.error("Unable to create the list");
   toast.error(convertCodeIntoError(errCode) as string);
 };
 
 export const updatingListsWithItem = async (
   id: string,
-  data: ItemToAddAndRemoveType,
+  data: CinementToAddAndRemoveType,
   uid: string
 ) => {
   if (!id || !data) return { success: false, errCode: "pp204" };
@@ -402,7 +410,7 @@ export const updatingListsWithItem = async (
 
   if (!success && errCode === "pp203")
     return convertCodeIntoError(errCode, formError);
-  if (success) return true;
+  else if (success) return true;
   toast.error("Unable to update lists");
   toast.error(convertCodeIntoError(errCode) as string);
 };
@@ -423,20 +431,39 @@ export const addItemsToList = async (
   toast.error(convertCodeIntoError(errCode) as string);
 };
 
-export const deleteMultipleItemsFromList = async (
+export const updateList = async (
   id: string,
-  items: string[],
-  uid: string
+  data: ListEditSchema,
+  uid: string,
+  router: AppRouterInstance
 ) => {
-  const { success, errCode } = await ppPostData({
-    url: `list/${id}/items`,
-    data: items,
+  router.replace(`l/${id}`);
+  const { success, errCode } = await ppUpdateData({
+    url: `list/${id}`,
+    data,
     uid,
   });
 
   if (success) return true;
-  toast.error("Unable to remove items");
-  toast.error(convertCodeIntoError(errCode) as string);
+  else {
+    toast.error("Unable to update list");
+    toast.error(convertCodeIntoError(errCode) as string);
+  }
+  return false;
+};
+
+export const deleteList = async (
+  id: string,
+  uid: string,
+  updateFunc: (__0: ContentMutationProps) => void
+) => {
+  const { success, errCode } = await ppDeleteData(`list/${id}`, uid);
+
+  if (success) updateFunc({ action: "remove", data: { id } });
+  else {
+    toast.error("Unable to delete list");
+    toast.error(convertCodeIntoError(errCode) as string);
+  }
 };
 
 export const saveItem = async (data: bookmarkSchemaType, uid: string) => {
@@ -451,14 +478,6 @@ export const saveItem = async (data: bookmarkSchemaType, uid: string) => {
   toast.error(convertCodeIntoError(errCode) as string);
 };
 
-export const checkIfItemSaved = async (id: string, uid: string) =>
-  await clientGetRequests({
-    url: `private/${uid}/bookmark/${id}`,
-    revalidate: oneWeek,
-    tag: "isSaved_uid_id",
-    options: { uid, id },
-  });
-
 export const unsaveItem = async (id: string, uid: string) => {
   const { success, errCode } = await ppDeleteData(`bookmark/${id}`, uid);
 
@@ -466,14 +485,6 @@ export const unsaveItem = async (id: string, uid: string) => {
   toast.error("Unable to unsave the content");
   toast.error(convertCodeIntoError(errCode) as string);
 };
-
-export const checkUserConnection = async (uid: string, rid: string) =>
-  await clientGetRequests({
-    url: `private/${uid}/user/${rid}/follow`,
-    revalidate: oneWeek,
-    tag: "connection_rid_uid",
-    options: { uid, rid },
-  });
 
 export const follow = async (uid: string, rid: string) => {
   const { success, errCode } = await ppPostData({

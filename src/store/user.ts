@@ -1,35 +1,23 @@
 import { oneHour } from "@lib/constants";
 import { decodeObject, encodeObject } from "@lib/utils";
 import { type User } from "@type/internal";
-import { del, get, set } from "idb-keyval";
+import { ContentMutationProps, MereContent } from "@type/other";
+import localforage from "localforage";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-const idbStorage = {
-  getItem: async (key: string) => await get(key),
-  setItem: async (key: string, value: any) => {
-    await set(key, value);
+export const localForageStorage = {
+  getItem: async (key: string): Promise<any> => {
+    const data = await localforage.getItem(key);
+    return data ?? null;
   },
-  removeItem: async (key: string) => {
-    await del(key);
+  setItem: async (key: string, value: any): Promise<void> => {
+    await localforage.setItem(key, value);
+  },
+  removeItem: async (key: string): Promise<void> => {
+    await localforage.removeItem(key);
   },
 };
-
-type MereContent = {
-  _id: string;
-  name: string;
-  poster: string;
-};
-
-type ContentMutationProps =
-  | {
-      data: MereContent;
-      action: "add";
-    }
-  | {
-      data: { id: string };
-      action: "remove";
-    };
 
 type UserStore = {
   user: User | null;
@@ -90,9 +78,12 @@ const useCurrentUser = create(
     }),
     {
       name: "UserStorage",
-      storage: idbStorage,
+      storage: localForageStorage,
       onRehydrateStorage: () => (state) => {
-        if (state) state.isHydrated = true;
+        if (state)
+          setTimeout(() => {
+            useCurrentUser.setState({ isHydrated: true });
+          }, 0);
       },
       partialize: (state: UserStore) => ({
         userhash: state.userhash,

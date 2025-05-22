@@ -1,5 +1,5 @@
 import { Schema, models, model } from "mongoose";
-import { CommentModelType } from "@type/model";
+import { CommentModelType } from "@type/models";
 
 const commentModel = new Schema<CommentModelType>({
   content: {
@@ -28,6 +28,11 @@ const commentModel = new Schema<CommentModelType>({
   edited_at: {
     type: String,
     default: null,
+  },
+  saved_count:{
+    type: Number,
+    default: 0,
+    set: (value: number) => Math.max(value, 0),
   },
   nsfw: { type: Boolean, default: false },
   spoiler: { type: Boolean, default: false },

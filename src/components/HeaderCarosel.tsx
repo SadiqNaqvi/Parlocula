@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react"
 
-const HeaderCarosel = ({ children, classnames = '', control, autoplay }: { children: React.ReactNode, classnames?: string, autoplay?: number, control?: boolean }) => {
+const HeaderCarosel = ({ children, className = '', control, autoplay }: { children: React.ReactNode, className?: string, autoplay?: number, control?: boolean }) => {
 
     const caroselRef = useRef<HTMLDivElement>(null);
 
@@ -28,7 +28,7 @@ const HeaderCarosel = ({ children, classnames = '', control, autoplay }: { child
     // }, [caroselRef.current])
 
     return (
-        <div ref={caroselRef} className={`${classnames} h-full w-full flex scroll-smooth overflow-x-auto snap-x snap-mandatory *:snap-center relative`}>
+        <div ref={caroselRef} className={`${className} h-full w-full flex scroll-smooth overflow-x-auto snap-x snap-mandatory *:snap-center relative`}>
             {children}
         </div >
     )

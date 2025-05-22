@@ -9,12 +9,7 @@ const DatePicker = ({ label, name, description, ...args }: { label?: string, nam
 
     return (
         <div className={`space-y-2 pb-2 border-b focus-within:border-gray-500 invalid:border-red-500 ${error ? "border-red-500" : "border-gray20"}`}>
-            {label && <label
-                className="text-zinc-500"
-                htmlFor={name}
-            >
-                {label}
-            </label>}
+            {label && <label className="text-zinc-500" htmlFor={name}>{label}</label>}
             <input
                 type="date"
                 disabled={isSubmitting}

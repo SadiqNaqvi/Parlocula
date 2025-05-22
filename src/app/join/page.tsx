@@ -23,10 +23,8 @@ const Page = ({ searchParams }: { searchParams: { url?: string } }) => {
             return;
         }
 
-        const err = await login(email, setUserHash);
-
-        if (err) return err
-        router.replace(urlToRedirect ?? "/home");
+        if (await login(email, setUserHash))
+            router.replace(urlToRedirect ?? "/home");
     }
 
     return (

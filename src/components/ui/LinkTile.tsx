@@ -6,7 +6,7 @@ const LinkTile = ({ label, path }: LinkModelType) => {
     return (
         <Link href={path}
             className="w-fit px-4 py-2 rounded-md bg-gray-500 bg-opacity-30 text-sky-400">
-            <LinkIcon classnames="size-4" />
+            <LinkIcon className="size-4" />
             <span>{label}</span>
         </Link>
     )

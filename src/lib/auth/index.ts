@@ -1,11 +1,2 @@
-import { deleteSession, getSession, storeSession } from "./session";
-import { generateToken, verifyToken, getPayloadFromToken } from "./token";
-
-export {
-  getPayloadFromToken,
-  deleteSession,
-  generateToken,
-  getSession,
-  storeSession,
-  verifyToken,
-};
+export { deleteSession, getSession, storeSession } from "./session";
+export { generateToken, verifyToken, getUserFromToken } from "./token";

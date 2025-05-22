@@ -1,6 +1,7 @@
 "use client";
 
 import { Fancybox } from "@fancyapps/ui";
+import { OptionsType } from "@fancyapps/ui/types/Fancybox/options";
 
 type Props = {
     id: string;
@@ -8,6 +9,25 @@ type Props = {
 };
 
 type MoreArgs = React.ButtonHTMLAttributes<HTMLButtonElement>
+
+export const CloseAndTrigger = ({ children, id, onClick, ...args }: Props & MoreArgs) => {
+
+    const handleClick = (e: any) => {
+        onClick?.(e)
+        setTimeout(() => Fancybox.close(true), 50);
+        setTimeout(() => Fancybox.show([{ src: `#${id}` }], { closeButton: false }), 50);
+    }
+
+    return (
+        <button
+            onClick={handleClick}
+            {...args}
+        >
+            {children}
+        </button>
+    );
+
+}
 
 export const Triggerer = ({ children, id, ...args }: Props & MoreArgs) => {
     return (
@@ -24,10 +44,18 @@ export const Triggerer = ({ children, id, ...args }: Props & MoreArgs) => {
 
 }
 
+export const closeFancyBox = (all?: boolean) => {
+    setTimeout(() => Fancybox.close(all), 100);
+}
+
+// export const showFancyBox = (src: string[], options?: Partial<OptionsType>) => {
+//     Fancybox.show()
+// }
+
 export const CloseButton = ({ children, closeAll = false, onClick, ...args }: { children: React.ReactNode, closeAll?: boolean } & MoreArgs) => {
     const handleClick = (e: any) => {
         onClick?.(e)
-        setTimeout(() => Fancybox.close(closeAll), 100);
+        closeFancyBox(closeAll);
     }
 
     return <button onClick={handleClick} {...args}>{children}</button>

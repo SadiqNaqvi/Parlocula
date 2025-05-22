@@ -36,7 +36,7 @@ export const POST = postRequest({
     return {
       result: true,
       success: true,
-      available: "voteCreation_cid_uid",
+      available: "voteMutation_cid_uid",
       options: { cid: id, uid: user_id },
     };
   },
@@ -82,7 +82,7 @@ export const DELETE = deleteRequest(async ({ user_id, params, session }) => {
   return {
     success: true,
     errCode: null,
-    available: "voteDeletion_cid_uid",
+    available: "voteMutation_cid_uid",
     options: { cid: id, uid: user_id },
     files: [],
   };

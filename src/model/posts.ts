@@ -1,6 +1,6 @@
 import { Schema, models, model } from "mongoose";
 import { frameModel, linkModel } from "./general";
-import { PostModelType } from "@type/model";
+import { PostModelType } from "@type/models";
 
 const postModel = new Schema<PostModelType>({
   title: {
@@ -32,6 +32,11 @@ const postModel = new Schema<PostModelType>({
     required: true,
     index: true,
   },
+  repost_id: {
+    type: Schema.Types.ObjectId,
+    ref: "Post",
+    index: true,
+  },
   user_id: {
     type: Schema.Types.ObjectId,
     ref: "User",
@@ -45,14 +50,17 @@ const postModel = new Schema<PostModelType>({
   comment_count: {
     type: Number,
     default: 0,
+    set: (value: number) => Math.max(value, 0),
   },
   reaction_count: {
     type: Number,
     default: 0,
+    set: (value: number) => Math.max(value, 0),
   },
   saved_count: {
     type: Number,
     default: 0,
+    set: (value: number) => Math.max(value, 0),
   },
   createdAt: { type: Date, default: Date.now() },
 });

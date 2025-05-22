@@ -1,34 +1,81 @@
 "use client";
 
-import { UserIcon } from "@assets/Icons";
+import { LeftChevron, RightChevron, UserIcon } from "@assets/Icons";
 import { Navigate } from "@components";
+import { LoadingSpinner } from "@components/ui";
+import { getInternalPoster } from "@lib/utils";
 import useCurrentUser from "@store/user";
-import { LoadingSpinner, UserProfile } from "@components/ui";
+import Image from "next/image";
+import { PropsWithChildren } from "react";
+
+const ListContainer = ({ children, href }: PropsWithChildren<{ href?: string }>) => (
+    <li className="px-2 *:py-3 border-b last:border-0 border-gray40">
+        {href ?
+            <Navigate comp="link" goto={href} className="size-full flex flex-cntr-between">
+                {children}
+                <RightChevron className="size-4" />
+            </Navigate>
+            :
+            <div>{children}</div>
+        }
+    </li>
+)
+
+const Sections = ({ heading, children }: PropsWithChildren<{ heading: string }>) => (
+    <section>
+        <h2 className="uppercase text-sm text-semibold p-2">{heading}</h2>
+        <ul className="bg-primarylight">{children}</ul>
+    </section>
+)
 
 const Page = () => {
-    const { user, isGuest } = useCurrentUser();
+    const { user, isHydrated } = useCurrentUser();
 
-    if (isGuest === null || (isGuest === false && !user)) return <LoadingSpinner />
+    if (!isHydrated) return <LoadingSpinner />
 
     if (!user) return (
-        <>
-            <header className="flex gap-6 py-12 border-b border-gray40">
-                <div className="w-32">
-                    <UserIcon classnames="size-full" />
-                </div>
-                <div className="space-y-4">
-                    <h2 className="text-2xl">Guest (Anonymous)</h2>
-                    <Navigate comp="button" goto="/join" className="primary">Join Popcorn Paragon</Navigate>
-                </div>
-            </header>
-            <section className="py-12 space-y-4">
-                <h3 className="text-4xl text-center">Nothing to see here.</h3>
-                <p className="text-zinc-500 text-center">Join Popcorn Paragon and use the app your way.</p>
-            </section>
-        </>
+        <section className="stretchContainer flex-col">
+            <div className="mb-4">
+                <UserIcon className="size-12" />
+            </div>
+            <div>
+                <h2 className="text-2xl">Hello Guest 👋</h2>
+                <p className="mt-2 mb-4 text-sm">You need to log-in to see your stuff here.</p>
+                <Navigate comp="button" goto="/join" className="primary btn">Log in</Navigate>
+            </div>
+        </section>
     )
 
-    return <UserProfile user={user} isCurrentUser />
+    return (
+        <>
+            <header className="flex items-center gap-3 sticky top-0 bg-primay py-4 px-2 border-b border-gray40">
+                <Navigate comp="button" goto="back">
+                    <LeftChevron />
+                </Navigate>
+                <h1 className="text-lg">Settings</h1>
+            </header>
+            <Sections heading="profile">
+                <ListContainer href={`/u/${user.username}`}>
+                    <div className="flex gap-2 items-center">
+                        {user.profile ?
+                            <Image src={getInternalPoster({ path: user.profile })} width={24} height={24} className="size-6 object-cover rounded-full" alt="" />
+                            :
+                            <div className="size-8 p-[0.3rem] flex rounded-full border-1 border-zinc-500">
+                                <UserIcon className="size-full m-auto" />
+                            </div>
+                        }
+                        <span>View Profile</span>
+                    </div>
+                </ListContainer>
+                <ListContainer href="edit/username">{user.username}</ListContainer>
+                <ListContainer href="edit/email">
+                    <p className="line-clamp-1">{user.email}</p>
+                </ListContainer>
+                <ListContainer href="edit/password">Password</ListContainer>
+                <ListContainer href="/setting/notification">Notifications</ListContainer>
+            </Sections>
+        </>
+    )
 }
 
 export default Page;

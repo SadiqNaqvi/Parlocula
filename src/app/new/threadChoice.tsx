@@ -32,9 +32,9 @@ const ThreadChoice = ({ submitChoice }: { submitChoice: (id: string) => void }) 
     }
 
     // Change check box to radio
-    const submit = (data: { [key: string]: boolean }) => {
-        // console.log(data);
-        submitChoice(Object.keys(data)[0]);
+    const submit = ({ threadChoice }: { threadChoice: string | null }) => {
+        if (!threadChoice) return;
+        submitChoice(threadChoice);
     }
 
     const reqSubmit = () => {
@@ -53,22 +53,11 @@ const ThreadChoice = ({ submitChoice }: { submitChoice: (id: string) => void }) 
                 </section>
             </header>
 
-            {/* USE ZOD */}
-            <form className="my-4" action={updateQuery}>
-                <input
-                    className="px-4 py-2 w-full bg-gray20 rounded-md"
-                    placeholder="Search for threads"
-                    type="search"
-                    name="query"
-                    minLength={5}
-                    maxLength={40} />
-            </form>
-
             <Form ref={formRef} submit={submit}>
                 <ul className="space-y-3">
                     {threads.map(({ _id, name, poster }) => (
                         <li key={_id} className="border-b-2 border-zinc-500 last:border-0">
-                            <CheckTile lable={name} name={_id} poster={poster} />
+                            <CheckTile group="threadChoice" type="radio" label={name} name={_id} poster={poster} />
                         </li>
                     ))}
                 </ul>

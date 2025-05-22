@@ -564,22 +564,17 @@ export type RefinedCompanyData = {
   } | null;
 };
 
-export type GeneralMovieReturn = GeneralReturnType & {
-  results: GeneralMovieData[];
-};
+export type GeneralMovieReturn = GeneralReturnType<GeneralMovieData>;
 
-export type GeneralShowReturn = GeneralReturnType & {
-  results: GeneralShowData[];
-};
+export type GeneralShowReturn = GeneralReturnType<GeneralShowData>;
 
-export type SearchCollectionReturn = GeneralReturnType & {
-  results: GeneralCollectionData &
-    {
-      adult: boolean;
-      original_language: string;
-      original_name: string;
-    }[];
-};
+export type SearchCollectionReturn = GeneralReturnType<
+  GeneralCollectionData & {
+    adult: boolean;
+    original_language: string;
+    original_name: string;
+  }
+>;
 
 export type SearchCompanyReturn = GeneralReturnType & {
   results: GeneralCompanyData[];
@@ -592,3 +587,5 @@ export type SearchPersonReturn = GeneralReturnType & {
       known_for: GeneralMovieData[];
     }[];
 };
+
+export type SortOptions = "popularity" | "rating" | "year" | "title";

@@ -29,8 +29,6 @@ const sessionManagement = async (
     { session }
   );
 
-  console.log(oldDoc);
-
   if (oldDoc.session_id) deleteSession(oldDoc.session_id);
 
   const { _id, username, isBanned, email, banEndsAt } = user;
@@ -44,6 +42,7 @@ const sessionManagement = async (
     isBanned,
     banEndsAt,
   });
+
   if (!isStored) return { success: false as false, errCode: "pp100" };
 
   const token = await generateToken({
@@ -69,6 +68,7 @@ export const POST = postRequest({
   handler: async ({ data, session }) => {
     const { email } = data;
     const parsed = emailSchema.safeParse(email);
+
     if (parsed.error) return { success: false, errCode: "pp500" };
 
     const results = await User.aggregate(currentUserPipeline({ email }), {
@@ -82,11 +82,12 @@ export const POST = postRequest({
     const error = await sessionManagement(user, session);
     if (error) return error;
 
+    const { isBanned, banEndsAt, ...result } = user;
+
     return {
-      result: user,
+      result,
       success: true,
-      errCode: null,
-      available: "login_uid",
+      available: "loginLogout_uid",
       options: { uid: user._id },
     };
   },

@@ -6,18 +6,25 @@ import { Item, Media } from "@model";
 import { MediaItemType, Session } from "@type/internal";
 import {
   v2 as cloudinary,
-  DeleteApiResponse,
   UploadApiOptions,
   UploadApiResponse,
 } from "cloudinary";
 import { ClientSession } from "mongoose";
 import { NextRequest } from "next/server";
 
+import { render } from "@react-email/components";
+import { createTransport } from "nodemailer";
+
 cloudinary.config({
   cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_CLOUD_API_KEY,
   api_secret: process.env.CLOUDINARY_CLOUD_API_SECRET,
 });
+
+type DeleteApiResponse = {
+  deleted: Record<string, "deleted" | "not_found" | "error">;
+  partial: boolean;
+};
 
 export const mediaUploader = async (
   file: File,
@@ -41,7 +48,7 @@ export const mediaUploader = async (
 
     return { result, success: true, error: "" };
   } catch (err) {
-    console.log("Failed To Upload Media", err);
+    console.error("Failed To Upload Media", err);
     return {
       result: null,
       success: false,
@@ -50,36 +57,67 @@ export const mediaUploader = async (
   }
 };
 
-export const deleteMedia = async (id: string) => {
-  if (!id) return false;
+export const deleteMedia = async (file: {
+  path: string;
+  type: "image" | "video";
+}) => {
+  if (!file) return false;
   try {
-    const resp = await new Promise<DeleteApiResponse>((res, rej) =>
-      cloudinary.uploader.destroy(id, (err, result) => {
-        err && !result ? rej(err) : res(result);
-      })
+    const resp: DeleteApiResponse = await cloudinary.uploader.destroy(
+      file.path,
+      {
+        resource_type: file.type,
+      }
     );
-    if (resp.http_code < 300) return true;
-    return false;
-  } catch (err) {
-    console.error(`Error occured while deleting resource by id-${id}`, err);
+    if (resp.deleted[file.path] !== "deleted")
+      throw new Error(`Unable to delete file`);
+    return true;
+  } catch (err: any) {
+    console.error(
+      `Error occured while deleting resource by id-${file.path}`,
+      err.message
+    );
     return false;
   }
 };
 
-export const deleteMultipleMedia = async (ids: string[]) => {
-  if (!ids || !ids.length) return false;
+export const deleteMultipleMedia = async (
+  files: { path: string; type: "image" | "video" }[]
+) => {
+  if (!files || !files.length) return false;
+
+  const imageFiles = files.filter((f) => f.type === "image").map((e) => e.path);
+  const videoFiles = files.filter((f) => f.type === "video").map((e) => e.path);
+  const undone: string[] = [];
   try {
-    const resp = await new Promise<DeleteApiResponse>((res, rej) =>
-      cloudinary.api.delete_resources(ids, (err, result) => {
-        err && !result ? rej(err) : res(result);
-      })
-    );
-    if (resp.http_code < 300) return true;
-    return false;
-  } catch (err) {
+    const imageResult: DeleteApiResponse =
+      await cloudinary.api.delete_resources(imageFiles, {
+        resource_type: "image",
+      });
+
+    const videoResult: DeleteApiResponse =
+      await cloudinary.api.delete_resources(videoFiles, {
+        resource_type: "video",
+      });
+
+    Object.keys(imageResult.deleted).forEach((id) => {
+      if (imageResult.deleted[id] !== "deleted") undone.push(id);
+    });
+
+    Object.keys(videoResult.deleted).forEach((id) => {
+      if (videoResult.deleted[id] !== "deleted") undone.push(id);
+    });
+
+    if (undone.length)
+      console.error(
+        `Unable to delete ${undone.length} files, id: ${undone.join(", ")}`
+      );
+
+    return true;
+  } catch (err: any) {
     console.error(
-      `Error occured while deleting resource by id-${ids.join(", ")}`,
-      err
+      `Error occured while deleting resource by id-${files.join(", ")}`,
+      err.message
     );
     return false;
   }
@@ -107,7 +145,7 @@ export const multipleMediaUploader = async (
 
     return { result, success: true, error: "" };
   } catch (err) {
-    console.log("Failed To Upload Media", err);
+    console.error("Failed To Upload Media", err);
     return {
       result: null,
       success: false,

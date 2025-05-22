@@ -37,9 +37,10 @@ import {
 } from "../type/external";
 import placeholder from "@assets/placeholder.png";
 import { MediaItemType } from "@type/internal";
+import { refineString } from "./utils";
 
 export const getPoster = (
-  type: string,
+  type: "poster" | "backdrop" | "logo" | "profile" | "still",
   path: string | null | undefined,
   size: number
 ) => {
@@ -70,10 +71,6 @@ export const getPoster = (
   }
 };
 
-export const refineString = (str: string) => {
-  if (!str) return "";
-  return str.replaceAll(/[^a-zA-Z0-9\s]/g, "").replaceAll(" ", "-");
-};
 export const convertGenresIntoId = (genres: string, type: string): string => {
   const clean = refineString(genres).toLowerCase().replaceAll("-", "");
   const genArr = clean.split(",");
@@ -106,7 +103,7 @@ export const refineSearchData = (
     name: el.name || el.title || "",
     id: el.id.toString(),
     image: el.poster_path || el.profile_path || el.logo_path || "",
-    media_type: el.media_type || media,
+    media_type: el.media_type === "tv" ? "show" : el.media_type || media,
   }));
 };
 
@@ -140,8 +137,8 @@ export const refineMediaItemsFromSearch = (
       year: new Date(
         item.media_type === "movie" ? item.release_date : item.first_air_date
       ).getFullYear(),
-      media_type: item.media_type,
-      tmdb_id: item.id,
+      media_type: item.media_type === "tv" ? "show" : "movie",
+      tmdb_id: `${item.id}`,
     };
     return [...acc, dataToAdd];
   }, [] as any[]);

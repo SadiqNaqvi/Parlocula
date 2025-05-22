@@ -1,38 +1,39 @@
-// "use server";
-
+import { GeneralGetReturn } from "@type/internal";
 import {
-  convertGenresIntoId,
-  refineCollectionData,
-  refineMediaItemsFromSearch,
-  refineMovieData,
-  refineSearchData,
-  refineShowData,
-} from "./dataRefiner";
-import {
-  ExtraMovieData,
-  FullMovieDetails,
-  GeneralMovieReturn,
-  GeneralShowReturn,
+  FullCollectionData,
+  FullCompanyDetails,
+  FullEpisodeDetails,
   FullPersonDetails,
+  FullSeasonDetails,
+  GeneralCastData,
+  GeneralCrewData,
+  GeneralMovieReturn,
+  GeneralReturnType,
+  GeneralShowReturn,
+  RefinedEpisodeData,
+  RefinedMovieData,
+  RefinedSearchData,
+  RefinedSeasonData,
+  RefinedShowData,
   SearchCollectionReturn,
   SearchCompanyReturn,
   SearchPersonReturn,
-  FullCollectionData,
-  GeneralMovieData,
-  GeneralShowData,
-  GeneralPersonData,
-  GeneralReturnType,
-  GeneralCastData,
-  GeneralCrewData,
-  RefinedSearchData,
-  RefinedMovieData,
-  RefinedShowData,
-  FullShowDetails,
-  FullCompanyDetails,
+  SortOptions,
 } from "../type/external";
-import { getMediaItem } from "./helpers/common";
 import { oneDay } from "./constants";
-import { GeneralGetReturn } from "@type/internal";
+import {
+  convertGenresIntoId,
+  refineCollectionData,
+  refineEpisodeData,
+  refineGeneralData,
+  refineMediaItemsFromSearch,
+  refineMovieData,
+  refinePersonData,
+  refineSearchData,
+  refineSeasonData,
+  refineShowData,
+} from "./dataRefiner";
+import { getMediaItem } from "./helpers/common";
 type GeneralReturn<T = any> = { status: boolean; response: T };
 type MovieReturnType = GeneralReturn<GeneralMovieReturn>;
 type ShowReturnType = GeneralReturn<GeneralShowReturn>;
@@ -134,7 +135,7 @@ export const fetchSimilarMovies = async (id: string, page: number = 1) => {
 export const fetchMoviesWithCast = async (
   id: string,
   page: number = 1,
-  sort_by: string = "popularity"
+  sort_by: SortOptions = "popularity"
 ) => {
   if (!id) return;
   try {
@@ -164,7 +165,7 @@ export const fetchMoviesWithGenres = async ({
 }: {
   genres: string;
   page: number;
-  sort_by: string;
+  sort_by: SortOptions;
 }) => {
   if (!genres) return;
   const id = convertGenresIntoId(genres, "movie");
@@ -191,7 +192,7 @@ export const fetchMoviesWithGenres = async ({
 export const fetchMoviesWithYear = async (
   year: string,
   page: number = 1,
-  sort_by: string = "popularity"
+  sort_by: SortOptions = "popularity"
 ) => {
   const time = new Date(year).getTime();
   if (isNaN(time) || time > new Date().getTime()) return;
@@ -218,7 +219,7 @@ export const fetchMoviesWithYear = async (
 export const fetchMoviesWithCompany = async (
   id: string,
   page: number = 1,
-  sort_by: string = "popularity"
+  sort_by: SortOptions = "popularity"
 ) => {
   if (!id) return;
 
@@ -229,7 +230,33 @@ export const fetchMoviesWithCompany = async (
       )
     ).json();
     if (!data.status) return;
-    return data.response;
+    return {
+      ...data.response,
+      results: refineGeneralData(data.response.results),
+    };
+  } catch (err: any) {
+    console.error("Error fetching at FetchMovieWithCompany :" + err.message);
+  }
+};
+
+export const fetchMoviesWithNetwork = async (
+  id: string,
+  page: number = 1,
+  sort_by: SortOptions = "popularity"
+) => {
+  if (!id) return;
+
+  try {
+    const data: MovieReturnType = await (
+      await fetch(
+        `https://testlalaapp.vercel.app/api/network/movies?id=${id}&sort=${sort_by}&p=${page}`
+      )
+    ).json();
+    if (!data.status) return;
+    return {
+      ...data.response,
+      results: refineGeneralData(data.response.results),
+    };
   } catch (err: any) {
     console.error("Error fetching at FetchMovieWithCompany :" + err.message);
   }
@@ -307,7 +334,7 @@ export const fetchPerson = async (id: string) => {
     const data: { status: boolean; response: FullPersonDetails } = await (
       await fetch(`https://testlalaapp.vercel.app/api/person?id=${id}`)
     ).json();
-    if (data.status) return data.response;
+    if (data.status) return refinePersonData(data.response);
     console.error(
       "Some erorr occoured while fetching person: " + data.response
     );
@@ -358,6 +385,41 @@ export const fetchShow = async (
   }
 };
 
+export const fetchSeasonForShow = async (
+  show_id: string,
+  season = 1
+): Promise<RefinedSeasonData | undefined> => {
+  if (!show_id) return;
+  try {
+    const data: GeneralReturn<FullSeasonDetails> = await fetch(
+      `https://testlalaapp.vercel.app/api/show/seasons?id=${show_id}&s=${season}`
+    ).then((r) => r.json());
+
+    return refineSeasonData(data.response);
+  } catch (err: any) {
+    console.error("Error occured while fetching movie  " + err.message);
+    return;
+  }
+};
+
+export const fetchEpisodeForSeason = async (
+  show_id: string,
+  season = 1,
+  episode = 1
+): Promise<RefinedEpisodeData | undefined> => {
+  if (!show_id) return;
+  try {
+    const data: GeneralReturn<FullEpisodeDetails> = await fetch(
+      `https://testlalaapp.vercel.app/api/show/episode?id=${show_id}&s=${season}&e=${episode}`
+    ).then((r) => r.json());
+
+    return refineEpisodeData(data.response);
+  } catch (err: any) {
+    console.error("Error occured while fetching movie  " + err.message);
+    return;
+  }
+};
+
 export const fetchSimilarShows = async (id: string, page: number = 1) => {
   if (!id) return;
   try {
@@ -387,7 +449,7 @@ export const fetchShowsWithGenres = async ({
 }: {
   genres: string;
   page: number;
-  sort_by: string;
+  sort_by: SortOptions;
 }) => {
   if (!genres) return;
   const ids = convertGenresIntoId(genres, "show");
@@ -408,6 +470,52 @@ export const fetchShowsWithGenres = async ({
       "Error occured while fetching shows with genres:" + err.message
     );
     return;
+  }
+};
+
+export const fetchShowsWithCompany = async (
+  id: string,
+  page: number = 1,
+  sort_by: SortOptions = "popularity"
+) => {
+  if (!id) return;
+
+  try {
+    const data: ShowReturnType = await (
+      await fetch(
+        `https://testlalaapp.vercel.app/api/company/shows?id=${id}&sort=${sort_by}&p=${page}`
+      )
+    ).json();
+    if (!data.status) return;
+    return {
+      ...data.response,
+      results: refineGeneralData(data.response.results),
+    };
+  } catch (err: any) {
+    console.error("Error fetching at FetchMovieWithCompany :" + err.message);
+  }
+};
+
+export const fetchShowsWithNetwork = async (
+  id: string,
+  page: number = 1,
+  sort_by: SortOptions = "popularity"
+) => {
+  if (!id) return;
+
+  try {
+    const data: ShowReturnType = await (
+      await fetch(
+        `https://testlalaapp.vercel.app/api/network/shows?id=${id}&sort=${sort_by}&p=${page}`
+      )
+    ).json();
+    if (!data.status) return;
+    return {
+      ...data.response,
+      results: refineGeneralData(data.response.results),
+    };
+  } catch (err: any) {
+    console.error("Error fetching at FetchMovieWithCompany :" + err.message);
   }
 };
 

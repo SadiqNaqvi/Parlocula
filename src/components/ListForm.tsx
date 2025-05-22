@@ -1,15 +1,17 @@
 "use client";
 
 import { listClientSchema } from "@lib/schemas";
-import { InputMediaType } from "@type/internal";
+import { InputMediaType } from "@type/schemas";
 import { Form, Input, ToggleButton } from "./form";
 import useCurrentUser from "@store/user";
 import { createList } from "@lib/helpers/client";
 import Navigate from "./Navigate";
+import { CloseButton } from "./Modal";
+import { Fancybox } from "@fancyapps/ui";
 
 const ListForm = ({ defaultVals, medias, callback }: { defaultVals?: any, medias: InputMediaType[], callback?: (arg: any) => void }) => {
 
-    const { user, setUserHash } = useCurrentUser();
+    const { user, updateLists } = useCurrentUser();
 
     if (!user) return (
         <div className="bg-primary border border-dashed border-gray30 rounded-md flex flex-col gap-4 flex-cntr-all">
@@ -18,15 +20,18 @@ const ListForm = ({ defaultVals, medias, callback }: { defaultVals?: any, medias
         </div>
     )
 
-    const submit = async (formdata: any) => {
+    const submit = (formdata: any) => {
+        console.log(formdata);
         if (!medias.length) return;
         const data = { ...formdata, items: medias }
         callback?.(data);
-        return createList(data, user, setUserHash);
+        createList(data, user._id, updateLists);
+        Fancybox.close(true);
     }
 
     return (
         <section className="bg-primary border border-dashed border-gray30 rounded-md space-y-4 p-6 w-full max-w-[500px]">
+
             <Form defaultVals={defaultVals} submit={submit} schema={listClientSchema} className="space-y-3">
                 <Input
                     name="name"
@@ -35,8 +40,9 @@ const ListForm = ({ defaultVals, medias, callback }: { defaultVals?: any, medias
                     required
                 />
                 <ToggleButton
-                    label="isPrivate"
-                    className="capitalize"
+                    name="isPrivate"
+                    label="Private"
+                    className="capitalize w-full"
                 />
                 <button type="submit" className="primary mt-4">Create</button>
             </Form>

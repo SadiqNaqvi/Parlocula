@@ -5,32 +5,8 @@ import {
   LinkModelType,
   RecentlyJoinedModelType,
   ReportModelType,
-} from "@type/model";
+} from "@type/models";
 import { Schema } from "mongoose";
-
-const reportModel = new Schema<ReportModelType>(
-  {
-    by: {
-      type: Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-    },
-    for: {
-      type: [String],
-      required: [true, "At least one reason to report."],
-    },
-  },
-  { timestamps: true }
-);
-reportModel.index(
-  { by: 1 },
-  {
-    unique: true,
-    partialFilterExpression: { by: { $exists: true, $ne: null } },
-  }
-);
-
-export { reportModel };
 
 export const linkModel = new Schema<LinkModelType>({
   label: {
@@ -44,11 +20,15 @@ export const linkModel = new Schema<LinkModelType>({
 });
 
 export const connectionModel = new Schema<ConnectionModelType>({
-  media_type: {
+  type: {
     type: String,
     required: true,
   },
-  id: {
+  path: {
+    type: String,
+    required: true,
+  },
+  name: {
     type: String,
     required: true,
   },
@@ -79,5 +59,5 @@ export const frameModel = new Schema<FrameModelType>({
     enum: ["image", "video"],
     required: true,
   },
-  size: { type: Number },
+  isExternal: Boolean,
 });

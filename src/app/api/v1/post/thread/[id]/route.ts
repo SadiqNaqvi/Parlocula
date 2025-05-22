@@ -13,18 +13,21 @@ export const GET = getRequest(
 
     const searchParams = r.nextUrl.searchParams;
     const filter = searchParams.get("f")?.trim() || "latest";
-    const tag = searchParams.get("tag");
+    const tag = searchParams.get("t");
 
     const sort = filterToSort.posts[filter] ?? filterToSort.posts.latest;
 
     const filters: any = { thread_id: ObjectId(id) };
     if (tag && postTags.includes(tag)) filters.tag = tag;
 
+    console.log("filters", filters);
+
     const response = await Post.aggregate(
       postsAggregationPipeline({
         filters: [{ $match: filters }],
         sort,
         page,
+        isLinkBased: tag === "links",
       })
     );
 

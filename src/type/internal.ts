@@ -55,6 +55,7 @@ export type InfiniteQueryResponse<T = any> = {
 export type document = {
   _id: string;
   createdAt: Date;
+  updatedAt: Date;
 };
 
 export type Link = {
@@ -66,6 +67,12 @@ export type Frame = {
   path: string;
   type: "image" | "video";
   isExternal: boolean;
+};
+
+export type PredefineListType = {
+  _id: string;
+  name: "favourite" | "watched" | "recommended";
+  poster?: string;
 };
 
 export type User = {
@@ -84,13 +91,22 @@ export type User = {
   posts: number;
   comments: number;
   public_lists: number;
-  total_lists: number;
+  predefine_lists: PredefineListType[];
+};
 
-  favourite_id: string;
-  recommended_id: string;
-  watched_id: string;
-
-  // genres: string[];
+export type RequestedUser = {
+  _id: string;
+  name: string;
+  username: string;
+  profile: string;
+  bio: string;
+  bioLinks: Link[];
+  followers: number;
+  following: number;
+  posts: number;
+  comments: number;
+  public_lists: number;
+  predefine_lists: PredefineListType[];
 };
 
 export type ThreadConnection = {
@@ -127,9 +143,11 @@ type PostBasic = document & {
   reaction_count: number;
   comment_count: number;
   saved_count: number;
+  editedAt: Date | null;
 };
 
 export type FullPost = PostBasic & {
+  edited_at: Date | null;
   body: string;
   tag: string;
   username?: string;
@@ -165,6 +183,12 @@ export type MereComment = document & {
   attachment?: string;
 };
 
+export type FullComment = MereComment & {
+  edited_at: Date | null;
+  post_author: string;
+  saved_count: number;
+};
+
 export type MediaItemType = {
   title: string;
   poster: string;
@@ -196,3 +220,16 @@ export type FullList = MereList &
     key: string;
     last_added: Date;
   };
+
+export type ListItemType = {
+  _id: string;
+  media_id: string;
+  list_id: string;
+  user_id: string;
+  tmdb_id: string;
+  year: number;
+  createdAt: Date;
+  title: string;
+  poster?: string;
+  media_type: "movie" | "show";
+};

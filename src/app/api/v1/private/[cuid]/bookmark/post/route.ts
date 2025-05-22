@@ -3,6 +3,7 @@ import { bookmarkAggregationPipeline } from "@lib/pipelines";
 import { getPageParams, ObjectId } from "@lib/utils";
 import { Bookmark } from "@model";
 
+// Get all the saved posts of the current user
 export const GET = getRequest(async (r: any, params: { cuid: string }) => {
   const page = getPageParams(r) - 1;
   const { cuid } = params;

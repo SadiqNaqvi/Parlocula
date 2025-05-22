@@ -23,14 +23,20 @@ export const mediaModel = new Schema({
     required: true,
     index: true,
   },
-  rating: {
+  favourite: {
     type: Number,
     default: 0,
+    set: (val: number) => Math.max(val, 0),
   },
-  total_rating: Number,
-  rating_count: {
+  watched: {
     type: Number,
     default: 0,
+    set: (val: number) => Math.max(val, 0),
+  },
+  recommended: {
+    type: Number,
+    default: 0,
+    set: (val: number) => Math.max(val, 0),
   },
 });
 

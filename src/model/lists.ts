@@ -22,6 +22,7 @@ const listModel = new Schema({
   item_count: {
     type: Number,
     default: 1,
+    set: (value: number) => Math.max(value, 1),
   },
   list_type: {
     type: String,

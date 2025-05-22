@@ -1,5 +1,7 @@
 import { isValidObjectId } from "@lib/utils";
 import { JWTPayload, SignJWT, jwtVerify } from "jose";
+import { RequestCookies } from "next/dist/compiled/@edge-runtime/cookies";
+import { ReadonlyRequestCookies } from "next/dist/server/web/spec-extension/adapters/request-cookies";
 import { NextRequest } from "next/server";
 
 export function getEncryptionKey(): Uint8Array {
@@ -31,8 +33,10 @@ export const verifyToken = async (token: string) => {
   }
 };
 
-export const getPayloadFromToken = async (r: NextRequest) => {
-  const token = r.cookies.get("token")?.value;
+export const getUserFromToken = async (
+  cookieStore: RequestCookies | ReadonlyRequestCookies
+): Promise<{ user_id: string; username: string } | null> => {
+  const token = cookieStore.get("token")?.value;
   if (!token) return null;
   const payload = await verifyToken(token);
   if (

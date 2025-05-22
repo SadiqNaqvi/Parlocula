@@ -12,9 +12,20 @@ const Fancybox = ({ children }: { children: React.ReactNode }) => {
         NativeFancybox.bind("[data-modal]" as any, {
             groupAttr: false,
             closeButton: false,
+            hideScrollbar: true
         });
 
-        NativeFancybox.bind("[data-frame]" as any, {});
+        NativeFancybox.bind("[data-frame]" as any, {
+            groupAll: true,
+            hideScrollbar: true,
+            Toolbar: {
+                display: {
+                    left: ["infobar"],
+                    middle: [],
+                    right: ["slideshow", "download", "thumbs", "close"],
+                },
+            },
+        });
 
         return () => {
             NativeFancybox.unbind("[data-modal]");

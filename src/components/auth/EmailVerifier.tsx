@@ -2,6 +2,9 @@ import { LeftChevron } from "@assets/Icons";
 import { Form, Input } from "@components/form";
 import { useCustomReducer } from "@lib/hooks";
 import { emailSchema } from "@lib/schemas";
+import { trycatch } from "@lib/utils";
+import axios from "axios";
+import toast from "react-hot-toast";
 import { z } from "zod";
 
 const schema = z.object({
@@ -10,13 +13,12 @@ const schema = z.object({
 
 const EmailVerifier = ({ callback }: { callback: (email: string) => Promise<string | undefined> }) => {
 
-    const { email, otp, expiry, canSendOTP, otpCount, error, page, setter } = useCustomReducer({
-        email: "", otp: 0, expiry: 0, canSendOTP: true, otpCount: 0, error: "", page: 0
+    const { email, otp, expiry, canSendOTP, otpCount, page, setter } = useCustomReducer({
+        email: "", otp: 0, expiry: 0, canSendOTP: true, otpCount: 0, page: 0
     });
 
     const setError = (error: string) => {
-        setter({ error })
-        setTimeout(() => setter({ error: "" }), 1000 * 10);
+        toast.error(error, { duration: 10000 })
     }
 
     const otpSchema = z.object({
@@ -55,8 +57,11 @@ const EmailVerifier = ({ callback }: { callback: (email: string) => Promise<stri
     }
 
     const submit = async (data: any) => {
+        await trycatch(() =>
+            axios.post(`${process.env.__NEXT_PRIVATE_ORIGIN || ""}/api/v1/send/verification`)
+                .then((r) => r.data)
+        );
         setter({ email: data.email, page: 1 });
-        sendOTP();
     }
 
     return (
@@ -88,11 +93,6 @@ const EmailVerifier = ({ callback }: { callback: (email: string) => Promise<stri
                                 <p className="text-sm text-center text-slate-500">You can resend an OTP in 2 mins.</p>
                             :
                             <p className="text-sm text-center">You've reached the limit to send OTPs for now. Please try again after an hour.</p>
-                        }
-                    </div>
-                    <div className="my-4">
-                        {error &&
-                            <p className="text-sm text-center text-red-500">{error}</p>
                         }
                     </div>
                 </>

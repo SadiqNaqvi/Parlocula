@@ -132,6 +132,7 @@ export const DELETE = deleteRequest(async ({ user_id, session, params }) => {
     user_id,
     {
       $inc: { following_count: -1 },
+      $max: { following_count: 0 },
     },
     { session }
   );
@@ -140,6 +141,7 @@ export const DELETE = deleteRequest(async ({ user_id, session, params }) => {
     requestedUser,
     {
       $inc: { follower_count: -1 },
+      $max: { follower_count: 0 },
     },
     { session }
   );
@@ -154,7 +156,7 @@ export const DELETE = deleteRequest(async ({ user_id, session, params }) => {
   };
 });
 
-// Modifying user-user notification
+// Modifying user notification
 export const PATCH = updateRequest({
   handler: async ({ params, data, session, user_id }) => {
     const { id } = params;

@@ -36,18 +36,19 @@ export const GET = getRequest(async (r: any, params: { thread_id: string }) => {
         ],
       },
     },
-    { $unwind: "$total" },
     {
       $project: {
         data: 1,
-        total: "$total.count",
+        total: { $arrayElemAt: ["$total.total", 0] },
       },
     },
   ]);
 
+  const members = result[0];
+  if (!members) return { success: false, errCode: "pp104" };
+
   return {
-    result: result[0] ?? { data: [], total: 0 },
+    result: result[0],
     success: true,
-    errCode: null,
   };
 });

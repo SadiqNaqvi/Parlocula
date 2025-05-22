@@ -5,7 +5,7 @@ export default function NotFound({ title, paras, ActionButton }: { title: string
         <section className="stretchContainer flex-col gap-3">
             <div className="inline-flex mx-auto flex-cntr-all gap-4">
                 <span className="text-9xl font-extralight select-none">4</span>
-                <NotFoundFaceIcon classnames="size-32" />
+                <NotFoundFaceIcon className="size-32" />
                 <span className="text-9xl font-extralight select-none">4</span>
             </div>
             <h3 className="text-xl text-center">{title}</h3>

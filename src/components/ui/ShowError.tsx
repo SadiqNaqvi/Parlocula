@@ -6,7 +6,7 @@ import { convertCodeIntoError } from "@lib/utils";
 const ShowError = ({ heading, errCode, messages = [], retry }: { heading: string, errCode: string, messages?: string[], retry?: () => any }) => {
     return (
         <section className="stretchContainer flex-col gap-3">
-            <ErrorFaceIcon classnames="size-40 mx-auto" />
+            <ErrorFaceIcon className="size-40 mx-auto" />
             <h4 className="text-xl text-center">{heading || "Oh ho! Error Encountered"}</h4>
             <p className="text-sm text-zinc-500 text-center">{
                 convertCodeIntoError(errCode) as string || "Looks like an unknown error has occured! Please try again."

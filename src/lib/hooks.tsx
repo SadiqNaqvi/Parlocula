@@ -11,6 +11,8 @@ export const useInfiniteQueryHook = <T,>(queryKey: unknown, func: (pageParams: n
         refetchOnWindowFocus: false,
         queryKey: [queryKey],
         initialPageParam: 1,
+        staleTime: oneHour * 1000,
+        gcTime: oneHour * 1000,
         queryFn: ({ pageParam = 1 }) => func(pageParam),
         initialData: { pageParams: [1], pages: [] },
         getNextPageParam: (lastPage) => {
@@ -22,19 +24,20 @@ export const useInfiniteQueryHook = <T,>(queryKey: unknown, func: (pageParams: n
 }
 
 type UseQueryProps<T,> = {
-    queryKeys: string[],
+    queryKeys: (string | number)[],
     queryFn: () => Promise<T | null>,
     enabled?: boolean,
     initialData?: T,
     staleTime?: number
 }
 
-export const useQueryHook = <T,>({ queryKeys, queryFn, initialData, staleTime = oneHour, enabled = true }: UseQueryProps<T>) => {
+export const useQueryHook = <T,>({ queryKeys, queryFn, initialData, enabled = true }: UseQueryProps<T>) => {
     return useQuery({
         queryKey: queryKeys,
         queryFn,
         enabled,
-        staleTime,
+        staleTime: oneHour * 1000,
+        gcTime: oneHour * 1000,
         initialData,
         retry: false,
         refetchOnMount: false,

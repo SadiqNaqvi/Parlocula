@@ -1,6 +1,6 @@
 import { Schema, models } from "mongoose";
 import { linkModel, connectionModel, lastUpdate } from "./general";
-import { ThreadModelType } from "@type/model";
+import { ThreadModelType } from "@type/models";
 import { model } from "mongoose";
 
 const threadModel = new Schema<ThreadModelType>(
@@ -14,17 +14,16 @@ const threadModel = new Schema<ThreadModelType>(
       type: String,
       required: true,
     },
-    tags: [String],
     poster: String,
     nsfw: {
       type: Boolean,
       default: false,
     },
-    links: [linkModel],
-    connection: {
-      type: [connectionModel],
+    links: {
+      type: [linkModel],
       required: false,
     },
+    connection: [connectionModel],
     created_by: {
       type: Schema.Types.ObjectId,
       ref: "User",
@@ -35,10 +34,12 @@ const threadModel = new Schema<ThreadModelType>(
     post_count: {
       type: Number,
       default: 0,
+      set: (value: number) => Math.max(value, 0),
     },
     member_count: {
       type: Number,
       default: 1,
+      set: (value: number) => Math.max(value, 0),
     },
   },
   { timestamps: true }

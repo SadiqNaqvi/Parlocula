@@ -1,6 +1,6 @@
 "use client";
 
-import { SearchHeader } from "@components";
+import SearchHeader from "./SearchHeader";
 import InfiniteScroller from "@components/InfiniteScroller";
 import { CommentTile, LoadingSearchTile, PostTile, SearchTile, ThreadTile } from "@components/ui";
 import ListTile from "@components/ui/ListTile";

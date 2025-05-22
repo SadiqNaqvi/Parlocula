@@ -1,23 +1,25 @@
 import placeholder from "@assets/placeholder.png";
+import { GeneralGetReturn, InfiniteQueryResponse } from "@type/internal";
 import {
   AvailableCacheTags,
+  AvailableQueryKeys,
   AvailableRevalidateTags,
   CloudinaryMediaObject,
   CloudinaryMediaOptions,
   QueryFilterType,
 } from "@type/other";
-import { InfiniteQueryResponse } from "@type/internal";
 import { InputFrame } from "@type/schemas";
 import { Types } from "mongoose";
 import { NextRequest } from "next/server";
 import { ZodIssue } from "zod";
 import {
   cacheTags,
-  cloudinary_image_uri,
   cloudinary_media_options,
   cloudinary_postKey,
+  cloudinary_uri,
   errorCodes,
   queryFilters,
+  queryKeys,
   queryLimit,
   revalidateTags,
 } from "./constants";
@@ -138,10 +140,22 @@ export const formDataToObject = (formData: FormData) => {
     if (key === "files") {
       const prevFiles = formDataObject.files ?? [];
       formDataObject.files =
-        value instanceof File ? [...prevFiles, value] : formDataObject.files??[];
+        value instanceof File
+          ? [...prevFiles, value]
+          : (formDataObject.files ?? []);
     } else formDataObject[key] = JSON.parse(value as string);
   }
   return formDataObject;
+};
+
+export const refineString = (str: string) => {
+  if (!str) return "";
+
+  return str
+    .slice(0, 100)
+    .replace(/[^\w\s]|_/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/^_+|-+$/g, "");
 };
 
 const convertOptionsToUrl = (options: CloudinaryMediaObject): string => {
@@ -162,19 +176,23 @@ export const getInternalPoster = ({
   options,
   folder,
   path,
+  type = "image",
 }: {
   path?: string;
-  options: CloudinaryMediaObject;
+  options?: CloudinaryMediaObject;
   folder?: string;
+  type?: "image" | "video";
 }): string => {
   if (!path) return placeholder.src;
   if (path.includes("https")) return path;
-  const optionsUri = convertOptionsToUrl(options);
 
-  const fullPath = `${cloudinary_image_uri}${
+  const optionsUri = options ? convertOptionsToUrl(options) : undefined;
+
+  return `${cloudinary_uri}${type}/upload/${
     optionsUri ? optionsUri + "/" : ""
-  }${cloudinary_postKey + "/"}${folder ? folder + "/" : ""}${path}.webp`;
-  return fullPath;
+  }${cloudinary_postKey + "/"}${folder ? folder + "/" : ""}${path}${
+    type === "image" ? ".webp" : ".mp4"
+  }`;
 };
 
 export const getThumbnail = (vid: string) => {
@@ -268,11 +286,15 @@ export const infiniteScrollerResponse = (
   page: number
 ): InfiniteQueryResponse => {
   if ("total_results" in response) return response;
+  const { data, total } = response;
+  const results = Array.isArray(data) ? data : [];
+  const totalRes = total && !isNaN(total) ? total : 0;
+  console.log("total", totalRes);
   return {
-    results: response.data,
+    results,
     page,
-    total_pages: Math.ceil(response.total / queryLimit),
-    total_results: response.total,
+    total_pages: Math.ceil(totalRes / queryLimit),
+    total_results: totalRes,
   };
 };
 
@@ -306,8 +328,8 @@ export const getCacheTags = ({ available, options, type }: CacheTagsType) => {
     type === "cache"
       ? cacheTags[available]
       : type === "revalidate"
-      ? revalidateTags[available]
-      : undefined;
+        ? revalidateTags[available]
+        : undefined;
   if (!tags) return [];
 
   return tags.map((tag) =>
@@ -318,14 +340,28 @@ export const getCacheTags = ({ available, options, type }: CacheTagsType) => {
   );
 };
 
+export const getQueryKeys = (available: AvailableQueryKeys, options: any) => {
+  const keys = queryKeys[available];
+  if (!keys) return [];
+
+  return keys.map((key) =>
+    Object.keys(options).reduce(
+      (t, o) => t.replaceAll(`{${o}}`, options[o]),
+      key
+    )
+  );
+};
+
 export const readyFrames = async (
   frames: InputFrame[]
 ): Promise<{ files: any[]; filesData: any[] }> => {
   if (!frames || !frames?.length) return { files: [], filesData: [] };
   const promises = frames.map(async ({ blob, ...data }) => {
-    if (data.isExternal || !blob) return { data };
+    if (!data.shouldUpload || !blob) return { data };
     const arrayBuffer = await blob.arrayBuffer();
-    const file = new File([new Uint8Array(arrayBuffer)], "Popcorn Paragon");
+    const file = new File([new Uint8Array(arrayBuffer)], "Popcorn Paragon", {
+      type: blob.type,
+    });
     return { file, data };
   });
 
@@ -345,3 +381,18 @@ export const trycatch = async <T = any>(func: () => T, msg?: string) => {
     return { success: false, errCode: "pp500" };
   }
 };
+
+export const queryFunction = async (
+  func: (...args: any) => Promise<GeneralGetReturn>,
+  args: any[],
+  page?: number
+) => {
+  const { success, errCode, result } = await func(...args);
+  if (!success) throw new Error(errCode);
+  return page ? infiniteScrollerResponse(result, page) : (result ?? null);
+};
+
+export const generateInitialData = (data: any[]) => ({
+  data,
+  total: data.length === queryLimit ? queryLimit + 1 : data.length,
+});

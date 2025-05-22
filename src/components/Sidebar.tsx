@@ -22,9 +22,9 @@ export default function Sidebar() {
     ];
 
     return (
-        <nav className="bg-primarylight md:bg-primary fixed bottom-0 md:top-0 flex md:flex-col px-2 md:px-0 md:py-6 flex-cntr-between z-[10] h-16 md:h-dvh w-dvw md:w-20 border-t md:border-r md:border-t-0 border-gray20">
+        <nav id="sidebar" className="bg-primarylight md:bg-primary fixed bottom-0 md:top-0 flex md:flex-col px-2 md:px-0 md:py-6 flex-cntr-between z-[10] h-16 md:h-dvh w-dvw md:w-20 border-t md:border-r md:border-t-0 border-gray20">
             <div className="hidden md:block">
-                <AppIcon classnames="h-8 stroke-[32] stroke-current overflow-visible" />
+                <AppIcon className="h-8 stroke-[32] stroke-current overflow-visible" />
             </div>
             <ul className="flex md:block w-full flex-cntr-between md:space-y-8">
                 {links.map(el => (
@@ -32,21 +32,23 @@ export default function Sidebar() {
                         <Navigate comp="link" className={`flex flex-cntr-all w-full active:text-secondary md:hover:text-secondary transition-colors ${pathname.includes(el.link) ? "nav-active color-secondary" : ""}`} goto={el.link}>
                             {pathname.startsWith
                                 (el.link) ?
-                                <el.activeIcon classnames="h-6" />
+                                <el.activeIcon className="h-6" />
                                 :
-                                <el.icon classnames="h-6" />
+                                <el.icon className="h-6" />
                             }
                         </Navigate>
                     </li>
                 ))}
             </ul>
-            <Navigate comp="link" goto="/me" className={`rounded-full ${isHydrated ? "" : "userIconLoading"} border-2 ${pathname.startsWith("/me") ? "border-secondary" : "border-gray-500"}`}>
+            <div className={`rounded-full ${isHydrated ? "" : "userIconLoading"} border-2 ${user && pathname.startsWith(`/u/${user.username}`) ? "border-secondary" : "border-gray-500"}`}>
                 {user ?
-                    <img className="h-10 aspect-square rounded-full" src={getInternalPoster({ path: user.profile, options: { width: "40" } })} />
+                    <Navigate comp="link" goto="/me">
+                        <img className="h-10 aspect-square rounded-full" src={getInternalPoster({ path: user.profile })} />
+                    </Navigate>
                     :
-                    <UserIcon classnames="m-2" />
+                    <UserIcon className="m-2" />
                 }
-            </Navigate>
-        </nav>
+            </div>
+        </nav >
     )
 }
