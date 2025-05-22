@@ -1,7 +1,7 @@
+import EmailVerification from "@components/EmailTemplate/EmailVerification";
 import { render } from "@react-email/components";
 import { randomInt } from "crypto";
 import { createTransport } from "nodemailer";
-import EmailVerification from "@components/EmailTemplate/EmailVerification";
 
 export const POST = async () => {
 

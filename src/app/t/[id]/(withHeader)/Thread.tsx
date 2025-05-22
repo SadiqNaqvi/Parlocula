@@ -1,6 +1,5 @@
 "use client"
 
-import Navbar from "@app/explore/(withoutSidebar)/components/Navbar";
 import { DynamicComponent, Navigate } from "@components";
 import FancyImage from "@components/FancyImage";
 import { TabContainer, TabList } from "@components/ui/Tabs";
