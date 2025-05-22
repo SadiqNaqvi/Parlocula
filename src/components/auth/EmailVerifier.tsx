@@ -57,10 +57,6 @@ const EmailVerifier = ({ callback }: { callback: (email: string) => Promise<stri
     }
 
     const submit = async (data: any) => {
-        await trycatch(() =>
-            axios.post(`${process.env.__NEXT_PRIVATE_ORIGIN || ""}/api/v1/send/verification`)
-                .then((r) => r.data)
-        );
         setter({ email: data.email, page: 1 });
     }
 
