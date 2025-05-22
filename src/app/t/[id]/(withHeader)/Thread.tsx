@@ -9,6 +9,7 @@ import { getQueryKeys, numberConverter, timeAgo } from "@lib/utils";
 import { Thread as ThreadType } from "@type/internal";
 import { usePathname } from "next/navigation";
 import JoinButton from "./JoinButton";
+import ObserverHeader from "@components/ObserverHeader";
 
 type Props = {
     id: string,
@@ -32,9 +33,10 @@ const Thread = DynamicComponent<ThreadType, Props, { pathname: string }>({
 
         return (
             <>
-                <Navbar className="sticky bg-primary -mt-4 mb-4" />
-
-                <header className="flex flex-col md:flex-row mb-4">
+                <ObserverHeader
+                    navTitle={name}
+                    titleToShare={`Check out ${name} thread on Popcorn Paragon`}
+                    headerClasses="flex flex-col md:flex-row mb-4">
                     <div>
                         <FancyImage
                             download={`Poster of thread ${name} - Popcorn Paragon`}
@@ -45,7 +47,7 @@ const Thread = DynamicComponent<ThreadType, Props, { pathname: string }>({
                             alt="Poster"
                         />
 
-                        <h1 className="text-2xl mt-3 sm:text-4xl uppercase font-semibold">{name}</h1>
+                        <h1 data-observe className="text-2xl mt-3 sm:text-4xl uppercase font-semibold">{name}</h1>
 
                         <ul className="flex space-x-3 text-xs text-zinc-500">
                             <li>
@@ -58,10 +60,10 @@ const Thread = DynamicComponent<ThreadType, Props, { pathname: string }>({
                     </div>
 
                     <div className="mt-4 md:mt-0 md:ml-auto">
-                        <JoinButton tname={name} tposter={poster} tid={_id} />
+                        <JoinButton tid={_id} />
                     </div>
 
-                </header>
+                </ObserverHeader>
 
                 <TabContainer className="my-4">
                     <TabList isActive={currentTab === "posts"} href={`/t/${id}`}>Posts</TabList>
