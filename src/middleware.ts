@@ -2,14 +2,23 @@ export const config = {
   matcher: ["/api/v1/user/me", "/api/v1/private/:path*"],
 };
 
-import { generateToken, getSession } from "@lib/auth";
-import { JWTPayload, jwtVerify } from "jose";
+import { getSession } from "@lib/auth";
+import { JWTPayload, jwtVerify, SignJWT } from "jose";
 import { NextRequest, NextResponse } from "next/server";
 
 export function getEncryptionKey(): Uint8Array {
   const secret = process.env.JWT_SECRET!;
   return new Uint8Array(Buffer.from(secret, "hex"));
 }
+
+export const generateToken = async (details: any) => {
+  const secret = getEncryptionKey();
+  return await new SignJWT(details)
+    .setProtectedHeader({ alg: "HS256" })
+    .setIssuedAt()
+    .setExpirationTime("1d")
+    .sign(secret);
+};
 
 export const verifyToken = async (token: string) => {
   if (!token) return null;
