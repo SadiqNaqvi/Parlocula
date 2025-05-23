@@ -111,6 +111,30 @@ const ListEditPage = ({ lid }: PageProps) => {
         if (success === false) throw new Error();
     }
 
+    const mutation = useMutation({
+        mutationFn,
+        onMutate: async (data: ListEditSchema) => {
+            const { itemsToDelete, ...rest } = data;
+
+            let prevListState: any = null, prevItemsState: any = null;
+
+            if (Object.keys(rest).length)
+                prevListState = await updateMutation(rest, keysForList, queryClient);
+
+            if (itemsToDelete && itemsToDelete.length)
+                prevItemsState = await filterItemsMutation(itemsToDelete, keysForItems, queryClient);
+
+            return { prevItemsState, prevListState }
+        },
+        onSuccess: () => queryClient.refetchQueries({
+            queryKey: getQueryKeys("listsOfUser_username_filter", { username: currentUser.user?.username, filter: "latest" })
+        }),
+        onError: (e, v, c) => {
+            queryClient.setQueryData(keysForList, c?.prevListState)
+            queryClient.setQueryData(keysForItems, c?.prevItemsState)
+        }
+    });
+
     const dynamicComponent = DynamicComponent({
         component,
 
@@ -120,32 +144,7 @@ const ListEditPage = ({ lid }: PageProps) => {
             args: [id],
         }),
 
-        getHooks: () => ({
-            currentUser,
-            mutation: useMutation({
-                mutationFn,
-                onMutate: async (data: ListEditSchema) => {
-                    const { itemsToDelete, ...rest } = data;
-
-                    let prevListState: any = null, prevItemsState: any = null;
-
-                    if (Object.keys(rest).length)
-                        prevListState = await updateMutation(rest, keysForList, queryClient);
-
-                    if (itemsToDelete && itemsToDelete.length)
-                        prevItemsState = await filterItemsMutation(itemsToDelete, keysForItems, queryClient);
-
-                    return { prevItemsState, prevListState }
-                },
-                onSuccess: () => queryClient.refetchQueries({
-                    queryKey: getQueryKeys("listsOfUser_username_filter", { username: currentUser.user?.username, filter: "latest" })
-                }),
-                onError: (e, v, c) => {
-                    queryClient.setQueryData(keysForList, c?.prevListState)
-                    queryClient.setQueryData(keysForItems, c?.prevItemsState)
-                }
-            }),
-        }),
+        getHooks: () => ({ currentUser, mutation }),
     });
 
     return dynamicComponent({ id: lid })

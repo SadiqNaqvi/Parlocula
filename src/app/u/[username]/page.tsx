@@ -3,7 +3,7 @@ import { getQueryClient } from "@lib/queryClient";
 import { getQueryKeys, queryFunction, refineSearchParams } from "@lib/utils";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import PostSection from "./tabs/PostSection";
-import { getUserFromToken } from "@lib/auth";
+import { getUserFromToken } from "@lib/auth/utils";
 import { cookies } from "next/headers";
 import { NotFound } from "@components/ui";
 import { GeneralGetReturn, RequestedUser } from "@type/internal";

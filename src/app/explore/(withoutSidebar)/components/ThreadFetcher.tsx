@@ -67,7 +67,7 @@ const ThreadFetcher = ({ id, type }: { id: string, type: string }) => {
 
     return (
         <div className="flex gap-4 pb-2 overflow-x-auto">
-            {data.data.map(el => <ThreadBox {...el} />)}
+            {data.data.map(el => <ThreadBox key={el._id} {...el} />)}
         </div>
     )
 }

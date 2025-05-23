@@ -1,4 +1,4 @@
-import { getUserFromToken } from "@lib/auth";
+import { getUserFromToken } from "@lib/auth/utils";
 import ListPage from "./ListPage";
 import { checkIfItemSaved, getItems, getList } from "@lib/helpers/common";
 import { getQueryClient } from "@lib/queryClient";

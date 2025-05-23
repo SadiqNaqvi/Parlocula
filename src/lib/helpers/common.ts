@@ -23,7 +23,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { ZodSchema } from "zod";
 import { oneDay, oneWeek, queryFilters } from "../constants";
 import { deleteMultipleMedia, mediaUploader } from "./server";
-import { verifyToken } from "@lib/auth";
+import { getUserFromToken } from "@lib/auth/utils";
 
 // HELPER FUNCTIONS
 
@@ -150,7 +150,7 @@ export const postRequest = ({
   schema?: ZodSchema;
 }) => {
   return async function (req: NextRequest, { params }: { params: any }) {
-    const token = req.cookies.get("token")?.value;
+    const payload = await getUserFromToken(req.cookies);
 
     if (
       !(
@@ -158,7 +158,7 @@ export const postRequest = ({
         req.url.includes("user/login") ||
         req.url.includes("api/v1/media")
       ) &&
-      !token
+      !payload
     )
       return NextResponse.json(
         {
@@ -168,10 +168,6 @@ export const postRequest = ({
         },
         { status: 500 }
       );
-
-    const payload = token
-      ? await verifyToken(token)
-      : { user_id: "", username: "" };
 
     const user_id = payload?.user_id || "";
     const username = payload?.username || "";
@@ -288,9 +284,9 @@ export const deleteRequest = (
   precheck?: (req: NextRequest, params: any) => Precheck
 ) => {
   return async (req: NextRequest, { params }: any) => {
-    const token = req.cookies.get("token")?.value;
-    const payload = token ? await verifyToken(token) : null;
-    if (!token || !payload)
+    const payload = await getUserFromToken(req.cookies);
+
+    if (!payload)
       return NextResponse.json({ success: false, errCode: "pp202" });
 
     const user_id = payload.user_id;
@@ -360,9 +356,9 @@ export const updateRequest = ({
   ) => Precheck | Promise<Precheck>;
 }) => {
   return async (req: NextRequest, { params }: any) => {
-    const token = req.cookies.get("token")?.value;
-    const payload = token ? await verifyToken(token) : null;
-    if (!token || !payload)
+    const payload = await getUserFromToken(req.cookies);
+
+    if (!payload)
       return NextResponse.json({ success: false, errCode: "pp202" });
 
     const user_id = payload.user_id;

@@ -109,6 +109,7 @@ const Page = async ({ params }: Props) => {
                 <div className="mt-4 flex-wrap flex gap-4">
                     {content.parts.map(el => (
                         <VerticleMovieCard
+                            key={el.tmdb_id}
                             link={`/explore/movie/${el.tmdb_id}-${refineString(el.title)}`}
                             poster={el.poster}
                             title={el.title}

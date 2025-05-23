@@ -1,4 +1,4 @@
-import { getUserFromToken } from "@lib/auth"
+import { getUserFromToken } from "@lib/auth/utils"
 import { getThreadById } from "@lib/helpers/common"
 import { getQueryClient } from "@lib/queryClient"
 import { isValidObjectId } from "@lib/utils"

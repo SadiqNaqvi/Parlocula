@@ -1,12 +1,11 @@
-import { BookmarkIcon, ShareIcon } from "@assets/Icons";
 import { DynamicComponent, Navbar, Navigate } from "@components";
+import SaveButton from "@components/SaveButton";
 import { getCommentById } from "@lib/helpers/common";
 import { getInternalPoster, timeAgo } from "@lib/utils";
 import { FullComment } from "@type/internal";
 import Image from "next/image";
 import RepliesSection from "./RepliesSection";
 import VoteButton from "./VoteButton";
-import SaveButton from "@components/SaveButton";
 
 type Props = {
     cid: string,
@@ -70,7 +69,9 @@ const CommentPage = DynamicComponent<FullComment, Props>({
                     <p className="my-4">{content}</p>
 
                     {attachment &&
-                        <img
+                        <Image
+                            height={250}
+                            width={250}
                             src={attachment}
                             alt="Attachment"
                             className="size-[250px] rounded-md border border-gray30 object-contain"

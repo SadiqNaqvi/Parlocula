@@ -1,4 +1,4 @@
-import { getUserFromToken } from "@lib/auth";
+import { getUserFromToken } from "@lib/auth/utils";
 import { checkIfItemSaved, getCommentsOnPost, getPostById, getReactionOnPost, getReposts } from "@lib/helpers/common";
 import { getQueryClient } from "@lib/queryClient";
 import { getQueryKeys, queryFunction, refineSearchParams } from "@lib/utils";

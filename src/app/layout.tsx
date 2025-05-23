@@ -32,7 +32,7 @@ export default function RootLayout({
             </main> */}
           </Fancybox>
         </ReactQueryProvider>
-        <script src="https://kit.fontawesome.com/5d93eb1089.js"></script>
+        {/* <script src="https://kit.fontawesome.com/5d93eb1089.js"></script> */}
       </body>
     </html>
   );

@@ -5,7 +5,7 @@ import { dehydrate, HydrationBoundary } from "@tanstack/react-query"
 import { Metadata } from "next"
 import PostsTab from "./posts"
 import { contentFetcher } from "./utils"
-import { getUserFromToken } from "@lib/auth"
+import { getUserFromToken } from "@lib/auth/utils"
 import { cookies } from "next/headers"
 
 export const generateMetadata = async ({ params }: { params: { id: string } }): Promise<Metadata> => {

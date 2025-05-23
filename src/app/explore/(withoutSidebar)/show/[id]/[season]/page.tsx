@@ -114,6 +114,7 @@ const SeasonPage = async ({ params }: Props) => {
             <ul className="flex gap-4 overflow-x-auto pb-2">
                 {season.episodes.map(el => (
                     <VerticleMovieCard
+                        key={el.id}
                         rating={el.rating}
                         link={`season-${season.season_number}/episode-${el.episode_number}`}
                         poster={el.poster}

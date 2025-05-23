@@ -2,38 +2,8 @@ export const config = {
   matcher: ["/api/v1/user/me", "/api/v1/private/:path*"],
 };
 
-import { getSession } from "@lib/auth";
-import { JWTPayload, jwtVerify, SignJWT } from "jose";
+import { generateToken, getSession, verifyToken } from "@lib/auth";
 import { NextRequest, NextResponse } from "next/server";
-
-export function getEncryptionKey(): Uint8Array {
-  const secret = process.env.JWT_SECRET!;
-  return new Uint8Array(Buffer.from(secret, "hex"));
-}
-
-export const generateToken = async (details: any) => {
-  const secret = getEncryptionKey();
-  return await new SignJWT(details)
-    .setProtectedHeader({ alg: "HS256" })
-    .setIssuedAt()
-    .setExpirationTime("1d")
-    .sign(secret);
-};
-
-export const verifyToken = async (token: string) => {
-  if (!token) return null;
-  const secret = getEncryptionKey();
-
-  try {
-    const { payload } = await jwtVerify(token, secret);
-    return payload as JWTPayload & { user_id: string; username: string };
-  } catch (err: any) {
-    console.error("Error verifying token:", err.message);
-    if (err.message.includes(`"exp" claim timestamp check failed`))
-      return err.payload;
-    return null;
-  }
-};
 
 const validateUser = async (rq: NextRequest, rs: NextResponse) => {
   const token = rq.cookies.get("token")?.value;

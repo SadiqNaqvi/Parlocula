@@ -5,7 +5,7 @@ import { MereComment } from "@type/internal"
 import { Metadata } from "next"
 import CommentPage from "./CommentPage"
 import { getQueryClient } from "@lib/queryClient"
-import { getUserFromToken } from "@lib/auth"
+import { getUserFromToken } from "@lib/auth/utils"
 import { cookies } from "next/headers"
 
 export const generateMetadata = async ({ params }: { params: { id: string } }): Promise<Metadata> => {
