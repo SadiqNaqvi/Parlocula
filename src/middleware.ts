@@ -58,21 +58,21 @@ const validateUser = async (rq: NextRequest, rs: NextResponse) => {
 };
 
 export const middleware = async (req: NextRequest) => {
-  console.log("middleware entered");
-  const { url, nextUrl } = req;
+  // console.log("middleware entered");
+  const { url } = req;
 
-  if (!checkIsValidObjectId(nextUrl.pathname))
-    return NextResponse.json({
-      success: false,
-      errCode: "pp204",
-      result: null,
-    });
+  // if (!checkIsValidObjectId(nextUrl.pathname))
+  //   return NextResponse.json({
+  //     success: false,
+  //     errCode: "pp204",
+  //     result: null,
+  //   });
 
   const response = NextResponse.next();
 
   // Check if there's a current user
-  // const user = await validateUser(req, response);
-  const user = true;
+  const user = await validateUser(req, response);
+  // const user = true;
 
   // If user is trying to post something but there's no current user, return the request.
   if (url.includes("/api/v1/private")) {
