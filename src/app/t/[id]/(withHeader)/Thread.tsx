@@ -1,14 +1,14 @@
 "use client"
 
-import { DynamicComponent, Navigate } from "@components";
+import { GenericWrapper, Navigate } from "@components";
 import FancyImage from "@components/FancyImage";
+import ObserverHeader from "@components/ObserverHeader";
 import { TabContainer, TabList } from "@components/ui/Tabs";
 import { getThreadById } from "@lib/helpers/common";
 import { getQueryKeys, numberConverter, timeAgo } from "@lib/utils";
 import { Thread as ThreadType } from "@type/internal";
 import { usePathname } from "next/navigation";
 import JoinButton from "./JoinButton";
-import ObserverHeader from "@components/ObserverHeader";
 
 type Props = {
     id: string,
@@ -21,8 +21,10 @@ const getQueryProps = ({ id }: Props) => ({
     args: [id],
 });
 
-const Thread = DynamicComponent<ThreadType, Props, { pathname: string }>({
-    component: (data, { children, id }, { pathname }) => {
+const Thread = (props: Props) => {
+    const pathname = usePathname();
+
+    const component = (data: ThreadType, { children, id }: Props) => {
 
         const { _id, connection, createdAt, created_by, description, links, member_count, nsfw, poster, post_count, name } = data;
 
@@ -73,11 +75,9 @@ const Thread = DynamicComponent<ThreadType, Props, { pathname: string }>({
             </>
         )
 
-    },
-    getQueryProps,
-    getHooks: () => ({
-        pathname: usePathname(),
-    }),
-});
+    }
+
+    return <GenericWrapper component={component} getQueryProps={getQueryProps} props={props} />
+};
 
 export default Thread;

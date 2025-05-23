@@ -134,3 +134,5 @@ const EpisodePage = async ({ params }: Props) => {
         ))}
     </>
 }
+
+export default EpisodePage;

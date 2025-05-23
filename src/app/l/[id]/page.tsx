@@ -1,14 +1,11 @@
+import { NotFound } from "@components/ui";
 import { getUserFromToken } from "@lib/auth/utils";
-import ListPage from "./ListPage";
 import { checkIfItemSaved, getItems, getList } from "@lib/helpers/common";
 import { getQueryClient } from "@lib/queryClient";
-import { getQueryKeys, queryFunction, refineSearchParams } from "@lib/utils";
-import {
-    dehydrate,
-    HydrationBoundary,
-    QueryClient,
-} from '@tanstack/react-query';
+import { getQueryKeys, isValidObjectId, queryFunction, refineSearchParams } from "@lib/utils";
+import { dehydrate, HydrationBoundary } from '@tanstack/react-query';
 import { cookies } from "next/headers";
+import ListPage from "./ListPage";
 
 type Props = { params: { id: string }, searchParams: { p?: string, f?: string } };
 
@@ -20,9 +17,15 @@ const Page = async ({ params: { id }, searchParams }: Props) => {
 
     const queryClient = getQueryClient();
 
-    const { filter, page } = refineSearchParams("items", searchParams?.p, searchParams?.f);
-
     const lid = id.split('-')[0];
+    if (lid && !isValidObjectId(lid)) return (
+        <NotFound
+            title="Oops! Look's like you came across a wrong path."
+            paras={["Content id is incorrect", "Please go back and try again."]}
+        />
+    );
+
+    const { filter, page } = refineSearchParams("items", searchParams?.p, searchParams?.f);
 
     const user = await getUserFromToken(cookies());
 
@@ -55,7 +58,7 @@ const Page = async ({ params: { id }, searchParams }: Props) => {
 
     return (
         <HydrationBoundary state={dehydrate(queryClient)}>
-            <ListPage uid={user?.user_id} lid={lid} page={page} filter={filter} />
+            <ListPage uid={user?.user_id} id={lid} page={page} filter={filter} />
         </HydrationBoundary>
     )
 }

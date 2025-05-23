@@ -1,4 +1,4 @@
-export { default as DynamicComponent } from "./DynamicComponent";
+export { default as GenericWrapper } from "././GenericWrapper";
 export { default as CommentTile } from "./ui/CommentTile";
 export { default as CreateEditPost } from "./CreateEditPost";
 export { default as DataFetcher } from "./DataFetcher";

@@ -1,10 +1,11 @@
 import { getUserFromToken } from "@lib/auth/utils";
 import { checkIfItemSaved, getCommentsOnPost, getPostById, getReactionOnPost, getReposts } from "@lib/helpers/common";
 import { getQueryClient } from "@lib/queryClient";
-import { getQueryKeys, queryFunction, refineSearchParams } from "@lib/utils";
+import { getQueryKeys, isValidObjectId, queryFunction, refineSearchParams } from "@lib/utils";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { cookies } from "next/headers";
 import CommentSection from "./tabs/CommentSection";
+import { NotFound } from "@components/ui";
 
 type Props = { params: { id: string }, searchParams: { p?: string, f?: string } };
 
@@ -16,10 +17,18 @@ export default async function Page({ params, searchParams }: Props) {
 
     const queryClient = getQueryClient();
 
-    const { filter, page } = refineSearchParams("comments", searchParams.p, searchParams.f);
     const { id } = params;
 
     const pid = id.split('-')[0];
+    if (pid && !isValidObjectId(pid)) return (
+        <NotFound
+            title="Oops! Look's like you came across a wrong path."
+            paras={["Content id is incorrect", "Please go back and try again."]}
+        />
+    );
+
+    const { filter, page } = refineSearchParams("comments", searchParams.p, searchParams.f);
+
     const user = await getUserFromToken(cookies());
 
     // Prefetching the data of the next tab for faster access.

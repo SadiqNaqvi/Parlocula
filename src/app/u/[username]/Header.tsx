@@ -1,6 +1,6 @@
 "use client";
 
-import { DynamicComponent } from "@components";
+import { GenericWrapper } from "@components";
 import FancyImage from "@components/FancyImage";
 import ObserverHeader from "@components/ObserverHeader";
 import InteractiveDetailSection from "@components/ui/InteractiveDetailSection";
@@ -19,8 +19,10 @@ const getQueryProps = ({ username }: Props) => ({
     args: [username],
 })
 
-const Header = DynamicComponent<RequestedUser, Props, { pathname: string }>({
-    component: (data, { children }, { pathname }) => {
+const Header = (props: Props) => {
+    const pathname = usePathname();
+
+    const component = (data: RequestedUser, { children }: Props) => {
 
         const segment = pathname.split('/').at(-1);
         const tab = segment === "comments" || segment === "lists" ? segment : "posts";
@@ -76,10 +78,9 @@ const Header = DynamicComponent<RequestedUser, Props, { pathname: string }>({
                 {children}
             </>
         )
-    }, getQueryProps,
-    getHooks: () => ({
-        pathname: usePathname(),
-    })
-})
+    }
+
+    return <GenericWrapper component={component} getQueryProps={getQueryProps} props={props} />
+}
 
 export default Header;

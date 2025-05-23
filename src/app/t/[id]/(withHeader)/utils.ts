@@ -1,6 +1,6 @@
 import { postTags } from "@lib/constants";
 import { getPostsOfThread, getThreadById, isMember } from "@lib/helpers/common";
-import { getQueryKeys, queryFunction, refineSearchParams } from "@lib/utils";
+import { getQueryKeys, isValidObjectId, queryFunction, refineSearchParams } from "@lib/utils";
 import { QueryClient } from "@tanstack/react-query";
 
 export const contentFetcher = async ({
@@ -23,6 +23,7 @@ export const contentFetcher = async ({
   );
 
   const tid = id.split("-")[0];
+  if (tid && !isValidObjectId(tid)) return null;
 
   const tagParam = section === "posts" ? searchParams.t : section;
   const tag = tagParam && postTags.includes(tagParam) ? tagParam : undefined;

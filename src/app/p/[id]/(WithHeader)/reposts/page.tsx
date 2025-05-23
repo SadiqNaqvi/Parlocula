@@ -1,10 +1,11 @@
 import { getUserFromToken } from "@lib/auth/utils";
 import { checkIfItemSaved, getCommentsOnPost, getPostById, getReactionOnPost, getReposts } from "@lib/helpers/common";
 import { getQueryClient } from "@lib/queryClient";
-import { getQueryKeys, queryFunction, refineSearchParams } from "@lib/utils";
+import { getQueryKeys, isValidObjectId, queryFunction, refineSearchParams } from "@lib/utils";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { cookies } from "next/headers";
 import RepostSection from "../tabs/RepostSection";
+import { NotFound } from "@components/ui";
 
 export const generateStaticParams = async () => {
     return []
@@ -14,10 +15,18 @@ export default async function Page({ params, searchParams }: { params: { id: str
 
     const queryClient = getQueryClient();
 
-    const { filter, page } = refineSearchParams("comments", searchParams.p, searchParams.f);
     const { id } = params;
 
     const pid = id.split('-')[0];
+
+    if (pid && !isValidObjectId(pid)) return (
+        <NotFound
+            title="Oops! Look's like you came across a wrong path."
+            paras={["Content id is incorrect", "Please go back and try again."]}
+        />
+    );
+
+    const { filter, page } = refineSearchParams("comments", searchParams.p, searchParams.f);
     const user = await getUserFromToken(cookies());
 
 

@@ -7,6 +7,7 @@ import { Metadata } from "next"
 import { cookies } from "next/headers"
 import PostsTab from "../posts"
 import { contentFetcher } from "../utils"
+import { NotFound } from "@components/ui"
 
 export const generateMetadata = async ({ params }: { params: { id: string } }): Promise<Metadata> => {
     const thread_id = params.id.split('-')[0];
@@ -29,13 +30,22 @@ const Page = async ({ params, searchParams }: { params: { id: string }, searchPa
 
     const user = await getUserFromToken(cookies());
 
-    const { filter, page, tag, tid } = await contentFetcher({
+    const response = await contentFetcher({
         queryClient,
         id: params.id,
         searchParams,
         section: "frames",
         uid: user?.user_id,
-    })
+    });
+
+    if (!response) return (
+        <NotFound
+            title="Oops! Look's like you came across a wrong path."
+            paras={["Content id is incorrect", "Please go back and try again."]}
+        />
+    );
+
+    const { filter, page, tag, tid } = response;
 
     return (
         <HydrationBoundary state={dehydrate(queryClient)}>

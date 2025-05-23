@@ -88,7 +88,7 @@ const EmailVerifier = ({ callback }: { callback: (email: string) => Promise<stri
                                 :
                                 <p className="text-sm text-center text-slate-500">You can resend an OTP in 2 mins.</p>
                             :
-                            <p className="text-sm text-center">You've reached the limit to send OTPs for now. Please try again after an hour.</p>
+                            <p className="text-sm text-center">You&apos;ve reached the limit to send OTPs for now. Please try again after an hour.</p>
                         }
                     </div>
                 </>

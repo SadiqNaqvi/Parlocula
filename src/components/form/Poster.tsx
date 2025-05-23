@@ -5,6 +5,7 @@ import MediaInputCont from "@components/MediaInputCont";
 import { Popover, Triggerer } from "@components/Modal";
 import OptionMenu from "@components/OptionMenu";
 import { InputFrame } from "@type/schemas";
+import Image from "next/image";
 import React, { useState } from "react";
 
 
@@ -49,7 +50,8 @@ const Poster = ({ removePicture, getImage, defaultPoster = "", className, }: { g
                 }
             </div>
             {poster &&
-                <img
+                <Image
+                    layout="fill"
                     src={poster}
                     alt=""
                     className="size-full rounded-full object-cover"

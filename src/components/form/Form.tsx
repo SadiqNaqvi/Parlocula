@@ -13,7 +13,7 @@ type FormProps = {
     defaultVals?: any
 } & HTMLAttributes<HTMLFormElement>
 
-const Form = forwardRef(({ children, schema, submit, defaultVals, ...args }: FormProps, ref?: React.LegacyRef<HTMLFormElement>) => {
+const FormContainer = ({ children, schema, submit, defaultVals, ...args }: FormProps, ref?: React.LegacyRef<HTMLFormElement>) => {
 
     const formMethod = useForm({
         resolver: schema ? zodResolver(schema) : undefined,
@@ -52,6 +52,8 @@ const Form = forwardRef(({ children, schema, submit, defaultVals, ...args }: For
             </FormProvider>
         </>
     )
-})
+}
+
+const Form = forwardRef(FormContainer)
 
 export default Form;

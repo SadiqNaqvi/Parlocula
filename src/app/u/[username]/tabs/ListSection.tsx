@@ -20,9 +20,9 @@ const Lists = ({ filter, page, username }: Props) => {
   const queryClient = useQueryClient();
 
   const data = queryClient.getQueryData<RequestedUser>(getQueryKeys("user_username", { username }))
-  if (!data) return null;
 
   const { user, lists } = useCurrentUser();
+  if (!data) return null;
 
   const requestedUser = user?._id === data._id ? user : data;
 
@@ -30,13 +30,13 @@ const Lists = ({ filter, page, username }: Props) => {
     <>
       <ul className="mb-2 space-y-2">
         {requestedUser.predefine_lists.map(({ _id, name, poster }) => (
-          <li>
+          <li key={_id}>
             <UsersListTile _id={_id} name={name as UsersListType} poster={poster} />
           </li>
         ))}
         {user?._id === requestedUser._id &&
           ["saved", "private"].map(l => (
-            <li>
+            <li key={l}>
               <UsersListTile _id={l} name={l as UsersListType} />
             </li>
           ))
@@ -48,7 +48,7 @@ const Lists = ({ filter, page, username }: Props) => {
         className="space-y-2"
         queryKeys={getQueryKeys("listsOfUser_username_filter", { username, filter })}
         fetchData={(p) => queryFunction(getListsOfUser, [username, p, filter])}
-        // initialData={user?._id === requestedUser._id ? generateInitialData(lists) : undefined}
+        initialData={user?._id === requestedUser._id ? generateInitialData(lists) : undefined}
         Component={ListTile}
         NotFoundSection={null}
       />
