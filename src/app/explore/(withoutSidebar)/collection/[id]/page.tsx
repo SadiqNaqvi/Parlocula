@@ -24,9 +24,7 @@ export const generateMetadata = async ({ params }: Props): Promise<Metadata> => 
     };
 };
 
-export const generateStaticParams = async () => {
-    return []
-}
+ 
 
 const Page = async ({ params }: Props) => {
 

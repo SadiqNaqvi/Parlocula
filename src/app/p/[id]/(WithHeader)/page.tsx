@@ -9,9 +9,7 @@ import { NotFound } from "@components/ui";
 
 type Props = { params: { id: string }, searchParams: { p?: string, f?: string } };
 
-export const generateStaticParams = async () => {
-    return []
-}
+ 
 
 export default async function Page({ params, searchParams }: Props) {
 

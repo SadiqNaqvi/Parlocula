@@ -9,9 +9,7 @@ import ListPage from "./ListPage";
 
 type Props = { params: { id: string }, searchParams: { p?: string, f?: string } };
 
-export const generateStaticParams = async () => {
-    return []
-}
+ 
 
 const Page = async ({ params: { id }, searchParams }: Props) => {
 

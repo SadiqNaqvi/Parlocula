@@ -7,9 +7,7 @@ import { cookies } from "next/headers";
 import RepostSection from "../tabs/RepostSection";
 import { NotFound } from "@components/ui";
 
-export const generateStaticParams = async () => {
-    return []
-}
+ 
 
 export default async function Page({ params, searchParams }: { params: { id: string }, searchParams: { p?: string, f?: string } }) {
 

@@ -13,9 +13,7 @@ const fetchData = async (params: { id: string }) => {
     return await fetchShow(show_id)
 }
 
-export const generateStaticParams = async () => {
-    return []
-}
+ 
 
 export const generateMetadata = async ({ params }: Props): Promise<Metadata> => {
     const data = await fetchData(params);

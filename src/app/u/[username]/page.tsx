@@ -10,9 +10,7 @@ import { GeneralGetReturn, RequestedUser } from "@type/internal";
 
 type Props = { params: { username: string }, searchParams: { p?: string, f?: string } }
 
-export const generateStaticParams = async () => {
-    return []
-}
+ 
 
 const Page = async ({ params: { username }, searchParams: { f, p } }: Props) => {
 

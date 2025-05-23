@@ -20,9 +20,7 @@ export const generateMetadata = async ({ params }: { params: { id: string } }): 
     return { title: `${name} - Thread - Popcorn Paragon`, description };
 }
 
-export const generateStaticParams = async () => {
-    return []
-}
+ 
 
 const Page = async ({ params, searchParams }: { params: { id: string }, searchParams: { p?: string, f?: string, t?: string } }) => {
 

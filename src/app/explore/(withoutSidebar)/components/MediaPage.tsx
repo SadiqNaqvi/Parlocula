@@ -1,16 +1,16 @@
+import AddToList from "@app/explore/(withoutSidebar)/components/AddToList";
 import { CollectionIcon, CrownIcon, HeartIcon, LinkIcon, StarIcon } from "@assets/Icons";
 import { DataFetcher } from "@components";
-import AddToList from "@app/explore/(withoutSidebar)/components/AddToList";
 import FancyImage from "@components/FancyImage";
 import Navigate from "@components/Navigate";
 import ObserverHeader from "@components/ObserverHeader";
 import { ContentBox, NotFound, VerticleMovieCard } from "@components/ui";
-import { getPoster } from "@lib/dataRefiner";
-import { RefinedCast, RefinedMovieData, RefinedSeasonData, RefinedShowData } from "@type/external";
-import ThreadFetcher from "./ThreadFetcher";
-import ShowTrailerButton from "./ShowTrailerButton";
-import { refineString } from "@lib/utils";
 import InteractiveDetailSection from "@components/ui/InteractiveDetailSection";
+import { getPoster } from "@lib/dataRefiner";
+import { refineString } from "@lib/utils";
+import { RefinedCast, RefinedMovieData, RefinedShowData } from "@type/external";
+import ShowTrailerButton from "./ShowTrailerButton";
+import ThreadFetcher from "./ThreadFetcher";
 
 type Props = {
     type: "movie"

@@ -20,10 +20,6 @@ export const generateMetadata = async ({ params }: { params: { id: string } }): 
     return { title: `Comment ${username ? `by ${username} ` : ''}- Popcorn Paragon`, description: content };
 }
 
-export const generateStaticParams = async () => {
-    return []
-}
-
 const Page = async ({ params, searchParams }: { params: { id: string }, searchParams: { p?: string, f?: string, t?: string } }) => {
 
     const queryClient = getQueryClient();

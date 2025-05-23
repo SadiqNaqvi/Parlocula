@@ -10,9 +10,7 @@ import Lists from "../tabs/ListSection";
 
 type Props = { params: { username: string }, searchParams: { p?: string, f?: string, t?: string } }
 
-export const generateStaticParams = async () => {
-    return []
-}
+ 
 
 const Page = async ({ params: { username }, searchParams: { f, p } }: { params: { username: string }, searchParams: { p?: string, f?: string } }) => {
 
