@@ -17,12 +17,6 @@ const nextConfig = {
       fullUrl: true,
     },
   },
-  webpack: (config) => {
-    config.experiments = {
-      topLevelAwait: true,
-    };
-    return config;
-  },
 };
 
 export default nextConfig;
