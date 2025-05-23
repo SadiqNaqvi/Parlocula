@@ -4,6 +4,7 @@ import { listsAggregationPipeline } from "@lib/pipelines";
 import { listServerSchema } from "@lib/schemas";
 import { getPageParams } from "@lib/utils";
 import { List } from "@model";
+import { MediaItemType } from "@type/internal";
 import { ListSchemaType } from "@type/schemas";
 
 // Fetching Private lists for a user
@@ -21,6 +22,16 @@ export const GET = getRequest(async (r: any, params: { cuid: string }) => {
 
   return { success: true, result: lists ?? [] };
 });
+
+type Item =
+  | {
+      isConfirm: true;
+      media_id: string;
+    }
+  | {
+      isConfirm: false;
+      media_id: undefined;
+    };
 
 // Creating a new list
 export const POST = postRequest({
@@ -43,7 +54,12 @@ export const POST = postRequest({
       await List.create([dataToSave], { session, ordered: true })
     )[0];
 
-    await addItemsInList(items, list._id, user_id, session);
+    await addItemsInList(
+      items as (MediaItemType & Item)[],
+      list._id,
+      user_id,
+      session
+    );
 
     return {
       success: true,

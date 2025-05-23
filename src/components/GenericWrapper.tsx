@@ -37,7 +37,6 @@ const GenericWrapper = <T, P extends { id?: string, [key: string]: any }>(
         />
     );
 
-
     if (isFetching) return (
         <div className="size-screen">
             <LoadingSpinner />

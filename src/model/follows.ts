@@ -1,7 +1,7 @@
-import { FollowModelType } from "@type/models";
+import { UserConnectionModelType } from "@type/models";
 import { Schema, models, model } from "mongoose";
 
-const followModel = new Schema<FollowModelType>({
+const followModel = new Schema<UserConnectionModelType>({
   followee: {
     type: Schema.Types.ObjectId,
     ref: "User",

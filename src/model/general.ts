@@ -3,8 +3,7 @@ import {
   FrameModelType,
   LastUpdateModelType,
   LinkModelType,
-  RecentlyJoinedModelType,
-  ReportModelType,
+  RecentlyJoinedModelType
 } from "@type/models";
 import { Schema } from "mongoose";
 

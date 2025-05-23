@@ -1,27 +1,12 @@
-import Post from "./posts";
-import Thread from "./threads";
-import Member from "./members";
-import User from "./users";
-import Comment from "./comments";
-import Reaction from "./reactions";
-import Vote from "./votes";
-import Follow from "./follows";
-import Media from "./medias";
-import List from "./lists";
-import Item from "./items";
-import Bookmark from "./bookmarks";
-
-export {
-  Bookmark,
-  Item,
-  List,
-  Media,
-  Follow,
-  Post,
-  Thread,
-  User,
-  Member,
-  Comment,
-  Reaction,
-  Vote,
-};
+export { default as Post } from "./posts";
+export { default as Thread } from "./threads";
+export { default as Member } from "./members";
+export { default as User } from "./users";
+export { default as Comment } from "./comments";
+export { default as Reaction } from "./reactions";
+export { default as Vote } from "./votes";
+export { default as Follow } from "./follows";
+export { default as Media } from "./medias";
+export { default as List } from "./lists";
+export { default as Item } from "./items";
+export { default as Bookmark } from "./bookmarks";

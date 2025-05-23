@@ -3,11 +3,12 @@ import InfiniteScroller from "@components/InfiniteScroller";
 import { VerticleMovieCard } from "@components/ui";
 import { fetchMoviesWithGenres } from "@lib/contentFetcher";
 import { queryFunction } from "@lib/utils";
+import { GeneralGetReturn } from "@type/internal";
 
-const fetchData = async (page: number, genres: string) => {
+const fetchData = async (page: number, genres: string): Promise<GeneralGetReturn> => {
     const resp = await fetchMoviesWithGenres({ page, genres, sort_by: "popularity" })
     if (!resp) throw new Error("pp200");
-    return resp;
+    return { success: true, result: resp };
 }
 
 export default function Default({ params }: { params: { id: string } }) {

@@ -1,12 +1,13 @@
+import { NotFound } from "@components/ui"
+import { getUserFromToken } from "@lib/auth/utils"
 import { checkIfItemSaved, getCommentById, getVoteOnComment } from "@lib/helpers/common"
+import { getQueryClient } from "@lib/queryClient"
 import { getQueryKeys, isValidObjectId, queryFunction, refineSearchParams } from "@lib/utils"
-import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query"
+import { dehydrate, HydrationBoundary } from "@tanstack/react-query"
 import { MereComment } from "@type/internal"
 import { Metadata } from "next"
-import CommentPage from "./CommentPage"
-import { getQueryClient } from "@lib/queryClient"
-import { getUserFromToken } from "@lib/auth/utils"
 import { cookies } from "next/headers"
+import CommentPage from "./CommentPage"
 
 export const generateMetadata = async ({ params }: { params: { id: string } }): Promise<Metadata> => {
     const cid = params.id.split('-')[0];
@@ -28,6 +29,14 @@ const Page = async ({ params, searchParams }: { params: { id: string }, searchPa
     const queryClient = getQueryClient();
 
     const cid = params.id.split('-')[0];
+
+    if (cid && !isValidObjectId(cid)) return (
+        <NotFound
+            title="Oops! Look's like you came across a wrong path."
+            paras={["Content id is incorrect", "Please go back and try again."]}
+        />
+    );
+
     const user = await getUserFromToken(cookies());
 
     const { filter, page } = refineSearchParams("comments", searchParams.p, searchParams.f)
@@ -58,7 +67,7 @@ const Page = async ({ params, searchParams }: { params: { id: string }, searchPa
 
     return (
         <HydrationBoundary state={dehydrate(queryClient)}>
-            <CommentPage cid={cid} filter={filter} page={page} />
+            <CommentPage id={cid} filter={filter} page={page} />
         </HydrationBoundary>
     )
 }

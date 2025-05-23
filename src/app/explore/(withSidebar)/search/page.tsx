@@ -1,6 +1,5 @@
 "use client";
 
-import SearchHeader from "./SearchHeader";
 import InfiniteScroller from "@components/InfiniteScroller";
 import { CommentTile, LoadingSearchTile, PostTile, SearchTile, ThreadTile } from "@components/ui";
 import ListTile from "@components/ui/ListTile";
@@ -8,7 +7,7 @@ import UserTile from "@components/ui/UserTile";
 import { searchFilters } from "@lib/constants";
 import { searchAllContent, searchCollection, searchCompany, searchMovie, searchPerson, searchShow } from "@lib/contentFetcher";
 import { searchComments, searchLists, searchPosts, searchThreads, searchUsers } from "@lib/helpers/common";
-import { useSearchParams } from "next/navigation";
+import SearchHeader from "./SearchHeader";
 
 const Loading = () => (
     <div className="space-y-4">
@@ -17,9 +16,9 @@ const Loading = () => (
     </div>
 )
 
-export default function SearchPage() {
+export default function SearchPage({ searchParams }: { searchParams: any }) {
 
-    const params = useSearchParams();
+    const params = searchParams;
     const searchQuery = params.get('q') || '';
     const filter = params.get('f') || '';
     const currentFilter = searchFilters.includes(filter) ? filter : searchFilters[0];

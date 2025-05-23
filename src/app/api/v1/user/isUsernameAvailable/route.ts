@@ -9,5 +9,5 @@ export const GET = getRequest(async (req: NextRequest) => {
     return { success: false, errCode: "pp205" };
 
   const resp = await User.exists({ username });
-  return { result: !resp, success: true };
+  return { result: Boolean(!resp), success: true };
 });

@@ -13,7 +13,7 @@ const Fancybox = ({ children }: { children: React.ReactNode }) => {
             groupAttr: false,
             closeButton: false,
             hideScrollbar: true
-        });
+        } as any);
 
         NativeFancybox.bind("[data-frame]" as any, {
             groupAll: true,

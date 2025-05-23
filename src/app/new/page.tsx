@@ -7,16 +7,16 @@ import { useCustomReducer } from "@lib/hooks";
 import { isValidObjectId, readyFrames } from "@lib/utils";
 import useCurrentUser from "@store/user";
 import { InputFrame, PostSchemaType } from "@type/schemas";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import ThreadChoice from "./threadChoice";
 
 type CallbackVal = Omit<PostSchemaType & { frames: InputFrame[] }, "files" | "filesData" | "thread_id">
 
-export default function Page() {
+export default function Page({ searchParams }: { searchParams: any }) {
 
     const { user, isHydrated } = useCurrentUser();
 
-    const params = useSearchParams();
+    const params = searchParams;
     const router = useRouter();
 
     const tid = params.get("tid");

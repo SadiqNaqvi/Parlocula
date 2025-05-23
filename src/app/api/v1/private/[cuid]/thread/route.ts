@@ -5,15 +5,14 @@ import { Member, Thread } from "@model";
 
 // Creating a thread
 export const POST = postRequest({
-  handler: async ({ data, frames, user_id, session, username }) => {
-    const { name, description, tags, links, nsfw } = data as ThreadSchemaServer;
+  handler: async ({ data, frames, user_id, session }) => {
+    const { name, description, links, nsfw } = data as ThreadSchemaServer;
 
     const poster = frames[0]?.path ?? "";
 
     const dataToStore = {
       name,
       description,
-      tags,
       nsfw,
       links,
       created_by: user_id,
@@ -37,8 +36,8 @@ export const POST = postRequest({
       result,
       success: true,
       errCode: null,
-      available: "threadCreation_tid_username",
-      options: { tid: result._id, username },
+      available: "threadMutation_tid",
+      options: { tid: result._id },
     };
   },
   schema: threadSchemaServer,
