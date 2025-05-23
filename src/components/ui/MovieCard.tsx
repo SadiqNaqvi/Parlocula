@@ -1,5 +1,5 @@
 import { getPoster } from "@lib/dataRefiner"
-import { RefinedMovieData } from "@type/types"
+import { RefinedMovieData } from "@type/external"
 import Link from "next/link"
 
 export const LoadingMovieCard = () => (
@@ -36,7 +36,7 @@ export default function MovieCard({ content }: { content: RefinedMovieData }) {
                     {content.runtime && <li className="first:list-none">{content.runtime}</li>}
                     {content.imdb_rating && <li className="first:list-none">{content.imdb_rating}</li>}
                 </ul>
-                <p className="my-2 font-light text-sm line-clamp-4">{content.synopsis}</p>
+                <p className="my-2 font-light text-sm line-clamp-4">{content.overview}</p>
                 <Link href={`/title/${content.imdb_id.replace("tt", "pp")}`} className="w-fit mt-auto">View More...</Link>
             </div>
         </article>

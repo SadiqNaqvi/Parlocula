@@ -1,6 +1,5 @@
 import { LeftChevron, RightChevron } from "@assets/Icons";
 import { DataFetcher, Navigate } from "@components";
-import { fetchMoviesWithGenres, fetchShowsWithGenres } from "@lib/contentFetcher";
 
 export default function Page() {
 
@@ -43,7 +42,11 @@ export default function Page() {
                             <h2 className="text-xl uppercase font-semibold">{el.label}</h2>
                             <Navigate comp="link" goto={`genres/${el.value}`}><RightChevron /></Navigate>
                         </div>
-                        <DataFetcher args={[el.value]} type={el.type} func={el.type === "movie" ? fetchMoviesWithGenres : fetchShowsWithGenres} />
+                        <DataFetcher
+                            args={[el.value]}
+                            type={el.type}
+                            func={el.type === "movie" ? "fetchMoviesWithGenres" : "fetchShowsWithGenres"}
+                        />
                     </section>
                 ))
 

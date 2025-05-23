@@ -1,16 +1,15 @@
-"use client"
 import InfiniteScroller from "@components/InfiniteScroller";
 import { VerticleMovieCard } from "@components/ui";
-import { fetchMoviesWithGenres } from "@lib/contentFetcher";
+import { fetchShowsWithGenres } from "@lib/contentFetcher";
 import { queryFunction } from "@lib/utils";
 
 const fetchData = async (page: number, genres: string) => {
-    const resp = await fetchMoviesWithGenres({ page, genres, sort_by: "popularity" })
+    const resp = await fetchShowsWithGenres({ page, genres, sort_by: "popularity" })
     if (!resp) throw new Error("pp200");
     return resp;
 }
 
-export default function Default({ params }: { params: { id: string } }) {
+export default function Page({ params }: { params: { id: string } }) {
     const { id } = params;
     return (
         <section>

@@ -7,7 +7,7 @@ type Props = {
     className?: string,
     OptionButton?: React.ReactNode | null,
     navTitle?: string,
-    titleToShare: string,
+    titleToShare?: string,
     urlToShare?: string,
     textToShare?: string,
     poster?: string,
@@ -28,13 +28,15 @@ const Navbar = ({ className = "", OptionButton, navTitle, titleToShare, urlToSha
         </div>
 
         <div className="flex gap-4 items-center">
-            <ShareButton
-                title={titleToShare}
-                url={urlToShare}
-                text={textToShare}
-                className="iconBtn">
-                <ShareIcon />
-            </ShareButton>
+            {titleToShare &&
+                <ShareButton
+                    title={titleToShare}
+                    url={urlToShare}
+                    text={textToShare}
+                    className="iconBtn">
+                    <ShareIcon />
+                </ShareButton>
+            }
             {OptionButton}
         </div>
     </nav>

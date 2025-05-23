@@ -1,5 +1,5 @@
 import { LinkIcon } from "@assets/Icons"
-import { LinkModelType } from "@type/model"
+import { LinkModelType } from "@type/models"
 import Link from "next/link"
 
 const LinkTile = ({ label, path }: LinkModelType) => {

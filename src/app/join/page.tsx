@@ -4,9 +4,10 @@ import Register from "@components/auth/Register";
 import EmailVerifier from "@components/auth/EmailVerifier";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { checkIfUserExist, login } from "@lib/helpers/client";
+import { login } from "@lib/helpers/client";
 import { convertCodeIntoError } from "@lib/utils";
 import useCurrentUser from "@store/user";
+import { checkIfUserExist } from "@lib/helpers/common";
 
 const Page = ({ searchParams }: { searchParams: { url?: string } }) => {
     const urlToRedirect = searchParams.url;

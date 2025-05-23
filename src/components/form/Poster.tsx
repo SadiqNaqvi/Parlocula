@@ -15,9 +15,8 @@ const Poster = ({ removePicture, getImage, defaultPoster = "", className, }: { g
     const togglePoster = (files?: InputFrame[]) => {
         if (files && files.length) {
             const { path } = files[0];
-            console.log(path);
-            setPoster(path);
-            // getImage?.(files);
+            setPoster(() => path);
+            getImage?.(files);
         }
         else {
             setPoster("");

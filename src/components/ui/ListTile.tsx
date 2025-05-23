@@ -1,15 +1,10 @@
 import Navigate from "@components/Navigate";
-import { ListIconMap } from "@lib/constants";
 import { getPoster } from "@lib/dataRefiner";
 import { getInternalPoster, numberConverter } from "@lib/utils";
 import { MereList } from "@type/internal";
 import { UsersListType } from "@type/other";
 import Image from "next/image";
-
-const Icon = ({ type }: { type: UsersListType }) => {
-    const iconFunc = ListIconMap[type];
-    return iconFunc({ className: "size-8" });
-}
+import ListIcons from "./ListIconMap";
 
 const getListHref = (id: string) => {
     switch (id) {
@@ -26,7 +21,7 @@ export const UsersListTile = ({ name, _id, poster }: { name: UsersListType, _id:
                 <Image className="size-[50px] object-cover" height={50} width={50} alt={`Poster of list ${name}`} src={getPoster("poster", poster, 1)} />
                 :
                 <div className="size-[50px] rounded-full bg-gray20 flex flex-cntr-all">
-                    <Icon type={name} />
+                    <ListIcons type={_id} />
                 </div>
             }
             <h4 className="line-clamp-1 capitalize">{name}</h4>

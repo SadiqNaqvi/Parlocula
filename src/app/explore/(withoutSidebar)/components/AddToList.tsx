@@ -1,16 +1,16 @@
 "use client";
 
 import { queryLimit } from "@lib/constants";
-import { getListsForMedia, updatingListsWithItem } from "@lib/helpers/client";
-import { getListsOfUser } from "@lib/helpers/common";
+import { updatingListsWithItem } from "@lib/helpers/client";
+import { getListsForMedia, getListsOfUser } from "@lib/helpers/common";
 import { useQueryHook } from "@lib/hooks";
 import { getQueryKeys, queryFunction } from "@lib/utils";
 import useCurrentUser from "@store/user";
 import { InputMediaType } from "@type/schemas";
-import { InfiniteScroller, ListForm, Modal, Navigate } from "../../../../components";
-import { CheckTile, Form } from "../../../../components/form";
-import { CloseAndTrigger, Popover } from "../../../../components/Modal";
-import { LoadingSpinner } from "../../../../components/ui";
+import { InfiniteScroller, ListForm, Modal, Navigate } from "@components";
+import { CheckTile, Form } from "@components/form";
+import { CloseAndTrigger, Popover } from "@components/Modal";
+import { LoadingSpinner } from "@components/ui";
 
 type Props = {
     isFetching: boolean,

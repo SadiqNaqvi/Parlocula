@@ -23,7 +23,6 @@ const getQueryProps = ({ id }: Props) => ({
 
 const Thread = DynamicComponent<ThreadType, Props, { pathname: string }>({
     component: (data, { children, id }, { pathname }) => {
-        console.log(id)
 
         const { _id, connection, createdAt, created_by, description, links, member_count, nsfw, poster, post_count, name } = data;
 

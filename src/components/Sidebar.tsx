@@ -15,10 +15,10 @@ export default function Sidebar() {
     const links = [
         { label: "Home", link: "/home", icon: HomeIcon, activeIcon: HomeFillIcon },
         { label: "Explore", link: "/explore", icon: ExploreIcon, activeIcon: ExploreFillIcon },
-        { label: "Generate", link: "/generate", icon: MagicStickIcon, activeIcon: MagicStickFillIcon },
+        // { label: "Generate", link: "/generate", icon: MagicStickIcon, activeIcon: MagicStickFillIcon },
         { label: "Threads", link: "/t", icon: ThreadIcon, activeIcon: ThreadIcon },
-        { label: "Inbox", link: "/inbox", icon: MessagesIcon, activeIcon: MessagesFillIcon },
-        { label: "Notification", link: "/notification", icon: BellIcon, activeIcon: BellFillIcon },
+        // { label: "Inbox", link: "/inbox", icon: MessagesIcon, activeIcon: MessagesFillIcon },
+        // { label: "Notification", link: "/notification", icon: BellIcon, activeIcon: BellFillIcon },
     ];
 
     return (

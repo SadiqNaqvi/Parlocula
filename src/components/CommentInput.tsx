@@ -7,9 +7,9 @@ import { Form, Input, ToggleButton } from "./form";
 import GiphyComponent from "./GiphyComponent";
 import Modal from "./Modal";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { arrayAddition } from "@lib/mutation";
 import { createCommentOnPost } from "@lib/helpers/client";
 import useCurrentUser from "@store/user";
+import { addingItemsMutation, mutationWrapper } from "@lib/mutation";
 
 type Props = {
     post_id: string;
@@ -30,7 +30,12 @@ const CommentInput = ({ reply, removeReply, queryKeys, post_id, post_author }: P
 
     const queryClient = useQueryClient();
 
-    const mutation = useMutation(arrayAddition({ mutationFn, queryKeys, queryClient }));
+    const mutation = useMutation(mutationWrapper({
+        mutationFn,
+        queryKeys,
+        queryClient,
+        optimisticWork: addingItemsMutation,
+    }));
 
     const [gif, toggleGif] = useState("");
 

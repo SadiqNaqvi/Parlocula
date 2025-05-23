@@ -22,7 +22,7 @@ const ThreadHeader = () => (
             <p className="text-zinc-500 text-center mt-2">Explore the fandom of your favourite movies, shows, celebrities, characters and connect with the die hard fans.</p>
         </header>
         <section className="flex flex-cntr-between sticky top-0 pb-4 border-b border-gray40 bg-primary py-2">
-            <RouterDropdown tabs={queryFilters.threads} />
+            <RouterDropdown type="threads" />
             <Navigate comp="link" goto="/t/new">
                 <AddIcon />
             </Navigate>

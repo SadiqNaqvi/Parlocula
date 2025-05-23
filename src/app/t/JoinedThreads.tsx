@@ -3,7 +3,7 @@
 import { InfiniteScroller } from "@components";
 import { LoadingSpinner, NotFound, ThreadTile } from "@components/ui";
 import { queryLimit } from "@lib/constants";
-import { threadsByUser } from "@lib/helpers/client";
+import { threadsByUser } from "@lib/helpers/common";
 import useCurrentUser from "@store/user";
 
 const queryFn = async (uid: string | undefined, page: number) => {

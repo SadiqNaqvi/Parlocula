@@ -6,6 +6,5 @@ export { default as Password } from "./Password";
 export { default as DatePicker } from "./DatePicker";
 export { default as Poster } from "./Poster";
 export { default as ThreadTagList } from "./ThreadTagList";
-export { default as RadioThreadTile } from "./RadioThreadTile";
 export { default as CheckTile } from "./CheckAndRadioTile";
 export { default as PostTagList } from "./ThreadTagList";

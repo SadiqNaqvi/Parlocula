@@ -1,24 +1,32 @@
 "use client";
 
-import { useState } from "react";
+import { LeftChevron } from "@assets/Icons";
+import { Navigate } from "@components";
+import { TabContainer, TabList } from "@components/ui/Tabs";
+import { usePathname } from "next/navigation";
+import { PropsWithChildren } from "react";
 
-export default function Layout({ children, movies, shows }: Readonly<{ children: React.ReactNode, movies: React.ReactNode, shows: React.ReactNode }>) {
-    const [tab, setTab] = useState("movies");
+export default function Layout({ children, params }: Readonly<PropsWithChildren<{ params: { id: string } }>>) {
 
-    const handleTab = (entry: string) => {
-        if (tab === entry) return;
-        setTab(entry);
-    }
+    const { id } = params;
+    const pathname = usePathname();
+    const segment = pathname.split('/').at(-1);
+    const currentTab = segment === "shows" ? segment : "movies";
 
     return (
-        <main className="max-w-screen-lg p-4 mx-auto w-full">
+        <main>
+            <header className="flex items-center gap-4">
+                <Navigate comp="button" goto="back" className="iconBtn">
+                    <LeftChevron />
+                </Navigate>
+                <h1 className="text-3xl uppercase font-semibold">{id.replaceAll('-', ' ')}</h1>
+            </header>
+            <TabContainer>
+                <TabList href={`/explore/genres/${id}/`} isActive={currentTab === "movies"}>Movies</TabList>
+                <TabList href={`/explore/genres/${id}/shows`} isActive={currentTab === "shows"}>Shows</TabList>
+            </TabContainer>
             {children}
-            <ul className="flex mt-4 gap-4 sticky top-0 z-[1] bg-primary py-2">
-                <li onClick={() => handleTab("movies")} className={`px-4 py-2 cursor-pointer border-b-2 transition-colors border-transparent ${tab === "movies" ? "border-secondary" : "hover:border-zinc-500"}`}>Movies</li>
-                <li onClick={() => handleTab("shows")} className={`px-4 py-2 cursor-pointer border-b-2 transition-colors border-transparent ${tab === "shows" ? "border-secondary" : "hover:border-zinc-500"}`}>Shows</li>
-            </ul>
-            {movies}
-            {/* {tab === "movies" ? movies : shows} */}
+
         </main>
     );
 }

@@ -49,7 +49,7 @@ const CommentSection = ({ id, page, filter }: Props) => {
 
                 <div className="py-3 border-b border-gray20 flex flex-cntr-between">
                     <h2 className="font-semibold text-lg">Comments</h2>
-                    <RouterDropdown tabs={queryFilters.comments} />
+                    <RouterDropdown type="comments" />
                 </div>
 
                 <InfiniteScroller

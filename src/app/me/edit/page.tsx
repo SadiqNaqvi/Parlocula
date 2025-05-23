@@ -1,8 +1,7 @@
 "use client";
 
 import { Navbar } from "@components";
-import Register from "@components/auth/Register";
-import { DatePicker, Form, Input, Password, Poster, Textarea } from "@components/form";
+import { DatePicker, Form, Input, Poster, Textarea } from "@components/form";
 import { LoadingSpinner } from "@components/ui";
 import { useCustomReducer } from "@lib/hooks";
 import { registerUserSchemaClient } from "@lib/schemas";
