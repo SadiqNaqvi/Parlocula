@@ -8,10 +8,20 @@ const nextConfig = {
       },
     ],
   },
+  experimental: {
+    esmExternals: "loose",
+    serverComponentsExternalPackages: ["mongoose"],
+  },
   logging: {
     fetches: {
       fullUrl: true,
     },
+  },
+  webpack: (config) => {
+    config.experiments = {
+      topLevelAwait: true,
+    };
+    return config;
   },
 };
 
