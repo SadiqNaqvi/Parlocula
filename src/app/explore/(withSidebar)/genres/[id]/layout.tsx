@@ -14,7 +14,7 @@ export default function Layout({ children, params }: Readonly<PropsWithChildren<
     const currentTab = segment === "shows" ? segment : "movies";
 
     return (
-        <main>
+        <>
             <header className="flex items-center gap-4">
                 <Navigate comp="button" goto="back" className="iconBtn">
                     <LeftChevron />
@@ -27,6 +27,6 @@ export default function Layout({ children, params }: Readonly<PropsWithChildren<
             </TabContainer>
             {children}
 
-        </main>
+        </>
     );
 }

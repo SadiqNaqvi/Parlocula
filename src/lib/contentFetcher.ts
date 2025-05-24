@@ -176,7 +176,11 @@ export const fetchMoviesWithGenres = async ({
         `https://testlalaapp.vercel.app/api/movies?g=${id}&sort=${sort_by}&p=${page}`
       )
     ).json();
-    if (data.status) return data.response;
+    if (data.status)
+      return {
+        ...data.response,
+        results: refineGeneralData(data.response.results),
+      };
     console.error(
       "Some erorr occoured while fetching movies with genres: " + data.response
     );
@@ -460,7 +464,11 @@ export const fetchShowsWithGenres = async ({
         `https://testlalaapp.vercel.app/api/shows?g=${ids}&sort=${sort_by}&p=${page}`
       )
     ).json();
-    if (data.status) return data.response;
+    if (data.status)
+      return {
+        ...data.response,
+        results: refineGeneralData(data.response.results),
+      };
     console.error(
       "Some erorr occoured while fetching shows with genres: " + data.response
     );

@@ -19,7 +19,8 @@ type Prop = UserBasedButtonProps<ConnectionType>
 
 const Button = ({ isPending, onClick, state }: Prop) => {
 
-    if (!state || state.isBlocked) return <button className="primary">Follow</button>
+    if (!state || state.isBlocked)
+        return <button className="primary">Follow</button>
 
     const handleClick = (obj: Partial<ConnectionType>, action: string) => {
         if (isPending) return;
@@ -52,7 +53,8 @@ const ActionButton = ({ rid }: { rid: string }) => {
 
     if (!isHydrated) return <LoadingButton />
 
-    if (user?._id === rid) return <Navigate className="primary btn w-full sm:w-fit" role="button" goto="/me/edit" comp="link" >Edit Profile</Navigate>
+    if (user?._id === rid)
+        return <Navigate className="primary btn w-full sm:w-fit" role="button" goto="/me/edit" comp="link" >Edit Profile</Navigate>
 
     const mutationFn = async ({ action, user_id, newState }: MutationFnProps) => {
         switch (action) {

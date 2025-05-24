@@ -1,8 +1,10 @@
 "use client"
+
 import InfiniteScroller from "@components/InfiniteScroller";
 import { VerticleMovieCard } from "@components/ui";
 import { fetchMoviesWithGenres } from "@lib/contentFetcher";
-import { queryFunction } from "@lib/utils";
+import { queryFunction, refineString } from "@lib/utils";
+import { RefinedGeneralData } from "@type/external";
 import { GeneralGetReturn } from "@type/internal";
 
 const fetchData = async (page: number, genres: string): Promise<GeneralGetReturn> => {
@@ -11,12 +13,22 @@ const fetchData = async (page: number, genres: string): Promise<GeneralGetReturn
     return { success: true, result: resp };
 }
 
-export default function Default({ params }: { params: { id: string } }) {
+const Component = ({ id, poster, rating, title, year, type }: RefinedGeneralData) => (
+    <VerticleMovieCard
+        link={`/explore/${type}/${id}-${refineString(title)}`}
+        poster={poster}
+        title={title}
+        rating={rating}
+        year={year.toString()}
+        key={id} />
+)
+
+export default function MoviePage({ params }: { params: { id: string } }) {
     const { id } = params;
     return (
         <section>
             <InfiniteScroller
-                Component={VerticleMovieCard}
+                Component={Component}
                 fetchData={(p) => queryFunction(fetchData, [p, id])}
                 queryKeys={["movies", "genres", id]}
                 className="flex flex-wrap gap-3"

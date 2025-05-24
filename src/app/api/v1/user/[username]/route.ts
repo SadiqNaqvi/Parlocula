@@ -47,7 +47,5 @@ export const GET = getRequest(async (_, params: { username: string }) => {
   const result = response[0];
   if (!result) return { success: false, errCode: "pp104" };
 
-  console.log(result);
-
   return { result, success: true };
 });

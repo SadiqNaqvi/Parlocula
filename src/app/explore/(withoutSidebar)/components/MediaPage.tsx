@@ -21,7 +21,7 @@ type Props = {
 }
 
 const MediaPage = ({ content, type }: Props) => {
-
+    console.log(content?.title);
     if (!content) return (
         <NotFound
             title="Oops! Looks like the popcorn is missing"

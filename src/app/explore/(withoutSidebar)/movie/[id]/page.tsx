@@ -12,8 +12,6 @@ export const generateMetadata = async ({ params }: Props): Promise<Metadata> => 
     return { title: `${data.title} - Popcorn Paragon` };
 };
 
- 
-
 export default async function MoviePage({ params }: Props) {
 
     const { id } = params;

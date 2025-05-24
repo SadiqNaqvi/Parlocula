@@ -11,9 +11,7 @@ export const generateMetadata = async ({ params: { username } }: { params: { use
 const Layout = ({ children, params }: PropsWithChildren<{ params: { username: string } }>) => {
     return (
         <main>
-            <Header username={params.username}>
-                {children}
-            </Header>
+            <Header username={params.username}>{children}</Header>
         </main>
     )
 }

@@ -182,6 +182,7 @@ export const refineGeneralData = (data: any[]): RefinedGeneralData[] => {
       poster: el.poster_path,
       rating: refineRating(el.vote_average).toString(),
       title: el.title || el.name,
+      type: el.media_type === "tv" ? "show" : "movie",
       year: el.release_date
         ? new Date(el.release_date).getFullYear()
         : new Date(el.first_air_date).getFullYear(),

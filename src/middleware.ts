@@ -18,7 +18,11 @@ const validateUser = async (rq: NextRequest, rs: NextResponse) => {
   if (payload.user_id === cuid && payload.exp > Date.now()) return true;
 
   const session = await getSession(session_id);
-  if (!session || session.user_id !== cuid) return false;
+  if (!session || session.user_id !== cuid) {
+    rs.cookies.delete("sid");
+    rs.cookies.delete("token");
+    return false;
+  };
 
   const newToken = await generateToken({ user_id: session.user_id });
   rs.cookies.set("token", newToken, {

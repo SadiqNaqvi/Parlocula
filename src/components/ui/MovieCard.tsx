@@ -1,5 +1,5 @@
 import { getPoster } from "@lib/dataRefiner"
-import { RefinedMovieData } from "@type/external"
+import { GeneralMovieData, RefinedMovieData } from "@type/external"
 import Link from "next/link"
 
 export const LoadingMovieCard = () => (
@@ -25,19 +25,19 @@ export const LoadingMovieCard = () => (
     </div>
 )
 
-export default function MovieCard({ content }: { content: RefinedMovieData }) {
+export default function MovieCard({ backdrop_path, title, poster_path, id, overview }: GeneralMovieData) {
     return (
-        <article className="flex rounded-lg overflow-hidden bg-cover" style={{ backgroundImage: `url(${getPoster("poster", content.poster, 0)})` }}>
-            <img className="aspect-[2/3] w-48 object-cover" src={getPoster("poster", content.poster, 1)} alt={`${content.title} poster`} />
+        <article className="flex rounded-lg overflow-hidden bg-cover" style={{ backgroundImage: `url(${getPoster("poster", backdrop_path, 0)})` }}>
+            <img className="aspect-[2/3] w-48 object-cover" src={getPoster("poster", poster_path, 1)} alt={`${title} poster`} />
             <div className="p-4 flex flex-col flex-1 backdrop-brightness-[0.4] backdrop-blur-md text-zinc-100">
-                <h2 className="text-2xl uppercase">{content.title}</h2>
+                <h2 className="text-2xl uppercase">{title}</h2>
                 <ul className="flex gap-8 list-disc text-sm text-gray-300">
-                    {content.year && <li className="first:list-none">{content.year}</li>}
-                    {content.runtime && <li className="first:list-none">{content.runtime}</li>}
-                    {content.imdb_rating && <li className="first:list-none">{content.imdb_rating}</li>}
+                    {/* {year && <li className="first:list-none">{year}</li>} */}
+                    {/* {runtime && <li className="first:list-none">{runtime}</li>}
+                    {imdb_rating && <li className="first:list-none">{imdb_rating}</li>} */}
                 </ul>
-                <p className="my-2 font-light text-sm line-clamp-4">{content.overview}</p>
-                <Link href={`/title/${content.imdb_id.replace("tt", "pp")}`} className="w-fit mt-auto">View More...</Link>
+                <p className="my-2 font-light text-sm line-clamp-4">{overview}</p>
+                {/* <Link href={`/title/${id}`} className="w-fit mt-auto">View More...</Link> */}
             </div>
         </article>
 

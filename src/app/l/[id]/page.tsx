@@ -9,8 +9,6 @@ import ListPage from "./ListPage";
 
 type Props = { params: { id: string }, searchParams: { p?: string, f?: string } };
 
- 
-
 const Page = async ({ params: { id }, searchParams }: Props) => {
 
     const queryClient = getQueryClient();

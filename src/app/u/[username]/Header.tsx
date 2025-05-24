@@ -50,9 +50,9 @@ const Header = (props: Props) => {
                                 id="profile_picture"
                                 className="size-28 aspect-square rounded-full" src={getInternalPoster({ path: profile, options: { width: "112" } })} />
                         </div>
-                        <div className="flex gap-3 my-auto">
+                        <div className="flex gap-2 sm:gap-3 my-auto">
                             {userMeta.map(({ label, value }) => (
-                                <span className="p-2 gap-2 flex itemx-center" key={label}>
+                                <span className="gap-2 flex flex-col sm:flex-row itemx-center" key={label}>
                                     <span className="text-2xl text-center">{numberConverter(value)}</span>
                                     <span className="text-sm text-zinc-500">{label}</span>
                                 </span>

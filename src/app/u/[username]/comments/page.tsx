@@ -10,8 +10,6 @@ import Comments from "../tabs/CommentSection";
 
 type Props = { params: { username: string }, searchParams: { p?: string, f?: string, t?: string } }
 
- 
-
 const Page = async ({ params: { username }, searchParams: { f, p } }: Props) => {
 
     const queryClient = getQueryClient();
@@ -20,11 +18,14 @@ const Page = async ({ params: { username }, searchParams: { f, p } }: Props) => 
 
     const user = await getUserFromToken(cookies());
     const current = user?.username === username;
-
+    
+    const queryFn = current ? fetchCurrentUser : getUserByUsername;
+    const props = current ? user.user_id : username;
+    
     await Promise.all([
         queryClient.prefetchQuery({
             queryKey: getQueryKeys("user_username", { username }),
-            queryFn: () => queryFunction(current ? fetchCurrentUser : getUserByUsername, [current ? user.user_id : username]),
+            queryFn: () => queryFunction(queryFn, [props]),
             staleTime: 60 * 60 * 1000,
         }),
 
@@ -37,9 +38,9 @@ const Page = async ({ params: { username }, searchParams: { f, p } }: Props) => 
         }),
     ]);
 
-    const response = queryClient.getQueryData<GeneralGetReturn<RequestedUser>>(getQueryKeys("user_username", { username }));
+    const requestedUser = queryClient.getQueryData<RequestedUser>(getQueryKeys("user_username", { username }));
 
-    if (!response || !response.success) return (
+    if (!requestedUser) return (
         <section className="size-screen">
             <NotFound
                 title="Nothing is found"
@@ -50,8 +51,6 @@ const Page = async ({ params: { username }, searchParams: { f, p } }: Props) => 
             />
         </section>
     )
-
-    const requestedUser = response.result;
 
     if (user && !current)
         queryClient.prefetchQuery({

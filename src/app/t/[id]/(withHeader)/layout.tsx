@@ -10,7 +10,7 @@ const ThreadLayout = ({ children, params }: PropsWithChildren<{ params: { id: st
     const { id } = params;
     const tid = id.split('-')[0];
     
-    if (isValidObjectId(tid)) return (
+    if (!isValidObjectId(tid)) return (
         <NotFound
             title="Oops! Look's like you came across a wrong path."
             paras={["Content id is incorrect", "Please go back and try again."]}

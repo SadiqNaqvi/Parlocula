@@ -8,6 +8,7 @@ import { searchFilters } from "@lib/constants";
 import { searchAllContent, searchCollection, searchCompany, searchMovie, searchPerson, searchShow } from "@lib/contentFetcher";
 import { searchComments, searchLists, searchPosts, searchThreads, searchUsers } from "@lib/helpers/common";
 import SearchHeader from "./SearchHeader";
+import { useSearchParams } from "next/navigation";
 
 const Loading = () => (
     <div className="space-y-4">
@@ -16,9 +17,9 @@ const Loading = () => (
     </div>
 )
 
-export default function SearchPage({ searchParams }: { searchParams: any }) {
+export default function SearchPage() {
 
-    const params = searchParams;
+    const params = useSearchParams();
     const searchQuery = params.get('q') || '';
     const filter = params.get('f') || '';
     const currentFilter = searchFilters.includes(filter) ? filter : searchFilters[0];

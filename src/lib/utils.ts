@@ -289,7 +289,7 @@ export const infiniteScrollerResponse = (
   const { data, total } = response;
   const results = Array.isArray(data) ? data : [];
   const totalRes = total && !isNaN(total) ? total : 0;
-  console.log("total", totalRes);
+  
   return {
     results,
     page,

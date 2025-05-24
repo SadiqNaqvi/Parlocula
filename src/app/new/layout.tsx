@@ -1,4 +1,6 @@
+import { LoadingSpinner } from "@components/ui";
 import type { Metadata } from "next";
+import { Suspense } from "react";
 
 export const metadata: Metadata = {
     title: "Create Post - Popcorn Paragon",
@@ -8,5 +10,11 @@ export const metadata: Metadata = {
 
 export default function Layout({ children }: Readonly<{ children: React.ReactNode }>) {
 
-    return <main className="withoutSidebar">{children}</main>
+    return (
+        <main>
+            <Suspense fallback={<LoadingSpinner />}>
+                {children}
+            </Suspense>
+        </main>
+    )
 }

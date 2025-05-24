@@ -17,23 +17,22 @@ const Navbar = ({ className = "", OptionButton, navTitle, titleToShare, urlToSha
     <nav className={`${className} h-14 md:h-16 w-full z-[2] flex flex-cntr-between sticky top-0 bg-primary`}>
 
         <div className="flex gap-2 items-center">
-            <Navigate comp="button" goto="back" className="iconBtn">
+            <Navigate comp="button" goto="back">
                 <LeftChevron />
             </Navigate>
             <p className={`line-clamp-1 ${navTitle ? "opacity-100" : "opacity-0"} text-lg transition-opacity`}>{navTitle}</p>
         </div>
-
-        <div className="size-12">
-            <AppIcon className="size-full" />
-        </div>
+        {!navTitle &&
+            <div className="size-8">
+                <AppIcon className="size-full" />
+            </div>}
 
         <div className="flex gap-4 items-center">
             {titleToShare &&
                 <ShareButton
                     title={titleToShare}
                     url={urlToShare}
-                    text={textToShare}
-                    className="iconBtn">
+                    text={textToShare}>
                     <ShareIcon />
                 </ShareButton>
             }

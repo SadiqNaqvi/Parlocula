@@ -3,7 +3,7 @@
 import { InfiniteScroller } from "@components";
 import { PostTile } from "@components/ui";
 import { getPostsOfUser } from "@lib/helpers/common";
-import { queryFunction } from "@lib/utils";
+import { getQueryKeys, queryFunction } from "@lib/utils";
 
 type Props = {
     username: string,
@@ -23,7 +23,7 @@ const PostSection = ({ username, filter, page }: Props) => {
     return (
         <InfiniteScroller
             initialPage={page}
-            queryKeys={['posts-of-user', username, page, filter]}
+            queryKeys={getQueryKeys("postsOfUser_username_filter_page", { username, filter, page })}
             fetchData={(p) => queryFunction(getPostsOfUser, [username, p, filter])}
             Component={PostTile}
             notFoundMessage={notFoundMessage}

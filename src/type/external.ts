@@ -504,6 +504,7 @@ export type RefinedGeneralData = {
   year: number;
   id: string;
   rating: string;
+  type:"movie"|"show"
 };
 
 export type RefinedGeneralContentData = {
