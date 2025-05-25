@@ -41,19 +41,7 @@ const Page = async ({ params: { username }, searchParams: { f, p } }: { params: 
 
     const requestedUser = queryClient.getQueryData<RequestedUser>(getQueryKeys("user_username", { username }));
 
-    if (!requestedUser) return (
-        <section className="size-screen">
-            <NotFound
-                title="Nothing is found"
-                paras={[
-                    "The user might have changed their username, deactivated their account or not exist at all.",
-                    "Please search the user by their username in the explore page."
-                ]}
-            />
-        </section>
-    )
-
-    if (user && !current)
+    if (user && !current && requestedUser)
         queryClient.prefetchQuery({
             queryKey: getQueryKeys("connection_ruid", { ruid: requestedUser._id }),
             queryFn: () => queryFunction(checkUserConnection, [user.user_id, requestedUser._id]),

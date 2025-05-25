@@ -64,7 +64,6 @@ export const DELETE = deleteRequest(async ({ params, user_id, session }) => {
     id,
     {
       $inc: { reaction_count: -1 },
-      $max: { reaction_count: 0 },
     },
     { session }
   );

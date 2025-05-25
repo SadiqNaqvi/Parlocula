@@ -1,6 +1,11 @@
+import { getUserFromToken } from "@lib/auth/utils";
 import { connectPPDB } from "@lib/database";
-import { FrameDataSchemaType } from "@type/schemas";
-import { formDataToObject, getCacheTags, objectToFormData } from "@lib/utils";
+import {
+  formDataToObject,
+  getCacheTags,
+  getLocalUrl,
+  objectToFormData,
+} from "@lib/utils";
 import {
   Frame,
   FullMediaItemType,
@@ -16,14 +21,14 @@ import {
   DeleteResponseWithCacheOptions,
   PostResponseWithCacheOptions,
 } from "@type/other";
+import { FrameDataSchemaType } from "@type/schemas";
 import axios from "axios";
 import { ClientSession, startSession } from "mongoose";
 import { revalidateTag } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 import { ZodSchema } from "zod";
-import { oneDay, oneWeek, queryFilters } from "../constants";
+import { oneDay, queryFilters } from "../constants";
 import { deleteMultipleMedia, mediaUploader } from "./server";
-import { getUserFromToken } from "@lib/auth/utils";
 
 // HELPER FUNCTIONS
 
@@ -71,12 +76,9 @@ export const ppGetData = async ({
   const cacheTags =
     tag && getCacheTags({ type: "cache", available: tag, options });
   try {
-    return await fetch(
-      `${process.env.__NEXT_PRIVATE_ORIGIN || ""}/api/v1/${url}`,
-      {
-        next: { revalidate, tags: cacheTags },
-      }
-    ).then((res) => res.json());
+    return await fetch(`${getLocalUrl()}/api/v1/${url}`, {
+      next: { revalidate, tags: cacheTags },
+    }).then((res) => res.json());
   } catch (err: any) {
     console.error(`Error occured at path ${url}`, err.message);
     return {
@@ -457,7 +459,7 @@ export const updateRequest = ({
 export const fetchCurrentUser = async (id: string) =>
   await ppGetData({
     url: `private/${id}/user/me`,
-    revalidate: oneWeek,
+    revalidate: oneDay * 2,
     tag: "currentUser_uid",
     options: { uid: id },
   });
@@ -468,7 +470,7 @@ export const isUsernameAvailable = async (
   if (!username) return { success: true, result: false };
   const response = await ppGetData({
     url: `user/isUsernameAvailable?username=${username}`,
-    revalidate: oneWeek,
+    revalidate: oneDay * 2,
     tag: "usernameAvailability_username",
     options: { username },
   });
@@ -481,7 +483,7 @@ export const isUsernameAvailable = async (
 export const checkIfUserExist = async (email: string) =>
   await ppGetData({
     url: `user/ifUserExist?email=${email}`,
-    revalidate: oneWeek,
+    revalidate: oneDay * 2,
     tag: "userExistence_email",
     options: { email },
   });
@@ -491,7 +493,7 @@ export const getThreadById = async (
 ): Promise<GeneralGetReturn<Thread>> =>
   await ppGetData({
     url: `thread/${id}`,
-    revalidate: oneWeek,
+    revalidate: oneDay * 2,
     tag: "thread_tid",
     options: { tid: id },
   });
@@ -522,7 +524,7 @@ export const isMember = async (
   if (!uid) return { success: false, errCode: "pp202" };
   const response = await ppGetData({
     url: `private/${uid}/thread/${tid}/member`,
-    revalidate: oneWeek,
+    revalidate: oneDay * 2,
     tag: "member_tid_uid",
     options: { tid, uid },
   });
@@ -540,7 +542,7 @@ export const searchMembers = async (tid: string, query: string, page: string) =>
 export const threadsByUser = async (uid: string, page = 1) =>
   await ppGetData({
     url: `private/${uid}/user/me/threads?p=${page}`,
-    revalidate: oneWeek,
+    revalidate: oneDay * 2,
     tag: "threadsByUser_uid_page",
     options: { uid, page },
   });
@@ -584,7 +586,7 @@ export const getReactionOnPost = async (
   if (!uid) return { success: true, result: null };
   const response = await ppGetData({
     url: `private/${uid}/post/${pid}/reaction`,
-    revalidate: oneWeek,
+    revalidate: oneDay * 2,
     tag: "reaction_pid_uid",
     options: { pid, uid },
   });
@@ -664,7 +666,7 @@ export const getVoteOnComment = async (
   if (!uid) return { success: false, errCode: "pp202" };
   const response = await ppGetData({
     url: `private/${uid}/comment/${cid}/vote`,
-    revalidate: oneWeek,
+    revalidate: oneDay * 2,
     tag: "vote_cid_uid",
     options: { cid, uid },
   });
@@ -697,7 +699,7 @@ export const getThreadsForMedia = async (
 export const getUserByUsername = async (username: string) =>
   await ppGetData({
     url: `user/${username}`,
-    revalidate: oneWeek,
+    revalidate: oneDay * 2,
     tag: "user_username",
     options: { username },
   });
@@ -710,7 +712,7 @@ export const getMediaItem = async (
   const id = tmdbid.split("-")[0];
   const item = await ppGetData({
     url: `media/${id}`,
-    revalidate: oneWeek,
+    revalidate: oneDay * 2,
     tag: "media_tmdbid",
     options: { tmdbid: id },
   });
@@ -719,7 +721,7 @@ export const getMediaItem = async (
 
   const media = await fetch(
     `https://testlalaapp.vercel.app/api/${type}?id=${tmdbid}`,
-    { next: { revalidate: oneWeek } }
+    { next: { revalidate: oneDay * 2 } }
   ).then((r) => r.json());
 
   if (!media.status) return null;
@@ -736,10 +738,7 @@ export const getMediaItem = async (
   };
 
   const { result, errCode } = await axios
-    .post(
-      `${process.env.__NEXT_PRIVATE_ORIGIN || ""}/api/v1/media/${id}`,
-      objectToFormData(data)
-    )
+    .post(`${getLocalUrl()}/api/v1/media/${id}`, objectToFormData(data))
     .then((r) => r.data);
 
   console.log(errCode);
@@ -759,7 +758,7 @@ export const getList = async (id: string): Promise<GeneralGetReturn> => {
 
   return await ppGetData({
     url: `list/${id}`,
-    revalidate: oneWeek,
+    revalidate: oneDay * 2,
     tag: "list_lid",
     options: { lid: id },
   });
@@ -833,7 +832,7 @@ export const searchLists = async (query: string, page = 1) => {
 export const checkIfItemSaved = async (id: string, uid: string) => {
   const response = await ppGetData({
     url: `private/${uid}/bookmark/${id}`,
-    revalidate: oneWeek,
+    revalidate: oneDay * 2,
     tag: "isSaved_uid_id",
     options: { uid, id },
   });
@@ -846,7 +845,7 @@ export const checkUserConnection = async (
 ): Promise<GeneralGetReturn> => {
   const response = await ppGetData({
     url: `private/${uid}/user/${rid}/follow`,
-    revalidate: oneWeek,
+    revalidate: oneDay * 2,
     tag: "connection_rid_uid",
     options: { uid, rid },
   });

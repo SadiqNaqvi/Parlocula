@@ -18,10 +18,10 @@ const Page = async ({ params: { username }, searchParams: { f, p } }: Props) => 
 
     const user = await getUserFromToken(cookies());
     const current = user?.username === username;
-    
+
     const queryFn = current ? fetchCurrentUser : getUserByUsername;
     const props = current ? user.user_id : username;
-    
+
     await Promise.all([
         queryClient.prefetchQuery({
             queryKey: getQueryKeys("user_username", { username }),
@@ -40,19 +40,7 @@ const Page = async ({ params: { username }, searchParams: { f, p } }: Props) => 
 
     const requestedUser = queryClient.getQueryData<RequestedUser>(getQueryKeys("user_username", { username }));
 
-    if (!requestedUser) return (
-        <section className="size-screen">
-            <NotFound
-                title="Nothing is found"
-                paras={[
-                    "The user might have changed their username, deactivated their account or not exist at all.",
-                    "Please search the user by their username in the explore page."
-                ]}
-            />
-        </section>
-    )
-
-    if (user && !current)
+    if (user && !current && requestedUser)
         queryClient.prefetchQuery({
             queryKey: getQueryKeys("connection_ruid", { ruid: requestedUser._id }),
             queryFn: () => queryFunction(checkUserConnection, [user.user_id, requestedUser._id]),

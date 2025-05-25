@@ -9,8 +9,6 @@ import { NotFound } from "@components/ui";
 
 type Props = { params: { id: string }, searchParams: { p?: string, f?: string } };
 
- 
-
 export default async function Page({ params, searchParams }: Props) {
 
     const queryClient = getQueryClient();

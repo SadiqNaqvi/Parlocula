@@ -120,7 +120,7 @@ export const POST = async (
       await Item.deleteMany({ _id: id, list_id: { $in: remove } }, { session });
       await List.updateMany(
         { _id: { $in: remove } },
-        { $inc: { item_count: -1 }, $max: { item_count: 0 } },
+        { $inc: { item_count: -1 } },
         { session }
       );
     }

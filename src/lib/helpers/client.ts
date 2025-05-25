@@ -3,6 +3,7 @@
 import { setDataMutation } from "@lib/mutation";
 import { QueryClient } from "@tanstack/react-query";
 import { GeneralGetReturn, GeneralPostReturn } from "@type/internal";
+import { AppRouterInstance } from "@type/nextjs";
 import { AvailableCacheTags, ContentMutationProps } from "@type/other";
 import {
   bookmarkSchemaType,
@@ -17,16 +18,15 @@ import {
 } from "@type/schemas";
 import axios from "axios";
 import toast from "react-hot-toast";
-import { oneDay, oneWeek } from "../constants";
 import {
   convertCodeIntoError,
   getCacheTags,
+  getLocalUrl,
   getQueryKeys,
   objectToFormData,
   refineString,
   trycatch,
 } from "../utils";
-import { AppRouterInstance } from "@type/nextjs";
 
 const clientGetRequests = async ({
   options,
@@ -43,13 +43,10 @@ const clientGetRequests = async ({
   const cacheTags =
     tag && getCacheTags({ type: "cache", available: tag, options });
   try {
-    return await fetch(
-      `${process.env.__NEXT_PRIVATE_ORIGIN || ""}/api/v1/${url}`,
-      {
-        next: { revalidate, tags: cacheTags },
-        cache: revalidate ? "force-cache" : "no-store",
-      }
-    ).then((res) => res.json());
+    return await fetch(`${getLocalUrl()}/api/v1/${url}`, {
+      next: { revalidate, tags: cacheTags },
+      cache: revalidate ? "force-cache" : "no-store",
+    }).then((res) => res.json());
   } catch (err: any) {
     console.error(`Error occured at path ${url}`, err.message);
     return { success: false, errCode: "200" };
@@ -70,9 +67,7 @@ export const ppPostData = async ({
   return await trycatch(() =>
     axios
       .post(
-        `${
-          process.env.__NEXT_PRIVATE_ORIGIN || ""
-        }/api/v1/private/${uid}/${url}`,
+        `${getLocalUrl()}/api/v1/private/${uid}/${url}`,
         objectToFormData(data)
       )
       .then((r) => r.data)
@@ -99,9 +94,7 @@ export const ppUpdateData = async ({
   return await trycatch(() =>
     axios
       .patch(
-        `${
-          process.env.__NEXT_PRIVATE_ORIGIN || ""
-        }/api/v1/private/${uid}/${url}`,
+        `${getLocalUrl()}/api/v1/private/${uid}/${url}`,
         objectToFormData(data)
       )
       .then((r) => r.data)
@@ -122,11 +115,7 @@ export const ppDeleteData = async (
   // try {
   return await trycatch(() =>
     axios
-      .delete(
-        `${
-          process.env.__NEXT_PRIVATE_ORIGIN || ""
-        }/api/v1/private/${uid}/${url}`
-      )
+      .delete(`${getLocalUrl()}/api/v1/private/${uid}/${url}`)
       .then((res) => res.data)
   );
   // } catch (err) {
@@ -141,10 +130,7 @@ export const ppDeleteData = async (
 export const register = async (data: any, setUserHash: any) => {
   const { success, result, errCode, formError } = await trycatch(() =>
     axios
-      .post(
-        `${process.env.__NEXT_PRIVATE_ORIGIN || ""}/api/v1/user/register`,
-        objectToFormData(data)
-      )
+      .post(`${getLocalUrl()}/api/v1/user/register`, objectToFormData(data))
       .then((r) => r.data)
   );
   if (!success) {
@@ -160,10 +146,7 @@ export const register = async (data: any, setUserHash: any) => {
 export const login = async (email: string, setUserHash: any) => {
   const { success, result, errCode } = await trycatch(() =>
     axios
-      .post(
-        `${process.env.__NEXT_PRIVATE_ORIGIN || ""}/api/v1/user/login`,
-        objectToFormData({ email })
-      )
+      .post(`${getLocalUrl()}/api/v1/user/login`, objectToFormData({ email }))
       .then((r) => r.data)
   );
 

@@ -56,8 +56,8 @@ export const GET = getRequest(
       },
       { type: 1 }
     );
-    if (!vote) return { success: false, errCode: "pp104" };
-    return { result: vote.type, success: true };
+
+    return { result: vote?.type, success: true };
   }
 );
 

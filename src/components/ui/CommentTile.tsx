@@ -5,20 +5,14 @@ import { MereComment } from "@type/internal";
 import Image from "next/image";
 import toast from "react-hot-toast";
 
-const options = {
-    w: "32",
-    aspect_ratio: '1'
-}
-
 const Link = ({ children, link, className }: { children: React.ReactNode, link: string | undefined, className?: string }) => (
-    <>{
-        link ?
-            <Navigate className={className} comp="link" goto={link}>{children}</Navigate>
-            : <>{children}</>
+    <>{link ?
+        <Navigate className={className} comp="link" goto={link}>{children}</Navigate>
+        : <p>{children}</p>
     }</>
 )
 
-export default function CommentTile({ _id, attachment, nsfw, spoiler, callback, user, content, upvote_count, parent, profile, replied_to, username, createdAt, updatedAt }: MereComment & { callback?: any, user?: any }) {
+export default function CommentTile({ _id, attachment, nsfw, spoiler, callback, user, content, upvote_count, parent, profile, replied_to, username, createdAt, edited_at }: MereComment & { callback?: any, user?: any }) {
 
     const reply = () => {
         if (!user) {
@@ -39,10 +33,10 @@ export default function CommentTile({ _id, attachment, nsfw, spoiler, callback, 
                 </Navigate>
             }
             <details className="w-full p-2 border-l border-gray30" open={!nsfw && !spoiler}>
-                <summary className="flex gap-3">
+                <summary className="flex gap-3 items-center">
                     <Image
-                        src={getInternalPoster({ path: profile, options })}
-                        className="size-8 rounded-full"
+                        src={getInternalPoster({ path: profile })}
+                        className="size-8 rounded-full object-cover"
                         height={32}
                         width={32}
                         alt={`profile picture of ${username}`}
@@ -57,7 +51,7 @@ export default function CommentTile({ _id, attachment, nsfw, spoiler, callback, 
                     <ul className="flex gap-2 items-center">
                         <li className="text-gray-500 text-xs">{timeAgo(createdAt)}</li>
 
-                        {createdAt !== updatedAt && <li className="bg-gray20 rounded-md text-xs px-2 py-1">Edited</li>}
+                        {edited_at && <li className="bg-gray20 rounded-md text-xs px-2 py-1">Edited</li>}
 
                         {nsfw && <li className="bg-red-400 bg-opacity-20 rounded-md text-xs px-2 py-1">NSFW</li>}
 

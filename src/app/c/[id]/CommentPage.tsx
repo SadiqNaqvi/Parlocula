@@ -32,7 +32,7 @@ const component = (data: FullComment, { filter, page }: Props) => {
                 titleToShare={`Read the comment by ${username} and their replies on Popcorn Paragon`}
                 className="sticky bg-primary -mt-4 mb-4" />
 
-            <header className="flex items-center gap-3">
+            <header className="space-y-4">
                 <div className="flex items-center gap-3">
                     <Image
                         className="rounded-full"

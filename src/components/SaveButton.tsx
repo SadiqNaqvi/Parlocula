@@ -21,7 +21,7 @@ const SaveButton = ({ id, count, type }: { id: string, count: number, type: "Pos
 
     const Button = ({ onClick, state }: UserBasedButtonProps<boolean>) => (
         <button className="space-x-2" onClick={() => onClick(!state, state ? "unsave" : "save")}>
-            <span>{state ? <BookmarkIcon /> : <BookmarkFillIcon />}</span>
+            <span>{state ? <BookmarkFillIcon /> : <BookmarkIcon />}</span>
             {type === "List" ?
                 <span>{state ? "Saved" : "Save"}</span>
                 :
@@ -31,7 +31,7 @@ const SaveButton = ({ id, count, type }: { id: string, count: number, type: "Pos
     );
 
     return <UserBasedButton
-        Loading={null}
+        Loading={<></>}
         className="flex p-2 border border-gray-500 border-opacity-30 rounded-md"
         Button={Button}
         mutationFn={mutationFn}

@@ -19,8 +19,9 @@ type Prop = UserBasedButtonProps<ConnectionType>
 
 const Button = ({ isPending, onClick, state }: Prop) => {
 
+    // 
     if (!state || state.isBlocked)
-        return <button className="primary">Follow</button>
+        return <button className="primary" onClick={() => onClick(state!, "doNothing")}>Follow</button>
 
     const handleClick = (obj: Partial<ConnectionType>, action: string) => {
         if (isPending) return;
@@ -58,12 +59,12 @@ const ActionButton = ({ rid }: { rid: string }) => {
 
     const mutationFn = async ({ action, user_id, newState }: MutationFnProps) => {
         switch (action) {
-            case "follow": await follow(user_id, rid)
-            case "unfollow": await unfollow(user_id, rid)
-            case "block": await block(user_id, rid)
-            case "unblock": await unblock(user_id, rid)
-            case "notificaion": await modifyNotification(user_id, rid, { notification: newState.notificaion })
-            case "remove": await removeFollower(user_id, rid);
+            case "follow": return await follow(user_id, rid)
+            case "unfollow": return await unfollow(user_id, rid)
+            case "block": return await block(user_id, rid)
+            case "unblock": return await unblock(user_id, rid)
+            case "notificaion": return await modifyNotification(user_id, rid, { notification: newState.notificaion })
+            case "remove": return await removeFollower(user_id, rid);
         }
     }
 

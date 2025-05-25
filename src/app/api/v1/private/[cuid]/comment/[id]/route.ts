@@ -15,7 +15,6 @@ export const DELETE = deleteRequest(
       commentToDelete.post_id,
       {
         $inc: { comment_count: -1 },
-        $max: { comment_count: 0 },
       },
       { session }
     );

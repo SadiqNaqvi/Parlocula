@@ -26,7 +26,7 @@ const FancyImage = ({ src, id, download, caption, alt, height, width, type = "im
             className={containerClass ?? "size-fit"}
             style={{ cursor: "pointer" }}
             key={src}
-            data-src={src}
+            data-src={source}
             data-frame={id}
             data-download-src={download ? source : undefined}
             data-download-filename={download}

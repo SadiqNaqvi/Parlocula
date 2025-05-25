@@ -181,10 +181,10 @@ export type MereComment = document & {
   profile?: string;
   parent?: string;
   attachment?: string;
+  edited_at: Date|null;
 };
 
 export type FullComment = MereComment & {
-  edited_at: Date | null;
   post_author: string;
   saved_count: number;
 };

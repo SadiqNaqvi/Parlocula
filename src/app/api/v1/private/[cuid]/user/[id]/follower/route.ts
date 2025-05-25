@@ -15,13 +15,13 @@ export const DELETE = deleteRequest(async ({ params, user_id, session }) => {
   if (doc) {
     await User.findByIdAndUpdate(
       user_id,
-      { $inc: { followers: -1 }, $max: { followers: 0 } },
+      { $inc: { followers: -1 } },
       { session }
     );
 
     await User.findByIdAndUpdate(
       id,
-      { $inc: { following: -1 }, $max: { following: 0 } },
+      { $inc: { following: -1 } },
       { session }
     );
   }

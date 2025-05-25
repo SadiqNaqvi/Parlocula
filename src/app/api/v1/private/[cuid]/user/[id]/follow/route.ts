@@ -132,7 +132,6 @@ export const DELETE = deleteRequest(async ({ user_id, session, params }) => {
     user_id,
     {
       $inc: { following_count: -1 },
-      $max: { following_count: 0 },
     },
     { session }
   );
@@ -141,7 +140,6 @@ export const DELETE = deleteRequest(async ({ user_id, session, params }) => {
     requestedUser,
     {
       $inc: { follower_count: -1 },
-      $max: { follower_count: 0 },
     },
     { session }
   );

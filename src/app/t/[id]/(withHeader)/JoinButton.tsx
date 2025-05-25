@@ -10,8 +10,8 @@ const JoinButton = ({ tid }: { tid: string }) => {
 
     const mutationFn = async ({ action, user_id }: MutationFnProps) => {
         switch (action) {
-            case "join": await joinThread(tid, user_id)
-            case "leave": await leaveThread(tid, user_id)
+            case "join": return await joinThread(tid, user_id);
+            case "leave": return await leaveThread(tid, user_id);
         }
     }
 

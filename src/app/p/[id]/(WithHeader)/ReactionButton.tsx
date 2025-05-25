@@ -1,12 +1,12 @@
 "use client";
 
 import { UserBasedButton } from "@components";
-import { closeFancyBox } from "@components/Modal";
+import Modal, { closeFancyBox } from "@components/Modal";
 import { addReactionOnPost, removeReactionOnPost } from "@lib/helpers/client";
 import { getReactionOnPost } from "@lib/helpers/common";
-import { queryFunction } from "@lib/utils";
+import { numberConverter, queryFunction } from "@lib/utils";
 import { MutationFnProps, UserBasedButtonProps } from "@type/other";
-import { EmojiClickData } from "emoji-picker-react";
+import EmojiPicker, { Emoji, EmojiClickData, Theme } from "emoji-picker-react";
 
 const ReactionButton = ({ id, count }: { id: string, count: number }) => {
 
@@ -28,13 +28,12 @@ const ReactionButton = ({ id, count }: { id: string, count: number }) => {
 
         return (
             <span className="flex p-2 border border-gray30 rounded-md">
-                {/* <Modal
+                <Modal
                     buttonChildren={
                         <>
                             <span>
                                 {state ?
-                                    state
-                                    // <Emoji unified={state} size={18} />
+                                    <Emoji unified={state} size={18} />
                                     : "React"
                                 }
                             </span>
@@ -53,7 +52,7 @@ const ReactionButton = ({ id, count }: { id: string, count: number }) => {
                         lazyLoadEmojis
                         // onEmojiClick={handleReactionClick}
                         reactionsDefaultOpen />
-                </Modal> */}
+                </Modal>
             </span>
         )
     }

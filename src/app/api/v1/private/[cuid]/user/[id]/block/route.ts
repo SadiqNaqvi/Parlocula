@@ -58,7 +58,6 @@ export const POST = postRequest({
         user_id,
         {
           $inc: { following_count: -1 },
-          $max: { following_count: 0 },
         },
         { session }
       );
@@ -66,7 +65,6 @@ export const POST = postRequest({
         id,
         {
           $inc: { follower_count: -1 },
-          $max: { follower_count: 0 },
         },
         { session }
       );
@@ -77,7 +75,6 @@ export const POST = postRequest({
         user_id,
         {
           $inc: { follower_count: -1 },
-          $max: { follower_count: 0 },
         },
         { session }
       );
@@ -85,7 +82,6 @@ export const POST = postRequest({
         id,
         {
           $inc: { following_count: -1 },
-          $max: { following_count: 0 },
         },
         { session }
       );

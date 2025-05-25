@@ -289,7 +289,7 @@ export const infiniteScrollerResponse = (
   const { data, total } = response;
   const results = Array.isArray(data) ? data : [];
   const totalRes = total && !isNaN(total) ? total : 0;
-  
+
   return {
     results,
     page,
@@ -396,3 +396,10 @@ export const generateInitialData = (data: any[]) => ({
   data,
   total: data.length === queryLimit ? queryLimit + 1 : data.length,
 });
+
+export const getLocalUrl = () => {
+  const environment = process.env.NODE_ENV;
+  if (environment === "production")
+    return process.env.NEXT_PUBLIC_PROD_URL ?? "";
+  else return process.env.NEXT_PUBLIC_LOCAL_URL ?? "";
+};

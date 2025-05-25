@@ -41,13 +41,13 @@ export default function Sidebar() {
                 ))}
             </ul>
             <div className={`rounded-full ${isHydrated ? "" : "userIconLoading"} border-2 ${user && pathname.startsWith(`/u/${user.username}`) ? "border-secondary" : "border-gray-500"}`}>
-                {user ?
-                    <Navigate comp="link" goto="/me">
-                        <img className="h-10 aspect-square rounded-full" src={getInternalPoster({ path: user.profile })} />
-                    </Navigate>
-                    :
-                    <UserIcon className="m-2" />
-                }
+                <Navigate comp="link" goto="/me">
+                    {user ?
+                        <img className="size-10 min-w-10 min-h-10 aspect-square rounded-full" src={getInternalPoster({ path: user.profile })} />
+                        :
+                        <UserIcon className="m-2" />
+                    }
+                </Navigate>
             </div>
         </nav >
     )

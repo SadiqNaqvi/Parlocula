@@ -58,7 +58,6 @@ export const DELETE = deleteRequest(async ({ user_id, params, session }) => {
     id,
     {
       $inc: { member_count: -1 },
-      $max: { member_count: 0 },
     },
     { session }
   );
