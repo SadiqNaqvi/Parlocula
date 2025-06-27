@@ -1,7 +1,7 @@
 "use client";
 
-import { AppIcon, BellFillIcon, BellIcon, ExploreFillIcon, ExploreIcon, HomeFillIcon, HomeIcon, MagicStickFillIcon, MagicStickIcon, MessagesFillIcon, MessagesIcon, ThreadIcon, UserIcon } from "@assets/Icons";
-import { getInternalPoster } from "@lib/utils";
+import { AddIcon, AppIcon, BellFillIcon, BellIcon, ExploreFillIcon, ExploreIcon, HomeFillIcon, HomeIcon, MagicStickFillIcon, MagicStickIcon, MessagesFillIcon, MessagesIcon, ThreadIcon, UserIcon } from "@assets/Icons";
+import { getPoster } from "@lib/utils";
 import useCurrentUser from "@store/user";
 import { usePathname } from "next/navigation";
 import Navigate from "./Navigate";
@@ -17,12 +17,13 @@ export default function Sidebar() {
         { label: "Explore", link: "/explore", icon: ExploreIcon, activeIcon: ExploreFillIcon },
         // { label: "Generate", link: "/generate", icon: MagicStickIcon, activeIcon: MagicStickFillIcon },
         { label: "Threads", link: "/t", icon: ThreadIcon, activeIcon: ThreadIcon },
+        { label: "New posts", link: "/new", icon: AddIcon, activeIcon: AddIcon },
         // { label: "Inbox", link: "/inbox", icon: MessagesIcon, activeIcon: MessagesFillIcon },
         // { label: "Notification", link: "/notification", icon: BellIcon, activeIcon: BellFillIcon },
     ];
 
     return (
-        <nav id="sidebar" className="bg-primarylight md:bg-primary fixed bottom-0 md:top-0 flex md:flex-col px-2 md:px-0 md:py-6 flex-cntr-between z-[10] h-16 md:h-dvh w-dvw md:w-20 border-t md:border-r md:border-t-0 border-gray20">
+        <nav id="sidebar" className="fixed bottom-0 md:top-0 flex md:flex-col px-2 md:px-0 md:py-6 flex-cntr-between z-[10] h-16 md:h-dvh w-dvw md:w-20 border-t md:border-r md:border-t-0 border-gray20">
             <div className="hidden md:block">
                 <AppIcon className="h-8 stroke-[32] stroke-current overflow-visible" />
             </div>
@@ -43,7 +44,7 @@ export default function Sidebar() {
             <div className={`rounded-full ${isHydrated ? "" : "userIconLoading"} border-2 ${user && pathname.startsWith(`/u/${user.username}`) ? "border-secondary" : "border-gray-500"}`}>
                 <Navigate comp="link" goto="/me">
                     {user ?
-                        <img className="size-10 min-w-10 min-h-10 aspect-square rounded-full" src={getInternalPoster({ path: user.profile })} />
+                        <img className="size-10 min-w-10 min-h-10 aspect-square rounded-full" src={getPoster({ path: user.profile })} />
                         :
                         <UserIcon className="m-2" />
                     }

@@ -1,5 +1,5 @@
 import Navigate from "@components/Navigate";
-import { getPoster } from "@lib/dataRefiner";
+import { getPoster } from "@lib/utils";
 import { ListItemType } from "@type/internal";
 import Image from "next/image";
 
@@ -8,9 +8,9 @@ const ItemTile = ({ media_type, poster, title, tmdb_id, year, _id }: ListItemTyp
         <Navigate className="w-full" goto={`/explore/${media_type}/${tmdb_id}`} comp="link">
             <div className="flex items-center gap-3 w-full">
                 <Image
-                    width={100}
-                    height={100}
-                    src={getPoster("poster", poster, 5)}
+                    width={64}
+                    height={64}
+                    src={getPoster({ external: true, type: "poster", path: poster, size: "w92" })}
                     alt={`Poster for ${title}`}
                     className="size-16 object-cover object-center rounded-full"
                 />

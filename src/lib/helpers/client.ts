@@ -9,11 +9,14 @@ import {
   bookmarkSchemaType,
   CinementToAddAndRemoveType,
   CommentSchemaType,
+  CommentSchemaUpdateType,
   InputMediaType,
   ListEditSchema,
   ListSchemaType,
   PostSchemaType,
+  PostUpdateSchemaType,
   ThreadSchemaServer,
+  UserUpdateSchemaType,
   VoteSchemaType,
 } from "@type/schemas";
 import axios from "axios";
@@ -225,7 +228,7 @@ export const createPost = async (
 export const updatePost = async (
   pid: string,
   uid: string,
-  data: any,
+  data: PostUpdateSchemaType,
   router: AppRouterInstance,
   queryClient: QueryClient
 ) => {
@@ -333,6 +336,37 @@ export const createCommentOnPost = async (
   if (success) return true;
   toast.error("Unable to comment");
   toast.error(convertCodeIntoError(formError ? "pp500" : errCode) as string);
+};
+
+export const updateComment = async (
+  cid: string,
+  uid: string,
+  data: CommentSchemaUpdateType,
+  router: AppRouterInstance,
+  queryClient: QueryClient
+) => {
+  if (!cid || !uid) throw new Error("Comment or user id is not provided.");
+
+  const { success, errCode, formError, result } = await ppUpdateData({
+    url: `comment/${cid}`,
+    data,
+    uid,
+  });
+
+  if (success) {
+    await setDataMutation(
+      result,
+      getQueryKeys("comment_cid", { cid }),
+      queryClient
+    );
+    router.replace(`/c/${cid}`);
+  } else {
+    if (errCode === "pp203") return convertCodeIntoError(errCode, formError);
+    else {
+      toast.error("Unable to create post.");
+      toast.error(convertCodeIntoError(errCode) as string);
+    }
+  }
 };
 
 export const voteOnComment = async (
@@ -513,7 +547,7 @@ export const modifyNotification = async (
   data: { notification: boolean }
 ) => {
   const { success, errCode } = await ppUpdateData({
-    url: `user/${rid}/block`,
+    url: `user/${rid}/follow`,
     data,
     uid,
   });
@@ -531,4 +565,80 @@ export const removeFollower = async (uid: string, rid: string) => {
   if (success) return true;
   toast.error("Unable to remove follower");
   toast.error(convertCodeIntoError(errCode) as string);
+};
+
+export const updateUser = async (
+  uid: string,
+  data: UserUpdateSchemaType,
+  setUserHash: (a: any) => void,
+  queryClient: QueryClient,
+  username: string
+) => {
+  const { success, errCode, result, formError } = await ppUpdateData({
+    url: "user",
+    data,
+    uid,
+  });
+
+  if (success) {
+    setUserHash(result);
+    queryClient.setQueryData(
+      getQueryKeys("user_username", { username }),
+      result
+    );
+  } else {
+    if (errCode === "pp203") return convertCodeIntoError(errCode, formError);
+    else {
+      toast.error("Unable to update your information.");
+      toast.error(convertCodeIntoError(errCode) as string);
+    }
+  }
+};
+
+export const updateUsername = async (
+  uid: string,
+  data: { username: string; passkey: string },
+  setUserHash: (a: any) => void,
+  queryClient: QueryClient
+) => {
+  const { success, errCode, result, formError } = await ppUpdateData({
+    url: "user/creds/username",
+    data,
+    uid,
+  });
+
+  if (success) {
+    setUserHash(result);
+    queryClient.setQueryData(
+      getQueryKeys("user_username", { username: result.username }),
+      result
+    );
+  } else {
+    if (errCode === "pp203") return convertCodeIntoError(errCode, formError);
+    else {
+      toast.error("Unable to update username.");
+      toast.error(convertCodeIntoError(errCode) as string);
+    }
+  }
+};
+
+export const updateEmail = async (
+  uid: string,
+  data: { email: string; passkey: string; code: number; encrypted: string },
+  setUserHash: (a: any) => void
+) => {
+  const { success, errCode, result, formError } = await ppUpdateData({
+    url: "user/creds/email",
+    data,
+    uid,
+  });
+
+  if (success) setUserHash(result);
+  else {
+    if (errCode === "pp203") return convertCodeIntoError(errCode, formError);
+    else {
+      toast.error("Unable to update username.");
+      toast.error(convertCodeIntoError(errCode) as string);
+    }
+  }
 };

@@ -4,7 +4,7 @@ import { useFormContext } from "react-hook-form"
 
 const DatePicker = ({ label, name, description, ...args }: { label?: string, name: string, description?: string } & React.InputHTMLAttributes<HTMLInputElement>) => {
 
-    const { register, watch, formState: { errors, isSubmitting } } = useFormContext();
+    const { register, formState: { errors, isSubmitting } } = useFormContext();
     const error = errors[name]?.message?.toString() || "";
 
     return (

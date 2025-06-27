@@ -5,7 +5,7 @@ import FancyImage from "@components/FancyImage";
 import ObserverHeader from "@components/ObserverHeader";
 import { ItemTile } from "@components/ui";
 import ListIcons from "@components/ui/ListIconMap";
-import { getPoster } from "@lib/dataRefiner";
+import { getPoster } from "@lib/utils";
 import { getItems, getList } from "@lib/helpers/common";
 import { getQueryKeys, queryFunction } from "@lib/utils";
 import { FullList } from "@type/internal";
@@ -42,8 +42,8 @@ const component = (data: FullList, { filter, page, uid }: Props) => {
                                 height={128}
                                 width={128}
                                 className="size-full object-cover rounded-full"
-                                thumbnail={getPoster("poster", poster, 2)}
-                                src={getPoster("poster", poster, 10)}
+                                thumbnail={getPoster({ external: true, type: "poster", path: poster, size: "w154" })}
+                                src={getPoster({ external: true, type: "poster", path: poster, size: "original" })}
                                 alt={`Poster`}
                             />
                             :

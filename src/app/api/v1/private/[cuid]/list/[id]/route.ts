@@ -9,23 +9,51 @@ import { addItemsInList } from "@lib/helpers/server";
 import { itemsForListSchema, listEditSchema } from "@lib/schemas";
 import { ObjectId } from "@lib/utils";
 import { Item, List } from "@model";
-import { MediaItemType } from "@type/internal";
+import { FullList, MediaItemType } from "@type/internal";
 import { ListEditSchema } from "@type/schemas";
 
-// Fetching Private List
+// Get list including private
 export const GET = getRequest(
   async (r: any, params: { id: string; cuid: string }) => {
     const { id, cuid } = params;
 
     const key = r.nextUrl.searchParams.get("k");
 
-    const list = await List.findOne({ _id: id, isPrivate: true });
+    const response = await List.aggregate([
+      {
+        $match: { _id: ObjectId(id) },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "user_id",
+          foreignField: "_id",
+          as: "user",
+        },
+      },
+      {
+        $addFields: {
+          username: {
+            $arrayElemAt: ["$user.username", 0],
+          },
+        },
+      },
+      {
+        $project: { user: 0 },
+      },
+    ]);
+
+    const list: FullList | null = response[0];
 
     if (!list) return { success: false, errCode: "pp104" };
-    else if (list.user_id === cuid || key === list.key)
-      return { success: true, result: list };
+    else if (list.isPrivate) {
+      if (list.user_id === cuid) return { success: true, result: list };
+      else if (key && key === list.listKey)
+        return { success: true, result: list };
+      else return { success: false, errCode: "pp201" };
+    }
 
-    return { success: false, errCode: "pp104" };
+    return { success: true, result: list };
   }
 );
 
@@ -34,7 +62,7 @@ export const POST = postRequest({
   handler: async ({ params, data, user_id, session }) => {
     const { id } = params;
 
-    const { items } = data;
+    const { items, list_type } = data;
     const existing = await Item.find(
       {
         tmdb_id: { $in: items.map((el: any) => el.tmdb_id) },
@@ -53,7 +81,11 @@ export const POST = postRequest({
       (el: MediaItemType) => !existingMap.get(el.tmdb_id)
     );
 
-    await addItemsInList(itemsToAdd, id, user_id, session);
+    await List.findByIdAndUpdate(id, {
+      $set: { poster: itemsToAdd.at(-1)?.poster },
+    });
+
+    await addItemsInList(itemsToAdd, list_type, id, user_id, session);
 
     return {
       success: true,

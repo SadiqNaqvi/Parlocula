@@ -6,7 +6,8 @@ import { Member, Thread } from "@model";
 // Creating a thread
 export const POST = postRequest({
   handler: async ({ data, frames, user_id, session }) => {
-    const { name, description, links, nsfw } = data as ThreadSchemaServer;
+    const { name, description, links, nsfw, connections } =
+      data as ThreadSchemaServer;
 
     const poster = frames[0]?.path ?? "";
 
@@ -17,6 +18,7 @@ export const POST = postRequest({
       links,
       created_by: user_id,
       poster,
+      connections,
     };
 
     const resp = await Thread.create([dataToStore], { session });

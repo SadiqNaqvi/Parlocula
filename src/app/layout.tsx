@@ -22,14 +22,12 @@ export default function RootLayout({
 
   return (
     <html lang="en">
-      <body className={`${fontFam.className} dark`}>
+      <body className={`${fontFam.className}`}>
         <Toaster position="top-center" />
         <ReactQueryProvider>
           <Fancybox>
             <UserHydrator />
             {children}
-            {/* <main>
-            </main> */}
           </Fancybox>
         </ReactQueryProvider>
         {/* <script src="https://kit.fontawesome.com/5d93eb1089.js"></script> */}

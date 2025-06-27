@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 const AuthLayout = ({ children }: Readonly<{ children: React.ReactNode }>) => {
     return (
-        <main className="p-4 flex gap-6 h-full noPadding overflow-hidden">
+        <main className="p-4 flex gap-6 h-full noControl overflow-hidden">
             <section className="mx-auto z-[1] w-80 max-h-full noScroll overflow-y-auto">
                 {children}
             </section>

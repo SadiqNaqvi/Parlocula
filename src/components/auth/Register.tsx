@@ -3,6 +3,7 @@
 import { LeftChevron } from "@assets/Icons";
 import { DatePicker, Form, Input, Password, Poster, Textarea } from "@components/form";
 import Choice from "@components/form/Choice";
+import LinkInputManager from "@components/form/LinkInputManager";
 import { genresToChoose } from "@lib/constants";
 import { register } from "@lib/helpers/client";
 import { isUsernameAvailable } from "@lib/helpers/common";
@@ -10,31 +11,32 @@ import { useCustomReducer } from "@lib/hooks";
 import { registerUserSchemaClient, usernameSchema, userPrefrenceSchema } from "@lib/schemas";
 import { convertCodeIntoError, readyFrames } from "@lib/utils";
 import useCurrentUser from "@store/user";
-import { InputFrame } from "@type/schemas";
+import { InputManagerType } from "@type/other";
+import { InputFrame, LinkSchema } from "@type/schemas";
+import { profile } from "console";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useRef } from "react";
 
 const Register = ({ email }: { email: string }) => {
 
     const {
-        profile,
         userData,
         username,
         page,
         setter,
     } = useCustomReducer({
         username: "",
-        profile: [] as InputFrame[],
         userData: null as any,
         page: 0,
     });
 
+    const profileRef = useRef<InputManagerType<InputFrame>>(null);
+    const linkRef = useRef<InputManagerType<LinkSchema[]>>(null);
+    const formRef = useRef<HTMLFormElement>(null);
+
     const router = useRouter();
     const { setUserHash } = useCurrentUser();
     const urlToRedirect = useSearchParams().get("url");
-
-    const getProfilePicture = (profile: InputFrame[]) => {
-        setter({ profile: profile });
-    }
 
     const mainSubmit = async (data: any) => {
         router.prefetch(urlToRedirect ?? "/home");
@@ -78,8 +80,10 @@ const Register = ({ email }: { email: string }) => {
     )
 
     const storeUserData = async (data: any) => {
-        const { files, filesData } = await readyFrames(profile);
-        setter({ userData: { ...data, email, username, filesData, files }, page: 2 });
+        const profile = profileRef.current?.getData();
+        const { files, filesData } = await readyFrames(profile ? [profile] : []);
+        const bioLinks = linkRef.current?.getData() ?? [];
+        setter({ userData: { ...data, email, username, bioLinks, filesData, files }, page: 2 });
     }
 
     const UserDataContainer = () => (
@@ -89,11 +93,16 @@ const Register = ({ email }: { email: string }) => {
                     <LeftChevron />
                 </button>
                 <h2 className="text-2xl text-center">Just few steps to go</h2>
+                <button
+                    className="primary w-full" type="submit"
+                    onClick={() => formRef.current?.requestSubmit()}
+                >Next</button>
             </div>
 
-            <Poster getImage={getProfilePicture} removePicture={() => setter({ profile: [] })} />
+            <Poster ref={profileRef} />
 
             <Form
+                ref={formRef}
                 submit={storeUserData}
                 schema={registerUserSchemaClient}
                 className="space-y-4 mt-4"
@@ -117,16 +126,6 @@ const Register = ({ email }: { email: string }) => {
                     name="dob"
                     defaultValue={userData ? new Date(userData.dob).toISOString().split("T")[0] : ""}
                 />
-                <Password
-                    name="password"
-                    placeholder="Password"
-                    defaultValue={userData?.password || ""}
-                />
-                <Password
-                    name="confirmPassword"
-                    placeholder="Confirm Password"
-                    defaultValue={userData?.confirmPassword || ""}
-                />
                 {/* <input
                     className="px-3 py-2 border border-gray30 rounded-md text-lg bg-transparent w-full"
                     type="date"
@@ -134,8 +133,8 @@ const Register = ({ email }: { email: string }) => {
                     id=""
                     placeholder="Date of Birth"
                 /> */}
-                <button className="primary w-full" type="submit">Next</button>
             </Form>
+            <LinkInputManager ref={linkRef} />
         </>
     )
 

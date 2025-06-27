@@ -1,6 +1,5 @@
-import { getPoster } from "@lib/dataRefiner"
-import { GeneralMovieData, RefinedMovieData } from "@type/external"
-import Link from "next/link"
+import { getPoster } from "@lib/utils"
+import { GeneralMovieData } from "@type/external"
 
 export const LoadingMovieCard = () => (
     <div className="loadingMovieCard w-[60%] my-5 mx-auto bg-[var(--gray20)] rounded-lg p-4 flex">
@@ -27,8 +26,8 @@ export const LoadingMovieCard = () => (
 
 export default function MovieCard({ backdrop_path, title, poster_path, id, overview }: GeneralMovieData) {
     return (
-        <article className="flex rounded-lg overflow-hidden bg-cover" style={{ backgroundImage: `url(${getPoster("poster", backdrop_path, 0)})` }}>
-            <img className="aspect-[2/3] w-48 object-cover" src={getPoster("poster", poster_path, 1)} alt={`${title} poster`} />
+        <article className="flex rounded-lg overflow-hidden bg-cover" style={{ backgroundImage: `url(${getPoster({ external: true, type: "backdrop", path: backdrop_path, size: "w780" })})` }}>
+            <img className="aspect-[2/3] w-48 object-cover" src={getPoster({ external: true, type: "poster", path: poster_path, size: "w185" })} alt={`${title} poster`} />
             <div className="p-4 flex flex-col flex-1 backdrop-brightness-[0.4] backdrop-blur-md text-zinc-100">
                 <h2 className="text-2xl uppercase">{title}</h2>
                 <ul className="flex gap-8 list-disc text-sm text-gray-300">

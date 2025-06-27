@@ -3,7 +3,7 @@ import FancyImage from "@components/FancyImage";
 import ObserverHeader from "@components/ObserverHeader";
 import { ContentBox, NotFound, VerticleMovieCard } from "@components/ui";
 import { fetchSeasonForShow, fetchShow } from "@lib/contentFetcher";
-import { getPoster } from "@lib/dataRefiner";
+import { getPoster } from "@lib/utils";
 import { refineString } from "@lib/utils";
 import { Metadata } from "next";
 
@@ -65,8 +65,8 @@ const SeasonPage = async ({ params }: Props) => {
                     className="w-full rounded-md h-[300px] object-cover object-top"
                     alt="Backdrop"
                     id="backdrop-popover"
-                    thumbnail={getPoster("backdrop", show.backdrop, 2)}
-                    src={getPoster("backdrop", show.backdrop, 10)}
+                    thumbnail={getPoster({ external: true, type: "backdrop", path: show.backdrop, size: "w780" })}
+                    src={getPoster({ external: true, type: "backdrop", path: show.backdrop, size: "original" })}
                     download={`${mainTitle} - Popcorn Paragon`}
                 />
             </div>
@@ -75,8 +75,8 @@ const SeasonPage = async ({ params }: Props) => {
 
                 <FancyImage
                     id="poster"
-                    thumbnail={getPoster("poster", season.poster, 2)}
-                    src={getPoster("poster", season.poster, 10)}
+                    thumbnail={getPoster({ external: true, type: "poster", path: season.poster, size: "w154" })}
+                    src={getPoster({ external: true, type: "poster", path: season.poster, size: "original" })}
                     height={160}
                     width={160}
                     download={`Poster of ${mainTitle} - Popcorn Paragon`}

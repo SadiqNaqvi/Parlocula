@@ -2,44 +2,79 @@
 
 import { Navbar } from "@components";
 import { DatePicker, Form, Input, Poster, Textarea } from "@components/form";
+import LinkInputManager from "@components/form/LinkInputManager";
 import { LoadingSpinner } from "@components/ui";
-import { useCustomReducer } from "@lib/hooks";
+import { updateUser } from "@lib/helpers/client";
+import { getQueryClient } from "@lib/queryClient";
 import { registerUserSchemaClient } from "@lib/schemas";
+import { getPoster, readyFrames } from "@lib/utils";
 import useCurrentUser from "@store/user";
-import { Link } from "@type/internal";
-import { InputFrame } from "@type/schemas";
-import { useRouter } from "next/navigation";
+import { InputManagerType } from "@type/other";
+import { InputFrame, RegisterSchemaClientType } from "@type/schemas";
+import { useRef } from "react";
 
 const Page = () => {
 
-    const router = useRouter();
-    const { user, isHydrated } = useCurrentUser();
-    const { profile, links, setter } = useCustomReducer({
-        profile: [] as InputFrame[],
-        links: [] as Link[],
-    });
+    const { user, isHydrated, setUserHash } = useCurrentUser();
+    const linkRef = useRef<InputManagerType>(null);
+    const profileRef = useRef<InputManagerType<InputFrame>>(null);
+    const formRef = useRef<HTMLFormElement>(null);
+    const queryClient = getQueryClient();
 
     if (!isHydrated) return <LoadingSpinner />
-    else if (!user) router.replace("/me");
+    // else if (!user) router.replace("/me");
+    else if (!user) return null;
 
-    const getProfilePicture = (profile: InputFrame[]) => {
-        setter({ profile });
+    const userProfile = user.profile ? getPoster({ external: false, type: "image", path: user?.profile }) : undefined;
+
+    const submit = async (data: RegisterSchemaClientType) => {
+        const bioLinks = linkRef.current?.getData();
+        const profile = profileRef.current?.getData();
+        const { bio, dob, name } = data;
+
+        let profileUpdate: Record<string, any> | null = null;
+
+        // Check if current profile is same as the default one? if yes then leave it.
+        if (profile?.path !== userProfile) {
+            // If user had a profile, it is likely removed or changed now. Hence remove the old file from the media host.
+            if (user.profile) profileUpdate = { filesToRemove: [{ type: "image", path: user.profile }] };
+
+            // If user have chosen a new profile, upload it on the media host.
+            if (profile) profileUpdate = { ...profileUpdate, ...(await readyFrames([profile])) }
+        }
+
+        const update = Object({
+            ...(bio !== user.bio && { bio }),
+            ...(new Date(dob).getTime() !== new Date(user.dob).getTime() && { dob }),
+            ...(name !== user.name && { name }),
+            ...(profileUpdate),
+            ...(JSON.stringify(bioLinks) !== JSON.stringify(user.bioLinks) && { bioLinks })
+        });
+
+        return await updateUser(user._id, update, setUserHash, queryClient, user.username);
     }
 
-    const submit = (data: any) => {
-        console.log(submit);
+    const defaultVal = {
+        name: user.name,
+        bio: user.bio,
+        dob: new Date(user.dob).toISOString().split('T').at(0)
     }
 
     return (
         <>
-            <Navbar navTitle="Edit Profile" />
+            <header className="flex flex-cntr-between">
+                <Navbar navTitle="Edit Profile" />
+                <button onClick={() => formRef.current?.requestSubmit()} className="primary w-full sm:w-fit" type="submit">Save</button>
+            </header>
+
             <section>
-                <Poster defaultPoster={user?.profile} getImage={getProfilePicture} removePicture={() => setter({ profile: [] })} />
+                <Poster ref={profileRef} defaultPoster={userProfile} />
 
                 <Form
+                    ref={formRef}
                     submit={submit}
-                    defaultVals={user}
                     schema={registerUserSchemaClient}
+                    defaultVals={defaultVal}
                     className="space-y-4 mt-4"
                 >
                     <Input
@@ -58,8 +93,10 @@ const Page = () => {
                         placeholder="Date of Birth"
                         name="dob"
                     />
-                    <button className="primary" type="submit">Save</button>
                 </Form>
+                <div className="mt-4">
+                    <LinkInputManager defaultLinks={user.bioLinks} ref={linkRef} />
+                </div>
             </section>
         </>
     )

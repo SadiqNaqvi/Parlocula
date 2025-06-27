@@ -29,6 +29,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { ZodSchema } from "zod";
 import { oneDay, queryFilters } from "../constants";
 import { deleteMultipleMedia, mediaUploader } from "./server";
+import { ReadonlyRequestCookies } from "next/dist/server/web/spec-extension/adapters/request-cookies";
+import { RequestCookies } from "next/dist/compiled/@edge-runtime/cookies";
 
 // HELPER FUNCTIONS
 
@@ -67,17 +69,27 @@ export const ppGetData = async ({
   revalidate,
   tag,
   options,
+  cookies,
 }: {
   url: string;
   revalidate: number;
   tag?: AvailableCacheTags;
   options: any;
+  cookies?: ReadonlyRequestCookies | RequestCookies;
 }): Promise<GeneralGetReturn> => {
   const cacheTags =
     tag && getCacheTags({ type: "cache", available: tag, options });
+  const jar =
+    cookies
+      ?.getAll()
+      .map((c) => `${c.name}=${c.value}`)
+      .join("; ") ?? "undefined";
   try {
     return await fetch(`${getLocalUrl()}/api/v1/${url}`, {
       next: { revalidate, tags: cacheTags },
+      headers: {
+        Cookie: jar,
+      },
     }).then((res) => res.json());
   } catch (err: any) {
     console.error(`Error occured at path ${url}`, err.message);
@@ -358,24 +370,32 @@ export const updateRequest = ({
   ) => Precheck | Promise<Precheck>;
 }) => {
   return async (req: NextRequest, { params }: any) => {
+    // Checking if there is a current user and taking it's user_id and username
     const payload = await getUserFromToken(req.cookies);
 
     if (!payload)
-      return NextResponse.json({ success: false, errCode: "pp202" });
+      return NextResponse.json(
+        { success: false, errCode: "pp202" },
+        { status: 500 }
+      );
 
     const user_id = payload.user_id;
     const username = payload.username;
 
     const formData = formDataToObject(await req.formData());
+
+    // Validating the data if a schema is provided
     if (schema) {
       const { success, error } = schema.safeParse(formData);
       if (!success)
-        return NextResponse.json({
-          result: null,
-          success: false,
-          formError: error.errors,
-          errCode: "pp203",
-        });
+        return NextResponse.json(
+          {
+            success: false,
+            formError: error.errors,
+            errCode: "pp203",
+          },
+          { status: 500 }
+        );
     }
 
     let tagOptions: cacheOptions | null = null;
@@ -392,6 +412,7 @@ export const updateRequest = ({
 
       session = await startSession();
 
+      // Some pre-checking eg: if the user is authorized to do this specific thing or not
       if (preCheck) {
         const { errCode, success } = await preCheck({
           data: formData,
@@ -419,15 +440,19 @@ export const updateRequest = ({
       });
 
       if (success) {
-        const isFilesRemoved = await deleteMultipleMedia(filesToRemove);
-        console.log(isFilesRemoved);
+        await deleteMultipleMedia(filesToRemove);
+
         tagOptions = { available, options };
         await session.commitTransaction();
       } else {
         await deleteFiles(frames);
         await session.abortTransaction().catch(console.error);
       }
-      return NextResponse.json({ result, success, errCode });
+
+      return NextResponse.json(
+        { result, success, errCode },
+        { status: success ? 200 : 500 }
+      );
     } catch (err: any) {
       await session?.abortTransaction().catch(console.error);
       console.error(
@@ -435,11 +460,14 @@ export const updateRequest = ({
         err.message
       );
       await deleteFiles(frames);
-      return NextResponse.json({
-        result: null,
-        success: false,
-        errCode: "pp100",
-      });
+      return NextResponse.json(
+        {
+          result: null,
+          success: false,
+          errCode: "pp100",
+        },
+        { status: 500 }
+      );
     } finally {
       session?.endSession();
       if (tagOptions) {
@@ -456,12 +484,16 @@ export const updateRequest = ({
 
 // FUNCTIONS TO FETCH DATA BOTH ON SERVER AND CLIENT SIDE
 
-export const fetchCurrentUser = async (id: string) =>
+export const fetchCurrentUser = async (
+  id: string,
+  cookies?: ReadonlyRequestCookies | RequestCookies
+) =>
   await ppGetData({
-    url: `private/${id}/user/me`,
+    url: `private/${id}/user`,
     revalidate: oneDay * 2,
     tag: "currentUser_uid",
     options: { uid: id },
+    cookies,
   });
 
 export const isUsernameAvailable = async (
@@ -519,7 +551,8 @@ export const getMembers = async (tid: string, page: string) =>
 
 export const isMember = async (
   tid: string,
-  uid: string
+  uid: string,
+  cookies?: ReadonlyRequestCookies | RequestCookies
 ): Promise<GeneralGetReturn> => {
   if (!uid) return { success: false, errCode: "pp202" };
   const response = await ppGetData({
@@ -527,6 +560,7 @@ export const isMember = async (
     revalidate: oneDay * 2,
     tag: "member_tid_uid",
     options: { tid, uid },
+    cookies,
   });
 
   return response;
@@ -539,12 +573,17 @@ export const searchMembers = async (tid: string, query: string, page: string) =>
     options: null,
   });
 
-export const threadsByUser = async (uid: string, page = 1) =>
+export const threadsByUser = async (
+  uid: string,
+  page = 1,
+  cookies?: ReadonlyRequestCookies | RequestCookies
+) =>
   await ppGetData({
     url: `private/${uid}/user/me/threads?p=${page}`,
     revalidate: oneDay * 2,
     tag: "threadsByUser_uid_page",
     options: { uid, page },
+    cookies,
   });
 
 export const getPostsOfThread = async (
@@ -581,7 +620,8 @@ export const getPostsOfUser = async (
 
 export const getReactionOnPost = async (
   pid: string,
-  uid: string
+  uid: string,
+  cookies?: ReadonlyRequestCookies | RequestCookies
 ): Promise<GeneralGetReturn> => {
   if (!uid) return { success: true, result: null };
   const response = await ppGetData({
@@ -589,6 +629,7 @@ export const getReactionOnPost = async (
     revalidate: oneDay * 2,
     tag: "reaction_pid_uid",
     options: { pid, uid },
+    cookies,
   });
   return response;
 };
@@ -611,10 +652,22 @@ export const getListsOfUser = async (
   filter: string
 ) =>
   await ppGetData({
-    url: `list/user/${username}?p=${page}&f=${filter || "recently_added"}`,
+    url: `lists/${username}?p=${page}&f=${filter || "recently_added"}`,
     revalidate: oneDay * 3,
     tag: "listsOfUser_filter_username_page",
     options: { filter: filter || "recently_added", username, page },
+  });
+
+export const getPrivateListsOfUser = async (
+  uid: string,
+  page: number,
+  filter: string
+) =>
+  await ppGetData({
+    url: `private/${uid}/list?p=${page}&f=${filter || "recently_added"}`,
+    revalidate: oneDay * 3,
+    tag: "privateListsOfUser_filter_uid_page",
+    options: { filter: filter || "recently_added", uid, page },
   });
 
 export const getPostById = async (
@@ -661,7 +714,8 @@ export const getCommentById = async (id: string) =>
 
 export const getVoteOnComment = async (
   cid: string,
-  uid: string
+  uid: string,
+  cookies?: ReadonlyRequestCookies | RequestCookies
 ): Promise<GeneralGetReturn> => {
   if (!uid) return { success: false, errCode: "pp202" };
   const response = await ppGetData({
@@ -669,6 +723,7 @@ export const getVoteOnComment = async (
     revalidate: oneDay * 2,
     tag: "vote_cid_uid",
     options: { cid, uid },
+    cookies,
   });
   return response;
 };
@@ -717,6 +772,8 @@ export const getMediaItem = async (
     options: { tmdbid: id },
   });
 
+  console.log(item);
+
   if (item.success) return item.result;
 
   const media = await fetch(
@@ -737,45 +794,55 @@ export const getMediaItem = async (
     tmdb_id: id,
   };
 
-  const { result, errCode } = await axios
+  const { result } = await axios
     .post(`${getLocalUrl()}/api/v1/media/${id}`, objectToFormData(data))
     .then((r) => r.data);
 
-  console.log(errCode);
   return result;
 };
 
-export const getListsForMedia = async (id: string, uid: string) =>
+export const getListsForMedia = async (
+  id: string,
+  uid: string,
+  cookies?: ReadonlyRequestCookies | RequestCookies
+) =>
   await ppGetData({
     url: `/private/${uid}/media/${id}`,
     tag: "listsForMedia_mid_uid",
     options: { mid: id, uid },
     revalidate: oneDay,
+    cookies,
   });
 
-export const getList = async (id: string): Promise<GeneralGetReturn> => {
+export const getList = async (
+  id: string,
+  uid: string,
+  key?: string
+): Promise<GeneralGetReturn> => {
   if (!id) return { success: false, errCode: "pp104" };
 
   return await ppGetData({
-    url: `list/${id}`,
+    url: `private/${uid}/list/${id}${key ? `k=${key}` : ""}`,
     revalidate: oneDay * 2,
-    tag: "list_lid",
-    options: { lid: id },
+    tag: "list_lid_key",
+    options: { lid: id, key: key ?? "none" },
   });
 };
 
 export const getItems = async (
   id: string,
+  uid: string,
   page: number,
-  filter: string
+  filter: string,
+  key?: string
 ): Promise<GeneralGetReturn> => {
   if (!id) return { success: false, errCode: "pp104" };
 
   return await ppGetData({
-    url: `list/${id}/items?p=${page}&f=${filter}`,
+    url: `private/${uid}/item/${id}?p=${page}&f=${filter}${key ? `&k=${key}` : ""}`,
     revalidate: oneDay,
-    tag: "items_lid_filter_page",
-    options: { lid: id, filter, page },
+    tag: "items_lid_filter_page_key",
+    options: { lid: id, filter, page, key: key ?? "none" },
   });
 };
 
@@ -829,25 +896,44 @@ export const searchLists = async (query: string, page = 1) => {
   if (success) return result;
 };
 
-export const checkIfItemSaved = async (id: string, uid: string) => {
+export const checkIfItemSaved = async (
+  id: string,
+  uid: string,
+  cookies?: ReadonlyRequestCookies | RequestCookies
+) => {
   const response = await ppGetData({
     url: `private/${uid}/bookmark/${id}`,
     revalidate: oneDay * 2,
     tag: "isSaved_uid_id",
     options: { uid, id },
+    cookies,
   });
   return response;
 };
 
+export const getSavedContent = async (
+  uid: string,
+  type: "comment" | "list" | "post",
+  page = 1,
+  cookies?: ReadonlyRequestCookies | RequestCookies
+) =>
+  await ppGetData({
+    url: `private/${uid}/bookmark/${type}?p=${page}`,
+    revalidate: oneDay * 2,
+    tag: `saved_${type}s_uid_page`,
+    options: { uid, page },
+    cookies,
+  });
+
 export const checkUserConnection = async (
   uid: string,
-  rid: string
-): Promise<GeneralGetReturn> => {
-  const response = await ppGetData({
+  rid: string,
+  cookies?: ReadonlyRequestCookies | RequestCookies
+): Promise<GeneralGetReturn> =>
+  await ppGetData({
     url: `private/${uid}/user/${rid}/follow`,
     revalidate: oneDay * 2,
     tag: "connection_rid_uid",
     options: { uid, rid },
+    cookies,
   });
-  return response;
-};

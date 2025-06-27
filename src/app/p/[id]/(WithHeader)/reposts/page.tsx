@@ -1,13 +1,8 @@
-import { getUserFromToken } from "@lib/auth/utils";
-import { checkIfItemSaved, getCommentsOnPost, getPostById, getReactionOnPost, getReposts } from "@lib/helpers/common";
+import { getReposts } from "@lib/helpers/common";
 import { getQueryClient } from "@lib/queryClient";
-import { getQueryKeys, isValidObjectId, queryFunction, refineSearchParams } from "@lib/utils";
+import { getQueryKeys, isValidObjectId, queryFunction } from "@lib/utils";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
-import { cookies } from "next/headers";
 import RepostSection from "../tabs/RepostSection";
-import { NotFound } from "@components/ui";
-
- 
 
 export default async function Page({ params, searchParams }: { params: { id: string }, searchParams: { p?: string, f?: string } }) {
 
@@ -16,58 +11,18 @@ export default async function Page({ params, searchParams }: { params: { id: str
     const { id } = params;
 
     const pid = id.split('-')[0];
+    if (pid && !isValidObjectId(pid)) return null;
 
-    if (pid && !isValidObjectId(pid)) return (
-        <NotFound
-            title="Oops! Look's like you came across a wrong path."
-            paras={["Content id is incorrect", "Please go back and try again."]}
-        />
-    );
+    const pageParam = searchParams.p ? parseInt(searchParams.p) : 1;
+    const page = isNaN(pageParam) ? 1 : pageParam;
 
-    const { filter, page } = refineSearchParams("comments", searchParams.p, searchParams.f);
-    const user = await getUserFromToken(cookies());
-
-
-    // Prefetching the data of the next tab for faster access.
-    queryClient.prefetchInfiniteQuery({
-        queryKey: getQueryKeys("reposts_pid_page", { pid, page }),
-        queryFn: () => queryFunction(getCommentsOnPost, [{ id: pid, page, filter }], page),
-        initialPageParam: 1,
+    await queryClient.prefetchInfiniteQuery({
+        queryKey: getQueryKeys('reposts_pid_page', { pid, page }),
+        queryFn: () => queryFunction(getReposts, [pid, page], page),
+        initialPageParam: page,
         staleTime: 60 * 60 * 1000,
         gcTime: 60 * 60 * 1000
     });
-
-    // Prefetching all the data that the current page need.
-    await Promise.all([
-        queryClient.prefetchInfiniteQuery({
-            queryKey: getQueryKeys('commentsOfPost_pid_filter_page', { pid, page, filter }),
-            queryFn: () => queryFunction(getReposts, [pid, page], page),
-            initialPageParam: page,
-            staleTime: 60 * 60 * 1000,
-            gcTime: 60 * 60 * 1000
-        }),
-
-        queryClient.prefetchQuery({
-            queryKey: getQueryKeys("post_id", { id: pid }),
-            queryFn: () => queryFunction(getPostById, [pid]),
-            staleTime: 60 * 60 * 1000,
-            gcTime: 60 * 60 * 1000
-        }),
-        ...(user ? [
-            queryClient.prefetchQuery({
-                queryKey: getQueryKeys("reaction_pid", { pid }),
-                queryFn: () => queryFunction(getReactionOnPost, [pid, user.user_id]),
-                staleTime: 60 * 60 * 1000,
-                gcTime: 60 * 60 * 1000
-            }),
-            queryClient.prefetchQuery({
-                queryKey: getQueryKeys("isContentSaved_type_id", { type: "post", id: pid }),
-                queryFn: () => queryFunction(checkIfItemSaved, [pid, user.user_id]),
-                staleTime: 60 * 60 * 1000,
-                gcTime: 60 * 60 * 1000
-            }),
-        ] : [])
-    ]);
 
     return (
         <HydrationBoundary state={dehydrate(queryClient)}>

@@ -52,10 +52,6 @@ const AddToList = ({ className, media, released }: { className?: string, media: 
         enabled: Boolean(user && isHydrated),
     });
 
-    const ListCheckTile = ({ _id, name }: { name: string, _id: string }) => {
-        return <CheckTile type="checkbox" label={name} name={_id} checked={listMap.get(_id)} />
-    }
-
     if (isFetching || isError || !isHydrated || !user) return (
         <Modal buttonChildren="Add To List" className={className} id="fallback-popover">
             <Component isError={isError} isHydrated={isHydrated} isFetching={isFetching} isUser={Boolean(user)} retry={refetch} />
@@ -64,9 +60,17 @@ const AddToList = ({ className, media, released }: { className?: string, media: 
 
     const listMap = new Map<string, boolean>(data?.map((el: { list_id: string }) => [el.list_id, true]))
 
+    const ListCheckTile = ({ _id, name }: { name: string, _id: string }) => {
+        return (
+            <div className="border-b border-gray30">
+                <CheckTile type="checkbox" label={name} name={_id} checked={listMap.get(_id)} />
+            </div>
+        )
+    }
+
     const totalLists: { name: string, [key: string]: any }[] = [
         ...(user.predefine_lists.filter(l => !released && l.name === "watched" ? false : true)), ...lists
-    ]
+    ];
 
     const submit = async (ids: Record<string, boolean>) => {
         const add: string[] = [];
@@ -93,8 +97,8 @@ const AddToList = ({ className, media, released }: { className?: string, media: 
     return (
         <>
             <Modal id="addToList-popover" buttonChildren="Add To List" className={className}>
-                <div className="py-4 bg-primary border border-gray30 rounded-md w-[500px] max-h-[80%] overflow-y-auto">
-                    <div className="px-4 py-2 border-b border-gray30 flex flex-cntr-between">
+                <div className="p-4 bg-primary border border-gray30 rounded-md w-[500px] max-h-[80%] overflow-y-auto">
+                    <div className="my-4 border-b border-gray30 flex flex-cntr-between">
                         <span>Add to</span>
                         <CloseAndTrigger id="create-list-popover" className="text-sm">Create new list</CloseAndTrigger>
                     </div>

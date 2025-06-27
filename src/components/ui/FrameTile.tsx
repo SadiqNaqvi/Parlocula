@@ -10,7 +10,7 @@ const posterOptions = { aspect_ratio: 2 / 3, crop: "thumb", width: 400 }
 //         if (poster.type === "image" && !poster.url.includes("placeholder")) return;
 //         if (frame.type === "image") {
 //             poster.type = "image";
-//             poster.url = getInternalPoster(frame.uri, posterOptions);
+//             poster.url = getPoster(frame.uri, posterOptions);
 //         } else {
 //             poster.type = frame.type;
 //             poster.url = getThumbnail(frame.uri);

@@ -3,7 +3,7 @@ import {
   AvailableQueryKeys,
   AvailableRevalidateTags,
   CloudinaryMediaOptions,
-  QueryFilterType
+  QueryFilterType,
 } from "@type/other";
 
 export const movie_genres: Record<string, number> = {
@@ -108,7 +108,7 @@ export const urlPattern =
   /^https:\/\/(www\.)?[a-zA-Z0-9-]{2,}(\.[a-zA-Z0-9-]{2,})+(\/[^\s]*)?(\?[^\s]*)?$/;
 
 export const mediaUrlPattern =
-  /^(https:\/\/)?([\w\-]+\.)+[\w\-]+(\/[\w\- .\/]*)*\/?\.(jpg|jpeg|png|bmp|webp|mp4|mov|avi|mkv|flv|wmv|webm|3gp)(\?.*)?$/;
+  /^(https:\/\/)?([\w\-]+\.)+[\w\-]+(\/[\w\-%.~+\/]*)*(\.(jpg|jpeg|png|bmp|webp|mp4|mov|avi|mkv|flv|wmv|webm|3gp))(?=[\/?]|$)/i;
 
 export const passwordValidator =
   /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$/;
@@ -118,7 +118,7 @@ export const usernamePattern = /^[a-z][a-z0-9_]*$/;
 export const emailPattern =
   /^[a-zA-Z]+[a-zA-Z0-9-]{2,}\@+[a-z]{4,}\.[a-z]{3,}$/;
 
-export const imgUrl = "https://image.tmdb.org/t/p/";
+export const externalImgUrlPrefix = "https://image.tmdb.org/t/p/";
 
 export const backdrop_sizes = ["w300", "w780", "w1280", "original"];
 export const logo_sizes = [
@@ -168,6 +168,7 @@ export const cloudinary_postKey = "v1731487676";
 
 export const queryLimit = 20;
 export const recentlyJoinedLimit = 20;
+export const emailLimit = 3;
 
 export const clientThreadsAndListsLimit = 50;
 
@@ -243,6 +244,25 @@ export const errorCodes: Record<string, { reason: string; message: string }> = {
     message:
       "You need to be a member of the thread before start posting in it.",
   },
+  pp209: {
+    reason: "User has reached email verification limit.",
+    message:
+      "Unable to verify email. Please wait for about an hour and try again.",
+  },
+  pp210: {
+    reason: "User has provided a wrong passkey while updating their info.",
+    message: "Passkey is incorrect. Please try again",
+  },
+  pp211: {
+    reason:
+      "User is trying to update session fields i.e. username or email, within a month of updation.",
+    message:
+      "You cannot perform this action yet. Please wait for a month and try again.",
+  },
+  pp212: {
+    reason: "Incorrect verification code.",
+    message: "Verification Code Incorrect! Please try again.",
+  },
   pp500: {
     reason: "Totally unknown error.",
     message: "Something went wrong! Please try again.",
@@ -256,6 +276,20 @@ export const queryFilters: Record<QueryFilterType, string[]> = {
   userPosts: ["latest", "oldest", "popular"],
   lists: ["latest", "a_to_z", "z_to_a", "recently_added"],
   items: ["latest", "year"],
+};
+
+export const mediaInputConfig: Record<
+  "image" | "video",
+  { accept: string; size: { label: string; value: number } }
+> = {
+  image: {
+    accept: ".jpg, .png, .jpeg, .webp, .avif",
+    size: { label: "3mb", value: 1024 * 1024 * 3 },
+  },
+  video: {
+    accept: ".mp4, .3gp, .mkv, .mov, .m4v",
+    size: { label: "10mb", value: 1024 * 1024 * 10 },
+  },
 };
 
 export const filterToSort: Record<QueryFilterType, any> = {
@@ -291,57 +325,13 @@ export const filterToSort: Record<QueryFilterType, any> = {
   },
 };
 
-export const oneHour = 60 * 60;
+export const oneHour = 3600;
 export const oneDay = oneHour * 24;
 export const oneWeek = oneDay * 7;
 
-export const cacheTags: Record<AvailableCacheTags, string[]> = {
-  user_username: ["user-{username}"],
-  currentUser_uid: ["currentUser-{uid}"],
-  usernameAvailability_username: ["isUsernameAvailable-{username}"],
-  userExistence_email: ["userExist-{email}"],
-  postsOfUser_username_filter_page: [
-    "filter-{filter}-posts-user-{username}-page-{page}",
-  ],
-  commentsOfUser_username_filter_page: [
-    "filter-{filter}-comments-user-{username}-page-{page}",
-  ],
-  postsOfThread_filter_tid_page_tag: [
-    "filter-{filter}-posts-thread-{tid}-page-{page}-tag-{tag}",
-  ],
-  filteredThreads_filter_page: ["filter-{filter}-threads-page-{page}"],
-  membersOfThread_tid_page: ["members-thread-{tid}-page-{page}"],
-  threadsByUser_uid_page: ["threads-user-{uid}-page-{page}"],
-  post_pid: ["post-{pid}"],
-  filteredComments_pid_filter_page: [
-    "comments-post-{pid}-filter-{filter}-page-{page}",
-  ],
-  reposts_pid_page: ["reposts-post-{pid}-page-{page}"],
-  comment_cid: ["comment-{cid}"],
-  replies_cid_filter_page: [
-    "replies-comment-{cid}-filter-{filter}-page-{page}",
-  ],
-  reaction_pid_uid: ["reaction-post-{pid}-user-{uid}"],
-  connection_rid_uid: ["connection-requestedUser-{rid}-user-{uid}"],
-  vote_cid_uid: ["vote-comment-{cid}-user-{uid}"],
-  member_tid_uid: ["member-thread-{tid}-user-{uid}"],
-  thread_tid: ["thread-{tid}"],
-  media_tmdbid: ["media-{tmdbid}"],
-  list_lid: ["list-{lid}"],
-  listsOfUser_filter_username_page: [
-    "lists-user-{username}-filter-{filter}-page-{page}",
-  ],
-  listsForMedia_mid_uid: ["listsForMedia-{mid}-user-{uid}"],
-  items_lid_filter_page: ["items-{lid}-{page}-{filter}"],
-  savedPosts_uid_page: ["savedPosts-user-{uid}-page-{page}"],
-  savedComments_uid_page: ["savedComments-user-{uid}-page-{page}"],
-  savedLists_uid_page: ["savedLists-user-{uid}-page-{page}"],
-  isSaved_uid_id: ["isSaved-uid-{uid}-content-{id}"],
-};
-
 export const queryKeys: Record<AvailableQueryKeys, string[]> = {
-  user_username: ["user", "{username}"],
-  connection_ruid: ["connection", "{ruid}"],
+  user_username: ["user-{username}"],
+  connection_ruid: ["connection-{ruid}"],
   postsOfUser_username_filter_page: [
     "posts",
     "{filter}",
@@ -350,6 +340,11 @@ export const queryKeys: Record<AvailableQueryKeys, string[]> = {
     "{username}",
   ],
   thread_id: ["thread", "{id}"],
+  saved_comments_uid: ["saved", "comments", "{uid}"],
+  saved_lists_uid: ["saved", "lists", "{uid}"],
+  saved_posts_uid: ["saved", "posts", "{uid}"],
+  threadOfUser_uid: ["threads", "user", "{uid}"],
+  threads_filter: ["threads", "{filter}"],
   membership_tid: ["membership", "{tid}"],
   members_tid_page: ["members", "{tid}", "{page}"],
   postsOfThread_tid_filter_page_tag: [
@@ -395,6 +390,53 @@ export const queryKeys: Record<AvailableQueryKeys, string[]> = {
   isContentSaved_type_id: ["saved", "{type}", "{id}"],
 };
 
+export const cacheTags: Record<AvailableCacheTags, string[]> = {
+  user_username: ["user-{username}"],
+  currentUser_uid: ["currentUser-{uid}"],
+  usernameAvailability_username: ["isUsernameAvailable-{username}"],
+  userExistence_email: ["userExist-{email}"],
+  postsOfUser_username_filter_page: [
+    "filter-{filter}-posts-user-{username}-page-{page}",
+  ],
+  commentsOfUser_username_filter_page: [
+    "filter-{filter}-comments-user-{username}-page-{page}",
+  ],
+  postsOfThread_filter_tid_page_tag: [
+    "filter-{filter}-posts-thread-{tid}-page-{page}-tag-{tag}",
+  ],
+  filteredThreads_filter_page: ["filter-{filter}-threads-page-{page}"],
+  membersOfThread_tid_page: ["members-thread-{tid}-page-{page}"],
+  threadsByUser_uid_page: ["threads-user-{uid}-page-{page}"],
+  post_pid: ["post-{pid}"],
+  filteredComments_pid_filter_page: [
+    "comments-post-{pid}-filter-{filter}-page-{page}",
+  ],
+  reposts_pid_page: ["reposts-post-{pid}-page-{page}"],
+  comment_cid: ["comment-{cid}"],
+  replies_cid_filter_page: [
+    "replies-comment-{cid}-filter-{filter}-page-{page}",
+  ],
+  reaction_pid_uid: ["reaction-post-{pid}-user-{uid}"],
+  connection_rid_uid: ["connection-requestedUser-{rid}-user-{uid}"],
+  vote_cid_uid: ["vote-comment-{cid}-user-{uid}"],
+  member_tid_uid: ["member-thread-{tid}-user-{uid}"],
+  thread_tid: ["thread-{tid}"],
+  media_tmdbid: ["media-{tmdbid}"],
+  list_lid_key: ["list-{lid}-{key}"],
+  listsOfUser_filter_username_page: [
+    "lists-user-{username}-filter-{filter}-page-{page}",
+  ],
+  privateListsOfUser_filter_uid_page: [
+    "private-lists-user-{uid}-filter-{filter}-page-{page}",
+  ],
+  listsForMedia_mid_uid: ["listsForMedia-{mid}-user-{uid}"],
+  items_lid_filter_page_key: ["items-{lid}-{page}-{filter}-{key}"],
+  saved_posts_uid_page: ["savedPosts-user-{uid}", "page-{page}"],
+  saved_comments_uid_page: ["savedComments-user-{uid}", "page-{page}"],
+  saved_lists_uid_page: ["savedLists-user-{uid}", "page-{page}"],
+  isSaved_uid_id: ["isSaved-uid-{uid}-content-{id}"],
+};
+
 export const revalidateTags: Record<AvailableRevalidateTags, string[]> = {
   commentMutation_cid_username_pid: [
     "comment-{cid}",
@@ -430,12 +472,25 @@ export const revalidateTags: Record<AvailableRevalidateTags, string[]> = {
   ],
   listUpdation_lid: ["list-{lid}"],
   addItemsInList_lid: ["items-{lid}-1-latest"],
-  savedPosts_uid: ["savedPosts-user-{uid}-page-1"],
-  savedComments_uid: ["savedComments-user-{uid}-page-1"],
-  savedLists_uid: ["savedLists-user-{uid}-page-1"],
+  savedPosts_uid: ["savedPosts-user-{uid}"],
+  savedComments_uid: ["savedComments-user-{uid}"],
+  savedLists_uid: ["savedLists-user-{uid}"],
   isSaved_uid_id: ["isSaved-uid-{uid}-content-{id}"],
   followUnfollow_rid_uid: ["connection-requestedUser-{rid}-user-{uid}"],
   blockUnblock_rid_uid: ["connection-requestedUser-{uid}-user-{rid}"],
+  userMutation_uid_username: ["user-{username}", "currentUser-{uid}"],
+  userUsernameMutation_uid_oldUsername_newUsername: [
+    "user-{oldUsername}",
+    "user-{newUsername}",
+    "currentUser-{uid}",
+    "isUsernameAvailable-{oldUsername}",
+    "isUsernameAvailable-{newUsername}",
+  ],
+  userEmailMutation_uid_oldEmail_newEmail: [
+    "userExist-{oldEmail}",
+    "userExist-{newEmail}",
+    "currentUser-{uid}",
+  ],
 };
 
 export const optimisedImageProps: Record<
@@ -451,7 +506,7 @@ export const optimisedImageProps: Record<
   },
 };
 
-export const listsToChoose = ["favourite", "suggested"];
+export const listsToChoose = ["favourite", "recommended"];
 export const predefinedLists = ["favourite", "recommended", "watched"];
 export const listsToShow = [
   "favourite",

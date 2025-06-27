@@ -18,11 +18,8 @@ export const generateMetadata = async ({ params }: { params: { id: string } }): 
 export default function Layout({ children }: Readonly<{ children: React.ReactNode }>) {
 
     return (
-        <>
-            <Sidebar />
-            <main>
-                {children}
-            </main>
-        </>
+        <main>
+            {children}
+        </main>
     )
 }

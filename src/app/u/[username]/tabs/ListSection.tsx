@@ -28,20 +28,20 @@ const Lists = ({ filter, page, username }: Props) => {
 
   return (
     <>
-      <ul className="mb-2 space-y-2">
-        {requestedUser.predefine_lists.map(({ _id, name, poster }) => (
-          <li key={_id}>
-            <UsersListTile _id={_id} name={name as UsersListType} poster={poster} />
-          </li>
-        ))}
-        {user?._id === requestedUser._id &&
-          ["saved", "private"].map(l => (
+      {user?._id === requestedUser._id &&
+        <ul className="mb-2 space-y-2">
+          {requestedUser.predefine_lists.map(({ _id, name, poster }) => (
+            <li key={_id}>
+              <UsersListTile _id={_id} name={name as UsersListType} poster={poster} />
+            </li>
+          ))}
+          {["saved", "private"].map(l => (
             <li key={l}>
               <UsersListTile _id={l} name={l as UsersListType} />
             </li>
-          ))
-        }
-      </ul>
+          ))}
+        </ul>
+      }
 
       <InfiniteScroller
         initialPage={page}

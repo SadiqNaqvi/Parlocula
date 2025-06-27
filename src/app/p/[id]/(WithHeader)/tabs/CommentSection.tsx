@@ -1,10 +1,9 @@
 "use client";
 
 import CommentInput from "@components/CommentInput";
-import InfiniteScroller from "@components/InfiniteScroller";
 import RouterDropdown from "@components/FiltersDropdown";
+import InfiniteScroller from "@components/InfiniteScroller";
 import { CommentTile, LoadingCommentTile, LoadingSpinner } from "@components/ui";
-import { queryFilters } from "@lib/constants";
 import { getCommentsOnPost, getPostById } from "@lib/helpers/common";
 import { useQueryHook } from "@lib/hooks";
 import { getQueryKeys, queryFunction } from "@lib/utils";
@@ -57,7 +56,7 @@ const CommentSection = ({ id, page, filter }: Props) => {
                     Loading={LoadingCommentTile}
                     fetchData={(p) => queryFunction(getCommentsOnPost, [{ id, p, filter }])}
                     notFoundMessage={notFoundMessage}
-                    queryKeys={['comments-of-post', id, page, filter]}
+                    queryKeys={getQueryKeys('commentsOfPost_pid_filter_page', { pid: id, page, filter })}
                     initialPage={page}
                     paginate={true}
                     callback={addReply}
@@ -68,7 +67,7 @@ const CommentSection = ({ id, page, filter }: Props) => {
                 post_id={id}
                 post_author={user_id}
                 isEditing={false}
-                queryKeys={['comments-of-post', id, page, filter]}
+                queryKeys={getQueryKeys('commentsOfPost_pid_filter_page', { pid: id, page, filter })}
                 removeReply={removeReply}
                 reply={reply} />
         </>

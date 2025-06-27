@@ -23,7 +23,10 @@ const threadModel = new Schema<ThreadModelType>(
       type: [linkModel],
       required: false,
     },
-    connection: [connectionModel],
+    connection: {
+      type: [connectionModel],
+      required: true,
+    },
     created_by: {
       type: Schema.Types.ObjectId,
       ref: "User",

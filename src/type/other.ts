@@ -35,18 +35,22 @@ export type AvailableCacheTags =
   | "replies_cid_filter_page"
   | "vote_cid_uid"
   | "media_tmdbid"
-  | "list_lid"
+  | "list_lid_key"
   | "listsOfUser_filter_username_page"
-  | "items_lid_filter_page"
-  | "savedPosts_uid_page"
-  | "savedComments_uid_page"
-  | "savedLists_uid_page"
+  | "privateListsOfUser_filter_uid_page"
+  | "items_lid_filter_page_key"
+  | "saved_posts_uid_page"
+  | "saved_comments_uid_page"
+  | "saved_lists_uid_page"
   | "isSaved_uid_id"
   | "listsForMedia_mid_uid";
 
 export type AvailableRevalidateTags =
   | "registration_email_username"
   | "loginLogout_uid"
+  | "userMutation_uid_username"
+  | "userUsernameMutation_uid_oldUsername_newUsername"
+  | "userEmailMutation_uid_oldEmail_newEmail"
   | "threadMutation_tid"
   | "threadMembershipMutation_tid_uid"
   | "postMutation_pid_tid_username_tag"
@@ -70,6 +74,8 @@ export type AvailableQueryKeys =
   | "user_username"
   | "connection_ruid"
   | "postsOfUser_username_filter_page"
+  | "threadOfUser_uid"
+  | "threads_filter"
   | "thread_id"
   | "members_tid_page"
   | "membership_tid"
@@ -87,11 +93,10 @@ export type AvailableQueryKeys =
   | "itemsOfList_lid_filter_page"
   | "privateList_lid_key"
   | "itemsOfPrivateList_lid_key_filter_page"
-  | "isContentSaved_type_id";
-
-export type AvailableMutationKeys =
-  | "postMutation_username_tid_tag"
-  | "commentMutation_pid_username";
+  | "isContentSaved_type_id"
+  | "saved_posts_uid"
+  | "saved_comments_uid"
+  | "saved_lists_uid";
 
 export type PostResponseWithCacheOptions =
   | {
@@ -175,3 +180,100 @@ export type ContentMutationProps =
       data: { id: string };
       action: "remove";
     };
+
+export type DeviceLimitation = {
+  overall: number;
+  email: number;
+  expireAt: number;
+};
+
+export type InputManagerType<T = any> = {
+  getData: () => T;
+};
+
+export type backdrop_sizes = "w300" | "w780" | "w1280" | "original";
+export type logo_sizes =
+  | "w45"
+  | "w92"
+  | "w154"
+  | "w185"
+  | "w300"
+  | "w500"
+  | "original";
+export type poster_sizes =
+  | "w92"
+  | "w154"
+  | "w185"
+  | "w342"
+  | "w500"
+  | "w780"
+  | "original";
+export type profile_sizes = "w45" | "w185" | "h632" | "original";
+export type still_sizes = "w92" | "w185" | "w300" | "original";
+
+type InternalPosterProps = {
+  external?: false | undefined;
+  type?: "image" | "video";
+};
+
+type ExternalPosterProps =
+  | {
+      external: true;
+      type: "backdrop";
+      size: backdrop_sizes;
+    }
+  | {
+      external: true;
+      type: "logo";
+      size: logo_sizes;
+    }
+  | {
+      external: true;
+      type: "poster";
+      size: poster_sizes;
+    }
+  | {
+      external: true;
+      type: "profile";
+      size: profile_sizes;
+    }
+  | {
+      external: true;
+      type: "still";
+      size: still_sizes;
+    };
+
+export type getPosterFunctionProps = {
+  path?: string | null;
+} & (InternalPosterProps | ExternalPosterProps);
+
+// export type getPosterFunctionProps = {
+//   path?: string | null | undefined;
+// } & (
+//   | {
+//       external: undefined | false;
+//       type?: "image" | "video";
+//     }
+//   | ({ external: true } & (
+//       | {
+//           type: "backdrop";
+//           size: backdrop_sizes;
+//         }
+//       | {
+//           type: "logo";
+//           size: logo_sizes;
+//         }
+//       | {
+//           type: "poster";
+//           size: poster_sizes;
+//         }
+//       | {
+//           type: "profile";
+//           size: profile_sizes;
+//         }
+//       | {
+//           type: "still";
+//           size: still_sizes;
+//         }
+//     ))
+// );

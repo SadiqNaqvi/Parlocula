@@ -1,10 +1,11 @@
 "use client";
 
+import { ReactIcon } from "@assets/Icons";
 import { UserBasedButton } from "@components";
 import Modal, { closeFancyBox } from "@components/Modal";
 import { addReactionOnPost, removeReactionOnPost } from "@lib/helpers/client";
 import { getReactionOnPost } from "@lib/helpers/common";
-import { numberConverter, queryFunction } from "@lib/utils";
+import { getQueryKeys, numberConverter, queryFunction } from "@lib/utils";
 import { MutationFnProps, UserBasedButtonProps } from "@type/other";
 import EmojiPicker, { Emoji, EmojiClickData, Theme } from "emoji-picker-react";
 
@@ -27,18 +28,15 @@ const ReactionButton = ({ id, count }: { id: string, count: number }) => {
         }
 
         return (
-            <span className="flex p-2 border border-gray30 rounded-md">
+            <span className="flex gap-2 items-center text-sm">
                 <Modal
                     buttonChildren={
                         <>
                             <span>
-                                {state ?
-                                    <Emoji unified={state} size={18} />
-                                    : "React"
-                                }
+                                {state ? <Emoji unified={state} size={18} /> : <ReactIcon />}
                             </span>
                             <span>
-                                {state ? numberConverter(count) + 1 : numberConverter(count)}
+                                {numberConverter(count + (state ? 1 : 0))}
                             </span>
                         </>
                     }
@@ -50,7 +48,7 @@ const ReactionButton = ({ id, count }: { id: string, count: number }) => {
                         previewConfig={{ showPreview: false, }}
                         className="w-full max-w-md bg-primary"
                         lazyLoadEmojis
-                        // onEmojiClick={handleReactionClick}
+                        onEmojiClick={handleReactionClick}
                         reactionsDefaultOpen />
                 </Modal>
             </span>
@@ -62,7 +60,7 @@ const ReactionButton = ({ id, count }: { id: string, count: number }) => {
         Button={Button}
         mutationFn={mutationFn}
         queryFn={(uid) => queryFunction(getReactionOnPost, [id, uid])}
-        queryKeys={[`reaction`, id]}
+        queryKeys={getQueryKeys("reaction_pid", { pid: id })}
     />
 }
 export default ReactionButton;

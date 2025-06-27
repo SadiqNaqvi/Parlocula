@@ -1,71 +1,73 @@
+"use client";
+
 import { LeftChevron } from "@assets/Icons";
-import { Navigate } from "@components";
+import { InfiniteScroller, Modal, Navbar, Navigate } from "@components";
 import { CheckTile, Form } from "@components/form";
+import GeneralTile from "@components/GeneralTile";
+import { closeFancyBox } from "@components/Modal";
+import { threadsByUser } from "@lib/helpers/common";
+import { generateInitialData, getQueryKeys, queryFunction } from "@lib/utils";
 import useCurrentUser from "@store/user";
-import { useRef, useState } from "react";
+import { forwardRef, useImperativeHandle, useRef, useState } from "react";
 
-// const searchThreads = async (user_id: string | undefined, query: string): Promise<Omit<MereThread, "description">[] | null> => {
-//     if (!user_id) return null;
-//     const { errCode, result, success } = await threadsByUser(user_id);
-//     if (!success) throw new Error(errCode);
-//     return result;
-// }
+type MereThread = { _id: string, name: string, poster: string };
 
-const ThreadChoice = ({ submitChoice }: { submitChoice: (id: string) => void }) => {
+const ThreadChoice = ({ submitChoice }: { submitChoice: (chosenThread: MereThread) => void }) => {
 
-    const { threads } = useCurrentUser();
-    const [query, setQuery] = useState("");
+    const { threads, user } = useCurrentUser();
+    const formRef = useRef<HTMLFormElement | null>(null);
 
-    const formRef = useRef<HTMLFormElement | null>(null)
+    if (!user) return null;
 
-    // const { data, isFetching, error, refetch } = useQueryHook<Omit<MereThread, "description">[]>({
-    //     queryKeys: [`Threads_with_query:${query}`],
-    //     queryFn: () => searchThreads(user?._id, query),
-    //     enabled: query.length >= 3 && !!user?._id,
-    // });
-
-    const updateQuery = (data: FormData) => {
-        const q = data.get("query") as string;
-        if (!q || q.length < 5 || q.length > 40) return;
-        console.log(q)
-        // setQuery(q)
+    const submit = (chosenThread: MereThread) => {
+        if (!chosenThread) return;
+        submitChoice(chosenThread);
+        closeFancyBox();
     }
 
-    // Change check box to radio
-    const submit = ({ threadChoice }: { threadChoice: string | null }) => {
-        if (!threadChoice) return;
-        submitChoice(threadChoice);
-    }
-
-    const reqSubmit = () => {
-        if (formRef.current) formRef.current.requestSubmit();
-    }
+    const ThreadCheckTile = ({ _id, name, poster }: MereThread) => (
+        <GeneralTile title={name} poster={poster} onClick={() => submit({ _id, name, poster })} />
+    )
 
     return (
-        <>
-            <header className="flex flex-cntr-between">
-                <section className="gap-4 flex items-center">
-                    <Navigate comp="button" goto="back"><LeftChevron /></Navigate>
-                    <h1 className="text-2xl inline">Choose Thread To Post</h1>
-                </section>
-                <section>
-                    <button className="primary" onClick={reqSubmit}>Next</button>
-                </section>
-            </header>
-
-            <Form ref={formRef} submit={submit}>
-                <ul className="space-y-3">
-                    {threads.map(({ _id, name, poster }) => (
-                        <li key={_id} className="border-b-2 border-zinc-500 last:border-0">
-                            <CheckTile group="threadChoice" type="radio" label={name} name={_id} poster={poster} />
-                        </li>
-                    ))}
-                </ul>
-            </Form>
-
-        </>
+        <Form ref={formRef} submit={submit}>
+            <Navbar navTitle="Choose Thread" />
+            <section className="mt-4">
+                <InfiniteScroller
+                    Component={ThreadCheckTile}
+                    fetchData={p => queryFunction(threadsByUser, [user._id, p])}
+                    queryKeys={getQueryKeys("threadOfUser_uid", { uid: user._id })}
+                    initialData={generateInitialData(threads)}
+                />
+            </section>
+        </Form>
     )
 
 }
 
-export default ThreadChoice;
+const ChooseThreadButton = forwardRef((_, ref) => {
+
+    const [thread, setThread] = useState<MereThread | null>(null);
+
+    useImperativeHandle(ref, () => ({
+        getData: () => thread?._id
+    }));
+
+    const takeResult = (thread: MereThread) => {
+        setThread(thread);
+    }
+
+    return <Modal
+        buttonChildren={
+            <button className="px-2 py-1 bg-gray40 rounded-xl">
+                {thread?.name ?? "Choose Thread"}
+            </button>
+        }
+        id="threadChoice"
+    >
+        <ThreadChoice submitChoice={takeResult} />
+    </Modal>
+
+})
+
+export default ChooseThreadButton;

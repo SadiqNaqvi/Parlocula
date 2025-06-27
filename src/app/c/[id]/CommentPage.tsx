@@ -3,11 +3,12 @@
 import { GenericWrapper, Navbar, Navigate } from "@components";
 import SaveButton from "@components/SaveButton";
 import { getCommentById } from "@lib/helpers/common";
-import { getInternalPoster, getQueryKeys, timeAgo } from "@lib/utils";
+import { getPoster, getQueryKeys, timeAgo } from "@lib/utils";
 import { FullComment } from "@type/internal";
 import Image from "next/image";
 import RepliesSection from "./RepliesSection";
 import VoteButton from "./VoteButton";
+import OptionsButton from "./Ellipsis";
 
 type Props = {
     id: string,
@@ -19,24 +20,26 @@ const getQueryProps = ({ id }: Props) => ({
     queryKeys: getQueryKeys("comment_cid", { cid: id }),
     args: [id],
     queryFn: getCommentById
-})
+});
 
 const component = (data: FullComment, { filter, page }: Props) => {
     const {
-        _id, saved_count, attachment, content, createdAt, post_id, edited_at, upvote_count, profile, username, post_author, nsfw, spoiler, replied_to
+        _id, saved_count, attachment, content, createdAt, user_id, post_id, edited_at, upvote_count, profile, username, post_author, nsfw, spoiler
     } = data;
 
     return (
         <>
             <Navbar
                 titleToShare={`Read the comment by ${username} and their replies on Popcorn Paragon`}
-                className="sticky bg-primary -mt-4 mb-4" />
+                className="sticky bg-primary -mt-4 mb-4"
+                OptionButton={<OptionsButton author={user_id} id={_id} />}
+            />
 
             <header className="space-y-4">
                 <div className="flex items-center gap-3">
                     <Image
                         className="rounded-full"
-                        src={getInternalPoster({ path: profile })}
+                        src={getPoster({ external: false, path: profile })}
                         height={25}
                         width={25}
                         alt="Profile picture of user"
@@ -78,7 +81,7 @@ const component = (data: FullComment, { filter, page }: Props) => {
                     />
                 }
 
-                <section className="pt-2 mt-2 border-t border-gray20 flex flex-cntr-between">
+                <section className="mt-4 flex gap-3 pb-4 mb-4 border-b border-gray40 items-center">
                     <VoteButton author={post_author} id={_id} voteCount={upvote_count} />
                     <SaveButton count={saved_count} id={_id} type="Comment" />
                 </section>

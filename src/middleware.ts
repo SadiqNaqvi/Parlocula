@@ -5,33 +5,46 @@ export const config = {
 import { generateToken, getSession, verifyToken } from "@lib/auth";
 import { NextRequest, NextResponse } from "next/server";
 
-const validateUser = async (rq: NextRequest, rs: NextResponse) => {
-  const token = rq.cookies.get("token")?.value;
-  const session_id = rq.cookies.get("sid")?.value;
-  if (!token || !session_id) return false;
+const validateUser = async (
+  rq: NextRequest,
+  rs: NextResponse
+): Promise<{ success: true } | { success: false; errCode: string }> => {
+  const cookieStore = rq.cookies;
+  const token = cookieStore.get("token")?.value;
+  const session_id = cookieStore.get("sid")?.value;
+
+
+  if (!token || !session_id) return { success: false, errCode: "pp202" };
 
   const payload = await verifyToken(token);
-  console.log(payload);
-  if (!payload || !payload.exp) return false;
+  if (!payload || !payload.exp) return { success: false, errCode: "pp202" };
 
   const cuid = rq.nextUrl.pathname.slice(16).split("/")[0];
-  if (payload.user_id === cuid && payload.exp > Date.now()) return true;
+  if (payload.user_id !== cuid) return { success: false, errCode: "pp202" };
+  else if (payload.exp > Date.now()) return { success: true };
 
-  const session = await getSession(session_id);
+  const sessionResponse = await getSession(session_id);
+  if (!sessionResponse.success) return { success: false, errCode: "pp100" };
+
+  const session = sessionResponse.result;
   if (!session || session.user_id !== cuid) {
     rs.cookies.delete("sid");
     rs.cookies.delete("token");
-    return false;
-  };
+    return { success: false, errCode: "pp202" };
+  }
 
-  const newToken = await generateToken({ user_id: session.user_id });
+  const newToken = await generateToken({
+    user_id: session.user_id,
+    username: session.username,
+  });
   rs.cookies.set("token", newToken, {
     httpOnly: true,
     secure: true,
     sameSite: "strict",
     path: "/",
   });
-  return true;
+
+  return { success: true };
 };
 
 export const middleware = async (req: NextRequest) => {
@@ -42,16 +55,10 @@ export const middleware = async (req: NextRequest) => {
 
   // Check if there's a current user
   const user = await validateUser(req, response);
-  // const user = true;
 
   // If user is trying to post something but there's no current user, return the request.
   if (url.includes("/api/v1/private")) {
-    if (!user)
-      return NextResponse.json({
-        result: null,
-        errCode: "pp202",
-        success: false,
-      });
+    if (!user.success) return NextResponse.json(user, { status: 403 });
     // else if (user.isBanned)
     //   return NextResponse.json({
     //     result: null,
@@ -61,12 +68,8 @@ export const middleware = async (req: NextRequest) => {
   }
 
   // If user is trying to fetch their details in /user/me page but there's no current user, return the request.
-  else if (url.includes("/api/v1/user/me") && !user)
-    return NextResponse.json({
-      result: null,
-      errCode: "pp202",
-      success: false,
-    });
+  else if (url.includes("/api/v1/user/me") && !user.success)
+    return NextResponse.json(user, { status: 403 });
 
   return response;
 };

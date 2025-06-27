@@ -3,14 +3,12 @@
 import { CreateEditPost } from "@components";
 import { LoadingSpinner, NotFound } from "@components/ui";
 import { createPost } from "@lib/helpers/client";
-import { useCustomReducer } from "@lib/hooks";
 import { isValidObjectId, readyFrames } from "@lib/utils";
 import useCurrentUser from "@store/user";
 import { InputFrame, PostSchemaType } from "@type/schemas";
 import { useRouter, useSearchParams } from "next/navigation";
-import ThreadChoice from "./threadChoice";
 
-type CallbackVal = Omit<PostSchemaType & { frames: InputFrame[] }, "files" | "filesData" | "thread_id">
+type CallbackVal = Omit<PostSchemaType & { frames: InputFrame[] }, "files" | "filesData" | "thread_id"> & { thread_id?: string }
 
 export default function Page() {
 
@@ -20,16 +18,7 @@ export default function Page() {
     const router = useRouter();
 
     const tid = params.get("tid");
-    const thread_id = tid && isValidObjectId(tid) ? tid : "";
-
-    const {
-        chosenThread,
-        isThreadChosen,
-        setter
-    } = useCustomReducer({
-        isThreadChosen: Boolean(thread_id),
-        chosenThread: thread_id,
-    });
+    const thread_id = tid && isValidObjectId(tid) ? tid : undefined;
 
     if (!isHydrated) return <LoadingSpinner />
 
@@ -41,29 +30,13 @@ export default function Page() {
     )
 
     const submitPost = async (postData: CallbackVal) => {
-        if (!chosenThread) return;
-        const { frames, ...data } = postData;
+        const { frames, thread_id, ...data } = postData;
+        if (!thread_id) return "Choose a thread to post."
+
         const { files, filesData } = await readyFrames(frames);
-        const dataToPost = { ...data, files, filesData, thread_id: chosenThread }
+        const dataToPost = { ...data, files, filesData, thread_id }
         return await createPost(dataToPost, user._id, router);
     }
 
-    const submitChoice = (id: string) => {
-        if (id && isValidObjectId(id))
-            setter({ chosenThread: id, isThreadChosen: true })
-    }
-
-    const goBack = () => {
-        setter({ isThreadChosen: false })
-    }
-
-    return (
-        <>
-            {isThreadChosen ?
-                <CreateEditPost goBack={goBack} isEditing={false} callback={submitPost} />
-                :
-                <ThreadChoice submitChoice={submitChoice} />
-            }
-        </>
-    )
+    return <CreateEditPost defaultThread={thread_id} isEditing={false} callback={submitPost} />
 }

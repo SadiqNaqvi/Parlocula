@@ -1,6 +1,7 @@
+import { ListItemModelType } from "@type/models";
 import { Schema, model, models } from "mongoose";
 
-const ItemModel = new Schema({
+const ItemModel = new Schema<ListItemModelType>({
   media_id: {
     type: Schema.Types.ObjectId,
     ref: "Media",

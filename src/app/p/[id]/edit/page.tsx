@@ -77,7 +77,7 @@ const Page = ({ params: { id } }: { params: { id: string } }) => {
             if (!success) return error;
 
             if (framesUpdated) {
-                const { files, filesData } = await readyFrames(frames)
+                const { files, filesData } = await readyFrames(frames);
                 updatesToSend.files = files;
                 updatesToSend.filesData = filesData;
             }
@@ -86,7 +86,7 @@ const Page = ({ params: { id } }: { params: { id: string } }) => {
             return await updatePost(id, user._id, updatesToSend, router, queryClient);
         };
 
-        return <CreateEditPost goBack={undefined} callback={callback} isEditing={true} defaultVals={{ ...data, frames }} />
+        return <CreateEditPost callback={callback} isEditing={true} defaultVals={{ ...data, frames }} />
 
     }
 

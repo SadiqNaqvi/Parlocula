@@ -1,19 +1,31 @@
 "use server";
 
-import { getSession } from "@lib/auth";
+import {
+  generateToken,
+  getSession,
+  storeSession,
+  verifyToken,
+} from "@lib/auth";
 import { ObjectId } from "@lib/utils";
 import { Item, Media } from "@model";
-import { MediaItemType, Session } from "@type/internal";
+import { GeneralGetReturn, MediaItemType } from "@type/internal";
+import VerifyEmail from "@components/EmailTemplates/verification";
 import {
   v2 as cloudinary,
   UploadApiOptions,
   UploadApiResponse,
 } from "cloudinary";
 import { ClientSession } from "mongoose";
-import { NextRequest } from "next/server";
-
 import { render } from "@react-email/components";
 import { createTransport } from "nodemailer";
+import { cookies } from "next/headers";
+import { emailLimit, oneHour } from "@lib/constants";
+import { DeviceLimitation } from "@type/other";
+import { randomInt } from "crypto";
+import { storeToRedis } from "@lib/auth/session";
+import bcrypt from "bcrypt";
+import { CinementModelType, ListItemModelType } from "@type/models";
+import { CinementSchemaType } from "@type/schemas";
 
 cloudinary.config({
   cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
@@ -154,27 +166,9 @@ export const multipleMediaUploader = async (
   }
 };
 
-export const getCurrentUser = async (
-  req: NextRequest
-): Promise<Session | null> => {
-  const session_id = req.cookies.get("sid")?.value;
-  if (!session_id) return null;
-  const user = await getSession(session_id);
-  return user;
-};
-
-type Item =
-  | {
-      isConfirm: true;
-      media_id: string;
-    }
-  | {
-      isConfirm: false;
-      media_id: undefined;
-    };
-
 export const addItemsInList = async (
-  items: (MediaItemType & Item)[],
+  items: CinementSchemaType[],
+  list_type: "custom" | "favourite" | "recommended" | "watched",
   id: string,
   user_id: string,
   session: ClientSession
@@ -203,13 +197,19 @@ export const addItemsInList = async (
   let createdItems = [];
   if (itemsToCreate.length > 0) {
     createdItems = await Media.create(
-      itemsToCreate.map((item) => ({
-        tmdb_id: item.tmdb_id,
-        year: item.year,
-        media_type: item.media_type,
-        title: item.title,
-        poster: item.poster,
-      })),
+      itemsToCreate.map(
+        (item) =>
+          ({
+            tmdb_id: item.tmdb_id,
+            year: item.year,
+            media_type: item.media_type,
+            title: item.title,
+            poster: item.poster,
+            favourite: list_type === "favourite" ? 1 : 0,
+            watched: list_type === "watched" ? 1 : 0,
+            recommended: list_type === "recommended" ? 1 : 0,
+          }) as CinementModelType
+      ),
       { session, ordered: true }
     );
   }
@@ -228,10 +228,10 @@ export const addItemsInList = async (
   });
 
   // Step 5: Create list items
-  const itemsArr = items.map((item) => ({
+  const itemsArr: ListItemModelType[] = items.map((item) => ({
     list_id: ObjectId(id),
     user_id: ObjectId(user_id),
-    media_id: itemIdMap.get(item.tmdb_id),
+    media_id: ObjectId(itemIdMap.get(item.tmdb_id) as string),
     tmdb_id: item.tmdb_id,
     year: item.year,
     createdAt: new Date(),
@@ -239,5 +239,86 @@ export const addItemsInList = async (
 
   if (itemsArr.length > 0) {
     await Item.create(itemsArr, { session, ordered: true });
+  }
+};
+
+export const sendVerificationCode = async (
+  email: string,
+  fingerprint: string
+): Promise<GeneralGetReturn> => {
+  if (!fingerprint) return { success: false, errCode: "pp200" };
+  const cookieStore = cookies();
+  const limitaionToken = cookieStore.get("did")?.value;
+  try {
+    let payload = limitaionToken
+      ? await verifyToken<DeviceLimitation>(limitaionToken)
+      : null;
+
+    if (!payload) {
+      const redisResp = await getSession<DeviceLimitation>(
+        `deviceLimits-${fingerprint}`
+      );
+      if (redisResp.success) payload = redisResp.result;
+      else return redisResp as GeneralGetReturn;
+    }
+
+    const deviceLimts: DeviceLimitation = payload ?? {
+      overall: 0,
+      email: 0,
+      expireAt: new Date().getTime() + 1000 * 3600,
+    };
+
+    if (
+      deviceLimts.email >= emailLimit &&
+      new Date().getTime() < deviceLimts.expireAt
+    )
+      return { success: false, errCode: "pp209" };
+
+    const transportor = createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.GOOGLE_EMAIL,
+        pass: process.env.APP_PASSWORD,
+      },
+    });
+    const code = randomInt(100000, 1000000);
+    const emailHtml = await render(VerifyEmail({ code }));
+    await transportor.sendMail({
+      from: process.env.GOOGLE_EMAIL,
+      to: email,
+      subject: "Email Verification",
+      html: emailHtml,
+    });
+
+    const updatedLimits: DeviceLimitation = {
+      ...deviceLimts,
+      email: deviceLimts.email + 1,
+    };
+
+    await storeToRedis(`deviceLimits-${fingerprint}`, oneHour, updatedLimits);
+    cookieStore.set("did", await generateToken(updatedLimits));
+
+    const hash = await bcrypt.hash(`${code}`, 1);
+    return { success: true, result: hash };
+  } catch (err: any) {
+    console.log("Error occured while sending verification email", err.message);
+    return { success: false, errCode: "pp100" };
+  }
+};
+
+export const verifyCodes = async ({
+  inputCode,
+  realCode,
+}: {
+  inputCode: string;
+  realCode: string;
+}) => {
+  try {
+    const compare = await bcrypt.compare(inputCode, realCode);
+    console.log("Compared", compare);
+    return compare;
+  } catch (err: any) {
+    console.error("Failed to compare codes", err.message);
+    return false;
   }
 };

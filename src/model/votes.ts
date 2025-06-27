@@ -4,7 +4,7 @@ import { Schema, models, model } from "mongoose";
 const voteModel = new Schema<VoteModelType>({
   type: {
     type: String,
-    enum: ["up, down"],
+    enum: ["up", "down"],
     required: true,
   },
   user_id: {

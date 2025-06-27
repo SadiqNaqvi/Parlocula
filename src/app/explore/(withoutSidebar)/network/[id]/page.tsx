@@ -2,7 +2,7 @@ import FancyImage from "@components/FancyImage";
 import ObserverHeader from "@components/ObserverHeader";
 import { NotFound } from "@components/ui";
 import { fetchNetwork } from "@lib/contentFetcher";
-import { getPoster } from "@lib/dataRefiner";
+import { getPoster } from "@lib/utils";
 import { Metadata } from "next";
 import MediaFetcher from "../../components/MediaFetcher";
 
@@ -45,8 +45,8 @@ const Page = async ({ params }: Props) => {
                 <div className="flex gap-4">
                     <FancyImage
                         id="poster"
-                        thumbnail={getPoster("logo", content.logo_path, 2)}
-                        src={getPoster("logo", content.logo_path, 10)}
+                        thumbnail={getPoster({ external: true, type: "logo", path: content.logo_path, size: "w154" })}
+                        src={getPoster({ external: true, type: "logo", path: content.logo_path, size: "original" })}
                         height={160}
                         width={160}
                         download={`Poster of ${content.name} - Popcorn Paragon`}

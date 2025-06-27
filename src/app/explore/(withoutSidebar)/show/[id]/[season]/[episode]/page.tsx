@@ -3,14 +3,14 @@ import FancyImage from "@components/FancyImage";
 import ObserverHeader from "@components/ObserverHeader";
 import { ContentBox, NotFound, VerticleMovieCard } from "@components/ui";
 import { fetchEpisodeForSeason, fetchSeasonForShow, fetchShow } from "@lib/contentFetcher";
-import { getPoster } from "@lib/dataRefiner";
+import { getPoster } from "@lib/utils";
 import { refineString } from "@lib/utils";
 import { Metadata } from "next";
 
 type Ids = { id: string, season: string, episode: string }
 type Props = { params: Ids };
 
-const fetchSeason = async ({ id, season, episode }: Ids) => {
+const fetchSeason = async ({ id, episode }: Ids) => {
     const refineSeason = parseInt(episode.split('-')[1]);
     const seasonNumber = isNaN(refineSeason) ? 1 : refineSeason;
     const refineEpisode = parseInt(episode.split('-')[1]);
@@ -69,8 +69,8 @@ const EpisodePage = async ({ params }: Props) => {
                     className="w-full rounded-md h-[300px] object-cover object-top"
                     alt="Backdrop"
                     id="backdrop-popover"
-                    thumbnail={getPoster("backdrop", show.backdrop, 2)}
-                    src={getPoster("backdrop", show.backdrop, 10)}
+                    thumbnail={getPoster({ external: true, type: "backdrop", path: show.backdrop, size: "w780" })}
+                    src={getPoster({ external: true, type: "backdrop", path: show.backdrop, size: "original" })}
                     download={`${mainTitle} - Popcorn Paragon`}
                 />
             </div>
@@ -79,8 +79,8 @@ const EpisodePage = async ({ params }: Props) => {
 
                 <FancyImage
                     id="poster"
-                    thumbnail={getPoster("poster", episode.poster, 2)}
-                    src={getPoster("poster", episode.poster, 10)}
+                    thumbnail={getPoster({ external: true, type: "poster", path: episode.poster, size: "w154" })}
+                    src={getPoster({ external: true, type: "poster", path: episode.poster, size: "original" })}
                     height={160}
                     width={160}
                     download={`Poster of ${mainTitle} - Popcorn Paragon`}

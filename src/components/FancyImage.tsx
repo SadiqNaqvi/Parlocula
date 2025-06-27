@@ -1,6 +1,6 @@
 "use client";
 
-import { getInternalPoster, getThumbnail } from "@lib/utils";
+import { getPoster, getThumbnail } from "@lib/utils";
 import Image from "next/image";
 
 type Props = {
@@ -19,7 +19,7 @@ type Props = {
 
 const FancyImage = ({ src, id, download, caption, alt, height, width, type = "image", thumbnail, containerClass, ...args }: Props) => {
 
-    const source = getInternalPoster({ path: src, type });
+    const source = getPoster({external: false, path: src, type });
 
     return (
         <div

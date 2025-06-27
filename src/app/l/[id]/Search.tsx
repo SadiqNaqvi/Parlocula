@@ -4,7 +4,7 @@ import GeneralTile from "@components/GeneralTile";
 import { closeFancyBox } from "@components/Modal";
 import SearchContainer from "@components/SearchContainer";
 import { searchOnlyMediaItems } from "@lib/contentFetcher";
-import { getPoster } from "@lib/dataRefiner";
+import { getPoster } from "@lib/utils";
 import { addItemsToList } from "@lib/helpers/client";
 import { addingItemsMutation, mutationWrapper } from "@lib/mutation";
 import { queryFunction } from "@lib/utils";
@@ -52,7 +52,7 @@ const Search = ({ queryKeys, list_id, uid }: { queryKeys: string[], list_id: str
         return <GeneralTile
             title={title}
             onClick={() => getItems({ media_type, poster, title, tmdb_id, year, isConfirm: false })}
-            poster={getPoster("poster", poster, 1)}
+            poster={getPoster({ external: true, type: "poster", path: poster, size: "w92" })}
         />
     }
 

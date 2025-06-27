@@ -24,7 +24,7 @@ export const POST = postRequest({
     const { id } = params;
     const { type } = data;
 
-    await Vote.create({ type, user_id, comment_id: id }, { session });
+    await Vote.create([{ type, user_id, comment_id: id }], { session });
     await Comment.findByIdAndUpdate(
       id,
       {

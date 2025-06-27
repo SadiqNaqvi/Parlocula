@@ -33,7 +33,8 @@ const Page = async ({ params, searchParams }: { params: { id: string }, searchPa
         />
     );
 
-    const user = await getUserFromToken(cookies());
+    const jar = cookies();
+    const user = await getUserFromToken(jar);
 
     const { filter, page } = refineSearchParams("comments", searchParams.p, searchParams.f)
 
@@ -48,13 +49,13 @@ const Page = async ({ params, searchParams }: { params: { id: string }, searchPa
         ...(user ? [
             queryClient.prefetchQuery({
                 queryKey: getQueryKeys("vote_cid", { cid }),
-                queryFn: () => queryFunction(getVoteOnComment, [cid, user.user_id]),
+                queryFn: () => queryFunction(getVoteOnComment, [cid, user.user_id, jar]),
                 staleTime: 60 * 60 * 1000,
                 gcTime: 60 * 60 * 1000
             }),
             queryClient.prefetchQuery({
                 queryKey: getQueryKeys("isContentSaved_type_id", { type: "comment", id: cid }),
-                queryFn: () => queryFunction(checkIfItemSaved, [cid, user.user_id]),
+                queryFn: () => queryFunction(checkIfItemSaved, [cid, user.user_id, jar]),
                 staleTime: 60 * 60 * 1000,
                 gcTime: 60 * 60 * 1000
             }),

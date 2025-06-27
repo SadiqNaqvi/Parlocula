@@ -1,3 +1,5 @@
+"use client"
+
 import InfiniteScroller from "@components/InfiniteScroller";
 import { VerticleMovieCard } from "@components/ui";
 import { fetchShowsWithGenres } from "@lib/contentFetcher";
@@ -13,7 +15,7 @@ const fetchData = async (page: number, genres: string): Promise<GeneralGetReturn
 
 const Component = ({ id, poster, rating, title, year, type }: RefinedGeneralData) => (
     <VerticleMovieCard
-        link={`/explore/${type}/${id}-${refineString(title)}`}
+        link={`/explore/show/${id}-${refineString(title)}`}
         poster={poster}
         title={title}
         rating={rating}

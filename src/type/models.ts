@@ -46,22 +46,24 @@ export type UserModelType = {
   dob: Date;
   bio: string;
   bioLinks: LinkModelType[];
-  initialGenres: string[];
-  password: string;
   profile: string;
-  edited_at: Date | null;
-  isActive: boolean;
+
+  edited_at?: Date | null;
+  isActive?: boolean;
+  passkey: string;
+  usernameUpdatedAt?: Date | null;
+  emailUpdatedAt?: Date | null;
 
   session_id: string | null;
-  lastLoginAt: Date;
-  isBanned: boolean;
-  banEndsAt: Date | null;
-  tempBanned: number;
-  followers: number;
-  following: number;
-  posts: number;
-  comments: number;
-  public_lists: number;
+  lastLoginAt?: Date;
+  isBanned?: boolean;
+  banEndsAt?: Date | null;
+  tempBanned?: number;
+  followers?: number;
+  following?: number;
+  posts?: number;
+  comments?: number;
+  public_lists?: number;
 };
 
 export type UserRecommendationModelType = {
@@ -135,4 +137,24 @@ export type UserConnectionModelType = {
   followee: Types.ObjectId;
   blocked: boolean;
   notification: boolean;
+};
+
+export type CinementModelType = {
+  title: string;
+  poster: string;
+  year: number;
+  media_type: "movie" | "show";
+  tmdb_id: string;
+  favourite?: number;
+  watched?: number;
+  recommended?: number;
+};
+
+export type ListItemModelType = {
+  media_id: Types.ObjectId;
+  list_id: Types.ObjectId;
+  user_id: Types.ObjectId;
+  tmdb_id: string;
+  year: number;
+  createdAt?: Date;
 };

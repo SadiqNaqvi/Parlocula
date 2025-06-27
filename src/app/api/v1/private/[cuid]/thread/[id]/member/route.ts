@@ -7,8 +7,6 @@ import {
 import { ObjectId } from "@lib/utils";
 import { Member, Thread } from "@model";
 
-export const fetchCache = "force-cache";
-
 // Fetch the member status of the current user in a thread.
 export const GET = getRequest(
   async (_, params: { id: string; cuid: string }) => {
@@ -76,7 +74,7 @@ export const PATCH = updateRequest({
 
     await Member.findOneAndUpdate(
       { thread_id: id, user_id },
-      { notification: data.notification ?? true },
+      { $set: { notification: Boolean(data.notification) } },
       { session }
     );
 

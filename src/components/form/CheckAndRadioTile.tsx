@@ -1,5 +1,5 @@
 import { CheckBoxIcon, EmptyBoxIcon } from "@assets/Icons";
-import { getInternalPoster } from "@lib/utils";
+import { getPoster } from "@lib/utils";
 import Image from "next/image";
 import { useFormContext } from "react-hook-form";
 

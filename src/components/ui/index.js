@@ -7,7 +7,6 @@ import LoadingSpinner from "./LoadingSpinner";
 import MovieCard from "./MovieCard";
 import NotFound from "./NotFound";
 import PostTile from "./PostTile";
-import RatingComponent from "./RatingComponent";
 import SearchTile, { LoadingSearchTile } from "./SearchTile";
 import ShowError from "./ShowError";
 import FrameTile from "./FrameTile";
@@ -32,7 +31,6 @@ export {
   MovieCard,
   NotFound,
   PostTile,
-  RatingComponent,
   SearchTile,
   LoadingSearchTile,
   ShowError,

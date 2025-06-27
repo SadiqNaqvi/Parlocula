@@ -204,7 +204,7 @@ export const postUpdateSchema = postClientSchema
   .partial()
   .refine(postRefineFunc);
 
-const registerUserCommon = z.object({
+export const registerUserSchemaClient = z.object({
   name: z
     .string()
     .trim()
@@ -216,26 +216,7 @@ const registerUserCommon = z.object({
     .max(200, "Only 200 characters are allowed")
     .default(""),
   dob: dobSchema,
-  password: z
-    .string()
-    .trim()
-    .min(8, "Password must be 8 characters long")
-    .max(20, "Password cannot have more than 20 characters")
-    .refine(
-      (pwrd) => passwordValidator.test(pwrd),
-      "Password must have an uppercase letter, a number and one of @$!%*?&"
-    ),
 });
-
-export const registerUserSchemaClient = z
-  .object({
-    confirmPassword: z.string().trim(),
-  })
-  .merge(registerUserCommon)
-  .refine((val) => val.password === val.confirmPassword, {
-    path: ["confirmPassword"],
-    message: "Password do not match",
-  });
 
 export const registerUserSchemaServer = z
   .object({
@@ -264,7 +245,33 @@ export const registerUserSchemaServer = z
     files: z.array(fileSchema).optional().default([]),
     filesData: z.array(frameDataSchema).optional().default([]),
   })
-  .merge(registerUserCommon);
+  .merge(registerUserSchemaClient);
+
+export const userUpdateSchema = z
+  .object({
+    profile: z.string().optional(),
+  })
+  .merge(registerUserSchemaServer)
+  .merge(extraFieldForUpdateMethod)
+  .partial();
+
+export const usernameUpdateSchema = z.object({
+  username: usernameSchema,
+  passkey: z.string(),
+});
+
+export const emailUpdateSchema = z.object({
+  username: emailSchema,
+  passkey: z.string(),
+});
+
+export const verificationCodeSchema = z.object({
+  code: z
+    .string()
+    .min(6, "Invalid code! Please enter a 6 digit code")
+    .transform((val) => parseInt(val))
+    .refine((val) => !isNaN(val), "Invalid code! Please enter a valid code"),
+});
 
 export const userPrefrenceSchema = z
   .record(z.boolean())
@@ -288,8 +295,8 @@ const commentSchemaBase = z.object({
   post_author: z.string(),
 });
 
-export const commentSchema = commentSchemaBase.refine(
-  (data) => data.content || data.attachment
+export const commentSchema = commentSchemaBase.refine((data) =>
+  Boolean(data.content || data.attachment)
 );
 
 export const commentSchemaUpdate = commentSchemaBase.partial().strict();
@@ -332,7 +339,10 @@ export const listEditSchema = z
   .merge(listClientSchema)
   .partial();
 
-export const itemsForListSchema = z.object({ items: itemsSchema });
+export const itemsForListSchema = z.object({
+  items: itemsSchema,
+  list_type: z.enum(["custom", "favourite", "recommended", "watched"]),
+});
 
 export const cinementToAddAndRemove = z.object({
   tmdb_id: z.string(),

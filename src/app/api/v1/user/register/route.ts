@@ -1,36 +1,57 @@
+import WelcomeEmail from "@components/EmailTemplates/welcome";
 import { generateToken, storeSession } from "@lib/auth";
 import { predefinedLists } from "@lib/constants";
 import { postRequest } from "@lib/helpers/common";
 import { registerUserSchemaServer } from "@lib/schemas";
 import { List, User } from "@model";
+import { render } from "@react-email/components";
 import { User as UserType } from "@type/internal";
 import { UserModelType } from "@type/models";
+import { UserSchemaType } from "@type/schemas";
 import bcrypt from "bcrypt";
 import { cookies } from "next/headers";
+import { createTransport } from "nodemailer";
 
 type id = { _id: string };
 
+const sendWelcomeEmail = async (passkey: string, email: string) => {
+  const transportor = createTransport({
+    service: "gmail",
+    auth: {
+      user: process.env.GOOGLE_EMAIL,
+      pass: process.env.APP_PASSWORD,
+    },
+  });
+  const emailHtml = await render(WelcomeEmail({ passkey }));
+  await transportor.sendMail({
+    from: process.env.GOOGLE_EMAIL,
+    to: email,
+    subject: "Welcome to Popcorn Paragon",
+    html: emailHtml,
+  });
+};
+
 export const POST = postRequest({
   handler: async ({ data, frames, session }) => {
-    const { name, dob, email, genres, password, bio, username, bioLinks } =
-      data;
+    const { name, dob, email, bio, username, bioLinks } =
+      data as UserSchemaType;
 
-    const encryptedPassword = await bcrypt.hash(
-      password,
+    const passkey = crypto.randomUUID().split("-").join("");
+    const encryptedPasskey = await bcrypt.hash(
+      passkey,
       await bcrypt.genSalt(10)
     );
 
     const session_id = crypto.randomUUID();
 
-    const dataToStore = {
+    const dataToStore: UserModelType = {
       name,
       bio,
       bioLinks,
       username,
       email,
       dob,
-      initialGenres: genres,
-      password: encryptedPassword,
+      passkey: encryptedPasskey,
       profile: frames.pop()?.path ?? "",
       session_id,
     };
@@ -47,6 +68,8 @@ export const POST = postRequest({
       name: l,
       user_id: user._id,
       isPrivate: l !== "recommended",
+      listKey:
+        l === "recommended" ? null : crypto.randomUUID().split("-").join(""),
       item_count: 0,
       list_type: l,
     }));
@@ -80,6 +103,8 @@ export const POST = postRequest({
       sameSite: "strict",
       path: "/",
     });
+
+    sendWelcomeEmail(passkey, email);
 
     const result: UserType = {
       _id: user._id,

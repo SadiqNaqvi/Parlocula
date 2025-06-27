@@ -4,8 +4,7 @@ import { listsAggregationPipeline } from "@lib/pipelines";
 import { listServerSchema } from "@lib/schemas";
 import { getPageParams } from "@lib/utils";
 import { List } from "@model";
-import { MediaItemType } from "@type/internal";
-import { ListSchemaType } from "@type/schemas";
+import { CinementSchemaType, ListSchemaType } from "@type/schemas";
 
 // Fetching Private lists for a user
 export const GET = getRequest(async (r: any, params: { cuid: string }) => {
@@ -23,16 +22,6 @@ export const GET = getRequest(async (r: any, params: { cuid: string }) => {
   return { success: true, result: lists ?? [] };
 });
 
-type Item =
-  | {
-      isConfirm: true;
-      media_id: string;
-    }
-  | {
-      isConfirm: false;
-      media_id: undefined;
-    };
-
 // Creating a new list
 export const POST = postRequest({
   handler: async ({ data, session, user_id, username }) => {
@@ -44,8 +33,8 @@ export const POST = postRequest({
 
     const dataToSave = {
       ...rest,
-      poster: items[items.length - 1]?.poster ?? "",
-      key: listKey,
+      poster: items.at(-1)?.poster ?? "",
+      listKey,
       user_id,
       item_count: items.length,
     };
@@ -55,7 +44,8 @@ export const POST = postRequest({
     )[0];
 
     await addItemsInList(
-      items as (MediaItemType & Item)[],
+      items as CinementSchemaType[],
+      "custom",
       list._id,
       user_id,
       session

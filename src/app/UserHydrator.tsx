@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
-import useCurrentUser from '@store/user';
-import { getQueryKeys } from '@lib/utils';
 import { fetchCurrentUser } from '@lib/helpers/common';
+import { getQueryClient } from '@lib/queryClient';
+import { getQueryKeys } from '@lib/utils';
+import useCurrentUser from '@store/user';
+import { useEffect } from 'react';
 
 const UserHydrator = () => {
     const {
@@ -16,7 +16,7 @@ const UserHydrator = () => {
         user,
     } = useCurrentUser();
 
-    const queryClient = useQueryClient();
+    const queryClient = getQueryClient();
 
     useEffect(() => {
         if (!isHydrated) return;

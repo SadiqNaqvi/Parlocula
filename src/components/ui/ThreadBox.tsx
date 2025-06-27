@@ -1,5 +1,5 @@
 import Navigate from "@components/Navigate";
-import { getInternalPoster, refineString } from "@lib/utils";
+import { getPoster, refineString } from "@lib/utils";
 import { MereThread } from "@type/internal";
 import Image from "next/image";
 
@@ -10,7 +10,7 @@ const ThreadBox = ({ _id, name, poster }: MereThread) => (
                 height={48}
                 width={48}
                 className="size-12 object-cover rounded-full"
-                src={getInternalPoster({ path: poster })}
+                src={getPoster({ path: poster })}
                 alt={`Poster of thread ${name}`}
             />
             <h4 className="line-clamp-1 text-lg">{name}</h4>

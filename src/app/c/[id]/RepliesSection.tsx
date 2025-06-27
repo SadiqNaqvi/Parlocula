@@ -17,20 +17,10 @@ type Props = {
 
 const RepliesSection = ({ id, post_id, post_author, filter, page }: Props) => {
 
-    const { reply, setter, state } = useCustomReducer({
-        state: false,
+    const { reply, setter, isEditing } = useCustomReducer({
+        isEditing: false,
         reply: null as { parent: string, replied_to: string } | null,
     });
-
-    // const [replies, setReplies] = useOptimistic(
-    //     data ?? [],
-    //     (replies, reply) => [reply, ...replies]
-    // );
-
-    // const postComment = (comment: MereComment) => {
-    //     setReplies(comment);
-    //     setter({ reply: null });
-    // }
 
     const addReply = (replyToAdd: { parent: string, replied_to: string }) => {
         setter({ reply: replyToAdd });
@@ -42,7 +32,7 @@ const RepliesSection = ({ id, post_id, post_author, filter, page }: Props) => {
 
     return (
         <>
-            <section className="h-dvh">
+            <section className="stretch-container">
 
                 <InfiniteScroller
                     Component={CommentTile}
@@ -59,6 +49,7 @@ const RepliesSection = ({ id, post_id, post_author, filter, page }: Props) => {
                 queryKeys={getQueryKeys("replies_cid_filter_page", { cid: id, page, filter })}
                 removeReply={removeReply}
                 reply={reply}
+                placeholder={reply ? undefined : "Reply to this comment"}
             />
         </>
     )

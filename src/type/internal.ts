@@ -86,6 +86,9 @@ export type User = {
   bioLinks: Link[];
   edited_at: Date | null;
 
+  usernameUpdatedAt?: Date;
+  emailUpdatedAt?: Date;
+
   followers: number;
   following: number;
   posts: number;
@@ -118,6 +121,8 @@ export type MereThread = {
   _id: string;
   name: string;
   poster: string;
+  member_count: number;
+  post_count: number;
 };
 
 export type Thread = document & {
@@ -181,12 +186,13 @@ export type MereComment = document & {
   profile?: string;
   parent?: string;
   attachment?: string;
-  edited_at: Date|null;
+  edited_at: Date | null;
 };
 
 export type FullComment = MereComment & {
   post_author: string;
   saved_count: number;
+  user_id: string;
 };
 
 export type MediaItemType = {
@@ -206,7 +212,7 @@ export type FullMediaItemType = MediaItemType & {
 export type MereList = {
   _id: string;
   name: string;
-  list_type: string;
+  list_type: "custom" | "favourite" | "recommended" | "watched";
   item_count: number;
   saved_count: number;
   poster: string;
@@ -217,7 +223,7 @@ export type FullList = MereList &
     user_id: string;
     username: string;
     isPrivate: boolean;
-    key: string;
+    listKey: string;
     last_added: Date;
   };
 

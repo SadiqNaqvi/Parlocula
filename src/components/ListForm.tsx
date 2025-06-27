@@ -8,6 +8,7 @@ import { createList } from "@lib/helpers/client";
 import Navigate from "./Navigate";
 import { CloseButton } from "./Modal";
 import { Fancybox } from "@fancyapps/ui";
+import toast from "react-hot-toast";
 
 const ListForm = ({ defaultVals, medias, callback }: { defaultVals?: any, medias: InputMediaType[], callback?: (arg: any) => void }) => {
 
@@ -26,6 +27,7 @@ const ListForm = ({ defaultVals, medias, callback }: { defaultVals?: any, medias
         const data = { ...formdata, items: medias }
         callback?.(data);
         createList(data, user._id, updateLists);
+        toast.success("Added to list.")
         Fancybox.close(true);
     }
 

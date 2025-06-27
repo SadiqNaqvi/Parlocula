@@ -6,6 +6,7 @@ import {
   AvailableRevalidateTags,
   CloudinaryMediaObject,
   CloudinaryMediaOptions,
+  getPosterFunctionProps,
   QueryFilterType,
 } from "@type/other";
 import { InputFrame } from "@type/schemas";
@@ -18,6 +19,7 @@ import {
   cloudinary_postKey,
   cloudinary_uri,
   errorCodes,
+  externalImgUrlPrefix,
   queryFilters,
   queryKeys,
   queryLimit,
@@ -124,7 +126,10 @@ export const calculateAge = (birthDate: Date): number => {
   return age;
 };
 
-export const objectToFormData = (object: Record<string, any>): FormData => {
+export const objectToFormData = (
+  object: Record<string, any>
+): FormData | null => {
+  if (!object) return object;
   const formData = new FormData();
   Object.keys(object).forEach((key) => {
     if (key === "files" && Array.isArray(object.files) && object.files.length)
@@ -158,41 +163,31 @@ export const refineString = (str: string) => {
     .replace(/^_+|-+$/g, "");
 };
 
-const convertOptionsToUrl = (options: CloudinaryMediaObject): string => {
-  if (!options) return "";
-  let optionsArr: string[] = [];
-  Object.keys(options).forEach((key: any) => {
-    if (cloudinary_media_options.hasOwnProperty(key))
-      optionsArr.push(
-        `${cloudinary_media_options[key as CloudinaryMediaOptions]}${
-          options[key as CloudinaryMediaOptions]
-        }`
-      );
-  });
-  return optionsArr.join(",");
-};
+export const getPoster = (config: getPosterFunctionProps): string => {
+  if (!config.external) {
+    const { path, type } = config;
+    if (!path) return placeholder.src;
+    if (path.includes("https")) return path;
 
-export const getInternalPoster = ({
-  options,
-  folder,
-  path,
-  type = "image",
-}: {
-  path?: string;
-  options?: CloudinaryMediaObject;
-  folder?: string;
-  type?: "image" | "video";
-}): string => {
-  if (!path) return placeholder.src;
-  if (path.includes("https")) return path;
-
-  const optionsUri = options ? convertOptionsToUrl(options) : undefined;
-
-  return `${cloudinary_uri}${type}/upload/${
-    optionsUri ? optionsUri + "/" : ""
-  }${cloudinary_postKey + "/"}${folder ? folder + "/" : ""}${path}${
-    type === "image" ? ".webp" : ".mp4"
-  }`;
+    return `${cloudinary_uri}${type??"image"}/upload/${cloudinary_postKey}/${path}${type === "video" ? ".mp4" : ".webp"}`;
+  } else {
+    const { path, size, type } = config;
+    if (!path) return placeholder.src;
+    switch (type) {
+      case "poster":
+        return `${externalImgUrlPrefix}${size}${path}`;
+      case "backdrop":
+        return `${externalImgUrlPrefix}${size}${path}`;
+      case "logo":
+        return `${externalImgUrlPrefix}${size}${path}`;
+      case "profile":
+        return `${externalImgUrlPrefix}${size}${path}`;
+      case "still":
+        return `${externalImgUrlPrefix}${size}${path}`;
+      default:
+        return "";
+    }
+  }
 };
 
 export const getThumbnail = (vid: string) => {
@@ -270,8 +265,8 @@ export const getPageParams = (req: NextRequest, initial: number = 1) => {
 
 export const convertCodeIntoError = (
   code: string,
-  formError?: ZodIssue[] | null
-) => {
+  formError?: ZodIssue[]
+): string | ZodIssue[] => {
   if (code === "pp203" && formError) return formError;
   return errorCodes[code]?.message ?? "Something went wrong! Please try again.";
 };
@@ -402,4 +397,29 @@ export const getLocalUrl = () => {
   if (environment === "production")
     return process.env.NEXT_PUBLIC_PROD_URL ?? "";
   else return process.env.NEXT_PUBLIC_LOCAL_URL ?? "";
+};
+
+export const getTimeInFuture = ({
+  timeVal = 1,
+  unit,
+  from,
+}: {
+  timeVal?: number;
+  unit: "m" | "h" | "d" | "mo" | "y";
+  from?: Date | number;
+}) => {
+  const provided = from && new Date(from).getTime();
+  const now = provided && !isNaN(provided) ? provided : Date.now();
+  switch (unit) {
+    case "m":
+      return now + 1000 * 60 * timeVal;
+    case "h":
+      return now + 1000 * 3600 * timeVal;
+    case "d":
+      return now + 1000 * 3600 * 24 * timeVal;
+    case "mo":
+      return now + 1000 * 3600 * 24 * 30 * timeVal;
+    case "y":
+      return now + 1000 * 3600 * 24 * 365 * timeVal;
+  }
 };

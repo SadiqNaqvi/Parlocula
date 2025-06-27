@@ -14,25 +14,23 @@ const userModel = new Schema<UserModelType>(
       index: true,
       required: [true, "Name of the user is required"],
     },
+    usernameUpdatedAt: { type: Date, default: null },
     email: {
       type: String,
       unique: true,
       index: true,
       required: [true, "Email of the user is required"],
     },
+    emailUpdatedAt: { type: Date, default: null },
     dob: {
       type: Date,
       required: [true, "Date of birth of the user is required"],
     },
     bio: { type: String, default: "" },
     bioLinks: [linkModel],
-    initialGenres: {
-      type: [String],
-      required: [true, "Initial Genres are required"],
-    },
-    password: {
+    passkey: {
       type: String,
-      required: [true, "Password of the user is required"],
+      required: [true, "Passkey of the user is required"],
     },
     profile: { type: String, default: "" },
     isActive: { type: Boolean, default: true },

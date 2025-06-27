@@ -14,13 +14,19 @@ export const generateToken = async (details: any) => {
     .sign(secret);
 };
 
-export const verifyToken = async (token: string) => {
+type ReturnType<T> = T extends undefined
+  ? { user_id: string; username: string }
+  : T;
+
+export const verifyToken = async <T = undefined>(
+  token: string
+): Promise<(JWTPayload & ReturnType<T>) | null> => {
   if (!token) return null;
   const secret = getEncryptionKey();
 
   try {
     const { payload } = await jwtVerify(token, secret);
-    return payload as JWTPayload & { user_id: string; username: string };
+    return payload as JWTPayload & ReturnType<T>;
   } catch (err: any) {
     console.error("Error verifying token:", err.message);
     if (err.message.includes(`"exp" claim timestamp check failed`))

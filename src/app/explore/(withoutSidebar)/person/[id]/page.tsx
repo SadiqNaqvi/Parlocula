@@ -2,7 +2,7 @@ import FancyImage from "@components/FancyImage";
 import ObserverHeader from "@components/ObserverHeader";
 import { NotFound } from "@components/ui";
 import { fetchPerson } from "@lib/contentFetcher";
-import { getPoster } from "@lib/dataRefiner";
+import { getPoster } from "@lib/utils";
 import { Metadata } from "next";
 import { MediaFetcher, ThreadFetcher } from "../../components";
 import { Navigate } from "@components";
@@ -24,7 +24,7 @@ export const generateMetadata = async ({ params }: Props): Promise<Metadata> => 
     };
 };
 
- 
+
 
 const Page = async ({ params }: Props) => {
 
@@ -49,8 +49,8 @@ const Page = async ({ params }: Props) => {
                 <div className="flex gap-4">
                     <FancyImage
                         id="profile"
-                        thumbnail={getPoster("profile", content.profile, 2)}
-                        src={getPoster("profile", content.profile, 10)}
+                        thumbnail={getPoster({ external: true, type: "profile", path: content.profile, size: "w185" })}
+                        src={getPoster({ external: true, type: "profile", path: content.profile, size: "original" })}
                         height={160}
                         width={160}
                         download={`Profile Picture of ${content.name} - Popcorn Paragon`}

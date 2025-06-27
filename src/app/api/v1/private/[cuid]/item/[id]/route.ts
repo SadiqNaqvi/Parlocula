@@ -5,23 +5,24 @@ import { itemsAggregationPipeline } from "@lib/pipelines";
 import { cinementToAddAndRemove } from "@lib/schemas";
 import { formDataToObject, getPageParams, ObjectId } from "@lib/utils";
 import { Item, List, Media } from "@model";
+import { FullList } from "@type/internal";
 import { length } from "localforage";
 import { startSession } from "mongoose";
 import { revalidateTag } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 
-// Getting items for a private lists, id = list_id
+// Getting items for a list including private, id = list_id
 export const GET = getRequest(
   async (r: any, params: { id: string; cuid: string }) => {
     const { id } = params; // List_id
+
     const page = getPageParams(r) - 1;
     const filter = r.nextUrl.searchParams.get("f")?.trim() || "latest";
     const sort = filterToSort.items[filter] ?? filterToSort.items.latest;
 
     const key = r.nextUrl.searchParams.get("k");
-    if (!key) return { success: false, errCode: "pp201" };
 
-    const items = await Item.aggregate([
+    const response = await Item.aggregate([
       ...itemsAggregationPipeline({
         filters: [{ $match: { list_id: ObjectId(id) } }],
         page,
@@ -44,12 +45,17 @@ export const GET = getRequest(
       },
     ]);
 
-    const result = items[0];
+    const result = response[0];
 
     if (!result) return { success: false, errCode: "pp104" };
 
-    const list = result.list[0];
-    if (key !== list.key) return { success: false, errCode: "pp201" };
+    const list: FullList = result.list[0];
+
+    if (list.isPrivate) {
+      if (!key) return { success: false, errCode: "pp201" };
+      else if (key !== list.listKey)
+        return { success: false, errCode: "pp201" };
+    }
 
     return {
       success: true,
@@ -67,12 +73,6 @@ export const POST = async (
   { params }: { params: { id: string; cuid: string } }
 ) => {
   const { id, cuid } = params;
-
-  if (!cuid)
-    return NextResponse.json({
-      success: false,
-      errCode: "pp202",
-    });
 
   const formData = formDataToObject(await req.formData());
   const { success, error, data } = cinementToAddAndRemove.safeParse(formData);

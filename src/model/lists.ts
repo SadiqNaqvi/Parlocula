@@ -17,7 +17,7 @@ const listModel = new Schema({
     default: false,
     index: true,
   },
-  key: String,
+  listKey: String,
   last_added: Date,
   item_count: {
     type: Number,

@@ -6,7 +6,7 @@ import Navigate from "@components/Navigate";
 import ObserverHeader from "@components/ObserverHeader";
 import { ContentBox, NotFound, VerticleMovieCard } from "@components/ui";
 import InteractiveDetailSection from "@components/ui/InteractiveDetailSection";
-import { getPoster } from "@lib/dataRefiner";
+import { getPoster } from "@lib/utils";
 import { refineString } from "@lib/utils";
 import { RefinedCast, RefinedMovieData, RefinedShowData } from "@type/external";
 import ShowTrailerButton from "./ShowTrailerButton";
@@ -21,7 +21,7 @@ type Props = {
 }
 
 const MediaPage = ({ content, type }: Props) => {
-    console.log(content?.title);
+
     if (!content) return (
         <NotFound
             title="Oops! Looks like the popcorn is missing"
@@ -33,9 +33,7 @@ const MediaPage = ({ content, type }: Props) => {
     )
 
     const linkSection: { label: string, path: string }[] = [
-        {
-            label: "TMDB", path: `https://themoviedb.org/${type === "show" ? "tv" : "movie"}/${content.tmdb_id}`
-        },
+        { label: "TMDB", path: `https://themoviedb.org/${type === "show" ? "tv" : "movie"}/${content.tmdb_id}` },
         { label: "IMDB", path: `https://imdb.com/title/${content.imdb_id}` },
     ];
 
@@ -71,8 +69,8 @@ const MediaPage = ({ content, type }: Props) => {
                         className="w-full rounded-md h-[300px] object-cover object-top"
                         alt="Backdrop"
                         id="backdrop-popover"
-                        thumbnail={getPoster("backdrop", content.backdrop, 2)}
-                        src={getPoster("backdrop", content.backdrop, 10)}
+                        thumbnail={getPoster({ external: true, type: "backdrop", path: content.backdrop, size: "w780" })}
+                        src={getPoster({ external: true, type: "backdrop", path: content.backdrop, size: "original" })}
                         download={`${content.title} - Popcorn Paragon`}
                     />
                 </div>
@@ -81,8 +79,8 @@ const MediaPage = ({ content, type }: Props) => {
 
                     <FancyImage
                         id="poster"
-                        thumbnail={getPoster("poster", content.poster, 2)}
-                        src={getPoster("poster", content.poster, 10)}
+                        thumbnail={getPoster({ external: true, type: "poster", path: content.poster, size: "w185" })}
+                        src={getPoster({ external: true, type: "poster", path: content.poster, size: "original" })}
                         height={160}
                         width={160}
                         download={`Poster of ${content.title} - Popcorn Paragon`}

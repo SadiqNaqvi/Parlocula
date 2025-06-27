@@ -1,24 +1,23 @@
 "use client";
 
 import { LeftChevron } from "@assets/Icons";
-import { GenericWrapper, InfiniteScroller, Navigate } from "@components";
+import { GenericWrapper, InfiniteScroller, Navbar, Navigate } from "@components";
 import { CheckTile, Form, Input, ToggleButton } from "@components/form";
 import { LoadingSpinner, NotFound, ShowError } from "@components/ui";
-import { getPoster } from "@lib/dataRefiner";
 import { updateList } from "@lib/helpers/client";
 import { getItems, getList } from "@lib/helpers/common";
 import { filterItemsMutation, updateMutation } from "@lib/mutation";
-import { getQueryKeys, queryFunction } from "@lib/utils";
+import { getPoster, getQueryKeys, queryFunction } from "@lib/utils";
 import useCurrentUser from "@store/user";
-import { useMutation, UseMutationResult, useQueryClient } from "@tanstack/react-query";
-import { FullList, ListItemType, User } from "@type/internal";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { FullList, ListItemType } from "@type/internal";
 import { ListEditSchema } from "@type/schemas";
 import { useRouter } from "next/navigation";
 
 type Props = { id: string };
 
 const ItemCheckTile = ({ _id, title, poster }: ListItemType) => (
-    <CheckTile type="checkbox" label={title} name={_id} poster={getPoster("poster", poster, 1)} />
+    <CheckTile type="checkbox" label={title} name={_id} poster={getPoster({ external: true, type: "poster", path: poster, size: "w92" })} />
 )
 
 const getQueryProps = ({ id }: Props) => ({
@@ -67,9 +66,9 @@ const ListEditPage = ({ id }: Props) => {
         }
     });
 
-    const Component = (data: FullList, _: any) => {
+    const Component = (data: FullList) => {
 
-        const { _id } = data;
+        const { _id, list_type } = data;
 
         const { user, isHydrated } = currentUser;
 
@@ -94,6 +93,7 @@ const ListEditPage = ({ id }: Props) => {
                         return total;
                     }, [] as string[]),
             });
+
             if (Object.keys(thingsToUpdate).length)
                 mutation.mutate(thingsToUpdate);
         }
@@ -101,26 +101,29 @@ const ListEditPage = ({ id }: Props) => {
         return (
             <>
                 <Form submit={submit}>
-                    <nav className="flex py-3 w-full flex-cntr-between">
-                        <Navigate goto="back" comp="button">
-                            <LeftChevron />
-                        </Navigate>
-                        <h1>Edit List</h1>
-                        <button type="submit" className="primary">Update</button>
-                    </nav>
+                    <Navbar navTitle="Edit List" OptionButton={<button type="submit" className="primary">Update</button>} />
+
                     <header className="space-y-4 mb-6">
-                        <Input
-                            name="name"
-                            label="Name"
-                            placeholder="Eg: Horror movies to watch"
-                            required
-                            defaultValue={data.name}
-                        />
-                        <ToggleButton
-                            name="isPrivate"
-                            label="Private"
-                            checked={data.isPrivate}
-                        />
+
+                        {list_type === "custom" && (
+                            <Input
+                                name="name"
+                                label="Name"
+                                placeholder="Eg: Horror movies to watch"
+                                required
+                                defaultValue={data.name}
+                            />
+                        )}
+
+                        {/* Recommended Lists cannot be private */}
+                        {list_type === "recommended" && (
+                            <ToggleButton
+                                name="isPrivate"
+                                label="Private"
+                                checked={data.isPrivate}
+                            />
+                        )}
+
                     </header>
                     <section>
                         <h2 className="text-lg mb-4">Select items to delete:</h2>

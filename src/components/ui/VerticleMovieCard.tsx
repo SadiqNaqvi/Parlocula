@@ -1,5 +1,5 @@
-import { getPoster } from "@lib/dataRefiner"
-import Navigate from "../Navigate";
+import { getPoster } from "@lib/utils";
+import Navigate from "@components/Navigate";
 
 export const VerticleMovieCardSkeleton = () => (
     <div className="min-w-40 w-40 aspect-[2/3] space-y-2">
@@ -23,7 +23,7 @@ export default function VerticleMovieCard({ link, poster, title, year, rating }:
     return (
         <Navigate key={link} comp="link" goto={link}>
             <figure className="min-w-44 w-44 relative cursor-pointer">
-                <img src={getPoster("poster", poster, 2)} loading="lazy" alt='' className="w-full aspect-[2/3] object-cover" />
+                <img src={getPoster({ external: true, path: poster, type: "poster", size: "w185", })} loading="lazy" alt='' className="w-full aspect-[2/3] object-cover" />
                 <figcaption className="absolute *:px-2 inset-0 fade-effect flex flex-col justify-end">
                     <h3 className="font-bold line-clamp-2 text-wrap">{title}</h3>
                     <div className="flex flex-cntr-between my-1">

@@ -25,12 +25,9 @@ const Carousel = ({ children, className }: { children: React.ReactNode, classNam
     }, [containerRef.current]);
 
     return (
-        <div className={`f-carousel ${className}`} ref={containerRef}>
-            {children}</div>
-        //     <div className="f-carousel__viewport">
-        //         <div className="f-carousel__track">
-        //     </div>
-        // </div>
+        <section className={`f-carousel ${className}`} ref={containerRef}>
+            {children}
+        </section>
     );
 }
 

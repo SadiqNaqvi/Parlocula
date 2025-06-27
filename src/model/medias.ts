@@ -1,6 +1,7 @@
+import { CinementModelType } from "@type/models";
 import { Schema, models, model } from "mongoose";
 
-export const mediaModel = new Schema({
+export const mediaModel = new Schema<CinementModelType>({
   title: {
     type: String,
     required: true,

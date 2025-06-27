@@ -23,7 +23,8 @@ const Page = async ({ params: { id }, searchParams }: Props) => {
 
     const { filter, page } = refineSearchParams("items", searchParams?.p, searchParams?.f);
 
-    const user = await getUserFromToken(cookies());
+    const jar = cookies();
+    const user = await getUserFromToken(jar);
 
     await Promise.all([
         queryClient.prefetchInfiniteQuery({
@@ -44,7 +45,7 @@ const Page = async ({ params: { id }, searchParams }: Props) => {
         (user ?
             queryClient.prefetchQuery({
                 queryKey: getQueryKeys("isContentSaved_type_id", { type: "list", id: lid }),
-                queryFn: () => queryFunction(checkIfItemSaved, [lid, user.user_id]),
+                queryFn: () => queryFunction(checkIfItemSaved, [lid, user.user_id, jar]),
                 staleTime: 60 * 60 * 1000,
                 gcTime: 60 * 60 * 1000,
             }) :

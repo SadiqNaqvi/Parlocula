@@ -3,7 +3,7 @@
 import { LeftChevron, RightChevron, UserIcon } from "@assets/Icons";
 import { Navigate } from "@components";
 import { LoadingSpinner } from "@components/ui";
-import { getInternalPoster } from "@lib/utils";
+import { getPoster } from "@lib/utils";
 import useCurrentUser from "@store/user";
 import Image from "next/image";
 import { PropsWithChildren } from "react";
@@ -22,7 +22,7 @@ const ListContainer = ({ children, href }: PropsWithChildren<{ href?: string }>)
 )
 
 const Sections = ({ heading, children }: PropsWithChildren<{ heading: string }>) => (
-    <section>
+    <section className="rounded-md">
         <h2 className="uppercase text-sm text-semibold p-2">{heading}</h2>
         <ul className="bg-primarylight">{children}</ul>
     </section>
@@ -58,7 +58,7 @@ const Page = () => {
                 <ListContainer href={`/u/${user.username}`}>
                     <div className="flex gap-2 items-center">
                         {user.profile ?
-                            <Image src={getInternalPoster({ path: user.profile })} width={24} height={24} className="size-6 object-cover rounded-full" alt="" />
+                            <Image src={getPoster({ path: user.profile })} width={24} height={24} className="size-6 object-cover rounded-full" alt="" />
                             :
                             <div className="size-8 p-[0.3rem] flex rounded-full border-1 border-zinc-500">
                                 <UserIcon className="size-full m-auto" />
@@ -71,8 +71,14 @@ const Page = () => {
                 <ListContainer href="edit/email">
                     <p className="line-clamp-1">{user.email}</p>
                 </ListContainer>
-                <ListContainer href="edit/password">Password</ListContainer>
-                <ListContainer href="/setting/notification">Notifications</ListContainer>
+                <ListContainer href="me/saved">Saved Posts</ListContainer>
+                <ListContainer href="me/saved/comments">Saved Comments</ListContainer>
+                <ListContainer href="me/saved/lists">Saved Lists</ListContainer>
+
+                {/* <ListContainer href="/setting/notification">Notifications</ListContainer> */}
+            </Sections>
+            <Sections heading="">
+
             </Sections>
         </>
     )

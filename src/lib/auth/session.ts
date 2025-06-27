@@ -7,12 +7,13 @@ export const redis = new Redis({
   token: process.env.UPSTASH_TOKEN,
 });
 
-export const storeSession = async (id: string, object: any) => {
+export const storeToRedis = async (
+  id: string,
+  exp: number,
+  obj: Record<string, any>
+) => {
   try {
-    const resp = await redis.setex(id, oneDay * 30, {
-      ...object,
-      expiresOn: new Date().getTime() + oneDay * 30 * 1000,
-    });
+    const resp = await redis.setex(id, exp, obj);
     return resp === "OK";
   } catch (err: any) {
     console.log("Error occured while storing sessions", err.message);
@@ -20,12 +21,24 @@ export const storeSession = async (id: string, object: any) => {
   }
 };
 
-export const getSession = async (id: string): Promise<Session | null> => {
+export const storeSession = async (id: string, object: any) => {
+  return await storeToRedis(id, oneDay * 30, {
+    ...object,
+    expiresOn: new Date().getTime() + oneDay * 30 * 1000,
+  });
+};
+
+type ReturnType<T> = T extends undefined ? Session : T;
+
+export const getSession = async <T = undefined>(
+  id: string
+): Promise<{ success: boolean; result: ReturnType<T> | null }> => {
   try {
-    return await redis.get(id);
+    const session = (await redis.get(id)) as ReturnType<T>;
+    return { success: true, result: session };
   } catch (err) {
     console.log("Error getting sessions", err);
-    return null;
+    return { success: false, result: null };
   }
 };
 

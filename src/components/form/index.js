@@ -8,3 +8,4 @@ export { default as Poster } from "./Poster";
 export { default as ThreadTagList } from "./ThreadTagList";
 export { default as CheckTile } from "./CheckAndRadioTile";
 export { default as PostTagList } from "./ThreadTagList";
+export { default as MediaInputCont, MediaInputPrompt } from "./MediaInputCont";

@@ -1,13 +1,4 @@
-import {
-  backdrop_sizes,
-  imgUrl,
-  logo_sizes,
-  movie_genres,
-  poster_sizes,
-  profile_sizes,
-  show_genres,
-  still_sizes,
-} from "./constants";
+import { MediaItemType } from "@type/internal";
 import {
   ExtraMovieData,
   FullCollectionData,
@@ -35,41 +26,11 @@ import {
   RefinedSeasonData,
   RefinedShowData,
 } from "../type/external";
-import placeholder from "@assets/placeholder.png";
-import { MediaItemType } from "@type/internal";
+import {
+  movie_genres,
+  show_genres
+} from "./constants";
 import { refineString } from "./utils";
-
-export const getPoster = (
-  type: "poster" | "backdrop" | "logo" | "profile" | "still",
-  path: string | null | undefined,
-  size: number
-) => {
-  if (!path) return placeholder.src;
-  switch (type) {
-    case "poster":
-      return `${imgUrl}${
-        size < poster_sizes.length ? poster_sizes[size] : "original"
-      }${path}`;
-    case "backdrop":
-      return `${imgUrl}${
-        size < backdrop_sizes.length ? backdrop_sizes[size] : "original"
-      }${path}`;
-    case "logo":
-      return `${imgUrl}${
-        size < logo_sizes.length ? logo_sizes[size] : "original"
-      }${path}`;
-    case "profile":
-      return `${imgUrl}${
-        size < profile_sizes.length ? profile_sizes[size] : "original"
-      }${path}`;
-    case "still":
-      return `${imgUrl}${
-        size < still_sizes.length ? still_sizes[size] : "original"
-      }${path}`;
-    default:
-      return "";
-  }
-};
 
 export const convertGenresIntoId = (genres: string, type: string): string => {
   const clean = refineString(genres).toLowerCase().replaceAll("-", "");

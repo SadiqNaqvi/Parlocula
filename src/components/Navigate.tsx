@@ -31,7 +31,7 @@ const Navigate = ({ children, comp, goto, ...args }: NavigateType) => {
     return (
         <>
             {comp === "button" ?
-                <button {...args} onClick={handleNavigation}>{children}</button>
+                <button type="button" {...args} onClick={handleNavigation}>{children}</button>
                 :
                 <Link {...args} href={goto} onClick={handleNavigation}>{children}</Link>
             }

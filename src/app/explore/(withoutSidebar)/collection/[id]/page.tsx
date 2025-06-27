@@ -4,7 +4,7 @@ import { refineString } from "@lib/utils";
 import SaveAsList from "./SaveAsList";
 import ObserverHeader from "@components/ObserverHeader";
 import FancyImage from "@components/FancyImage";
-import { getPoster } from "@lib/dataRefiner";
+import { getPoster } from "@lib/utils";
 import { Metadata } from "next";
 
 const fetchData = async (params: { id: string }) => {
@@ -24,7 +24,7 @@ export const generateMetadata = async ({ params }: Props): Promise<Metadata> => 
     };
 };
 
- 
+
 
 const Page = async ({ params }: Props) => {
 
@@ -64,8 +64,8 @@ const Page = async ({ params }: Props) => {
                         className="w-full rounded-md h-[300px] object-cover object-top"
                         alt="Backdrop"
                         id="backdrop-popover"
-                        thumbnail={getPoster("backdrop", content.backdrop, 2)}
-                        src={getPoster("backdrop", content.backdrop, 10)}
+                        thumbnail={getPoster({ external: true, type: "backdrop", path: content.backdrop, size: "w780" })}
+                        src={getPoster({ external: true, type: "backdrop", path: content.backdrop, size: "original" })}
                         download={`${content.title} - Popcorn Paragon`}
                     />
                 </div>
@@ -73,8 +73,8 @@ const Page = async ({ params }: Props) => {
                 <div className="flex gap-4">
                     <FancyImage
                         id="poster"
-                        thumbnail={getPoster("poster", content.poster, 2)}
-                        src={getPoster("poster", content.poster, 10)}
+                        thumbnail={getPoster({ external: true, type: "poster", path: content.poster, size: "w154" })}
+                        src={getPoster({ external: true, type: "poster", path: content.poster, size: "original" })}
                         height={160}
                         width={160}
                         download={`Poster of ${content.title} - Popcorn Paragon`}

@@ -1,6 +1,6 @@
 "use Client";
 
-import { getPoster } from "@lib/dataRefiner"
+import { getPoster } from "@lib/utils"
 import { RefinedGeneralContentData } from "@type/external";
 import Image from "next/image"
 
@@ -35,7 +35,7 @@ export default function HorizontalMovieCard({ overview, poster, rating, release_
             </section>
             <section className="w-[35%] relative">
                 <div className="primary-gradient"></div>
-                <Image className="w-[90%] h-full ml-auto object-cover object-top" src={getPoster("poster", poster, 3)} alt={"Poster of " + title} height={500} width={500} loading="lazy" />
+                <Image className="w-[90%] h-full ml-auto object-cover object-top" src={getPoster({ external: true, type: "poster", path: poster, size: "w154" })} alt={"Poster of " + title} height={500} width={500} loading="lazy" />
             </section>
         </article>
     )

@@ -1,6 +1,6 @@
 import { ThumbUpIcon } from "@assets/Icons";
 import { Navigate } from "@components";
-import { getInternalPoster, numberConverter, timeAgo } from "@lib/utils";
+import { getPoster, numberConverter, timeAgo } from "@lib/utils";
 import { MereComment } from "@type/internal";
 import Image from "next/image";
 import toast from "react-hot-toast";
@@ -35,7 +35,7 @@ export default function CommentTile({ _id, attachment, nsfw, spoiler, callback, 
             <details className="w-full p-2 border-l border-gray30" open={!nsfw && !spoiler}>
                 <summary className="flex gap-3 items-center">
                     <Image
-                        src={getInternalPoster({ path: profile })}
+                        src={getPoster({ path: profile })}
                         className="size-8 rounded-full object-cover"
                         height={32}
                         width={32}

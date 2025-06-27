@@ -1,29 +1,28 @@
 "use client";
 
-import { CommentIcon } from "@assets/Icons";
+import { CommentIcon, RepostIcon } from "@assets/Icons";
 import { GenericWrapper, Navbar, Navigate } from "@components";
+import SaveButton from "@components/SaveButton";
 import { LinkTile } from "@components/ui";
 import { getPostById } from "@lib/helpers/common";
-import { getInternalPoster, numberConverter, timeAgo } from "@lib/utils";
+import { getPoster, getQueryKeys, numberConverter, timeAgo } from "@lib/utils";
 import { FullPost } from "@type/internal";
 import Image from "next/image";
-import Frames from "./Frames";
+import FramesCarousel from "@components/FramesCarousel";
 import OptionsButton from "./OptionsButton";
 import ReactionButton from "./ReactionButton";
-import { PropsWithChildren } from "react";
-import SaveButton from "@components/SaveButton";
 
-type Props = PropsWithChildren<{ id: string }>
+type Props = { id: string }
 
 const getQueryProps = ({ id }: Props) => {
     return {
-        queryKeys: ['post', id],
+        queryKeys: getQueryKeys("post_id", { id }),
         args: [id],
         queryFn: getPostById
     }
 }
 
-const component = (data: FullPost, { children }: Props) => {
+const component = (data: FullPost) => {
 
     const { _id, username, edited_at, user_id, saved_count, poster, body, comment_count, createdAt, frames, links, nsfw, reaction_count, spoiler, tag, thread_id, title, } = data;
 
@@ -36,11 +35,11 @@ const component = (data: FullPost, { children }: Props) => {
                 navTitle={title}
             />
 
-            <header className="flex gap-2 items-center">
+            <header className="px-4 flex gap-2 items-center">
                 <Navigate comp="link" role="button" goto={`/t/${thread_id}`}>
                     <Image
                         className="size-8 rounded-full"
-                        src={getInternalPoster({ path: poster })}
+                        src={getPoster({ path: poster })}
                         width={20} height={20} alt="Thread poster" />
                 </Navigate>
                 {username ?
@@ -50,7 +49,7 @@ const component = (data: FullPost, { children }: Props) => {
                 }
             </header>
 
-            <section className="mt-2 space-y-4">
+            <section className="px-4 mt-2 space-y-4">
 
                 <ul className="my-4 flex gap-4 items-center text-xs capitalize">
                     {tag &&
@@ -74,11 +73,11 @@ const component = (data: FullPost, { children }: Props) => {
 
             </section>
 
-            <section className="my-2">
-                <Frames frames={frames} />
+            <section className="px-4 my-2">
+                <FramesCarousel frames={frames} />
             </section>
 
-            <ul className="my-4 flex gap-4 overflow-x-auto noScroll">
+            <ul className="px-4 my-4 flex gap-4 overflow-x-auto noScroll">
                 {links.map(link => (
                     <li key={link.path}>
                         <LinkTile {...link} />
@@ -86,24 +85,23 @@ const component = (data: FullPost, { children }: Props) => {
                 ))}
             </ul>
 
-            <section className="mt-2 flex flex-cntr-between">
-                <div className="flex gap-4">
-                    <ReactionButton id={_id} count={reaction_count} />
+            <div className="px-4 flex items-center gap-3">
+                <ReactionButton id={_id} count={reaction_count} />
 
-                    <span className="flex gap-2 p-2 border border-gray-500 border-opacity-30 rounded-md">
-                        <CommentIcon className="size-4" />
-                        {numberConverter(comment_count)}
-                    </span>
-                </div>
-                <div className="flex gap-4">
-                    <Navigate comp="link" role="button" goto={`/new?pid=${_id}&uid=${user_id}`}>
-                        Repost
-                    </Navigate>
+                <span className="flex gap-2 items-center text-sm">
                     <SaveButton type="Post" count={saved_count} id={_id} />
-                </div>
-            </section>
+                </span>
 
-            {children}
+                <span className="flex gap-2 items-center text-sm">
+                    <CommentIcon className="size-4" />
+                    {numberConverter(comment_count)}
+                </span>
+                <Navigate className="px-2 py-1 space-x-2 hover:bg-gray-30" comp="link" role="button" goto={`/new?pid=${_id}&uid=${user_id}`}>
+                    <span>Repost</span>
+                    <RepostIcon />
+                </Navigate>
+            </div>
+
         </>
     )
 }

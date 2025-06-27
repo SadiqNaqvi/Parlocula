@@ -1,8 +1,14 @@
-import { PropsWithChildren } from "react";
-import PostHeader from "./PostHeader";
-import { isValidObjectId } from "@lib/utils";
-import { getPostById } from "@lib/helpers/common";
+import { getUserFromToken } from "@lib/auth/utils";
+import { checkIfItemSaved, getPostById, getReactionOnPost } from "@lib/helpers/common";
+import { getQueryClient } from "@lib/queryClient";
+import { getQueryKeys, isValidObjectId, queryFunction } from "@lib/utils";
+import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { Metadata } from "next";
+import { cookies } from "next/headers";
+import { PropsWithChildren, Suspense } from "react";
+import PostHeader from "./PostHeader";
+import { NotFound } from "@components/ui";
+import { FullPageLoadingSpinner } from "@components/ui/LoadingSpinner";
 
 export const generateMetadata = async ({ params }: { params: { id: string } }): Promise<Metadata> => {
     const id = params.id.split('-')[0];
@@ -16,12 +22,62 @@ export const generateMetadata = async ({ params }: { params: { id: string } }): 
     }
 }
 
+const Fetcher = async ({ id, children }: PropsWithChildren<{ id: string }>) => {
+    const queryClient = getQueryClient();
+
+    const jar = cookies();
+    const user = await getUserFromToken(jar);
+
+    await Promise.all([
+        queryClient.prefetchQuery({
+            queryKey: getQueryKeys("post_id", { id }),
+            queryFn: () => queryFunction(getPostById, [id]),
+            staleTime: 60 * 60 * 1000,
+            gcTime: 60 * 60 * 1000,
+        }),
+
+        ...(user ? [
+            queryClient.prefetchQuery({
+                queryKey: getQueryKeys("reaction_pid", { pid: id }),
+                queryFn: () => queryFunction(getReactionOnPost, [id, user.user_id, jar]),
+                staleTime: 60 * 60 * 1000,
+                gcTime: 60 * 60 * 1000
+            }),
+            queryClient.prefetchQuery({
+                queryKey: getQueryKeys("isContentSaved_type_id", { type: "post", id }),
+                queryFn: () => queryFunction(checkIfItemSaved, [id, user.user_id, jar]),
+                staleTime: 60 * 60 * 1000,
+                gcTime: 60 * 60 * 1000
+            }),
+        ] : [])
+    ]);
+
+    return (
+        <HydrationBoundary state={dehydrate(queryClient)}>
+            <PostHeader id={id} />
+            {children}
+        </HydrationBoundary>
+    )
+}
+
 export default function Layout({ children, params }: PropsWithChildren<{ params: { id: string } }>) {
+    const { id } = params;
+    const [pid, ...rest] = id.split('-');
+
+    if (!isValidObjectId(pid)) return (
+        <main>
+            <NotFound
+                title="Oops! Look's like you came across a wrong path."
+                paras={["Thread id is incorrect", "Please search the thread in explore page."]}
+            />
+        </main>
+    );
+
     return (
         <main>
-            <PostHeader id={params.id}>
-                {children}
-            </PostHeader>
+            <Suspense fallback={<FullPageLoadingSpinner path={rest} />}>
+                <Fetcher id={pid}>{children}</Fetcher>
+            </Suspense>
         </main>
     )
 }
