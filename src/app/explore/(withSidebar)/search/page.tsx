@@ -50,7 +50,7 @@ export default function SearchPage() {
     const fetchData = async (page = 1) => {
         const functionToFetch = funcMap[currentFilter] ?? funcMap["all"];
         const resp = await functionToFetch(searchQuery, page);
-        if (!resp) throw new Error("pp200");
+        if (!resp) throw new Error("unstable_internet");
         return resp;
     };
 

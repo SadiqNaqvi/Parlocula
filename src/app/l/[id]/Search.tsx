@@ -1,13 +1,12 @@
 "use client";
 
+import { closeFancyBox } from "@components/FancyboxModal";
 import GeneralTile from "@components/GeneralTile";
-import { closeFancyBox } from "@components/Modal";
 import SearchContainer from "@components/SearchContainer";
 import { searchOnlyMediaItems } from "@lib/contentFetcher";
-import { getPoster } from "@lib/utils";
 import { addItemsToList } from "@lib/helpers/client";
 import { addingItemsMutation, mutationWrapper } from "@lib/mutation";
-import { queryFunction } from "@lib/utils";
+import { getPoster } from "@lib/utils";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { MediaItemType } from "@type/internal";
 import { InputMediaType } from "@type/schemas";
@@ -58,7 +57,7 @@ const Search = ({ queryKeys, list_id, uid }: { queryKeys: string[], list_id: str
 
     const Wrapper = ({ children }: { children: React.ReactNode }) => {
         return (
-            <div className="stretchContainer justify-start flex-col group overflow-y-auto">
+            <div className="forceCenter justify-start flex-col group overflow-y-auto">
                 {children}
                 <div className="w-full px-2 items-center py-2 space-y-2 sticky bottom-0 bg-primarylight mt-2 hidden group-has-[#infiniteScroller]:flex">
                     <ul className="flex gap-2 overflow-x-auto noScroll h-fit">
@@ -74,7 +73,7 @@ const Search = ({ queryKeys, list_id, uid }: { queryKeys: string[], list_id: str
 
     return <SearchContainer
         ComponentToShow={CheckItemTile}
-        queryFn={(q, p) => queryFunction(searchOnlyMediaItems, [q, p])}
+        queryFn={searchOnlyMediaItems}
         queryKeys={(q) => ["search-cinements", q]}
         Wrapper={Wrapper}
     />

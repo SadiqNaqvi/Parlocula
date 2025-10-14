@@ -7,10 +7,9 @@ import { TabContainer, TabList } from "@components/ui/Tabs";
 import { getThreadById } from "@lib/helpers/common";
 import { getQueryKeys, numberConverter, timeAgo } from "@lib/utils";
 import { Thread as ThreadType } from "@type/internal";
-import { usePathname } from "next/navigation";
 import JoinButton from "./JoinButton";
 
-type Props = { id: string }
+type Props = { id: string, uid?: string }
 
 const getQueryProps = ({ id }: Props) => ({
     queryKeys: getQueryKeys("thread_id", { id }),
@@ -19,14 +18,11 @@ const getQueryProps = ({ id }: Props) => ({
 });
 
 const Thread = (props: Props) => {
-    const pathname = usePathname();
+    const component = (data: ThreadType, { id, uid }: Props) => {
 
-    const component = (data: ThreadType, { id }: Props) => {
+        const { _id, connection, creator, createdAt, created_by, description, links, member_count, nsfw, poster, post_count, name, managers } = data;
 
-        const { _id, connection, createdAt, created_by, description, links, member_count, nsfw, poster, post_count, name } = data;
-
-        const segment = pathname.split('/').at(-1);
-        const currentTab = segment === "frames" || segment === "links" ? segment : "posts";
+        const isMod = uid ? Boolean(created_by === uid || (managers ?? []).find(m => m === uid)) : false
 
         return (
             <>
@@ -50,6 +46,7 @@ const Thread = (props: Props) => {
                             <li>
                                 <Navigate comp="link" goto={`${_id}/members`}>{numberConverter(member_count)} Members</Navigate>
                             </li>
+                            <li>{numberConverter(post_count)} Posts</li>
                             <li className="list-[circle]">{timeAgo(createdAt)}</li>
                         </ul>
 
@@ -57,15 +54,15 @@ const Thread = (props: Props) => {
                     </div>
 
                     <div className="mt-4 md:mt-0 md:ml-auto">
-                        <JoinButton tid={_id} />
+                        <JoinButton uid={uid} isMod={isMod} tid={_id} />
                     </div>
 
                 </ObserverHeader>
 
                 <TabContainer className="my-4">
-                    <TabList isActive={currentTab === "posts"} href={`/t/${id}`}>Posts</TabList>
-                    <TabList isActive={currentTab === "frames"} href={`/t/${id}/frames`}>Frames</TabList>
-                    <TabList isActive={currentTab === "links"} href={`/t/${id}/links`}>Links</TabList>
+                    <TabList href={`/t/${id}`}>Posts</TabList>
+                    <TabList href={`/t/${id}/frames`}>Frames</TabList>
+                    <TabList href={`/t/${id}/links`}>Links</TabList>
                 </TabContainer>
             </>
         )

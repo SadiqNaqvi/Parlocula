@@ -1,5 +1,6 @@
 import pattern from "@assets/logo_pattern.webp";
 import type { Metadata } from "next";
+import { PropsWithChildren } from "react";
 
 export const metadata: Metadata = {
     title: "Join - Popcorn Paragon",
@@ -7,7 +8,7 @@ export const metadata: Metadata = {
     keywords: "movies, tv shows, web series, movie recommendation, movie recommendation system, tv show recommendation system, movies suggestion, movie suggestion, show suggestion, series suggestion",
 };
 
-const AuthLayout = ({ children }: Readonly<{ children: React.ReactNode }>) => {
+const AuthLayout = ({ children }: PropsWithChildren) => {
     return (
         <main className="p-4 flex gap-6 h-full noControl overflow-hidden">
             <section className="mx-auto z-[1] w-80 max-h-full noScroll overflow-y-auto">

@@ -1,7 +1,7 @@
 "use client";
 
 import { InfiniteScroller } from "@components";
-import { Popover, Triggerer } from "@components/Modal";
+import { Popover, Triggerer } from "@components/FancyboxModal";
 import SearchContainer from "@components/SearchContainer";
 import UserTile from "@components/ui/UserTile";
 import { getMembers, searchMembers } from "@lib/helpers/common";

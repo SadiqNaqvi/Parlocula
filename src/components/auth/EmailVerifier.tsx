@@ -1,10 +1,13 @@
-import { LeftChevron } from "@assets/Icons";
+"use client"
+
 import { Form, Input } from "@components/form";
+import { FormSubmitReturnType } from "@components/form/Form";
+import Navbar from "@components/Navbar";
 import { generateFingerprint } from "@lib/auth";
-import { sendVerificationCode, verifyCodes } from "@lib/helpers/server";
+import { sendVerificationCode } from "@lib/helpers/server";
 import { useCustomReducer } from "@lib/hooks";
 import { emailSchema, verificationCodeSchema } from "@lib/schemas";
-import { convertCodeIntoError, getTimeInFuture } from "@lib/utils";
+import { codetoError, getTimeInFuture } from "@lib/utils";
 import { useState } from "react";
 import toast from "react-hot-toast";
 import { z } from "zod";
@@ -34,30 +37,27 @@ const CodeCounter = ({ canTry, func }: { canTry: boolean, func: () => void }) =>
     else return <p className="text-sm text-center text-slate-500">You can resend an code in 2 mins.</p>
 }
 
-const EmailVerifier = ({ callback }: { callback: (email: string) => Promise<string | undefined> }) => {
+const setError = (error: string) => {
+    toast.error(error, { duration: 10000 })
+}
 
-    const { email, page, canTry, code, sentAt, tries, setter } = useCustomReducer({
-        email: "", page: 0, code: "", tries: 0, sentAt: null as Date | null, canTry: true
+const EmailVerifier = ({ callback }: { callback: (email: string, code: number) => Promise<FormSubmitReturnType> }) => {
+
+    const { email, page, canTry, sentAt, tries, setter } = useCustomReducer({
+        email: "", page: "email", tries: 0, sentAt: null as Date | null, canTry: true
     });
 
-    const setError = (error: string) => {
-        toast.error(error, { duration: 10000 })
-    }
-
-    const verifyCode = async (data: { code: string }) => {
+    const verifyCode = async ({ code }: { code: number }) => {
         if (tries >= 3)
             return setError("You've reached the limit to verify your email. Please try again in an hour.");
 
         else if (sentAt && Date.now() > getTimeInFuture({ unit: "m", from: sentAt, timeVal: 5 }))
             return setError("Code expired. Please re-send a verification code or try again in an hour.");
 
-        else if (await verifyCodes({ inputCode: `${data.code}`, realCode: code }))
-            return await callback(email);
+        const errCode = await callback(email, code);
+        if (errCode === "invalid_verification_code") setter({ tries: tries + 1 });
 
-        else {
-            setter({ tries: tries + 1 });
-            setError("Wrong Verification Code! If you didn't get a verification code on your email you can resend it.")
-        }
+        return errCode;
     }
 
     const sendCode = async (input?: string) => {
@@ -65,69 +65,69 @@ const EmailVerifier = ({ callback }: { callback: (email: string) => Promise<stri
         const emailToSend = input ?? email;
         const response = await sendVerificationCode(emailToSend, await generateFingerprint())
 
-        if (!response.success) {
-            if (response.errCode === "pp209") setter({ canTry: false });
-            else setError(convertCodeIntoError(response.errCode) as string);
-            return;
+        if (response.success) {
+            setter({ sentAt: new Date() });
+            toast.success("Verification Email sent successfully");
+            return true;
         }
 
-        setter({ code: response.result, sentAt: new Date() });
-        toast.success("Verification Email sent successfully")
+        else if (response.errCode === "email_verification_limit_exceed") {
+            setter({ canTry: false });
+            setError("Too many attempts. Please try again after an hour.")
+        }
+
+        else setError(codetoError(response.errCode) as string);
+        return false;
+
     }
 
     const submit = async (data: { email: string }) => {
         const { email } = data;
-        await sendCode(email);
-        setter({ email, page: 1 });
+        const done = await sendCode(email);
+        if (done) setter({ email, page: "verification" });
+        // await callback(email, 0);
+
     }
 
-    return (
+    if (page === "verification") return (
         <>
-            {page ?
-                <>
-                    <div className="flex mb-2 gap-4">
-                        <button className="iconBtn my-auto" onClick={() => setter({ page: 0 })}>
-                            <LeftChevron />
-                        </button>
-                        <h2 className="text-3xl text-center font-semibold">Verify Your Email</h2>
-                    </div>
-                    <p className="mb-8 text-center text-sm text-zinc-500">Enter 6 digit verification code that has been sent to your email.</p>
+            <Navbar navTitle="Verify Your Email" onGoBack={() => setter({ page: "email" })} />
 
-                    <Form schema={verificationCodeSchema} submit={verifyCode}>
-                        <Input
-                            type="number"
-                            maxLength={6}
-                            name="code"
-                            placeholder="XXXXXX"
-                            autoFocus
-                        />
-                        <button className="primary w-full mt-4">Verify</button>
-                        <div className="mt-4">
-                            <CodeCounter canTry={canTry} func={sendCode} />
-                        </div>
-                        <p>Please check spam or all email if you can't find our email. If you still think you didn't recieve an email from us, Please check your email or try again after an hour.</p>
-                    </Form>
-                </>
-                :
-                <>
-                    <h2 className="text-3xl uppercase text-center mb-8">Welcome</h2>
-                    <Form
-                        className="space-y-4"
-                        submit={submit}
-                        schema={schema}>
-                        <Input
-                            name="email"
-                            defaultValue={email}
-                            autoFocus
-                            type="email"
-                            className="bg-transparent w-full"
-                            placeholder="Email"
-                        />
-                        <button className="primary w-full">Continue</button>
-                    </Form>
-                </>
-            }
+            <p className="mb-8 text-center text-sm text-zinc-500">Enter 6 digit verification code that has been sent to your email {email}.</p>
+
+            <Form schema={verificationCodeSchema} submit={verifyCode}>
+                <Input
+                    type="number"
+                    maxLength={6}
+                    name="code"
+                    placeholder="XXXXXX"
+                    autoFocus
+                />
+                <button className="primary w-full mt-4">Verify</button>
+            </Form>
+
+            <div className="mt-4">
+                <CodeCounter canTry={canTry} func={sendCode} />
+                <p className="mt-4 text-sm text-zinc-500 text-center">Please check spam if you are unable to find the mail or check your email and try again.</p>
+            </div>
         </>
+    )
+
+    return (
+        <Form
+            className="space-y-4"
+            submit={submit}
+            schema={schema}>
+            <Input
+                name="email"
+                defaultValue={email}
+                autoFocus
+                type="email"
+                className="bg-transparent w-full"
+                placeholder="Email"
+            />
+            <button type="submit" className="primary w-full">Continue</button>
+        </Form>
     )
 }
 

@@ -25,7 +25,7 @@ const WelcomeEmail = ({ passkey }: { passkey: string }) => (
                             src={logo}
                             width="75"
                             height="75"
-                            alt="App's Logo"
+                            alt="App Logo"
                         />
                     </Section>
                     <Section style={upperSection}>
@@ -43,7 +43,7 @@ const WelcomeEmail = ({ passkey }: { passkey: string }) => (
                     <Section style={lowerSection}>
                         <Text style={cautionText}>
                             You can use this passkey to update your information in future.
-                            Make sure to keep it safe somewhere and NEVER share this with anyone or we're not responsible for your account.
+                            Make sure to keep it safe somewhere and NEVER share this with anyone or we{"'"}re not responsible for your account.
                         </Text>
                     </Section>
                 </Section>
@@ -85,9 +85,9 @@ const text = {
 const header = {
     backgroundColor: '#0f111f',
     display: 'flex',
-    padding: '15px 0',
     alignItems: 'center',
     justifyContent: 'center',
+    padding: '15px 0',
 };
 
 const coverSection = { backgroundColor: '#fff' };

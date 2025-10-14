@@ -7,7 +7,7 @@ export const GET = getRequest(
   async (_, params: { id: string; cuid: string }) => {
     const { id, cuid } = params;
 
-    if (!cuid) return { success: false, errCode: "pp202" };
+    if (!cuid) return { success: false, errCode: "unauthenticated_access" };
 
     const lists = await Item.find(
       { media_id: id, user_id: cuid },

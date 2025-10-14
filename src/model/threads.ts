@@ -1,9 +1,8 @@
-import { Schema, models } from "mongoose";
-import { linkModel, connectionModel, lastUpdate } from "./general";
-import { ThreadModelType } from "@type/models";
-import { model } from "mongoose";
+import { StrictModel, ThreadModelType } from "@type/models";
+import { model, models, Schema } from "mongoose";
+import { connectionModel, linkModel, StrictSchema } from "./general";
 
-const threadModel = new Schema<ThreadModelType>(
+const threadModel = new StrictSchema<ThreadModelType>(
   {
     name: {
       type: String,
@@ -29,11 +28,15 @@ const threadModel = new Schema<ThreadModelType>(
     },
     created_by: {
       type: Schema.Types.ObjectId,
-      ref: "User",
+      ref: "Thread",
       required: true,
     },
     edited_at: Date,
-    edit: lastUpdate,
+    edited_by: {
+      type: Schema.Types.ObjectId,
+      ref: "Thread",
+      default: null,
+    },
     post_count: {
       type: Number,
       default: 0,
@@ -64,5 +67,11 @@ threadModel.index(
   }
 );
 
-const Thread = models.Thread || model<ThreadModelType>("Thread", threadModel);
+const Thread: StrictModel<ThreadModelType> =
+  (models.Thread as StrictModel<ThreadModelType>) ||
+  (model<ThreadModelType>(
+    "Thread",
+    threadModel
+  ) as StrictModel<ThreadModelType>);
+
 export default Thread;

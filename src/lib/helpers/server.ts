@@ -1,31 +1,28 @@
 "use server";
 
-import {
-  generateToken,
-  getSession,
-  storeSession,
-  verifyToken,
-} from "@lib/auth";
-import { ObjectId } from "@lib/utils";
-import { Item, Media } from "@model";
-import { GeneralGetReturn, MediaItemType } from "@type/internal";
 import VerifyEmail from "@components/EmailTemplates/verification";
-import {
-  v2 as cloudinary,
-  UploadApiOptions,
-  UploadApiResponse,
-} from "cloudinary";
-import { ClientSession } from "mongoose";
+import { oneHour } from "@lib/constants";
+import { getRedis } from "@lib/providers/redis";
+import { verificationCodeSchema } from "@lib/schemas";
+import { getTimeInFuture, ObjectId, objectToFormData } from "@lib/utils";
+import { Item, Media, Notifications } from "@model";
 import { render } from "@react-email/components";
-import { createTransport } from "nodemailer";
-import { cookies } from "next/headers";
-import { emailLimit, oneHour } from "@lib/constants";
-import { DeviceLimitation } from "@type/other";
-import { randomInt } from "crypto";
-import { storeToRedis } from "@lib/auth/session";
-import bcrypt from "bcrypt";
-import { CinementModelType, ListItemModelType } from "@type/models";
+import { GeneralGetReturn, GeneralPostReturn, GenericDate } from "@type/internal";
+import {
+  CinementModelType,
+  ListItemModelType,
+  NotificationModelType,
+  StringifyObjecId,
+} from "@type/models";
+import { PushNotificationType } from "@type/other";
 import { CinementSchemaType } from "@type/schemas";
+import Ably from "ably";
+import {
+  v2 as cloudinary
+} from "cloudinary";
+import { randomInt } from "crypto";
+import { ClientSession } from "mongoose";
+import { createTransport } from "nodemailer";
 
 cloudinary.config({
   cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
@@ -38,36 +35,96 @@ type DeleteApiResponse = {
   partial: boolean;
 };
 
-export const mediaUploader = async (
-  file: File,
-  options?: UploadApiOptions
-): Promise<
-  | { result: UploadApiResponse; error: string; success: true }
-  | { result: null; error: string; success: false }
-> => {
-  if (!file) return { result: null, error: "No file found.", success: false };
+type MediaUploaderOptions = {
+  allOrNone: boolean
+}
 
-  const bytes = await file.arrayBuffer();
-  const buffer = Buffer.from(bytes);
-  try {
-    const result = await new Promise<UploadApiResponse>((resolve, reject) => {
-      const stream = cloudinary.uploader.upload_stream(options, (err, res) => {
-        if (err || !res) reject(err);
-        else resolve(res);
-      });
-      stream.end(buffer);
-    });
+type MediaUploaderResponse = {
+  success: true,
+  result: { file_name: string, url: string }[]
+} | {
+  success: false,
+  error: string,
+}
 
-    return { result, success: true, error: "" };
-  } catch (err) {
-    console.error("Failed To Upload Media", err);
-    return {
-      result: null,
-      success: false,
-      error: "Something went wrong! Please Try again",
-    };
+type ExtUploadResponse = {
+  success: true,
+  response: ({
+    success: false;
+    file_name: string;
+    error: string;
+    url: undefined;
+  } | {
+    success: true;
+    url: string;
+    file_name: string;
+    error: undefined;
+  })[]
+} | {
+  success: false,
+  error: string,
+}
+
+export const mediaUploader = async (files: File | File[], options?: MediaUploaderOptions): Promise<MediaUploaderResponse> => {
+
+  const filesToUpload = Array.isArray(files) ? files : [files]
+
+  const response: ExtUploadResponse = await fetch(
+    `https://testlalaapp.vercel.app/api/media`,
+    {
+      method: "POST",
+      body: objectToFormData({
+        file: filesToUpload
+      }),
+    }).then(r => r.json());
+
+  if (!response.success)
+    return { success: false, error: response.error }
+
+  const uploadedFiles = response.response.filter(el => el.success);
+
+  const fails = filesToUpload.length - uploadedFiles.length;
+
+  if (options?.allOrNone && fails !== 0)
+    return { success: false, error: `${fails} file(s) could not be uploaded correctly.` }
+
+  return {
+    success: true,
+    result: uploadedFiles.map(f => ({ file_name: f.file_name, url: f.url }))
   }
-};
+
+}
+
+// export const mediaUploader = async (
+//   file: File,
+//   options?: UploadApiOptions
+// ): Promise<
+//   | { result: UploadApiResponse; error: string; success: true }
+//   | { result: null; error: string; success: false }
+// > => {
+//   if (!file) return { result: null, error: "No file found.", success: false };
+
+//   const bytes = await file.arrayBuffer();
+//   const buffer = Buffer.from(bytes);
+//   try {
+//     const result = await new Promise<UploadApiResponse>((resolve, reject) => {
+//       const stream = cloudinary.uploader.upload_stream(options, (err, res) => {
+//         if (err || !res) reject(err);
+//         else resolve(res);
+//       });
+//       stream.end(buffer);
+//     });
+
+//     return { result, success: true, error: "" };
+//   } catch (err) {
+//     console.error("Failed To Upload Media", err);
+//     return {
+//       result: null,
+//       success: false,
+//       error: "Something went wrong! Please Try again",
+//     };
+//   }
+// };
 
 export const deleteMedia = async (file: {
   path: string;
@@ -135,37 +192,38 @@ export const deleteMultipleMedia = async (
   }
 };
 
-export const multipleMediaUploader = async (
-  file: File,
-  options?: UploadApiOptions
-): Promise<
-  | { result: UploadApiResponse; error: string; success: true }
-  | { result: null; error: string; success: false }
-> => {
-  if (!file) return { result: null, error: "No file found.", success: false };
+// export const multipleMediaUploader = async (
+//   file: File,
+//   options?: UploadApiOptions
+// ): Promise<
+//   | { result: UploadApiResponse; error: string; success: true }
+//   | { result: null; error: string; success: false }
+// > => {
+//   if (!file) return { result: null, error: "No file found.", success: false };
 
-  const bytes = await file.arrayBuffer();
-  const buffer = Buffer.from(bytes);
-  try {
-    const result = await new Promise<UploadApiResponse>((resolve, reject) => {
-      const stream = cloudinary.uploader.upload_stream(options, (err, res) => {
-        if (err || !res) reject(err);
-        else resolve(res);
-      });
-      stream.end(buffer);
-    });
+//   const bytes = await file.arrayBuffer();
+//   const buffer = Buffer.from(bytes);
+//   try {
+//     const result = await new Promise<UploadApiResponse>((resolve, reject) => {
+//       const stream = cloudinary.uploader.upload_stream(options, (err, res) => {
+//         if (err || !res) reject(err);
+//         else resolve(res);
+//       });
+//       stream.end(buffer);
+//     });
 
-    return { result, success: true, error: "" };
-  } catch (err) {
-    console.error("Failed To Upload Media", err);
-    return {
-      result: null,
-      success: false,
-      error: "",
-    };
-  }
-};
+//     return { result, success: true, error: "" };
+//   } catch (err) {
+//     console.error("Failed To Upload Media", err);
+//     return {
+//       result: null,
+//       success: false,
+//       error: "",
+//     };
+//   }
+// };
 
+type CinementDocType = CinementModelType & { _id: StringifyObjecId }
 export const addItemsInList = async (
   items: CinementSchemaType[],
   list_type: "custom" | "favourite" | "recommended" | "watched",
@@ -181,11 +239,11 @@ export const addItemsInList = async (
 
   // Step 2: Find existing items for unconfirmed items
   const tmdbIds = unconfirmedItems.map((item) => item.tmdb_id);
-  const existingItems = tmdbIds.length
+  const existingItems: CinementDocType[] = tmdbIds.length
     ? await Media.find({ tmdb_id: { $in: tmdbIds } }, null, {
-        session,
-        ordered: true,
-      })
+      session,
+      ordered: true,
+    })
     : [];
 
   // Step 3: Create missing items and get all item IDs
@@ -194,7 +252,7 @@ export const addItemsInList = async (
       !existingItems.some((existing) => existing.tmdb_id === item.tmdb_id)
   );
 
-  let createdItems = [];
+  let createdItems: CinementDocType[] = [];
   if (itemsToCreate.length > 0) {
     createdItems = await Media.create(
       itemsToCreate.map(
@@ -242,38 +300,28 @@ export const addItemsInList = async (
   }
 };
 
+type EmailPayload = {
+  code: number;
+  expiresOn: number;
+  triedTimes: number;
+}
+
 export const sendVerificationCode = async (
   email: string,
-  fingerprint: string
+  fingerprint: string,
 ): Promise<GeneralGetReturn> => {
-  if (!fingerprint) return { success: false, errCode: "pp200" };
-  const cookieStore = cookies();
-  const limitaionToken = cookieStore.get("did")?.value;
+  if (!fingerprint) throw new Error("Fingerprint is not passed");
+
+  const redis = await getRedis();
+
+  const payload: EmailPayload | null = await redis
+    .get(`limits:email:${fingerprint}`)
+    .then(r => JSON.parse(r ?? "null"));
+
+  if (payload && payload.triedTimes >= 5)
+    return { success: false, errCode: "email_verification_limit_exceed" }
+
   try {
-    let payload = limitaionToken
-      ? await verifyToken<DeviceLimitation>(limitaionToken)
-      : null;
-
-    if (!payload) {
-      const redisResp = await getSession<DeviceLimitation>(
-        `deviceLimits-${fingerprint}`
-      );
-      if (redisResp.success) payload = redisResp.result;
-      else return redisResp as GeneralGetReturn;
-    }
-
-    const deviceLimts: DeviceLimitation = payload ?? {
-      overall: 0,
-      email: 0,
-      expireAt: new Date().getTime() + 1000 * 3600,
-    };
-
-    if (
-      deviceLimts.email >= emailLimit &&
-      new Date().getTime() < deviceLimts.expireAt
-    )
-      return { success: false, errCode: "pp209" };
-
     const transportor = createTransport({
       service: "gmail",
       auth: {
@@ -281,8 +329,11 @@ export const sendVerificationCode = async (
         pass: process.env.APP_PASSWORD,
       },
     });
+
     const code = randomInt(100000, 1000000);
+
     const emailHtml = await render(VerifyEmail({ code }));
+
     await transportor.sendMail({
       from: process.env.GOOGLE_EMAIL,
       to: email,
@@ -290,35 +341,77 @@ export const sendVerificationCode = async (
       html: emailHtml,
     });
 
-    const updatedLimits: DeviceLimitation = {
-      ...deviceLimts,
-      email: deviceLimts.email + 1,
+    const updatedPayload: EmailPayload = {
+      code,
+      expiresOn: getTimeInFuture({ unit: "m", timeVal: 5 }),
+      triedTimes: (payload?.triedTimes ?? 0) + 1,
     };
 
-    await storeToRedis(`deviceLimits-${fingerprint}`, oneHour, updatedLimits);
-    cookieStore.set("did", await generateToken(updatedLimits));
+    await redis.setex(`limits:email:${fingerprint}`, oneHour, JSON.stringify(updatedPayload));
 
-    const hash = await bcrypt.hash(`${code}`, 1);
-    return { success: true, result: hash };
+    return { success: true, result: null };
+
   } catch (err: any) {
     console.log("Error occured while sending verification email", err.message);
-    return { success: false, errCode: "pp100" };
+    return { success: false, errCode: "unknown_error" };
   }
 };
 
-export const verifyCodes = async ({
-  inputCode,
-  realCode,
-}: {
-  inputCode: string;
-  realCode: string;
-}) => {
+export const verifyCode = async (code: string | number, fingerprint: string): Promise<GeneralPostReturn> => {
   try {
-    const compare = await bcrypt.compare(inputCode, realCode);
-    console.log("Compared", compare);
-    return compare;
+
+    const { success, data, error } = verificationCodeSchema.safeParse(code);
+
+    if (!success)
+      return { success: false, errCode: "form_error", formError: error.errors }
+
+    const redis = await getRedis();
+
+    const payload: EmailPayload | null = await redis
+      .get(`limits:email:${fingerprint}`)
+      .then(r => JSON.parse(r ?? "null"));
+
+    if (!payload || payload.expiresOn < Date.now())
+      return { success: false, errCode: "verification_code_expired" }
+
+    else if (payload.code !== data.code)
+      return { success: false, errCode: "invalid_verification_code" }
+
+    return { success: true, result: null }
+
   } catch (err: any) {
     console.error("Failed to compare codes", err.message);
-    return false;
+    return { success: false, errCode: "unknown_error" };
   }
+};
+
+export const sendNotification = async (
+  notifications: NotificationModelType[],
+  session?: ClientSession
+) => {
+  const createdNotifications: (NotificationModelType & { _id: StringifyObjecId })[] =
+    await Notifications.create(notifications, {
+      session,
+    });
+
+  const ably = new Ably.Rest(process.env.ABLY_API_KEY!);
+  await Promise.all(
+    createdNotifications.map(async (n) => {
+      const channel = ably.channels.get(n.user_id as string);
+      if ((await channel.presence.get()).items.length) {
+        return channel.publish("notification", n);
+      } else {
+        return ably.push.admin.publish(
+          {
+            clientId: n.user_id,
+          },
+          {
+            title: n.title,
+            data: { path: n.path ?? "/notifications" },
+            body: "Click here to open",
+          } as PushNotificationType
+        );
+      }
+    })
+  );
 };

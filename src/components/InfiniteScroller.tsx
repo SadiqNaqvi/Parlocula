@@ -1,18 +1,18 @@
 "use client";
 
-import { oneHour } from "@lib/constants";
-import { infiniteScrollerResponse } from "@lib/utils";
+import { useInfiniteQueryHook } from "@lib/hooks";
 import useCurrentUser from "@store/user";
-import { InfiniteData, useInfiniteQuery } from "@tanstack/react-query";
-import { InfiniteQueryResponse } from "@type/internal";
+import { GeneralGetReturn, GeneralMultipleReturn, InfiniteQueryResponse, InfiniteQueryResponseDB } from "@type/internal";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect, useRef } from "react";
 import { LoadingSpinner, ShowError } from "./ui";
 import NotFound from "./ui/NotFound";
+import { GeneralReturnType } from "@type/external";
+import { InfiniteData } from "@tanstack/react-query";
 
 type InfiniteScrollerProps = {
     Component: React.ComponentType<any>,
-    fetchData: (pageParams: number) => Promise<InfiniteQueryResponse>,
+    fetchData: (pageParams: number) => Promise<GeneralMultipleReturn | GeneralGetReturn>,
     queryKeys: (string | number)[],
     NotFoundSection?: React.ReactNode,
     notFoundMessage?: { title: string, paras: string[] },
@@ -23,6 +23,10 @@ type InfiniteScrollerProps = {
     Loading?: React.ComponentType<any>,
     className?: string;
     paginate?: boolean;
+    autoLoad?: boolean;
+    placeholderData?: GeneralReturnType<any> | InfiniteQueryResponseDB<any>
+    onSuccess?: (d: InfiniteData<InfiniteQueryResponse<any>, number>) => void,
+    enabled?: boolean
 }
 
 const defaultClasses = "space-y-4";
@@ -32,13 +36,13 @@ const defaultNotFoundMessages = {
     paras: ["Please search the resouce using it's name, title, username, etc."],
 }
 
-export default function InfiniteScroller({ Loading, Component, fetchData, queryKeys, NotFoundSection, notFoundMessage = defaultNotFoundMessages, initialPage = 1, initialData, callback, className = defaultClasses, paginate = true, additional }: InfiniteScrollerProps) {
+export default function InfiniteScroller({ Loading, autoLoad = false, onSuccess, placeholderData, Component, fetchData, queryKeys, NotFoundSection, notFoundMessage = defaultNotFoundMessages, initialPage = 1, enabled = true, initialData, callback, className = defaultClasses, paginate = true, additional }: InfiniteScrollerProps) {
 
     const container = useRef(null);
     const searchParams = useSearchParams();
     const router = useRouter();
     const pathname = usePathname();
-    const { user } = useCurrentUser();
+    const { meta } = useCurrentUser();
 
     const updateSearchParams = (page: number) => {
         const params = new URLSearchParams(searchParams);
@@ -52,28 +56,22 @@ export default function InfiniteScroller({ Loading, Component, fetchData, queryK
         router.replace(`${pathname}?${params.toString()}`)
     }
 
-    const { data, refetch, isFetching, error, isFetchingNextPage, hasNextPage, fetchNextPage } = useInfiniteQuery<
-        InfiniteQueryResponse, Error, InfiniteData<InfiniteQueryResponse>, (string | number)[], number
-    >({
-        queryKey: queryKeys,
-        staleTime: oneHour * 1000,
-        initialPageParam: initialData ? initialPage + 1 : initialPage,
-        queryFn: async ({ pageParam }) => await fetchData(pageParam)
+    const { data, refetch, isLoading, error, isFetchingNextPage, hasNextPage, fetchNextPage } = useInfiniteQueryHook({
+        queryKeys: queryKeys,
+        queryFn: (p) => fetchData(p)
             .then(res => {
-                // console.log(res);
-                const resp = infiniteScrollerResponse(res, pageParam);
-                if (resp.results?.length && resp.page > 1 && paginate) updateSearchParams(resp.page)
-                return resp;
+                if (paginate && res.success && res.result?.data?.length && p > 1) updateSearchParams(p)
+                return res;
             }),
-        initialData: initialData ? { pageParams: [1], pages: [infiniteScrollerResponse(initialData, initialPage)] } : undefined,
-        getNextPageParam: (lp: any): number | undefined => {
-            return lp && lp.page < lp.total_pages ? lp.page + 1 : undefined;
-        },
-        enabled: !initialData,
-        retry: false, refetchOnWindowFocus: false, retryOnMount: false, refetchOnMount: false, refetchOnReconnect: false
+        initialData,
+        initialPage,
+        placeholderData,
+        onSuccess,
+        enable: enabled,
     });
 
     useEffect(() => {
+        if (autoLoad) return;
         const observer = new IntersectionObserver(([entry]) => {
             if (entry.isIntersecting && !isFetchingNextPage && hasNextPage)
                 fetchNextPage();
@@ -87,6 +85,10 @@ export default function InfiniteScroller({ Loading, Component, fetchData, queryK
                 observer.unobserve(container.current);
         }
     }, [container.current]);
+
+    const manuallyLoadNextPage = () => {
+        fetchNextPage();
+    }
 
     const LoadingComponent = () => {
         const LoadingComp = Loading ?? LoadingSpinner
@@ -103,7 +105,7 @@ export default function InfiniteScroller({ Loading, Component, fetchData, queryK
         else return NotFoundSection;
     }
 
-    if (isFetching && !isFetchingNextPage)
+    if (isLoading)
         return <LoadingComponent />
 
     else if (error)
@@ -115,7 +117,7 @@ export default function InfiniteScroller({ Loading, Component, fetchData, queryK
             />
         )
 
-    else if (!data.pages[0]?.results?.length && initialPage !== 1)
+    else if (!data?.pages[0]?.results?.length && initialPage !== 1)
         return (
             <NotFoundComponent
                 title="Looks like you came across too far"
@@ -127,7 +129,6 @@ export default function InfiniteScroller({ Loading, Component, fetchData, queryK
     else if (!data || !data.pages[0]?.total_results)
         return <NotFoundComponent {...notFoundMessage} />
 
-
     return (
         <>
             <ul className={className} id="infiniteScroller">
@@ -135,16 +136,22 @@ export default function InfiniteScroller({ Loading, Component, fetchData, queryK
                     <React.Fragment key={ind}>
                         {content.results.map((el: any, i: any) => (
                             <li key={el.id || el._id || el.tmdb_id || i} className="list-none">
-                                <Component {...el} callback={callback} additional={additional} user={user} />
+                                <Component {...el} callback={callback} additional={additional} user={meta} />
                             </li>
                         ))}
                     </React.Fragment>
                 ))}
             </ul>
             {hasNextPage &&
-                <div ref={container} className="mt-4">
-                    <LoadingComponent />
-                </div>
+                (autoLoad || isFetchingNextPage ?
+                    <div ref={container} className="mt-4 py-2">
+                        <LoadingComponent />
+                    </div>
+                    :
+                    <div className="w-full flex flex-cntr-all">
+                        <button className="primary" onClick={manuallyLoadNextPage}>Load More</button>
+                    </div>
+                )
             }
         </>
     )

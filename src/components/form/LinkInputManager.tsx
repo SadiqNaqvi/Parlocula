@@ -4,7 +4,7 @@
 import { linkSchema } from "@lib/schemas";
 import { LinkSchema } from "@type/schemas";
 import { Form, Input } from ".";
-import Modal, { closeFancyBox } from "../Modal";
+import Modal, { closeFancyBox } from "../FancyboxModal";
 import { forwardRef, useImperativeHandle, useState } from "react";
 import { AddIcon, XmarkIcon } from "@assets/Icons";
 import { InputManagerType } from "@type/other";
@@ -77,7 +77,7 @@ const LinkInputManager = forwardRef<InputManagerType<LinkSchema[]>, Props>(({ ti
                 {links.length ?
                     <ul className="flex gap-2 overflow-x-auto noScroll">
                         {links.map(link => (
-                            <RemovalLinkTile func={() => removeLinks(link.path)} key={link.path} title={link.label} />
+                            <RemovalLinkTile func={() => removeLinks(link.path)} key={link.path} title={link.path} />
                         ))}
                     </ul>
                     :

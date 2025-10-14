@@ -11,6 +11,7 @@ type Props = {
     urlToShare?: string,
     textToShare?: string,
     poster?: string,
+    onGoBack?: () => void
 }
 
 const changeTheme = () => {
@@ -24,14 +25,18 @@ const changeTheme = () => {
     }
 }
 
-const Navbar = ({ className = "", OptionButton, navTitle, titleToShare, urlToShare, poster, textToShare }: Props) => (
+const Navbar = ({ className = "", onGoBack, OptionButton, navTitle, titleToShare, urlToShare, poster, textToShare }: Props) => (
     <nav className={`${className} px-4 h-14 md:h-16 w-full z-[2] flex flex-cntr-between sticky top-0 bg-primary`}>
 
         <div className="flex gap-2 items-center">
-            <Navigate comp="button" goto="back">
-                <LeftChevron />
-            </Navigate>
-            <p className={`line-clamp-1 ${navTitle ? "opacity-100" : "opacity-0"} text-lg transition-opacity`}>{navTitle}</p>
+            {onGoBack ?
+                <button onClick={onGoBack}><LeftChevron /></button>
+                :
+                <Navigate comp="button" goto="back">
+                    <LeftChevron />
+                </Navigate>
+            }
+            <span className={`line-clamp-1 text-lg`}>{navTitle}</span>
         </div>
         {!navTitle &&
             <div className="size-8" onClick={changeTheme}>

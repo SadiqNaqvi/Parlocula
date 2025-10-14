@@ -5,7 +5,7 @@ import Navigate from "../Navigate"
 
 const ThreadTile = ({ name, poster, _id, member_count, post_count }: MereThread) => {
     return (
-        <Navigate role="button" comp="link" goto={`t/${_id}-${refineString(name)}`}>
+        <Navigate role="button" comp="link" goto={`/t/${_id}-${refineString(name)}`}>
             <article className="flex gap-4 p-3 rounded-md border border-gray30">
                 <Image
                     className="size-10 rounded-full object-cover"

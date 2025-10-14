@@ -56,6 +56,11 @@ export const DELETE = deleteRequest(async ({ user_id, params, session }) => {
     id,
     {
       $inc: { member_count: -1 },
+      // Also remove the user if they were a Manager or Invitee.
+      $pull: {
+        invitee: user_id,
+        managers: user_id,
+      },
     },
     { session }
   );

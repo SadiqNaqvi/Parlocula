@@ -1,40 +1,37 @@
 "use client";
 
-import Register from "@components/auth/Register";
+import { Navigate } from "@components";
 import EmailVerifier from "@components/auth/EmailVerifier";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import Register from "@components/auth/Register";
 import { login } from "@lib/helpers/client";
-import { convertCodeIntoError } from "@lib/utils";
-import useCurrentUser from "@store/user";
-import { checkIfUserExist } from "@lib/helpers/common";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 const Page = ({ searchParams }: { searchParams: { url?: string } }) => {
     const urlToRedirect = searchParams.url;
     const router = useRouter();
     const [email, setEmail] = useState('');
-    const { setUserHash } = useCurrentUser();
 
-    const findUser = async (email: string) => {
-        router.prefetch(urlToRedirect ?? "/home");
-        const { success, errCode, result } = await checkIfUserExist(email);
-        if (!success) return convertCodeIntoError(errCode) as string;
-        if (!result) {
+    const handleLogin = async (email: string, code: number) => {
+        const { errCode, success } = await login(email, code);
+
+        if (!success && errCode === "unregistered_user")
             setEmail(email);
-            return;
-        }
+        else if (!success) return errCode;
 
-        if (await login(email, setUserHash))
-            router.replace(urlToRedirect ?? "/home");
+        router.replace(urlToRedirect ?? "/home");
     }
+
+    if (email) return <Register email={email} />
 
     return (
         <>
-            {email ?
-                <Register email={email} />
-                :
-                <EmailVerifier callback={findUser} />
-            }
+            <EmailVerifier callback={handleLogin} />
+
+            <div className="mt-4 flex flex-col">
+                <p className="text-sm text-center text-zinc-500">Feels like someone else is using your account?</p>
+                <Navigate className="mx-auto" comp="link" goto="invalidate">Log out everyone</Navigate>
+            </div>
         </>
     )
 }

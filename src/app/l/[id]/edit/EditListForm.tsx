@@ -75,7 +75,7 @@ const ListEditPage = ({ id }: Props) => {
         if (!isHydrated) return <LoadingSpinner />
 
         else if (!user)
-            return <ShowError heading="You're not allowed to edit this list." errCode="pp201" />
+            return <ShowError heading="You're not allowed to edit this list." errCode="unauthorized_access" />
 
         else if (user._id !== data.user_id)
             return <NotFound title="You're not allowed to edit this list." paras={[""]} />

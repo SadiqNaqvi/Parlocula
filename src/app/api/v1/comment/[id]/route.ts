@@ -35,7 +35,7 @@ export const GET = getRequest(async (r: any, params: { id: string }) => {
     { $project: { user: 0, post: 0 } },
   ]);
   const comment = result[0];
-  if (!comment) return { success: false, errCode: "pp104" };
+  if (!comment) return { success: false, errCode: "resource_not_found" };
 
   return { result: comment, success: true };
 });

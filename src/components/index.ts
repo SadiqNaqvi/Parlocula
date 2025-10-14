@@ -8,7 +8,7 @@ export {
   InputPrompt,
 } from "./form/LinkInputManager";
 export { default as ListForm } from "./ListForm";
-export { default as Modal } from "./Modal";
+export { default as Modal } from "./FancyboxModal";
 export { default as Navbar } from "./Navbar";
 export { default as Navigate } from "./Navigate";
 export { default as OptionMenu } from "./OptionMenu";

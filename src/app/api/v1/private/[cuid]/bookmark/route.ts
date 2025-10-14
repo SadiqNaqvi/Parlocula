@@ -14,7 +14,7 @@ const preCheck = async ({ user_id, data }: { user_id: string; data: any }) => {
     blocked: true,
   });
 
-  if (isBlocked) return { success: false, errCode: "pp207" };
+  if (isBlocked) return { success: false, errCode: "blocked_by_author" };
 
   return { success: true };
 };

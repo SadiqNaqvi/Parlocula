@@ -17,6 +17,8 @@ export const GET = getRequest(
   async (r: any, params: { id: string; cuid: string }) => {
     const { id, cuid } = params;
 
+    const uid = cuid === "undefined" ? null : cuid;
+
     const key = r.nextUrl.searchParams.get("k");
 
     const response = await List.aggregate([
@@ -45,12 +47,12 @@ export const GET = getRequest(
 
     const list: FullList | null = response[0];
 
-    if (!list) return { success: false, errCode: "pp104" };
+    if (!list) return { success: false, errCode: "resource_not_found" };
     else if (list.isPrivate) {
-      if (list.user_id === cuid) return { success: true, result: list };
+      if (list.user_id === uid) return { success: true, result: list };
       else if (key && key === list.listKey)
         return { success: true, result: list };
-      else return { success: false, errCode: "pp201" };
+      else return { success: false, errCode: "unauthorized_access" };
     }
 
     return { success: true, result: list };

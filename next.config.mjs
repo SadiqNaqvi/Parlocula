@@ -17,6 +17,12 @@ const nextConfig = {
       fullUrl: true,
     },
   },
+  // transpilePackages: ["@acme/ui", "lodash-es"],
+  webpack: (config) => {
+    // Ignore ALL webpack warnings produced by ./node_modules/keyv/src/index.js file
+    config.ignoreWarnings = [{ module: /node_modules\/keyv\/src\/index\.js/ }];
+    return config;
+  },
 };
 
 export default nextConfig;

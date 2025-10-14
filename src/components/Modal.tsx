@@ -1,80 +1,43 @@
-"use client";
+import React, { PropsWithChildren } from "react";
+import BottomSheet from "./BottomSheet";
+import { Drawer } from "vaul";
 
-import { Fancybox } from "@fancyapps/ui";
-import { OptionsType } from "@fancyapps/ui/types/Fancybox/options";
+type ModalProps = PropsWithChildren<{
+    button: React.ReactNode
+}>
 
-type Props = {
-    id: string;
-    children: React.ReactNode;
-};
-
-type MoreArgs = React.ButtonHTMLAttributes<HTMLButtonElement>
-
-export const CloseAndTrigger = ({ children, id, onClick, ...args }: Props & MoreArgs) => {
-
-    const handleClick = (e: any) => {
-        onClick?.(e)
-        setTimeout(() => Fancybox.close(true), 50);
-        setTimeout(() => Fancybox.show([{ src: `#${id}` }], { closeButton: false }), 50);
-    }
-
+const Modal = ({ button, children }: ModalProps) => {
     return (
-        <button
-            onClick={handleClick}
-            {...args}
-        >
+        <BottomSheet button={button}>
             {children}
-        </button>
-    );
-
+        </BottomSheet>
+    )
 }
 
-export const Triggerer = ({ children, id, ...args }: Props & MoreArgs) => {
+type WarningModalProps = {
+    action: string,
+    details?: string,
+    dangerFunc: () => void,
+    dangerButton: React.ReactNode
+}
+
+export const WarningModal = ({ action, dangerFunc, details, dangerButton }: WarningModalProps) => {
     return (
-        <button
-            data-modal
-            data-src={`#${id}`}
-            aria-haspopup="dialog"
-            aria-controls={id}
-            {...args}
-        >
-            {children}
-        </button>
-    );
+        <aside className="bg-primary w-full max-w-[500] p-4">
+            <h4 className="text-lg text-center">
+                Are you sure you want to {action}?
+            </h4>
+            {details && <p className="mt-4 text-sm text-center text-zinc-500">{details}</p>}
 
-}
+            <div className=" flex flex-cntr-between">
+                <Drawer.Close className="primary">Cancel</Drawer.Close>
+                <button
+                    className="secondary border-red-500"
+                    onClick={dangerFunc}
+                >{dangerButton}</button>
+            </div>
 
-export const closeFancyBox = (all?: boolean) => {
-    setTimeout(() => Fancybox.close(all), 100);
-}
-
-// export const showFancyBox = (src: string[], options?: Partial<OptionsType>) => {
-//     Fancybox.show()
-// }
-
-export const CloseButton = ({ children, closeAll = false, onClick, ...args }: { children: React.ReactNode, closeAll?: boolean } & MoreArgs) => {
-    const handleClick = (e: any) => {
-        onClick?.(e)
-        closeFancyBox(closeAll);
-    }
-
-    return <button onClick={handleClick} {...args}>{children}</button>
-}
-
-export const Popover = ({ children, id }: Props) => {
-    return <aside style={{ display: "none" }}>
-        <div id={id} className="w-fit h-fit max-w-[98dvw] max-h-[98dvh] *:max-w-full *:max-h-full">
-            {children}
-        </div>
-    </aside>
-}
-
-const Modal = ({ buttonChildren, children, id, ...args }: Props & { buttonChildren: React.ReactNode } & MoreArgs) => {
-    return (
-        <>
-            <Triggerer {...args} id={id}>{buttonChildren}</Triggerer>
-            <Popover id={id}>{children}</Popover>
-        </>
+        </aside>
     )
 }
 

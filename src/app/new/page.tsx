@@ -1,7 +1,7 @@
 "use client";
 
 import { CreateEditPost } from "@components";
-import { LoadingSpinner, NotFound } from "@components/ui";
+import { NotFound } from "@components/ui";
 import { createPost } from "@lib/helpers/client";
 import { isValidObjectId, readyFrames } from "@lib/utils";
 import useCurrentUser from "@store/user";
@@ -12,7 +12,7 @@ type CallbackVal = Omit<PostSchemaType & { frames: InputFrame[] }, "files" | "fi
 
 export default function Page() {
 
-    const { user, isHydrated } = useCurrentUser();
+    const { meta } = useCurrentUser();
 
     const params = useSearchParams();
     const router = useRouter();
@@ -20,10 +20,9 @@ export default function Page() {
     const tid = params.get("tid");
     const thread_id = tid && isValidObjectId(tid) ? tid : undefined;
 
-    if (!isHydrated) return <LoadingSpinner />
-
-    if (!user) return (
+    if (!meta) return (
         <NotFound
+            fullScreen
             title="You are not allowed here!"
             paras={["Please log-in to start posting."]}
         />
@@ -35,7 +34,7 @@ export default function Page() {
 
         const { files, filesData } = await readyFrames(frames);
         const dataToPost = { ...data, files, filesData, thread_id }
-        return await createPost(dataToPost, user._id, router);
+        return await createPost(dataToPost, meta.user_id, router);
     }
 
     return <CreateEditPost defaultThread={thread_id} isEditing={false} callback={submitPost} />

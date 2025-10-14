@@ -9,8 +9,11 @@ import { PropsWithChildren, Suspense } from "react";
 import PostHeader from "./PostHeader";
 import { NotFound } from "@components/ui";
 import { FullPageLoadingSpinner } from "@components/ui/LoadingSpinner";
+import { TabContainer, TabList } from "@components/ui/Tabs";
 
-export const generateMetadata = async ({ params }: { params: { id: string } }): Promise<Metadata> => {
+type Params = { params: { id: string } }
+
+export const generateMetadata = async ({ params }: Params): Promise<Metadata> => {
     const id = params.id.split('-')[0];
     if (!isValidObjectId(id)) return { title: "Popcorn Paragon" }
     const { result, success } = await getPostById(id);
@@ -54,13 +57,20 @@ const Fetcher = async ({ id, children }: PropsWithChildren<{ id: string }>) => {
 
     return (
         <HydrationBoundary state={dehydrate(queryClient)}>
-            <PostHeader id={id} />
+            <PostHeader uid={user?.user_id} id={id} />
+            <div className="my-6">
+                <TabContainer>
+                    <TabList href={`/p/${id}`}>Comments</TabList>
+                    <TabList href={`/p/${id}/reposts`}>Reposts</TabList>
+                    <TabList href={`/p/${id}/reports`}>Reposts</TabList>
+                </TabContainer>
+            </div>
             {children}
         </HydrationBoundary>
     )
 }
 
-export default function Layout({ children, params }: PropsWithChildren<{ params: { id: string } }>) {
+export default function Layout({ children, params }: PropsWithChildren<Params>) {
     const { id } = params;
     const [pid, ...rest] = id.split('-');
 

@@ -10,7 +10,7 @@ import {
   allowedSizes,
   numberOfFrames,
 } from "./constants";
-import { calculateAge, isValidObjectId } from "./utils";
+import { calculateAge, getTimeInFuture, isValidObjectId } from "./utils";
 
 export const tagEnum = z
   .string()
@@ -50,13 +50,13 @@ export const usernameSchema = z.object({
     ),
 });
 
-const dobSchema = z
-  .string()
-  .trim()
-  .min(10, "Date of birth is required")
-  .transform((val) => new Date(val))
-  .refine((val) => val.getTime && !isNaN(val.getTime()), "Invalid Date!")
-  .refine((val: Date) => {
+
+const dateSchema = z.string()
+  .transform((val) => new Date(val).getTime())
+  .refine((val) => !isNaN(val), "Invalid Date!")
+
+const dobSchema = dateSchema
+  .refine((val) => {
     const age = calculateAge(val);
     return age > 12 && age < 80;
   }, "Your age is not valid to use this app!");
@@ -145,6 +145,10 @@ export const threadSchemaServer = z
     files: z.array(fileSchema).optional().default([]),
   })
   .merge(threadSchemaClient);
+
+export const threadUpdateSchema = threadSchemaServer
+  .merge(extraFieldForUpdateMethod)
+  .partial();
 
 const postRefineFunc = (data: any) => {
   const { filesData, links, tag } = data;
@@ -293,6 +297,7 @@ const commentSchemaBase = z.object({
   spoiler: z.boolean().default(false),
   attachment: z.string().optional(),
   post_author: z.string(),
+  comment_author: z.string().optional(),
 });
 
 export const commentSchema = commentSchemaBase.refine((data) =>
@@ -359,3 +364,89 @@ export const bookmarkSchema = z.object({
   content_type: z.enum(["Post", "Comment", "List"]),
   content_author: z.string(),
 });
+
+export const reportSchema = z
+  .object({
+    reason: z.string(),
+    details: z.string().min(100).max(500).optional(),
+    ext_id: z.string().optional(),
+    content_id: z.string(),
+    content_type: z.enum(["Post", "Comment", "User", "Thread"]),
+  })
+  .refine(
+    ({ reason, details }) => Boolean(reason === "Others" && details?.length),
+    { path: ["details"], message: "Details are required if 'Others' is chosen" }
+  )
+  .refine(({ ext_id, content_type }) => {
+    if ((content_type === "Post" || content_type === "Comment") && !ext_id)
+      return false;
+    return true;
+  });
+
+export const messageSchema = z.object({
+  _id: z.string(),
+  content: z.string().min(1).max(3000),
+  createdAt: z.number(),
+  username: z.string(),
+  replied_to: z.string().optional(),
+  replied_content: z.string().optional(),
+  room: z.object({
+    display_name: z.string(),
+    poster: z.string().optional(),
+    mute: z.boolean(),
+  })
+});
+
+export const roomSchemaClient = z.object({
+  name: z.string().max(50),
+  inviteMessage: z.string().min(3).max(1000),
+})
+
+export const roomSchema = z
+  .object({
+    type: z.enum(["private", "group"]),
+    participants: z
+      .array(z.string())
+      .refine(
+        (p) => p.length > 0,
+        "Choose atleast 1 participant to start chatting"
+      ).refine(p => p.length <= 50,
+        "Only 50 participants are allowed to add in a group for now"
+      ),
+    name: z.string().optional(),
+    filesData: z.array(frameDataSchema).optional().default([]),
+    files: z.array(fileSchema).optional().default([]),
+    inviteMessage: z.string(),
+  })
+  .refine(({ type, name, participants }) => {
+    if (type === "private") return true;
+    else if (participants.length < 3)
+      return { path: "custom", message: "At least 3 participants are required to create a group" };
+    else if (!name)
+      return { path: "name", message: "Name of the group is required" };
+  });
+
+export const reportActionSchema = z.object({
+  actions: z.array(
+    z.object({
+      id: z.string(),
+      action: z.enum(["keep", "delete", "warn"]),
+    })
+  )
+    .min(1, "Take a decision to save")
+    .max(50, "Only 50 decisions can be saved at a time"),
+  type: z.enum(["post", "comment"])
+});
+
+export const sessionInvalidationSchema = z.object({
+  passKey: z.string().min(10),
+  date: dateSchema
+    .refine(
+      date => date < getTimeInFuture({ unit: "mo" }),
+      "We only allow delition upto 1 month"
+    )
+    .optional()
+});
+
+export const sessionInvalidationSchemaServer = sessionInvalidationSchema
+  .merge(z.object({ email: emailSchema }))

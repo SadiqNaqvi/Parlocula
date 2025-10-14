@@ -6,13 +6,13 @@ import { Form, Input, ToggleButton } from "./form";
 import useCurrentUser from "@store/user";
 import { createList } from "@lib/helpers/client";
 import Navigate from "./Navigate";
-import { CloseButton } from "./Modal";
+import { CloseButton } from "./FancyboxModal";
 import { Fancybox } from "@fancyapps/ui";
 import toast from "react-hot-toast";
 
 const ListForm = ({ defaultVals, medias, callback }: { defaultVals?: any, medias: InputMediaType[], callback?: (arg: any) => void }) => {
 
-    const { user, updateLists } = useCurrentUser();
+    const { user } = useCurrentUser();
 
     if (!user) return (
         <div className="bg-primary border border-dashed border-gray30 rounded-md flex flex-col gap-4 flex-cntr-all">
@@ -26,7 +26,7 @@ const ListForm = ({ defaultVals, medias, callback }: { defaultVals?: any, medias
         if (!medias.length) return;
         const data = { ...formdata, items: medias }
         callback?.(data);
-        createList(data, user._id, updateLists);
+        createList(data, user._id);
         toast.success("Added to list.")
         Fancybox.close(true);
     }

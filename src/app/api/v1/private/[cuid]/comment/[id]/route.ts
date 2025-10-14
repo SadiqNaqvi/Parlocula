@@ -2,6 +2,7 @@ import { deleteRequest, updateRequest } from "@lib/helpers/common";
 import { deleteComments } from "@lib/helpers/deletion";
 import { commentSchemaUpdate } from "@lib/schemas";
 import { Comment, Post } from "@model";
+import { CommentSchemaUpdateType } from "@type/schemas";
 
 // Delete A Comment
 export const DELETE = deleteRequest(
@@ -28,7 +29,8 @@ export const DELETE = deleteRequest(
   }
 );
 
-export const PATCH = updateRequest({
+// Update a comment
+export const PATCH = updateRequest<CommentSchemaUpdateType>({
   handler: async ({ data, params, session, user_id, username }) => {
     const { id } = params;
 
@@ -44,7 +46,7 @@ export const PATCH = updateRequest({
       success: true,
       result: null,
       available: "commentUpdation_cid",
-      options: { cid: id, username, pid: comment.post_id },
+      options: { cid: id, username, pid: comment.post_id.toString() },
     };
   },
   schema: commentSchemaUpdate,

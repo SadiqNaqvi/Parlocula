@@ -43,6 +43,6 @@ export const GET = getRequest(async (r: any, params: { id: string }) => {
   );
 
   const result = response[0];
-  if (!result) return { success: false, errCode: "pp104" };
+  if (!result) return { success: false, errCode: "resource_not_found" };
   return { success: true, result };
 });

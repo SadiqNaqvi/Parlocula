@@ -1,6 +1,6 @@
 import { getRequest, postRequest } from "@lib/helpers/common";
-import { addItemsInList } from "@lib/helpers/server";
-import { listsAggregationPipeline } from "@lib/pipelines";
+import { addItemsInList, sendNotification } from "@lib/helpers/server";
+import { getFollowers, listsAggregationPipeline } from "@lib/pipelines";
 import { listServerSchema } from "@lib/schemas";
 import { getPageParams } from "@lib/utils";
 import { List } from "@model";
@@ -13,7 +13,9 @@ export const GET = getRequest(async (r: any, params: { cuid: string }) => {
 
   const lists = await List.aggregate(
     listsAggregationPipeline({
-      filters: [{ $match: { user_id: cuid, isPrivate: true } }],
+      filters: [
+        { $match: { user_id: cuid, isPrivate: true, list_type: "custom" } },
+      ],
       sort: { createdAt: -1 },
       page,
     })
@@ -23,13 +25,13 @@ export const GET = getRequest(async (r: any, params: { cuid: string }) => {
 });
 
 // Creating a new list
-export const POST = postRequest({
+export const POST = postRequest<ListSchemaType>({
   handler: async ({ data, session, user_id, username }) => {
     const listKey = data.isPrivate
       ? crypto.randomUUID().replaceAll("-", "")
       : null;
 
-    const { items, ...rest } = data as ListSchemaType;
+    const { items, ...rest } = data;
 
     const dataToSave = {
       ...rest,
@@ -50,6 +52,23 @@ export const POST = postRequest({
       user_id,
       session
     );
+
+    if (!data.isPrivate) {
+      const followers = await getFollowers(user_id, 100);
+      await sendNotification(
+        followers.map(({ follower }) => ({
+          title: `${username} has created a new list`,
+          path: `/l/${list._id}`,
+          message: [
+            { type: "link", label: username, path: `/u/${username}` },
+            { type: "text", text: "has created a new list" },
+            { type: "link", label: data.name, path: `/l/${list._id}` },
+          ],
+          user_id: follower,
+        })),
+        session
+      );
+    }
 
     return {
       success: true,

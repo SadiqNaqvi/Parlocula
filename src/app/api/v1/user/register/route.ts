@@ -6,7 +6,7 @@ import { registerUserSchemaServer } from "@lib/schemas";
 import { List, User } from "@model";
 import { render } from "@react-email/components";
 import { User as UserType } from "@type/internal";
-import { UserModelType } from "@type/models";
+import { PreDefinedListType, UserModelType } from "@type/models";
 import { UserSchemaType } from "@type/schemas";
 import bcrypt from "bcrypt";
 import { cookies } from "next/headers";
@@ -31,10 +31,9 @@ const sendWelcomeEmail = async (passkey: string, email: string) => {
   });
 };
 
-export const POST = postRequest({
+export const POST = postRequest<UserSchemaType>({
   handler: async ({ data, frames, session }) => {
-    const { name, dob, email, bio, username, bioLinks } =
-      data as UserSchemaType;
+    const { name, dob, email, bio, username, bioLinks } = data;
 
     const passkey = crypto.randomUUID().split("-").join("");
     const encryptedPasskey = await bcrypt.hash(
@@ -61,7 +60,7 @@ export const POST = postRequest({
       ordered: true,
     });
 
-    const user: UserModelType & id = response[0];
+    const user = response[0].toObject();
     if (!user) return { success: false, errCode: "pp105" };
 
     const listsToCreate = predefinedLists.map((l) => ({
@@ -69,7 +68,7 @@ export const POST = postRequest({
       user_id: user._id,
       isPrivate: l !== "recommended",
       listKey:
-        l === "recommended" ? null : crypto.randomUUID().split("-").join(""),
+        l === "recommended" ? undefined : crypto.randomUUID().split("-").join(""),
       item_count: 0,
       list_type: l,
     }));
@@ -86,7 +85,7 @@ export const POST = postRequest({
       isBanned: false,
     });
 
-    if (!sessionStored) return { success: false, errCode: "pp106" };
+    if (!sessionStored) return { success: false, errCode: "session_store_fail" };
 
     const token = await generateToken({ user_id: user._id, username });
 
@@ -107,7 +106,7 @@ export const POST = postRequest({
     sendWelcomeEmail(passkey, email);
 
     const result: UserType = {
-      _id: user._id,
+      _id: user._id.toString(),
       name: user.name,
       username: user.username,
       email: user.email,
@@ -121,14 +120,14 @@ export const POST = postRequest({
       posts: 0,
       comments: 0,
       public_lists: 0,
-      predefine_lists: lists.map(({ name, _id }) => ({ name, _id })),
+      predefine_lists: lists.map(({ name, _id }) => ({ name: name as PreDefinedListType, _id: _id.toString() })),
     };
 
     return {
       result,
       success: true,
       available: "registration_email_username",
-      options: { email, username },
+      options: { email, username }
     };
   },
   schema: registerUserSchemaServer,

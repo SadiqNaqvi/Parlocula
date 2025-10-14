@@ -2,7 +2,7 @@
 
 import { AddIcon, XmarkIcon } from "@assets/Icons";
 import logo from "@assets/logo.png";
-import Modal, { CloseButton } from "@components/Modal";
+import Modal, { CloseButton } from "@components/FancyboxModal";
 import { mediaInputConfig, mediaUrlPattern, numberOfFrames } from "@lib/constants";
 import { scaleImage } from "@lib/utils";
 import { InputManagerType } from "@type/other";
@@ -39,11 +39,14 @@ export const MediaInputPrompt = ({ type, callback }: PromptProps) => {
         // Check if the provided frame is valid. 
         const [type, ext] = file.type.split('/');
 
-        if (type !== "image" && type !== "video") return showError(`Invalid Media Type! Only Images and Videos are allowed.`);
+        if (type !== "image" && type !== "video")
+            return showError(`Invalid Media Type! Only Images and Videos are allowed.`);
 
-        else if (!mediaInputConfig[type].accept.includes(ext)) return showError(`Invalid Media Extention! Please choose a valid ${type}.`);
+        else if (!mediaInputConfig[type].accept.includes(ext))
+            return showError(`Invalid Media Extention! Please choose a valid ${type}.`);
 
-        else if (file.size > mediaInputConfig[type].size.value) return showError(`${type} is too large in size. Please choose a valid ${type}.`);
+        else if (file.size > mediaInputConfig[type].size.value)
+            return showError(`${type} is too large in size. Please choose a valid ${type}.`);
 
         const blob = type === "image" ?
             await scaleImage(file) :

@@ -1,30 +1,33 @@
-import Link from "next/link";
+import pattern from "@assets/logo_pattern.webp";
+import { Navigate } from "@components";
+import { getUserFromToken } from "@lib/auth/utils";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
-export default function Home() {
+const IndexPage = async () => {
+
+  const user = await getUserFromToken(cookies());
+  if (user) redirect('/home');
 
   return (
     <>
+      <div className="patternBackground"></div>
       <header
-        id="landingpageHeader"
-        className="h-full px-20 flex flex-col flex-cntr-all"
+        className="size-screen px-4 relative flex gap-4 flex-col flex-cntr-all"
       >
-        <h1 className="text-4xl font-thin text-center">Popcorn Paragon</h1>
-        <h2 className="text-2xl mt-5 text-center">
-          Stop Scrolling, Start Watching
-        </h2>
-        <p className="my-2 px-20 text-center text-zinc-400">
-          Tired of spending hours browsing through endless movie lists, only to
-          end up feeling overwhelmed and indecisive? Popcorn Paragon is here to
-          revolutionize your movie-watching experience!
-        </p>
-        <p className="text-center text-zinc-400">
-          Discover your next cinematic obsession with personalized
-          recommendations curated just for you.
-        </p>
-        <Link href="/generate" className="mt-5">
-          <button className="primary">Generate</button>
-        </Link>
+
+        <div>
+          <h1 className="text-4xl font-semibold text-center">Parlocula</h1>
+          <p className="text-center">The new way to explore your fandom.</p>
+        </div>
+
+        <div className="flex gap-2 flex-col sm:flex-row fixed sm:static bottom-0 w-full sm:w-fit sm:mx-auto p-4 bg-primarylight bg-opacity-50 sm:bg-transparent rounded-t-md">
+          <Navigate comp="link" goto="/join" type="button" className="primary">Join as a Fan</Navigate>
+          <Navigate comp="link" goto="/home" type="button" className="secondary">Explore as Guest</Navigate>
+        </div>
       </header>
     </>
   );
 }
+
+export default IndexPage;

@@ -32,9 +32,8 @@ export const contentFetcher = async ({
   const tag = tagParam && postTags.includes(tagParam) ? tagParam : undefined;
 
   await queryClient.prefetchInfiniteQuery({
-    queryKey: getQueryKeys("postsOfThread_tid_filter_page_tag", {
+    queryKey: getQueryKeys("postsOfThread_tid_filter_tag", {
       tid,
-      page,
       filter,
       tag: tag || "none",
     }),

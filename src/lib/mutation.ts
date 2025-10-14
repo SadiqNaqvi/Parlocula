@@ -1,21 +1,19 @@
 import { QueryClient } from "@tanstack/react-query";
 import { InfiniteQueryResponse } from "@type/internal";
-import { AvailableQueryKeys } from "@type/other";
+import {
+  AvailableQueryKeys,
+  InfiniteScrollerDataType,
+  QueryKeyArgs,
+} from "@type/other";
 import { getQueryKeys } from "./utils";
 
-type ReturnType = {
-  mutationFn: any;
-  onMutate: (variables: any) => Promise<{ previousState: any }>;
-  onError?: (
-    error: Error,
-    variables: any,
-    context?: { previousState: any }
-  ) => unknown;
-  onSuccess?: (
-    data: any,
-    variables: any,
-    context?: { previousState: any }
-  ) => unknown;
+type Prev = { previousState: unknown };
+
+type ReturnType<T> = {
+  mutationFn: (args: T) => Promise<unknown>;
+  onMutate: (variables: T) => Promise<Prev> | Prev;
+  onError?: (error: Error, variables: unknown, context?: Prev) => unknown;
+  onSuccess?: (data: unknown, variables: unknown, context?: Prev) => unknown;
 };
 
 export const mutationWrapper = <T = any>({
@@ -25,16 +23,19 @@ export const mutationWrapper = <T = any>({
   queryClient,
   queryKeys,
 }: {
-  mutationFn: (args: T) => any | void;
+  mutationFn: (args: T) => Promise<unknown>;
   optimisticWork: (
     args: T,
     queryKeys: (string | number)[],
     queryClient: QueryClient
-  ) => Promise<{ previousState: any }>;
+  ) => Promise<Prev> | Prev;
   queryClient: QueryClient;
   queryKeys: (string | number)[];
-  queriesToInvalidate?: { key: AvailableQueryKeys; option: any }[];
-}): ReturnType => ({
+  queriesToInvalidate?: {
+    key: AvailableQueryKeys;
+    option: QueryKeyArgs<AvailableQueryKeys>;
+  }[];
+}): ReturnType<T> => ({
   mutationFn,
   onMutate: (args: T) => optimisticWork(args, queryKeys, queryClient),
   onSuccess: () => {
@@ -47,7 +48,7 @@ export const mutationWrapper = <T = any>({
 });
 
 export const addingItemsMutation = async (
-  data: any,
+  data: unknown,
   queryKeys: (string | number)[],
   queryClient: QueryClient
 ) => {
@@ -57,13 +58,13 @@ export const addingItemsMutation = async (
 
   const previousState = queryClient.getQueryData(queryKeys);
 
-  queryClient.setQueryData(queryKeys, (old: any) => {
+  queryClient.setQueryData(queryKeys, (old: InfiniteScrollerDataType) => {
     const oldData = old ?? {
       pageParams: [1],
       pages: [{ results: [], page: 1, total_pages: 2, total_results: 0 }],
     };
 
-    const pages = oldData.pages;
+    const { pages } = oldData;
     const [firstPage, ...restPages] = pages;
 
     const { total_results, results, ...rest } = firstPage;
@@ -93,7 +94,7 @@ export const filterItemsMutation = async (
   const previousState = queryClient.getQueryData(queryKeys);
   const idMap = new Map<string, boolean>(ids.map((id) => [id, true]));
 
-  queryClient.setQueryData(queryKeys, (oldData: any) => {
+  queryClient.setQueryData(queryKeys, (oldData: InfiniteScrollerDataType) => {
     if (!oldData) return oldData;
 
     return {
@@ -108,7 +109,7 @@ export const filterItemsMutation = async (
 };
 
 export const setDataMutation = async (
-  newState: any,
+  newState: unknown,
   queryKeys: (string | number)[],
   queryClient: QueryClient
 ) => {
@@ -121,7 +122,7 @@ export const setDataMutation = async (
 };
 
 export const updateMutation = async (
-  dataToPatch: any,
+  dataToPatch: Record<string, unknown>,
   queryKeys: (string | number)[],
   queryClient: QueryClient
 ) => {
@@ -129,7 +130,7 @@ export const updateMutation = async (
 
   const previousState = queryClient.getQueryData(queryKeys);
 
-  queryClient.setQueryData(queryKeys, (prev: any) => {
+  queryClient.setQueryData(queryKeys, (prev: Record<string, unknown>) => {
     if (!prev) return prev;
     return { ...prev, ...dataToPatch };
   });

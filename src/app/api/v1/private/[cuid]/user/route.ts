@@ -1,10 +1,9 @@
 import { getRequest, updateRequest } from "@lib/helpers/common";
-import { getTimeInFuture, ObjectId } from "@lib/utils";
-import { User } from "@model";
 import { currentUserPipeline } from "@lib/pipelines";
-import { UserModelType } from "@type/models";
 import { userUpdateSchema } from "@lib/schemas";
-import * as bcrypt from "bcrypt";
+import { ObjectId } from "@lib/utils";
+import { User } from "@model";
+import { UserModelType } from "@type/models";
 
 export const GET = getRequest(async (_, params: { cuid: string }) => {
   const { cuid } = params;
@@ -13,7 +12,7 @@ export const GET = getRequest(async (_, params: { cuid: string }) => {
     currentUserPipeline({ _id: ObjectId(cuid) })
   );
 
-  if (!response.length) return { success: false, errCode: "pp104" };
+  if (!response.length) return { success: false, errCode: "resource_not_found" };
 
   const user: Omit<
     UserModelType,
@@ -25,6 +24,7 @@ export const GET = getRequest(async (_, params: { cuid: string }) => {
   return { result, success: true };
 });
 
+// Update information of the current user
 export const PATCH = updateRequest({
   handler: async ({ data, frames, session, user_id, username }) => {
     const dataToUpdate = Object({

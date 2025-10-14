@@ -32,7 +32,7 @@ export const GET = getRequest(
     );
 
     const posts = response[0];
-    if (!posts) return { success: false, errCode: "pp104" };
+    if (!posts) return { success: false, errCode: "resource_not_found" };
 
     return { result: posts, success: true };
   }

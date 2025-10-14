@@ -10,6 +10,7 @@ import {
     Section,
     Text
 } from '@react-email/components';
+import { CSSProperties } from 'react';
 
 const logo = "https://lh3.googleusercontent.com/pw/AP1GczN_I3g2XWyPglqNU7GkYnroLYUNTDUyw65s4_6xleNch1O8jO9ItoA-88Wq9NG9l7jUCLlcynt44KIEQnucFHGNgtQDwZokwo9AvtSljHdQaZ_NZK8=w494-h492-no";
 
@@ -25,15 +26,14 @@ const VerifyEmail = ({ code }: { code: number }) => (
                             src={logo}
                             width="75"
                             height="75"
-                            alt="App's Logo"
+                            alt="App Logo"
                         />
                     </Section>
                     <Section style={upperSection}>
                         <Heading style={h1}>Verify your email address</Heading>
                         <Text style={mainText}>
-                            Thanks for starting the joining process of Popcorn Paragon. We
-                            want to make sure it's really you. Please enter the following
-                            verification code when prompted. If you haven't requested for this email, you can safely ignore this message.
+                            Hello It{"'"}s your Popcorn Paragon 👋. We want to make sure it{"'"}s really you. Please enter the following
+                            verification code when prompted. If you haven{"'"}t requested for this, you can safely ignore this email.
                         </Text>
                         <Section style={verificationSection}>
                             <Text style={verifyText}>Verification code</Text>
@@ -47,13 +47,12 @@ const VerifyEmail = ({ code }: { code: number }) => (
                     <Hr />
                     <Section style={lowerSection}>
                         <Text style={cautionText}>
-                            Popcorn Paragon will never email you and ask you to disclose
-                            or verify your password, credit card, or banking account number.
+                            Popcorn Paragon will never email you and ask you to disclose or verify your password, credit card, or banking account number.
                         </Text>
                     </Section>
                 </Section>
                 <Text style={footerText}>
-                    This message was produced and distributed by Popcorn Paragon, an application of QCore Technologies Pvt. Ltd. | All rights reserved.
+                    This message was produced and distributed by Popcorn Paragon, a software application of Q-Core Technologies Pvt. Ltd. | All rights reserved.
                 </Text>
             </Container>
         </Body>
@@ -70,7 +69,10 @@ const container = {
     backgroundColor: '#eee',
 };
 
+const alignText = { textAlign: 'center' } as Record<string, CanvasTextAlign>;
+
 const h1 = {
+    ...alignText,
     color: '#333',
     fontFamily:
         "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif",
@@ -79,12 +81,8 @@ const h1 = {
     marginBottom: '15px',
 };
 
-const appName = {
-    color: "#f5f5fa",
-    fontSize: "1rem"
-}
-
 const text = {
+    ...alignText,
     color: '#333',
     fontFamily:
         "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif",

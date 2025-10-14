@@ -1,16 +1,15 @@
 "use client";
 
-import { AddIcon, AlertIcon, LeftChevron, XmarkIcon } from "@assets/Icons";
-import { LinkInputManager, Modal, Navbar, Navigate, OptionMenu } from "@components";
-import { Form, MediaInputPrompt, PostTagList, Textarea, ToggleButton } from "@components/form";
+import ChooseThreadButton from "@app/new/threadChoice";
+import { AlertIcon } from "@assets/Icons";
+import { LinkInputManager, Navbar } from "@components";
+import { Form, PostTagList, Textarea, ToggleButton } from "@components/form";
 import { numberOfFrames, postLinksLength, postTags } from "@lib/constants";
-import { getPoster } from "@lib/utils";
 import { InputManagerType } from "@type/other";
 import { InputFrame, LinkSchema } from "@type/schemas";
 import { useRef, useState } from "react";
-import { Popover, Triggerer } from "./Modal";
+import { BottomSheet } from "./BottomSheet";
 import MediaInputManager from "./form/MediaInputCont";
-import ChooseThreadButton from "@app/new/threadChoice";
 
 type PostClientCommon = {
     title: string,
@@ -22,7 +21,8 @@ type PostClientCommon = {
 type CallbackVal = PostClientCommon & {
     tag: string,
     frames: InputFrame[],
-    links: LinkSchema[]
+    links: LinkSchema[],
+    thread_id?: string,
 }
 
 type Props = {
@@ -45,7 +45,7 @@ const CreateEditPost = ({ defaultVals, callback, isEditing, defaultThread }: Pro
         setTag(tag);
     }
 
-    const validateExtraFields = (links: any[]) => {
+    const validateExtraFields = (links: any[], frames: InputFrame[]) => {
         if (!postTags.includes(tag)) return "Invalid Tag! Please choose a valid tag."
 
         if (tag === "frames" && !(frames.length >= 1 && frames.length <= numberOfFrames.total))
@@ -56,12 +56,23 @@ const CreateEditPost = ({ defaultVals, callback, isEditing, defaultThread }: Pro
     }
 
     const submitForm = async (data: PostClientCommon) => {
+        const thread_id = defaultThread ?? threadRef.current?.getData();
+
+        if (!isEditing && !thread_id) return "Choose a thread to post."
+
         const links = linksRef.current?.getData();
         const frames = framesRef.current?.getData();
 
-        const error = validateExtraFields(links);
+
+        const error = validateExtraFields(links, frames);
         if (error) return error;
-        return await callback({ ...data, frames, tag, links });
+
+        const callbackData = Object({
+            ...data, frames, tag, links,
+            ...(!isEditing && { thread_id })
+        })
+
+        return await callback(callbackData);
     }
 
     const requestSubmit = () => {
@@ -76,11 +87,12 @@ const CreateEditPost = ({ defaultVals, callback, isEditing, defaultThread }: Pro
             />
 
             <section className="flex mb-4 gap-2 overflow-x-auto">
-                {!isEditing && !defaultThread && (<ChooseThreadButton ref={threadRef} />)}
-                <Modal
+                {!isEditing && !defaultThread && (
+                    <ChooseThreadButton ref={threadRef} />
+                )}
+                <BottomSheet
                     className="gap-3 py-2 px-3 rounded-full bg-gray10"
-                    id="tag-popover"
-                    buttonChildren={tag ?
+                    button={tag ?
                         <>
                             <AlertIcon className="h-4" />
                             <span className="text-sm">{tag}</span>
@@ -89,7 +101,7 @@ const CreateEditPost = ({ defaultVals, callback, isEditing, defaultThread }: Pro
                         "Choose Tag"
                     }>
                     <PostTagList defaultTag={tag} func={addTag} />
-                </Modal>
+                </BottomSheet>
             </section>
 
             <Form defaultVals={defaultVals} className="space-y-4" ref={formRef} submit={submitForm}>

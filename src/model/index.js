@@ -10,3 +10,4 @@ export { default as Media } from "./medias";
 export { default as List } from "./lists";
 export { default as Item } from "./items";
 export { default as Bookmark } from "./bookmarks";
+export { default as Notifications } from "./notifications";

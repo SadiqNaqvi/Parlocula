@@ -1,17 +1,21 @@
-import { ReportModelType } from "@type/models";
+import { ReportModelType, StrictModel } from "@type/models";
 import { Schema, models, model } from "mongoose";
+import { StrictSchema } from "./general";
 
-const reportModel = new Schema<ReportModelType>(
+const reportModel = new StrictSchema<ReportModelType>(
   {
     user_id: {
       type: Schema.Types.ObjectId,
-      ref: "User",
+      ref: "Report",
+      required: true,
+      index: true,
+    },
+    reason: {
+      type: String,
       required: true,
     },
-    reasons: {
-      type: [String],
-      required: true,
-    },
+    details: String,
+    ext_id: { type: Schema.Types.ObjectId, index: true, required: false },
     content_id: {
       type: Schema.Types.ObjectId,
       refPath: "content_type",
@@ -21,19 +25,25 @@ const reportModel = new Schema<ReportModelType>(
     content_type: {
       type: String,
       enum: ["Post", "Comment", "User", "Thread"],
+      index: true,
     },
   },
   { timestamps: true }
 );
 
 reportModel.index(
-  { by: 1, content_id: 1 },
+  { Report_id: 1, content_id: 1 },
   {
     unique: true,
-    partialFilterExpression: { user_id: { $exists: true, $ne: null } },
+    partialFilterExpression: { Report_id: { $exists: true, $ne: null } },
   }
 );
 
-const Report = models.Report || model("Report", reportModel);
+const Report: StrictModel<ReportModelType> =
+  (models.Report as StrictModel<ReportModelType>) ||
+  (model<ReportModelType>(
+    "Report",
+    reportModel
+  ) as StrictModel<ReportModelType>);
 
 export default Report;

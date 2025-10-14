@@ -1,10 +1,11 @@
 "use client";
 
 import { setDataMutation } from "@lib/mutation";
+import useCurrentUser from "@store/user";
 import { QueryClient } from "@tanstack/react-query";
 import { GeneralGetReturn, GeneralPostReturn } from "@type/internal";
 import { AppRouterInstance } from "@type/nextjs";
-import { AvailableCacheTags, ContentMutationProps } from "@type/other";
+import { ContentMutationProps } from "@type/other";
 import {
   bookmarkSchemaType,
   CinementToAddAndRemoveType,
@@ -13,48 +14,28 @@ import {
   InputMediaType,
   ListEditSchema,
   ListSchemaType,
+  MessageSchemaType,
   PostSchemaType,
   PostUpdateSchemaType,
+  ReportActionSchemaType,
+  RoomSchemaType,
+  SessionInvalidationServerSchemaType,
   ThreadSchemaServer,
+  ThreadUpdateSchema,
   UserUpdateSchemaType,
   VoteSchemaType,
 } from "@type/schemas";
 import axios from "axios";
-import toast from "react-hot-toast";
 import {
-  convertCodeIntoError,
-  getCacheTags,
+  codetoError,
   getLocalUrl,
   getQueryKeys,
+  handleMutationResponse,
   objectToFormData,
   refineString,
   trycatch,
 } from "../utils";
-
-const clientGetRequests = async ({
-  options,
-  revalidate,
-  url,
-  tag,
-}: {
-  url: string;
-  revalidate: number;
-  tag?: AvailableCacheTags;
-  options: any;
-}): Promise<GeneralGetReturn> => {
-  if (!navigator.onLine) return { success: false, errCode: "pp200" };
-  const cacheTags =
-    tag && getCacheTags({ type: "cache", available: tag, options });
-  try {
-    return await fetch(`${getLocalUrl()}/api/v1/${url}`, {
-      next: { revalidate, tags: cacheTags },
-      cache: revalidate ? "force-cache" : "no-store",
-    }).then((res) => res.json());
-  } catch (err: any) {
-    console.error(`Error occured at path ${url}`, err.message);
-    return { success: false, errCode: "200" };
-  }
-};
+import { setUserOnRefreshOrLogin } from "./user";
 
 export const ppPostData = async ({
   url,
@@ -62,26 +43,18 @@ export const ppPostData = async ({
   uid,
 }: {
   url: string;
-  data: any;
+  data?: any;
   uid: string;
 }): Promise<GeneralPostReturn> => {
-  if (!uid) return { success: false, errCode: "pp202" };
-  // try {
+  if (!uid) return { success: false, errCode: "unauthenticated_access" };
   return await trycatch(() =>
     axios
       .post(
         `${getLocalUrl()}/api/v1/private/${uid}/${url}`,
-        objectToFormData(data)
+        data ? objectToFormData(data) : new FormData(),
       )
       .then((r) => r.data)
   );
-  // } catch (err) {
-  //   console.error(`Failed to post at ${url}`, err);
-  //   return {
-  //     success: false,
-  //     errCode: "pp200",
-  //   };
-  // }
 };
 
 export const ppUpdateData = async ({
@@ -106,7 +79,7 @@ export const ppUpdateData = async ({
   //   console.error(`Failed to post at ${url}`, err);
   //   return {
   //     success: false,
-  //     errCode: "pp200",
+  //     errCode: "unstable_internet",
   //   };
   // }
 };
@@ -125,78 +98,116 @@ export const ppDeleteData = async (
   //   console.error(`Failed to post at ${url}`, err);
   //   return {
   //     success: false,
-  //     errCode: "pp200",
+  //     errCode: "unstable_internet",
   //   };
   // }
 };
 
-export const register = async (data: any, setUserHash: any) => {
-  const { success, result, errCode, formError } = await trycatch(() =>
+export const register = async (data: any, setUserHash: any) =>
+  handleMutationResponse({
+    response: await trycatch(() =>
+      axios
+        .post(`${getLocalUrl()}/api/v1/user/register`, objectToFormData(data))
+        .then((r) => r.data)
+    ),
+    onSuccess: (r) => setUserHash(r),
+    message: "Unable to register.",
+  });
+
+export const login = async (email: string, code: number) => {
+  const { success, errCode, result } = await trycatch<GeneralPostReturn>(() =>
     axios
-      .post(`${getLocalUrl()}/api/v1/user/register`, objectToFormData(data))
+      .post(
+        `${getLocalUrl()}/api/v1/user/login`,
+        objectToFormData({ email, code })
+      )
       .then((r) => r.data)
   );
-  if (!success) {
-    if (errCode === "pp203") return convertCodeIntoError(errCode, formError);
-    else {
-      toast.error("Unable to join you.");
-      toast.error(convertCodeIntoError(errCode) as string);
-    }
-  }
-  setUserHash(result);
+
+  if (success) setUserOnRefreshOrLogin(result);
+
+  return { success, errCode }
 };
 
-export const login = async (email: string, setUserHash: any) => {
-  const { success, result, errCode } = await trycatch(() =>
-    axios
-      .post(`${getLocalUrl()}/api/v1/user/login`, objectToFormData({ email }))
+export const invalidateSession = async (data: SessionInvalidationServerSchemaType) =>
+  await trycatch<GeneralPostReturn>(() =>
+    axios.patch(
+      `${getLocalUrl()}/api/v1/user/login`,
+      objectToFormData(data)
+    )
       .then((r) => r.data)
   );
 
-  console.log(result);
+export const logout = async (uid: string) => {
 
-  if (success) {
-    setUserHash(result);
-    return true;
-  }
+  const clearUser = useCurrentUser.getState().clearUser;
 
-  toast.error("Unable to log-in");
-  toast.error(convertCodeIntoError(errCode) as string);
-};
+  return handleMutationResponse({
+    response: await ppDeleteData("user/logout", uid),
+    onSuccess: clearUser,
+    message: "Unable to log out!",
+  });
 
-export const logout = async (uid: string, clearUser: any) => {
-  const { success, errCode } = await ppDeleteData("user/logout", uid);
-  if (!success) return convertCodeIntoError(errCode);
-  clearUser();
-};
-
+}
 export const createThread = async (
   data: ThreadSchemaServer,
   uid: string,
   router: AppRouterInstance,
   updateThreads: any
-) => {
-  const { success, errCode, result, formError } = await ppPostData({
-    url: "thread",
-    data,
-    uid,
+) =>
+  handleMutationResponse({
+    response: await ppPostData({ url: "thread", data, uid }),
+    onSuccess: (r) => {
+      const { _id, name, poster } = r;
+
+      updateThreads({ data: { _id, name, poster }, action: "add" });
+      router.replace(`/t/${_id}-${refineString(name)}`);
+    },
+    message: "Unable to create thread!",
   });
 
-  if (!success) {
-    if (errCode === "pp203") return convertCodeIntoError(errCode, formError);
-    else {
-      toast.error("Unable to create thread.");
-      toast.error(convertCodeIntoError(errCode) as string);
-    }
-  }
+export const joinThread = async (tid: string, uid: string) =>
+  handleMutationResponse({
+    response: await ppPostData({
+      url: `thread/${tid}/member`,
+      data: null,
+      uid,
+    }),
+    message: "Unable to join thread!",
+  });
 
-  if (success) {
-    const { _id, name, poster } = result;
+export const updateThread = async (
+  tid: string,
+  uid: string,
+  data: ThreadUpdateSchema
+) =>
+  handleMutationResponse({
+    response: await ppUpdateData({ url: `thread/${tid}`, data, uid }),
+    onSuccess: () => {
+      // UPDATE THREAD HERE
+    },
+    message: "Unable to update thread!",
+  });
 
-    updateThreads({ data: { _id, name, poster }, action: "add" });
-    router.replace(`/t/${result._id}-${refineString(name)}`);
-  }
-};
+export const leaveThread = async (tid: string, uid: string) =>
+  handleMutationResponse({
+    response: await ppDeleteData(`thread/${tid}/member`, uid),
+    message: "Unable to leave thread!",
+  });
+
+export const changeThreadNotification = async (
+  tid: string,
+  uid: string,
+  newState: boolean
+) =>
+  handleMutationResponse({
+    response: await ppUpdateData({
+      url: `thread/${tid}/member`,
+      uid,
+      data: { notification: newState },
+    }),
+    message: `Unable to ${newState ? "enable" : "disable"} thread notification!`,
+  });
 
 export const createPost = async (
   data: PostSchemaType,
@@ -204,25 +215,16 @@ export const createPost = async (
   router: AppRouterInstance
 ) => {
   const { thread_id } = data;
-  if (!thread_id) return convertCodeIntoError("pp204");
+  if (!thread_id) return codetoError("invalid_object_id");
 
-  const { success, errCode, result, formError } = await ppPostData({
-    url: "post",
-    data,
-    uid,
+  return handleMutationResponse({
+    response: await ppPostData({ url: "post", data, uid }),
+    onSuccess: (result) => {
+      const { _id, title } = result;
+      router.replace(`/p/${_id}-${refineString(title)}`);
+    },
+    message: "Unable to create post!",
   });
-
-  if (!success) {
-    if (errCode === "pp203") return convertCodeIntoError(errCode, formError);
-    else {
-      toast.error("Unable to create post.");
-      toast.error(convertCodeIntoError(errCode) as string);
-    }
-  }
-  if (success) {
-    const { _id, title } = result;
-    router.replace(`/p/${_id}-${refineString(title)}`);
-  }
 };
 
 export const updatePost = async (
@@ -232,340 +234,246 @@ export const updatePost = async (
   router: AppRouterInstance,
   queryClient: QueryClient
 ) => {
-  if (!pid || !uid)
-    return "Something Went Wrong! Please go back and try again.";
+  if (!pid || !uid) throw new Error("Post id or user id is invalid");
 
-  const { success, errCode, formError, result } = await ppUpdateData({
-    url: `post/${pid}`,
-    data,
-    uid,
+  return handleMutationResponse({
+    response: await ppUpdateData({
+      url: `post/${pid}`,
+      data,
+      uid,
+    }),
+    onSuccess: async (result) => {
+      await setDataMutation(
+        result,
+        getQueryKeys("post_id", { id: pid }),
+        queryClient
+      );
+      router.replace(`/p/${pid}`);
+    },
+    message: "Unable to update post!",
   });
-
-  if (success) {
-    await setDataMutation(
-      result,
-      getQueryKeys("post_id", { id: pid }),
-      queryClient
-    );
-    router.replace(`/p/${pid}`);
-  } else {
-    if (errCode === "pp203") return convertCodeIntoError(errCode, formError);
-    else {
-      toast.error("Unable to create post.");
-      toast.error(convertCodeIntoError(errCode) as string);
-    }
-  }
 };
 
-export const deletePost = async (id: string, uid: string) => {
-  const { errCode, success } = await ppDeleteData(`post/${id}`, uid);
-  if (success) return true;
-  toast.error("Unable to delte your post");
-  toast.error(convertCodeIntoError(errCode) as string);
-};
-
-export const joinThread = async (tid: string, uid: string) => {
-  const { success, errCode } = await ppPostData({
-    url: `thread/${tid}/member`,
-    data: null,
-    uid,
+export const deletePost = async (id: string, uid: string) =>
+  handleMutationResponse({
+    response: await ppDeleteData(`post/${id}`, uid),
+    message: "Unable to delete post!",
   });
-
-  if (success) return true;
-  toast.error("Unable to join thread");
-  toast.error(convertCodeIntoError(errCode) as string);
-};
-
-export const leaveThread = async (tid: string, uid: string) => {
-  const { errCode, success } = await ppDeleteData(`thread/${tid}/member`, uid);
-  if (success) return true;
-  toast.error("Unable to leave thread");
-  toast.error(convertCodeIntoError(errCode) as string);
-};
-
-export const changeThreadNotification = async (
-  tid: string,
-  uid: string,
-  newState: boolean
-) => {
-  const { errCode, success } = await ppUpdateData({
-    url: `thread/${tid}/member`,
-    uid,
-    data: { notification: newState },
-  });
-  if (success) return true;
-  toast.error(
-    `Unable to ${newState ? "Enable" : "Disable"} notification of the thread`
-  );
-  toast.error(convertCodeIntoError(errCode) as string);
-};
 
 export const addReactionOnPost = async (
   uid: string,
   pid: string,
   reaction: string
-) => {
-  const { success, errCode } = await ppPostData({
-    url: `post/${pid}/reaction`,
-    data: { reaction },
-    uid,
+) =>
+  handleMutationResponse({
+    response: await ppPostData({
+      url: `post/${pid}/reaction`,
+      data: { reaction },
+      uid,
+    }),
+    message: "Unable to react on the post!",
   });
 
-  if (success) return true;
-  toast.error("Unable to react on post");
-  toast.error(convertCodeIntoError(errCode) as string);
-};
-
-export const removeReactionOnPost = async (pid: string, uid: string) => {
-  const { success, errCode } = await ppDeleteData(`post/${pid}/reaction`, uid);
-
-  if (success) return true;
-  toast.error("Unable to remove your reaction from the post");
-  toast.error(convertCodeIntoError(errCode) as string);
-};
+export const removeReactionOnPost = async (pid: string, uid: string) =>
+  handleMutationResponse({
+    response: await ppDeleteData(`post/${pid}/reaction`, uid),
+    message: "Unable to remove reaction from the post!",
+  });
 
 export const createCommentOnPost = async (
   data: CommentSchemaType,
   uid: string
-) => {
-  const { errCode, success, formError } = await ppPostData({
-    url: "comment",
-    data,
-    uid,
+) =>
+  handleMutationResponse({
+    response: await ppPostData({
+      url: "comment",
+      data,
+      uid,
+    }),
+    message: "Unable to comment on post!",
   });
-  if (success) return true;
-  toast.error("Unable to comment");
-  toast.error(convertCodeIntoError(formError ? "pp500" : errCode) as string);
-};
 
 export const updateComment = async (
   cid: string,
   uid: string,
   data: CommentSchemaUpdateType,
-  router: AppRouterInstance,
-  queryClient: QueryClient
 ) => {
   if (!cid || !uid) throw new Error("Comment or user id is not provided.");
+  return await handleMutationResponse({
+    response: await ppUpdateData({
+      url: `comment/${cid}`,
+      data,
+      uid,
+    }),
+    message: "Unable to update the comment!",
+  });
+};
 
-  const { success, errCode, formError, result } = await ppUpdateData({
-    url: `comment/${cid}`,
-    data,
-    uid,
+export const deleteComment = async (cid: string, uid: string) =>
+  handleMutationResponse({
+    response: await ppDeleteData(`comment/${cid}`, uid),
+    message: "Unable to delete comment!",
   });
 
-  if (success) {
-    await setDataMutation(
-      result,
-      getQueryKeys("comment_cid", { cid }),
-      queryClient
-    );
-    router.replace(`/c/${cid}`);
-  } else {
-    if (errCode === "pp203") return convertCodeIntoError(errCode, formError);
-    else {
-      toast.error("Unable to create post.");
-      toast.error(convertCodeIntoError(errCode) as string);
-    }
-  }
-};
 
 export const voteOnComment = async (
   cid: string,
   uid: string,
   data: VoteSchemaType
-) => {
-  const { errCode, success } = await ppPostData({
-    url: `comment/${cid}/vote`,
-    data,
-    uid,
+) =>
+  handleMutationResponse({
+    response: await ppPostData({
+      url: `comment/${cid}/vote`,
+      data,
+      uid,
+    }),
+    message: "Unable to vote on comment!",
   });
-  if (success) return true;
-  toast.error("Unable to comment");
-  toast.error(convertCodeIntoError(errCode) as string);
-};
 
-export const removeVoteOnComment = async (cid: string, uid: string) => {
-  const { errCode, success } = await ppDeleteData(`comment/${cid}/vote`, uid);
-  if (success) return true;
-  toast.error("Unable to comment");
-  toast.error(convertCodeIntoError(errCode) as string);
-};
+export const removeVoteOnComment = async (cid: string, uid: string) =>
+  handleMutationResponse({
+    response: await ppDeleteData(`comment/${cid}/vote`, uid),
+    message: "Unable to remove vote on comment!",
+  });
 
 export const createList = async (
   data: ListSchemaType,
   uid: string,
-  updateFunc: (__0: ContentMutationProps) => void
-) => {
-  const { success, errCode, formError, result } = await ppPostData({
-    url: "list",
-    data,
-    uid,
+) =>
+  handleMutationResponse({
+    response: await ppPostData({
+      url: "list",
+      data,
+      uid,
+    }),
+    message: "Unable to create list!",
   });
-
-  if (!success && formError) return convertCodeIntoError(errCode, formError);
-
-  if (success) {
-    const { _id, name, poster } = result;
-    return updateFunc({ data: { _id, name, poster }, action: "add" });
-  }
-  toast.error("Unable to create the list");
-  toast.error(convertCodeIntoError(errCode) as string);
-};
 
 export const updatingListsWithItem = async (
   id: string,
   data: CinementToAddAndRemoveType,
   uid: string
 ) => {
-  if (!id || !data) return { success: false, errCode: "pp204" };
+  if (!id || !data) return { success: false, errCode: "invalid_object_id" };
 
-  const { success, errCode, formError } = await ppPostData({
-    url: `item/${id}`,
-    data,
-    uid,
+  return handleMutationResponse({
+    response: await ppPostData({
+      url: `item/${id}`,
+      data,
+      uid,
+    }),
+    message: "Unable to add cinement in lists!",
   });
-
-  if (!success && errCode === "pp203")
-    return convertCodeIntoError(errCode, formError);
-  else if (success) return true;
-  toast.error("Unable to update lists");
-  toast.error(convertCodeIntoError(errCode) as string);
 };
 
 export const addItemsToList = async (
   id: string,
   data: { items: InputMediaType[] },
   uid: string
-) => {
-  const { success, errCode } = await ppPostData({
-    url: `list/${id}`,
-    data,
-    uid,
+) =>
+  handleMutationResponse({
+    response: await ppPostData({
+      url: `list/${id}`,
+      data,
+      uid,
+    }),
+    message: "Unable to add cinements in the list!",
   });
-
-  if (success) return true;
-  toast.error("Unable to add items");
-  toast.error(convertCodeIntoError(errCode) as string);
-};
 
 export const updateList = async (
   id: string,
   data: ListEditSchema,
   uid: string,
   router: AppRouterInstance
-) => {
-  router.replace(`l/${id}`);
-  const { success, errCode } = await ppUpdateData({
-    url: `list/${id}`,
-    data,
-    uid,
+) =>
+  handleMutationResponse({
+    response: await ppUpdateData({
+      url: `list/${id}`,
+      data,
+      uid,
+    }),
+    onSuccess: () => router.replace(`l/${id}`),
+    message: "Unable to update the list!",
   });
-
-  if (success) return true;
-  else {
-    toast.error("Unable to update list");
-    toast.error(convertCodeIntoError(errCode) as string);
-  }
-  return false;
-};
 
 export const deleteList = async (
   id: string,
   uid: string,
   updateFunc: (__0: ContentMutationProps) => void
-) => {
-  const { success, errCode } = await ppDeleteData(`list/${id}`, uid);
-
-  if (success) updateFunc({ action: "remove", data: { id } });
-  else {
-    toast.error("Unable to delete list");
-    toast.error(convertCodeIntoError(errCode) as string);
-  }
-};
-
-export const saveItem = async (data: bookmarkSchemaType, uid: string) => {
-  const { success, errCode } = await ppPostData({
-    url: "bookmark",
-    data,
-    uid,
+) =>
+  handleMutationResponse({
+    response: await ppDeleteData(`list/${id}`, uid),
+    onSuccess: () => updateFunc({ action: "remove", data: { id } }),
+    message: "Unable to delete list!",
   });
 
-  if (success) return true;
-  toast.error("Unable to save the content");
-  toast.error(convertCodeIntoError(errCode) as string);
-};
-
-export const unsaveItem = async (id: string, uid: string) => {
-  const { success, errCode } = await ppDeleteData(`bookmark/${id}`, uid);
-
-  if (success) return true;
-  toast.error("Unable to unsave the content");
-  toast.error(convertCodeIntoError(errCode) as string);
-};
-
-export const follow = async (uid: string, rid: string) => {
-  const { success, errCode } = await ppPostData({
-    url: `user/${rid}/follow`,
-    data: null,
-    uid,
+export const saveItem = async (data: bookmarkSchemaType, uid: string) =>
+  handleMutationResponse({
+    response: await ppPostData({
+      url: "bookmark",
+      data,
+      uid,
+    }),
+    message: "Unable to save item!",
   });
-  if (success) return true;
-  toast.error("Unable to follow the user");
-  toast.error(convertCodeIntoError(errCode) as string);
-};
 
-export const block = async (uid: string, rid: string) => {
-  const { success, errCode } = await ppPostData({
-    url: `user/${rid}/block`,
-    data: null,
-    uid,
+export const unsaveItem = async (id: string, uid: string) =>
+  handleMutationResponse({
+    response: await ppDeleteData(`bookmark/${id}`, uid),
+    message: "Unable to unsave item!",
   });
-  if (success) return true;
-  toast.error("Unable to block the user");
-  toast.error(convertCodeIntoError(errCode) as string);
-};
 
-export const unfollow = async (uid: string, rid: string) => {
-  const { success, errCode } = await ppDeleteData(`user/${rid}/follow`, uid);
+export const follow = async (uid: string, rid: string) =>
+  handleMutationResponse({
+    response: await ppPostData({
+      url: `user/${rid}/follow`,
+      data: null,
+      uid,
+    }),
+    message: "Unable to follow user!",
+  });
 
-  if (success) return true;
-  toast.error("Unable to unfollow the user");
-  toast.error(convertCodeIntoError(errCode) as string);
-};
+export const blockUser = async (uid: string, rid: string) =>
+  handleMutationResponse({
+    response: await ppPostData({
+      url: `user/${rid}/block`,
+      data: null,
+      uid,
+    }),
+    message: "Unable to block user!",
+  });
 
-export const unblock = async (uid: string, rid: string) => {
-  const { success, errCode } = await ppDeleteData(`user/${rid}/block`, uid);
+export const unfollow = async (uid: string, rid: string) =>
+  handleMutationResponse({
+    response: await ppDeleteData(`user/${rid}/follow`, uid),
+    message: "Unable to unfollow user!",
+  });
 
-  if (success) return true;
-  toast.error("Unable to unblock the user");
-  toast.error(convertCodeIntoError(errCode) as string);
-};
+export const unblock = async (uid: string, rid: string) =>
+  handleMutationResponse({
+    response: await ppDeleteData(`user/${rid}/block`, uid),
+    message: "Unable to unblock user!",
+  });
 
 export const modifyNotification = async (
   uid: string,
   rid: string,
   data: { notification: boolean }
-) => {
-  const { success, errCode } = await ppUpdateData({
-    url: `user/${rid}/follow`,
-    data,
-    uid,
+) =>
+  handleMutationResponse({
+    response: await ppUpdateData({
+      url: `user/${rid}/follow`,
+      data,
+      uid,
+    }),
+    message: `Unable to turn ${data.notification ? "on" : "off"} notification!`,
   });
 
-  if (success) return true;
-  toast.error(
-    `Unable to turn ${data.notification ? "on" : "off"} notification`
-  );
-  toast.error(convertCodeIntoError(errCode) as string);
-};
-
-export const removeFollower = async (uid: string, rid: string) => {
-  const { success, errCode } = await ppDeleteData(`user/${rid}/follower`, uid);
-
-  if (success) return true;
-  toast.error("Unable to remove follower");
-  toast.error(convertCodeIntoError(errCode) as string);
-};
+export const removeFollower = async (uid: string, rid: string) =>
+  handleMutationResponse({
+    response: await ppDeleteData(`user/${rid}/follower`, uid),
+    message: "Unable to remove user as follower!",
+  });
 
 export const updateUser = async (
   uid: string,
@@ -573,72 +481,234 @@ export const updateUser = async (
   setUserHash: (a: any) => void,
   queryClient: QueryClient,
   username: string
-) => {
-  const { success, errCode, result, formError } = await ppUpdateData({
-    url: "user",
-    data,
-    uid,
+) =>
+  handleMutationResponse({
+    response: await ppUpdateData({
+      url: "user",
+      data,
+      uid,
+    }),
+    onSuccess: (result) => {
+      setUserHash(result);
+      queryClient.setQueryData(
+        getQueryKeys("user_username", { username }),
+        result
+      );
+    },
+    message: "Unable to update your info!",
   });
-
-  if (success) {
-    setUserHash(result);
-    queryClient.setQueryData(
-      getQueryKeys("user_username", { username }),
-      result
-    );
-  } else {
-    if (errCode === "pp203") return convertCodeIntoError(errCode, formError);
-    else {
-      toast.error("Unable to update your information.");
-      toast.error(convertCodeIntoError(errCode) as string);
-    }
-  }
-};
 
 export const updateUsername = async (
   uid: string,
   data: { username: string; passkey: string },
   setUserHash: (a: any) => void,
   queryClient: QueryClient
-) => {
-  const { success, errCode, result, formError } = await ppUpdateData({
-    url: "user/creds/username",
-    data,
-    uid,
+) =>
+  handleMutationResponse({
+    response: await ppUpdateData({
+      url: "user/creds/username",
+      data,
+      uid,
+    }),
+    onSuccess: (result) => {
+      setUserHash(result);
+      queryClient.setQueryData(
+        getQueryKeys("user_username", { username: result.username }),
+        result
+      );
+    },
+    message: "Unable to update username!",
   });
-
-  if (success) {
-    setUserHash(result);
-    queryClient.setQueryData(
-      getQueryKeys("user_username", { username: result.username }),
-      result
-    );
-  } else {
-    if (errCode === "pp203") return convertCodeIntoError(errCode, formError);
-    else {
-      toast.error("Unable to update username.");
-      toast.error(convertCodeIntoError(errCode) as string);
-    }
-  }
-};
 
 export const updateEmail = async (
   uid: string,
   data: { email: string; passkey: string; code: number; encrypted: string },
   setUserHash: (a: any) => void
-) => {
-  const { success, errCode, result, formError } = await ppUpdateData({
-    url: "user/creds/email",
-    data,
-    uid,
+) =>
+  handleMutationResponse({
+    response: await ppUpdateData({
+      url: "user/creds/email",
+      data,
+      uid,
+    }),
+    onSuccess: setUserHash,
+    message: "Unable to update email!",
   });
 
-  if (success) setUserHash(result);
-  else {
-    if (errCode === "pp203") return convertCodeIntoError(errCode, formError);
-    else {
-      toast.error("Unable to update username.");
-      toast.error(convertCodeIntoError(errCode) as string);
-    }
-  }
-};
+export const inviteCollaborators = async (
+  data: { users: string[]; list_name: string },
+  lid: string,
+  uid: string
+) =>
+  handleMutationResponse({
+    response: await ppPostData({
+      url: `/list/${lid}/collaborators`,
+      data,
+      uid,
+    }),
+    message: "Unable to invite users to collaborate!",
+  });
+
+export const removeCollaborators = async (
+  data: { users: string[] },
+  lid: string,
+  uid: string
+) =>
+  handleMutationResponse({
+    response: await ppUpdateData({
+      url: `/list/${lid}/collaborators`,
+      data,
+      uid,
+    }),
+    message: "Unable to remove collaborators/invitees!",
+  });
+
+export const acceptCollaboratorInvitation = async (lid: string, uid: string) =>
+  handleMutationResponse({
+    response: await ppUpdateData({
+      url: `list/${lid}/collaborators/action`,
+      uid,
+      data: null,
+    }),
+    message: "Unable to accept collaborator invitation!",
+  });
+
+export const rejectCollaboratorInvitation = async (lid: string, uid: string) =>
+  handleMutationResponse({
+    response: await ppDeleteData(`list/${lid}/collaborators/action`, uid),
+    message: "Unable to reject collaborator invitation!",
+  });
+
+export const banMembers = async (
+  tid: string,
+  uid: string,
+  data: { users: string[] }
+) =>
+  handleMutationResponse({
+    response: await ppUpdateData({ url: `thread/${tid}/banned`, uid, data }),
+    message: "Unable to ban members!",
+  });
+
+export const unbanMembers = async (
+  tid: string,
+  uid: string,
+  data: { users: string[] }
+) =>
+  handleMutationResponse({
+    response: await ppPostData({ url: `thread/${tid}/banned`, uid, data }),
+    message: "Unable to unban members!",
+  });
+
+export const inviteManagers = async (
+  tid: string,
+  uid: string,
+  data: { users: string[]; thread_name: string }
+) =>
+  handleMutationResponse({
+    response: await ppPostData({
+      url: `thread/${tid}/managers`,
+      uid,
+      data,
+    }),
+    message: "Unable to invite managers!",
+  });
+
+export const demoteManagers = async (
+  tid: string,
+  uid: string,
+  data: { users: string[] }
+) =>
+  handleMutationResponse({
+    response: await ppUpdateData({
+      url: `thread/${tid}/managers`,
+      uid,
+      data,
+    }),
+    message: "Unable to demote managers!",
+  });
+
+export const acceptManagerInvitation = async (tid: string, uid: string) =>
+  handleMutationResponse({
+    response: await ppUpdateData({
+      url: `thread/${tid}/managers/action`,
+      uid,
+      data: null,
+    }),
+    message: "Unable to accept manager invitation!",
+  });
+
+export const rejectManagerInvitation = async (tid: string, uid: string) =>
+  handleMutationResponse({
+    response: await ppDeleteData(`thread/${tid}/managers/action`, uid),
+    message: "Unable to reject manager invitation!",
+  });
+
+export const sendMessage = async (
+  uid: string,
+  rmid: string,
+  data: MessageSchemaType
+) =>
+  handleMutationResponse({
+    response: await ppPostData({
+      url: `room/${rmid}/message`,
+      uid,
+      data,
+    }),
+    message: "Unable to send messages!",
+  });
+
+export const createRoom = async (
+  uid: string,
+  rmid: string,
+  data: RoomSchemaType
+) =>
+  handleMutationResponse({
+    response: await ppPostData({
+      url: `room/${rmid}`,
+      uid,
+      data,
+    }),
+    message: "Unable to create room!",
+  });
+
+export const acceptRoomInvitation = async (uid: string, rmid: string) =>
+  handleMutationResponse({
+    response: await ppPostData({
+      url: `room/${rmid}/invitation`,
+      uid,
+    }),
+    message: "Unable to accept invitation!",
+  });
+
+export const rejectRoomInvitation = async (uid: string, rmid: string) =>
+  handleMutationResponse({
+    response: await ppDeleteData(`room/${rmid}/participant`, uid),
+    message: "Unable to reject invitation!",
+  });
+
+export const leaveRoom = async (uid: string, rmid: string) =>
+  handleMutationResponse({
+    response: await ppDeleteData(`room/${rmid}/participant`, uid),
+    message: "Unable to leave room!",
+  });
+
+export const updateParticipantSeenAt = async (rmid: string, uid: string) =>
+  handleMutationResponse({
+    response: await ppUpdateData({ url: `room/${rmid}/participant`, uid, data: null })
+  });
+
+export const unsendMessage = async (rmid: string, msgid: string, uid: string) =>
+  handleMutationResponse({
+    response: await ppDeleteData(`room/${rmid}/message/${msgid}`, uid),
+    message: "Unable to unsend message!",
+  });
+
+export const actionOnReportedContents = async (tid: string, uid: string, data: ReportActionSchemaType) =>
+  handleMutationResponse({
+    response: await ppUpdateData({
+      url: `report/${tid}`,
+      uid,
+      data,
+    }),
+    message: "Unable to save decisions!",
+  });

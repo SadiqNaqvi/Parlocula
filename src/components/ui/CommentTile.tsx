@@ -1,7 +1,8 @@
 import { ThumbUpIcon } from "@assets/Icons";
 import { Navigate } from "@components";
 import { getPoster, numberConverter, timeAgo } from "@lib/utils";
-import { MereComment } from "@type/internal";
+import useGlobalState from "@store/globalStore";
+import { MereComment, MessageReplyType } from "@type/internal";
 import Image from "next/image";
 import toast from "react-hot-toast";
 
@@ -12,14 +13,13 @@ const Link = ({ children, link, className }: { children: React.ReactNode, link: 
     }</>
 )
 
-export default function CommentTile({ _id, attachment, nsfw, spoiler, callback, user, content, upvote_count, parent, profile, replied_to, username, createdAt, edited_at }: MereComment & { callback?: any, user?: any }) {
+export default function CommentTile({ _id, attachment, nsfw, spoiler, post_id, user, content, upvote_count, parent, profile, replied_to, username, createdAt, edited_at }: MereComment & { callback?: any, user?: any }) {
 
-    const reply = () => {
-        if (!user) {
-            toast.error("You need to log-in to reply a comment")
-            return;
-        }
-        callback?.({ parent: content, replied_to: _id });
+    const [, setReply] = useGlobalState<MessageReplyType | undefined>(`reply:post:${post_id}`, undefined);
+
+    const handleReply = () => {
+        if (user && _id) setReply({ replied_content: content, replied_to: _id })
+        else toast.error("You need to log-in to reply a comment");
     }
 
     return (
@@ -76,7 +76,7 @@ export default function CommentTile({ _id, attachment, nsfw, spoiler, callback, 
                             {numberConverter(upvote_count)}
                         </span>
                         {_id &&
-                            <button className="smallBtn my-auto border-0" onClick={reply}>Reply</button>
+                            <button className="smallBtn my-auto border-0" onClick={handleReply}>Reply</button>
                         }
                     </section>
                 </div>

@@ -1,28 +1,31 @@
 "use client";
 
-import { LeftChevron } from "@assets/Icons";
-import { InfiniteScroller, Modal, Navbar, Navigate } from "@components";
-import { CheckTile, Form } from "@components/form";
+import { XmarkIcon } from "@assets/Icons";
+import { InfiniteScroller, Navbar } from "@components";
+import BottomSheetTrigger from "@components/BottomSheet";
+import { Form } from "@components/form";
 import GeneralTile from "@components/GeneralTile";
-import { closeFancyBox } from "@components/Modal";
 import { threadsByUser } from "@lib/helpers/common";
-import { generateInitialData, getQueryKeys, queryFunction } from "@lib/utils";
+import { getQueryKeys } from "@lib/utils";
+import useOfflineStore from "@store/offlineStore";
 import useCurrentUser from "@store/user";
+import { InfiniteQueryResponse } from "@type/internal";
 import { forwardRef, useImperativeHandle, useRef, useState } from "react";
+import { Drawer } from "vaul";
 
 type MereThread = { _id: string, name: string, poster: string };
 
 const ThreadChoice = ({ submitChoice }: { submitChoice: (chosenThread: MereThread) => void }) => {
 
-    const { threads, user } = useCurrentUser();
+    const [threadList, setThreadList] = useOfflineStore<InfiniteQueryResponse | undefined>("joined-threads", undefined)
+    const { meta } = useCurrentUser();
     const formRef = useRef<HTMLFormElement | null>(null);
 
-    if (!user) return null;
+    if (!meta) return null;
 
     const submit = (chosenThread: MereThread) => {
         if (!chosenThread) return;
         submitChoice(chosenThread);
-        closeFancyBox();
     }
 
     const ThreadCheckTile = ({ _id, name, poster }: MereThread) => (
@@ -31,13 +34,23 @@ const ThreadChoice = ({ submitChoice }: { submitChoice: (chosenThread: MereThrea
 
     return (
         <Form ref={formRef} submit={submit}>
-            <Navbar navTitle="Choose Thread" />
+            <header className="space-x-3">
+                <Drawer.Close>
+                    <XmarkIcon />
+                </Drawer.Close>
+
+                <h3>Choose Thread</h3>
+            </header>
             <section className="mt-4">
                 <InfiniteScroller
                     Component={ThreadCheckTile}
-                    fetchData={p => queryFunction(threadsByUser, [user._id, p])}
-                    queryKeys={getQueryKeys("threadOfUser_uid", { uid: user._id })}
-                    initialData={generateInitialData(threads)}
+                    fetchData={p => threadsByUser(meta.user_id, p)}
+                    queryKeys={getQueryKeys("threadOfUser_uid", { uid: meta.user_id })}
+                    onSuccess={(d) => {
+                        if (d.pages[0]?.page === 1)
+                            setThreadList(d.pages[0])
+                    }}
+                    placeholderData={threadList}
                 />
             </section>
         </Form>
@@ -57,17 +70,17 @@ const ChooseThreadButton = forwardRef((_, ref) => {
         setThread(thread);
     }
 
-    return <Modal
-        buttonChildren={
-            <button className="px-2 py-1 bg-gray40 rounded-xl">
-                {thread?.name ?? "Choose Thread"}
-            </button>
-        }
-        id="threadChoice"
-    >
-        <ThreadChoice submitChoice={takeResult} />
-    </Modal>
+    return (
+        <BottomSheetTrigger
+            className="px-2 py-1 bg-gray20 rounded-xl"
+            button={thread?.name ?? "Choose Thread"}
+        >
+            <ThreadChoice submitChoice={takeResult} />
+        </BottomSheetTrigger>
+    )
 
 })
+
+ChooseThreadButton.displayName = "ChooseThreadButton";
 
 export default ChooseThreadButton;

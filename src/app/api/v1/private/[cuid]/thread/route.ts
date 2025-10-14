@@ -29,6 +29,8 @@ export const POST = postRequest({
         {
           thread_id: result._id,
           user_id,
+          notification: true,
+          role: "creator",
         },
       ],
       { session }

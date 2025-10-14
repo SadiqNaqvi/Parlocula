@@ -34,6 +34,7 @@ import {
   refineShowData,
 } from "./dataRefiner";
 import { getMediaItem } from "./helpers/common";
+
 type GeneralReturn<T = any> = { status: boolean; response: T };
 type MovieReturnType = GeneralReturn<GeneralMovieReturn>;
 type ShowReturnType = GeneralReturn<GeneralShowReturn>;
@@ -84,32 +85,6 @@ export const fetchMovie = async (
   }
 };
 
-export const fetchMovieCredits = async (id: string) => {
-  if (!id) return;
-  try {
-    const data: {
-      status: boolean;
-      response: {
-        id: number;
-        cast: GeneralCastData[];
-        crew: GeneralCrewData[];
-      };
-    } = await (
-      await fetch(`https://testlalaapp.vercel.app/api/movie/credits?id=${id}`)
-    ).json();
-    if (data.status) return data.response;
-    console.error(
-      "Some error occoured while fetching movie credits: " + data.response
-    );
-    return;
-  } catch (err: any) {
-    console.error(
-      "Error occoured which fetching movie credits :" + err.message
-    );
-    return;
-  }
-};
-
 export const fetchSimilarMovies = async (id: string, page: number = 1) => {
   if (!id) return;
   try {
@@ -121,7 +96,7 @@ export const fetchSimilarMovies = async (id: string, page: number = 1) => {
     if (data.status) return data.response;
     console.error(
       "Some erorr occoured while fetching movie recommendations: " +
-        data.response
+      data.response
     );
     return;
   } catch (err: any) {
@@ -199,7 +174,7 @@ export const fetchMoviesWithYear = async (
   sort_by: SortOptions = "popularity"
 ) => {
   const time = new Date(year).getTime();
-  if (isNaN(time) || time > new Date().getTime()) return;
+  if (isNaN(time) || time > Date.now()) return;
 
   try {
     const data: MovieReturnType = await (
@@ -435,7 +410,7 @@ export const fetchSimilarShows = async (id: string, page: number = 1) => {
     if (data.status) return data.response;
     console.error(
       "Some erorr occoured while fetching movie recommendations: " +
-        data.response
+      data.response
     );
     return;
   } catch (err: any) {
@@ -702,25 +677,28 @@ export const searchAllContent = async (
 export const searchOnlyMediaItems = async (
   query: string,
   page = 1
-): Promise<GeneralGetReturn> => {
+): Promise<GeneralGetReturn | undefined> => {
   try {
     const data: {
       status: boolean;
-      response: GeneralReturnType & { results: any[] };
+      response: GeneralReturnType;
     } = await fetch(
-      `https://testlalaapp.vercel.app/api/search?q=${query}&t=multi&p=${page}`,
+      `https://testlalaapp.vercel.app/api/search?q=${query}&t=cinements&p=${page}`,
       { next: { revalidate: oneDay } }
     ).then((r) => r.json());
 
-    if (!data.status) return { success: false, errCode: "pp500" };
+    if (data.status)
+      return {
+        success: true,
+        result: {
+          ...data.response,
+          results: refineMediaItemsFromSearch(data.response.results),
+        },
+      };
 
-    return {
-      success: true,
-      result: {
-        ...data.response,
-        results: refineMediaItemsFromSearch(data.response.results),
-      },
-    };
+    console.error(
+      "Some erorr occoured while searching media items: " + data.response
+    );
   } catch (err: any) {
     console.error(
       "Something went wrong while searching media items",
@@ -728,7 +706,7 @@ export const searchOnlyMediaItems = async (
     );
     return {
       success: false,
-      errCode: "pp500",
+      errCode: "unstable_internet",
     };
   }
 };
@@ -744,7 +722,6 @@ export const fetchTrendingMovies = async (page: number = 1) => {
     console.error(
       "Some erorr occoured while fetching trending movies: " + data.response
     );
-    return;
   } catch (err: any) {
     console.error(
       "Error occured while fetching trending movies:" + err.message
@@ -762,7 +739,6 @@ export const fetchTrendingShows = async (page: number = 1) => {
     console.error(
       "Some erorr occoured while fetching trending shows: " + data.response
     );
-    return;
   } catch (err: any) {
     console.error("Error occured while fetching trending shows:" + err.message);
     return;

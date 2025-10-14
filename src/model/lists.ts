@@ -1,6 +1,7 @@
+import { ListModelType, StrictModel } from "@type/models";
 import { Schema, model, models } from "mongoose";
 
-const listModel = new Schema({
+const listModel = new Schema<ListModelType>({
   name: {
     type: String,
     required: true,
@@ -34,7 +35,9 @@ const listModel = new Schema({
     type: Number,
     default: 0,
   },
-  createdAt: { type: Date, default: Date.now() },
+  collaborators: [Schema.Types.ObjectId],
+  invitees: [Schema.Types.ObjectId],
+  createdAt: { type: Date, default: Date.now },
 });
 
 listModel.index(
@@ -53,7 +56,9 @@ listModel.index(
   }
 );
 
-const List = models.List || model("List", listModel);
+const List: StrictModel<ListModelType> =
+  (models.List as StrictModel<ListModelType>) ||
+  (model<ListModelType>("List", listModel) as StrictModel<ListModelType>);
 
 export default List;
 

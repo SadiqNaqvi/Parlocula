@@ -25,14 +25,14 @@ export const PATCH = updateRequest({
     if (Boolean(isUsernameAvailable))
       return {
         success: false,
-        errCode: "pp203",
+        errCode: "form_error",
         formErrors: [{ path: "username", message: "Username not available" }],
       };
 
     if (!passkey)
       return {
         success: false,
-        errCode: "pp203",
+        errCode: "form_error",
         formErrors: [
           {
             path: "passkey",
@@ -46,7 +46,7 @@ export const PATCH = updateRequest({
       { passkey: 1, usernameUpdatedAt: 1 }
     );
 
-    if (!user) return { success: false, errCode: "pp202" };
+    if (!user) return { success: false, errCode: "unauthenticated_access" };
     else if (
       user.usernameUpdatedAt &&
       getTimeInFuture({ unit: "mo", from: user.usernameUpdatedAt }) > Date.now()
@@ -54,17 +54,17 @@ export const PATCH = updateRequest({
       return { success: false, errCode: "pp211" };
 
     const isCorrect = bcrypt.compareSync(passkey, user.passkey);
-    if (!isCorrect) return { success: false, errCode: "pp210" };
+    if (!isCorrect) return { success: false, errCode: "wrong_passkey" };
 
     const cookieStore = cookies();
     const sid = cookieStore.get("sid")?.value ?? "";
     const { result, success } = await getSession(sid);
-    if (!success) return { success: false, errCode: "pp100" };
+    if (!success) return { success: false, errCode: "unknown_error" };
 
     if (!(await storeSession(sid, { ...result, username: newUsername })))
       return {
         success: false,
-        errCode: "pp100",
+        errCode: "unknown_error",
       };
 
     cookieStore.set(
@@ -79,7 +79,7 @@ export const PATCH = updateRequest({
     if (!stored) {
       await storeSession(sid, result);
       cookieStore.set("token", await generateToken({ user_id, username }));
-      return { success: false, errCode: "pp100" };
+      return { success: false, errCode: "unknown_error" };
     }
 
     return {

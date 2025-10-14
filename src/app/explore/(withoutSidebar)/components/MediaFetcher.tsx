@@ -46,11 +46,11 @@ const MediaFetcher = ({ sections, id }: { sections: Props, id: string, }) => {
 
     const functionToFetch = async (p: number): Promise<GeneralGetReturn> => {
         if (active === "cast" || active === "crew")
-            return { success: false, errCode: "pp200" };
+            return { success: false, errCode: "unstable_internet" };
         const func = funcMap[active];
         const data = await func(id, p);
         if (data) return { success: true, result: data };
-        return { success: false, errCode: "pp200" }
+        return { success: false, errCode: "unstable_internet" }
     }
 
     const notFoundReasons = (): string => {
@@ -66,7 +66,7 @@ const MediaFetcher = ({ sections, id }: { sections: Props, id: string, }) => {
     }
 
     const NotFoundSection = (
-        <div className="stretchContainer flex-col">
+        <div className="forceCenter flex-col">
             <h4 className="text-lg">Nothing could be found.</h4>
             <p className="text-sm">{notFoundReasons()}</p>
         </div>

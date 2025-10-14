@@ -1,8 +1,15 @@
 import { NotFoundFaceIcon } from "@assets/Icons"
 
-export default function NotFound({ title, paras, ActionButton }: { title: string, paras: string[], ActionButton?: React.ReactNode }) {
+type Props = {
+    title: string,
+    paras: string[],
+    ActionButton?: React.ReactNode
+    fullScreen?: boolean
+}
+
+export default function NotFound({ title, paras, ActionButton, fullScreen }: Props) {
     return (
-        <section className="stretchContainer flex-col gap-3">
+        <section className={`${fullScreen ? "screen-full flex flex-cntr-all" : "forceCenter"} flex-col gap-3`}>
             <div className="inline-flex mx-auto flex-cntr-all gap-4">
                 <span className="text-9xl font-extralight select-none">4</span>
                 <NotFoundFaceIcon className="size-32" />

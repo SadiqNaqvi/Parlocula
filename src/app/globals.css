@@ -6,6 +6,15 @@
   box-sizing: border-box !important;
 }
 
+.patternBackground {
+  position: fixed;
+  inset: 0;
+  background-image: url(/_next/static/media/logo_pattern.c4ae4510.webp);
+  background-size: 600px;
+  filter: brightness(0.4);
+  z-index: 0;
+}
+
 .fancybox__content {
   padding: 0 !important;
   background: inherit !important;
@@ -55,6 +64,10 @@
 
 .pointer {
   cursor: pointer;
+}
+
+.wrap-anywhere {
+  overflow-wrap: anywhere;
 }
 
 .go2072408551 {
@@ -115,8 +128,8 @@
     --primary: var(--dark-primary);
     --primarylight: var(--dark-secondary);
     --primaryText: var(--dark-text);
-    --tertiary: var(--dark-text);
-    --tertiary-text: var(--light-text);
+    --secondary: var(--dark-text);
+    --secondary-text: var(--light-text);
   }
 }
 
@@ -124,8 +137,8 @@ body.dark {
   --primary: var(--dark-primary);
   --primarylight: var(--dark-secondary);
   --primaryText: var(--dark-text);
-  --tertiary: var(--dark-text);
-  --tertiary-text: var(--light-text);
+  --secondary: var(--dark-text);
+  --secondary-text: var(--light-text);
 }
 
 @media (prefers-color-scheme: light) {
@@ -133,8 +146,8 @@ body.dark {
     --primary: var(--light-primary);
     --primarylight: var(--light-secondary);
     --primaryText: var(--light-text);
-    --tertiary: var(--light-text);
-    --tertiary-text: var(--dark-text);
+    --secondary: var(--light-text);
+    --secondary-text: var(--dark-text);
   }
 }
 
@@ -142,8 +155,8 @@ body.light {
   --primary: var(--light-primary);
   --primarylight: var(--light-secondary);
   --primaryText: var(--light-text);
-  --tertiary: var(--light-text);
-  --tertiary-text: var(--dark-text);
+  --secondary: var(--light-text);
+  --secondary-text: var(--dark-text);
 }
 
 .bg-gray10 {
@@ -196,14 +209,14 @@ body.light {
 }
 
 .bg-secondary {
-  background-color: var(--tertiary);
+  background-color: var(--secondary);
   transition:
     background-color 500ms ease,
     color 500ms ease;
 }
 
 .color-secondary {
-  color: var(--tertiary);
+  color: var(--secondary);
   transition:
     background-color 500ms ease,
     color 500ms ease;
@@ -246,7 +259,7 @@ body.light {
 }
 
 .border-secondary {
-  border-color: var(--tertiary);
+  border-color: var(--secondary);
 }
 
 .border-radius {
@@ -268,7 +281,7 @@ body.light {
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: var(--tertiary);
+  background-color: var(--secondary);
   border-radius: 25px;
 }
 
@@ -289,19 +302,39 @@ li {
   content: "";
   inset: -2px;
   position: absolute;
-  border: 2px solid var(--tertiary);
+  border: 2px solid var(--secondary);
   border-bottom-color: transparent;
   border-radius: 25px;
   animation: spin 1000ms infinite ease;
 }
 
-*:has(> .stretchContainer) {
-  display: flex;
-  flex-direction: column;
+.w-stretch {
+  width: -moz-available; /* WebKit-based browsers will ignore this. */
+  width: -webkit-fill-available; /* Mozilla-based browsers will ignore this. */
+  width: fill-available;
+  width: stretch;
 }
 
-.stretchContainer {
-  flex-grow: 1;
+.h-stretch {
+  height: -moz-available; /* WebKit-based browsers will ignore this. */
+  height: -webkit-fill-available; /* Mozilla-based browsers will ignore this. */
+  height: fill-available;
+  height: stretch;
+}
+
+.size-stretch {
+  height: stretch;
+  width: stretch;
+}
+
+*:has(> .forceCenter) {
+  height: stretch;
+  width: stretch;
+}
+
+.forceCenter {
+  height: stretch;
+  width: stretch;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -480,7 +513,7 @@ button:focus-visible {
 }
 
 button:is(.bigBtn, .primary, .secondary),
-a[role="button"].btn {
+a.btn {
   display: flex;
   height: 40px;
   line-height: 1rem;
@@ -493,17 +526,17 @@ a[role="button"].btn {
 }
 
 button.primary,
-a[role="button"].btn.primary {
-  background-color: var(--tertiary);
-  color: var(--tertiary-text);
+a.btn.primary {
+  background-color: var(--secondary);
+  color: var(--secondary-text);
   transition:
     background-color 500ms ease,
     color 500ms ease;
 }
 
 button.secondary,
-a[role="button"].btn.secondary {
-  border-color: var(--tertiary);
+a.btn.secondary {
+  border-color: var(--secondary);
   transition: border-color 500ms ease;
 }
 
@@ -542,14 +575,6 @@ textarea {
   height: 1rem;
 }
 
-a:not([role="button"]):hover {
-  text-decoration: underline;
-}
-
-a[role="button"].active {
-  color: var(--tertiary);
-}
-
 .nav-active {
   position: relative;
 }
@@ -559,7 +584,7 @@ a[role="button"].active {
   position: absolute;
   left: 0;
   top: 0;
-  background-color: var(--tertiary);
+  background-color: var(--secondary);
   height: 100%;
   aspect-ratio: 1;
   border-radius: 8px;
@@ -603,7 +628,7 @@ a[role="button"].active {
   height: 3rem;
   width: 3rem;
   border: 4px solid var(--gray40);
-  border-left-color: var(--tertiary);
+  border-left-color: var(--secondary);
   border-radius: 100%;
   animation: spinnerLoading 1s linear infinite;
 }
@@ -650,7 +675,7 @@ a[role="button"].active {
 .pie {
   --p: 20;
   --b: 2px;
-  --c: var(--tertiary);
+  --c: var(--secondary);
   aspect-ratio: 1;
 }
 

@@ -1,48 +1,52 @@
 import { ZodIssue } from "zod";
+import { ErrorCodes, ReportReasonType } from "./other";
+import { PreDefinedListType } from "./models";
+
+export type GenericDate = Date | number | string;
 
 export type GeneralGetReturn<T = any> =
   | {
-      success: true;
-      result: T;
-      errCode?: undefined;
-    }
+    success: true;
+    result: T;
+    errCode?: undefined;
+  }
   | {
-      success: false;
-      errCode: string;
-      result?: undefined;
-    };
+    success: false;
+    errCode: ErrorCodes;
+    result?: undefined;
+  };
 
 export type GeneralPostReturn<T = any> =
   | {
-      result: T;
-      errCode?: undefined;
-      formError?: undefined;
-      success: true;
-    }
+    result: T;
+    errCode?: undefined;
+    formError?: undefined;
+    customError?: undefined;
+    success: true;
+  }
   | {
-      result?: undefined;
-      errCode: "pp203";
-      formError: ZodIssue[];
-      success: false;
-    }
-  | {
-      result?: undefined;
-      errCode: string;
-      formError?: undefined;
-      success: false;
-    };
+    success: false;
+    errCode: ErrorCodes;
+    customError?: string;
+    formError?: ZodIssue[];
+    result?: undefined;
+  };
 
-export type GeneralMultipleReturn<T = any> = GeneralGetReturn<{
+export type InfiniteQueryResponseDB<T = any> = {
   data: T[];
   total: number;
-}>;
+}
+
+export type GeneralMultipleReturn<T = any> = GeneralGetReturn<InfiniteQueryResponseDB<T>>;
 
 export type Session = {
   user_id: string;
   username: string;
   email: string;
   isBanned: boolean;
-  expireOn: Date;
+  banEndsAt: GenericDate | undefined;
+  expireOn: GenericDate;
+  profile: string | undefined;
 };
 
 export type InfiniteQueryResponse<T = any> = {
@@ -52,10 +56,12 @@ export type InfiniteQueryResponse<T = any> = {
   total_results: number;
 };
 
+
+
 export type document = {
   _id: string;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: GenericDate;
+  updatedAt: GenericDate;
 };
 
 export type Link = {
@@ -69,10 +75,16 @@ export type Frame = {
   isExternal: boolean;
 };
 
-export type PredefineListType = {
+export type PredefineListsType = {
   _id: string;
-  name: "favourite" | "watched" | "recommended";
+  name: PreDefinedListType;
   poster?: string;
+};
+
+export type MereUser = {
+  username: string;
+  profile?: string;
+  _id: string;
 };
 
 export type User = {
@@ -82,19 +94,19 @@ export type User = {
   email: string;
   profile: string;
   bio: string;
-  dob: Date;
+  dob: GenericDate;
   bioLinks: Link[];
-  edited_at: Date | null;
+  edited_at: GenericDate | null;
 
-  usernameUpdatedAt?: Date;
-  emailUpdatedAt?: Date;
+  usernameUpdatedAt?: GenericDate;
+  emailUpdatedAt?: GenericDate;
 
   followers: number;
   following: number;
   posts: number;
   comments: number;
   public_lists: number;
-  predefine_lists: PredefineListType[];
+  predefine_lists: PredefineListsType[];
 };
 
 export type RequestedUser = {
@@ -109,12 +121,21 @@ export type RequestedUser = {
   posts: number;
   comments: number;
   public_lists: number;
-  predefine_lists: PredefineListType[];
+  predefine_lists: PredefineListsType[];
+};
+
+export type UserConnectionType = {
+  follows: boolean;
+  followBack: boolean;
+  isBlocked: boolean;
+  haveBlocked: boolean;
+  notification: boolean;
 };
 
 export type ThreadConnection = {
-  media_type: string;
-  id: string;
+  type: "person" | "movie" | "show";
+  path: string;
+  name: string;
 };
 
 export type MereThread = {
@@ -132,9 +153,20 @@ export type Thread = document & {
   nsfw: boolean;
   links: Link[];
   connection: ThreadConnection[];
-  created_by: string | Partial<User>;
+  created_by: string;
+  creator: string | null;
+  edited_by: string | null;
   member_count: number;
   post_count: number;
+  managers: string[];
+};
+
+export type ThreadMembership = {
+  thread_id: string;
+  user_id: string;
+  notification: boolean;
+  banned: boolean;
+  role: "moderator" | "member" | "moderator_invitee";
 };
 
 type PostBasic = document & {
@@ -148,11 +180,11 @@ type PostBasic = document & {
   reaction_count: number;
   comment_count: number;
   saved_count: number;
-  editedAt: Date | null;
+  editedAt: GenericDate | null;
 };
 
 export type FullPost = PostBasic & {
-  edited_at: Date | null;
+  edited_at: GenericDate | null;
   body: string;
   tag: string;
   username?: string;
@@ -186,7 +218,7 @@ export type MereComment = document & {
   profile?: string;
   parent?: string;
   attachment?: string;
-  edited_at: Date | null;
+  edited_at: GenericDate | undefined;
 };
 
 export type FullComment = MereComment & {
@@ -224,8 +256,17 @@ export type FullList = MereList &
     username: string;
     isPrivate: boolean;
     listKey: string;
-    last_added: Date;
+    last_added: GenericDate;
+    collaborators: string[];
   };
+
+export type ListCollaborators = {
+  _id: string;
+  user_id: string;
+  name: string;
+  collaborators: MereUser[];
+  invitees: MereUser[];
+};
 
 export type ListItemType = {
   _id: string;
@@ -234,8 +275,134 @@ export type ListItemType = {
   user_id: string;
   tmdb_id: string;
   year: number;
-  createdAt: Date;
+  createdAt: GenericDate;
   title: string;
   poster?: string;
   media_type: "movie" | "show";
 };
+
+export type ThreadModType = MereUser & {
+  user_id: string;
+  role: "moderator" | "moderator_invitees";
+};
+
+export type ReportsType = {
+  _id: ReportReasonType,
+  count: number,
+  content: string[],
+};
+
+export type ReportedContent = {
+  _id: string,
+  reasons: Record<ReportReasonType, number>,
+  total: number
+} & ({
+  content_type: "post",
+  content: {
+    title: string,
+    tag: string,
+    nsfw: boolean,
+    spoiler: boolean,
+    frames: Frame[],
+    warnedOn?: GenericDate;
+  }
+} | {
+  content_type: "comment",
+  content: {
+    content?: string,
+    attachment?: string,
+    nsfw: boolean,
+    spoiler: boolean,
+    warnedOn?: GenericDate;
+  }
+})
+
+export type ParticipantEnumType = "participant" | "invitee" | "creator";
+export type RoomEnumType = "private" | "group"
+
+export type ParticipantType = {
+  participantType: ParticipantEnumType;
+  mute: boolean;
+  seenAt: GenericDate;
+  hideAt: GenericDate;
+};
+
+export type InvitationMessageType = {
+  content: string;
+  user_id: string;
+  username: string;
+  createdAt: GenericDate;
+};
+
+export type MereRoomType = {
+  room_id: string;
+  display_name: string;
+  poster: string | undefined;
+  seenAt: GenericDate;
+  mute: boolean;
+  type: ParticipantEnumType;
+  otherParticipant_id: string | undefined;
+  otherParticipant_seenAt: GenericDate | undefined;
+  lastMessageBy: string;
+  lastMessageAt: GenericDate;
+  lastMessage: string;
+};
+
+export type RoomListResponse = MereRoomType & {
+  room_type: RoomEnumType;
+  invitationMessage: InvitationMessageType;
+}
+
+export type SearchedRoom = {
+  _id: string;
+  display_name: string;
+  poster?: string;
+}
+
+export type FullRoomType = {
+  _id: string;
+  display_name: string;
+  poster?: string;
+  type: RoomEnumType;
+  seenAt: GenericDate;
+  mute: boolean;
+  participantType: ParticipantEnumType;
+  otherParticipant_id: string | undefined;
+  otherParticipant_seenAt: GenericDate | undefined;
+  // users: (MereUser & Omit<ParticipantType, "mute" | "hideAt">)[];
+  users: string[],
+  invitationMessage: InvitationMessageType;
+  lastMessage: string;
+  lastMessageBy: string;
+  lastMessageAt: GenericDate;
+};
+
+export type MessageReplyType = {
+  replied_to: string,
+  replied_content: string
+}
+
+export type MereMessage = {
+  _id: string;
+  content: string;
+  createdAt: GenericDate;
+  room_id: string;
+  user_id: string;
+  username: string;
+  status?: "sending" | "sent" | "error" | "seen";
+} & Partial<MessageReplyType>;
+
+// Cached
+export type CachedFullRoomType = {
+  type: "private" | "group";
+  name: string;
+  poster: string | undefined;
+  invitationMessage: InvitationMessageType;
+  lastMessage: string;
+  lastMessageBy: string;
+  lastMessageAt: GenericDate;
+};
+
+export type CachedParticipantType = ParticipantType & {
+  lastSync: GenericDate;
+}

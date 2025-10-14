@@ -1,20 +1,20 @@
-import { XmarkIcon } from "@assets/Icons";
+import { AddIcon, XmarkIcon } from "@assets/Icons";
 import GeneralTile from "@components/GeneralTile";
-import { CloseButton } from "@components/Modal";
+import Modal, { CloseButton } from "@components/FancyboxModal";
 import SearchContainer from "@components/SearchContainer";
 import { searchAllContent } from "@lib/contentFetcher";
 import { getPoster } from "@lib/utils";
 import { RefinedSearchData } from "@type/external";
-import { ThreadConnectionType } from "@type/schemas";
-import { useState } from "react";
+import { ThreadConnectionType as CType } from "@type/schemas";
+import { forwardRef, useImperativeHandle, useState } from "react";
 
-const ConnectionsInput = ({ callback }: { callback: (arg: any) => void }) => {
+const ConnectionsInput = forwardRef(({ defaultConnections }: { defaultConnections?: CType[] }, ref) => {
 
-    const [connections, setConnections] = useState<ThreadConnectionType[]>([]);
+    const [connections, setConnections] = useState<CType[]>(defaultConnections ?? []);
 
-    const returnConnections = () => {
-        callback(connections);
-    }
+    useImperativeHandle(ref, () => ({
+        getDate: () => connections,
+    }));
 
     const queryFn = async (query: string, page: number) => {
         const response = await searchAllContent(query, page);
@@ -22,11 +22,9 @@ const ConnectionsInput = ({ callback }: { callback: (arg: any) => void }) => {
         return response;
     }
 
-    const getConnections = (c: ThreadConnectionType) => {
-        const connectionSet = new Set(connections);
-        connectionSet.add(c);
-        if (connectionSet.size === connections.length) return;
-        setConnections(Array.from(connectionSet));
+    const getConnections = (c: CType) => {
+        if (connections.find(e => e.path === c.path)) return;
+        setConnections([...connections, c]);
     }
 
     const removeConnection = (path: string) => {
@@ -35,7 +33,7 @@ const ConnectionsInput = ({ callback }: { callback: (arg: any) => void }) => {
 
     const SearchWrapper = ({ children }: { children: React.ReactNode }) => {
         return (
-            <div style={{ justifyContent: "flex-start" }} className="stretchContainer flex-col group bg-primarylight overflow-y-auto">
+            <div style={{ justifyContent: "flex-start" }} className="forceCenter flex-col group bg-primarylight overflow-y-auto">
                 {children}
                 <div className="hidden w-full group-has-[#infiniteScroller]:flex mt-auto gap-4 sticky bottom-0 py-2 bg-inherit">
                     <ul className="flex gap-3 flex-1 overflow-x-auto noScroll">
@@ -48,7 +46,6 @@ const ConnectionsInput = ({ callback }: { callback: (arg: any) => void }) => {
                             </li>
                         ))}
                     </ul>
-                    <CloseButton onClick={returnConnections} className="primary ml-auto">Done</CloseButton>
                 </div>
             </div>
         )
@@ -64,13 +61,36 @@ const ConnectionsInput = ({ callback }: { callback: (arg: any) => void }) => {
         />
     }
 
-    return <SearchContainer
-        ComponentToShow={SearchTile}
-        queryFn={queryFn}
-        queryKeys={(q) => ["search", "connection", q]}
-        Wrapper={SearchWrapper}
-    />
-
-}
+    return (
+        <div className="flex flex-cntr-between">
+            {Boolean(connections.length) ?
+                (
+                    <h4 className="text-xl font-semibold">Add Connections</h4>
+                )
+                :
+                (
+                    <ul className="flex gap-3 flex-1 overflow-x-auto noScroll">
+                        {connections.map(({ path, name }) => (
+                            <li key={path} className="inline-flex text-sm gap-3 whitespace-nowrap text-nowrap flex-cntr-between px-2 py-2 rounded-md bg-gray20 border border-gray30">
+                                <span>{name}</span>
+                                <button className="p-2 bg-gray30" type="button" onClick={() => removeConnection(path)}>
+                                    <XmarkIcon className="size-2" />
+                                </button>
+                            </li>
+                        ))}
+                    </ul>
+                )
+            }
+            <Modal id="connections-input" buttonChildren={<AddIcon />}>
+                <SearchContainer
+                    ComponentToShow={SearchTile}
+                    queryFn={queryFn}
+                    queryKeys={(q) => ["search", "connection", q]}
+                    Wrapper={SearchWrapper}
+                />
+            </Modal>
+        </div>
+    )
+})
 
 export default ConnectionsInput;

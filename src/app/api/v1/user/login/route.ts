@@ -1,22 +1,25 @@
 import { generateToken } from "@lib/auth";
 import { deleteSession, storeSession } from "@lib/auth/session";
 import { postRequest } from "@lib/helpers/common";
+import { storeUserMetaInCache } from "@lib/helpers/redis";
+import { verifyCode } from "@lib/helpers/server";
 import { currentUserPipeline } from "@lib/pipelines";
 import { emailSchema } from "@lib/schemas";
 import User from "@model/users";
 import { User as UserType } from "@type/internal";
+import { ErrorCodes } from "@type/other";
 import { ClientSession } from "mongoose";
 import { cookies } from "next/headers";
 
 type ResponseType = UserType & {
   isBanned: boolean;
-  banEndsAt: Date | null;
+  banEndsAt: Date | undefined;
 };
 
 const sessionManagement = async (
   user: ResponseType,
   session: ClientSession
-) => {
+): Promise<ErrorCodes | null | undefined> => {
   const session_id = crypto.randomUUID();
 
   const oldDoc = await User.findByIdAndUpdate(
@@ -29,9 +32,11 @@ const sessionManagement = async (
     { session }
   );
 
+  if (!oldDoc) return null;
+
   if (oldDoc.session_id) deleteSession(oldDoc.session_id);
 
-  const { _id, username, isBanned, email, banEndsAt } = user;
+  const { _id, username, isBanned, email, banEndsAt, profile } = user;
 
   const id = _id.toString();
 
@@ -41,13 +46,16 @@ const sessionManagement = async (
     email,
     isBanned,
     banEndsAt,
+    profile,
   });
 
-  if (!isStored) return { success: false as false, errCode: "pp100" };
+  if (!isStored)
+    return "session_store_fail";
 
   const token = await generateToken({
     user_id: id,
     username,
+    profile,
   });
 
   cookies().set("token", token, {
@@ -56,31 +64,44 @@ const sessionManagement = async (
     sameSite: "strict",
     path: "/",
   });
+
   cookies().set("sid", session_id, {
     httpOnly: true,
     secure: true,
     sameSite: "strict",
     path: "/",
   });
+
 };
 
-export const POST = postRequest({
+export const POST = postRequest<{ email: string, code: string }>({
   handler: async ({ data, session }) => {
-    const { email } = data;
-    const parsed = emailSchema.safeParse(email);
 
-    if (parsed.error) return { success: false, errCode: "pp500" };
+    const did = cookies().get("did")?.value;
+    if (!did) return { success: false, errCode: "missing_device_fingerprint" }
 
-    const results = await User.aggregate(currentUserPipeline({ email }), {
-      session,
-    });
+    const { email, code } = data;
+    const parsedEmail = emailSchema.safeParse(email);
+
+    if (parsedEmail.error)
+      return { success: false, errCode: "invalid_input" };
+
+    const resp = await verifyCode(code, did);
+    if (!resp.success) return resp;
+
+    const results = await User.aggregate(
+      currentUserPipeline({ email }), { session }
+    );
 
     const user: ResponseType = results[0];
 
-    if (!user) return { success: false, errCode: "pp204" };
+    if (!user) return { success: false, errCode: "unregistered_user" };
+
+    await storeUserMetaInCache({ _id: user._id, username: user.username, profile: user.profile })
 
     const error = await sessionManagement(user, session);
-    if (error) return error;
+    if (error) return { success: false, errCode: error };
+
 
     const { isBanned, banEndsAt, ...result } = user;
 

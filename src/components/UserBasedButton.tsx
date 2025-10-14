@@ -1,7 +1,6 @@
 "use client";
 
 import { useQueryHook } from "@lib/hooks";
-import useCurrentUser from "@store/user";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { MutationFnProps } from "@type/other";
 import { HTMLAttributes, useCallback, useRef } from "react";
@@ -9,16 +8,17 @@ import toast from "react-hot-toast";
 
 type Props = {
     queryKeys: string[],
+    uid: string | undefined,
     queryFn: (user_id: string) => Promise<any>,
     Button: (arg: { state: any, isPending: boolean, onClick: (newState: any, action: any) => void }) => JSX.Element,
     mutationFn: (_: MutationFnProps) => any;
     Loading?: React.ReactNode,
 } & HTMLAttributes<HTMLButtonElement>
 
-export const LoadingButton = () => (
-    <button className={"primary gap-3"}>
+export const LoadingButton = ({ primary = true }: { primary?: boolean }) => (
+    <button className={primary ? "primary gap-3" : undefined}>
         <span className="animate-spin size-3 inline-flex rounded-full border-2 border-b-transparent border-gray-500 aspect-square"></span>
-        <span>Loading...</span>
+        {primary && <span>Loading...</span>}
     </button>
 );
 
@@ -54,19 +54,17 @@ const getAllQueuedMutations = (): [string, any][] => {
     return Object.entries(map);
 }
 
-const UserBasedButton = ({ Button, queryFn, queryKeys, className, mutationFn, Loading }: Props) => {
+const UserBasedButton = ({ Button, queryFn, queryKeys, className, mutationFn, Loading, uid }: Props) => {
 
-    const { user, isHydrated } = useCurrentUser();
     const queryClient = useQueryClient();
 
     const debounceRef = useRef<NodeJS.Timeout | null>(null);
     const queueId = queryKeys.join("-");
 
-    const { data, error, isFetching, refetch } = useQueryHook({
-        queryFn: () => queryFn(user?._id || ""),
+    const { data, error, isLoading, refetch } = useQueryHook({
+        queryFn: () => queryFn(uid ?? ""),
         queryKeys,
-        enabled: Boolean(user && isHydrated),
-        staleTime: 1000 * 60 * 60,
+        enabled: Boolean(uid),
     });
 
     const { isPending, mutateAsync } = useMutation({
@@ -98,13 +96,11 @@ const UserBasedButton = ({ Button, queryFn, queryKeys, className, mutationFn, Lo
         }, 30000);
     }, [mutateAsync]);
 
-    if (!isHydrated) return <LoadingButton />
-
-    if (!user) return <Button state={null} isPending={false} onClick={() => toast.error("You need to log in!")} />
+    if (!uid) return <Button state={null} isPending={false} onClick={() => toast.error("You need to log in!")} />
 
     const LoadingComponent = Loading ?? <LoadingButton />;
 
-    if (isFetching) return LoadingComponent;
+    if (isLoading) return LoadingComponent;
 
     if (error) return (
         <button
@@ -115,7 +111,7 @@ const UserBasedButton = ({ Button, queryFn, queryKeys, className, mutationFn, Lo
     )
 
     const handleClick = (newState: any, action: any) => {
-        const payload = { newState, action, user_id: user._id };
+        const payload = { newState, action, user_id: uid };
 
         // Optimistic update
         queryClient.setQueryData(queryKeys, newState);

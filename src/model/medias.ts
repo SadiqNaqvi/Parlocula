@@ -1,7 +1,8 @@
-import { CinementModelType } from "@type/models";
-import { Schema, models, model } from "mongoose";
+import { CinementModelType, StrictModel } from "@type/models";
+import { model, models } from "mongoose";
+import { StrictSchema } from "./general";
 
-export const mediaModel = new Schema<CinementModelType>({
+export const mediaModel = new StrictSchema<CinementModelType>({
   title: {
     type: String,
     required: true,
@@ -41,5 +42,11 @@ export const mediaModel = new Schema<CinementModelType>({
   },
 });
 
-const Media = models.Media || model("Media", mediaModel);
+const Media: StrictModel<CinementModelType> =
+  (models.Media as StrictModel<CinementModelType>) ||
+  (model<CinementModelType>(
+    "Media",
+    mediaModel
+  ) as StrictModel<CinementModelType>);
+
 export default Media;

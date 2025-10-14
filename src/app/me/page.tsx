@@ -9,7 +9,7 @@ import Image from "next/image";
 import { PropsWithChildren } from "react";
 
 const ListContainer = ({ children, href }: PropsWithChildren<{ href?: string }>) => (
-    <li className="px-2 *:py-3 border-b last:border-0 border-gray40">
+    <li className="px-2 *:py-3">
         {href ?
             <Navigate comp="link" goto={href} className="size-full flex flex-cntr-between">
                 {children}
@@ -34,7 +34,7 @@ const Page = () => {
     if (!isHydrated) return <LoadingSpinner />
 
     if (!user) return (
-        <section className="stretchContainer flex-col">
+        <section className="forceCenter flex-col">
             <div className="mb-4">
                 <UserIcon className="size-12" />
             </div>
@@ -76,9 +76,6 @@ const Page = () => {
                 <ListContainer href="me/saved/lists">Saved Lists</ListContainer>
 
                 {/* <ListContainer href="/setting/notification">Notifications</ListContainer> */}
-            </Sections>
-            <Sections heading="">
-
             </Sections>
         </>
     )

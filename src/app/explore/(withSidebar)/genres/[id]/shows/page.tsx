@@ -3,17 +3,17 @@
 import InfiniteScroller from "@components/InfiniteScroller";
 import { VerticleMovieCard } from "@components/ui";
 import { fetchShowsWithGenres } from "@lib/contentFetcher";
-import { queryFunction, refineString } from "@lib/utils";
+import { refineString } from "@lib/utils";
 import { RefinedGeneralData } from "@type/external";
 import { GeneralGetReturn } from "@type/internal";
 
 const fetchData = async (page: number, genres: string): Promise<GeneralGetReturn> => {
     const resp = await fetchShowsWithGenres({ page, genres, sort_by: "popularity" })
-    if (!resp) throw new Error("pp200");
+    if (!resp) throw new Error("unstable_internet");
     return { success: true, result: resp };
 }
 
-const Component = ({ id, poster, rating, title, year, type }: RefinedGeneralData) => (
+const Component = ({ id, poster, rating, title, year }: RefinedGeneralData) => (
     <VerticleMovieCard
         link={`/explore/show/${id}-${refineString(title)}`}
         poster={poster}
@@ -29,8 +29,8 @@ export default function Page({ params }: { params: { id: string } }) {
         <section>
             <InfiniteScroller
                 Component={Component}
-                fetchData={(p) => queryFunction(fetchData, [p, id])}
-                queryKeys={["movies", "genres", id]}
+                fetchData={(p) => fetchData(p, id)}
+                queryKeys={["shows", "genres", id]}
                 className="flex flex-wrap gap-3"
             />
         </section>

@@ -1,8 +1,8 @@
-import { Schema, models, model } from "mongoose";
-import { frameModel, linkModel } from "./general";
-import { PostModelType } from "@type/models";
+import { PostModelType, StrictModel } from "@type/models";
+import { model, models, Schema } from "mongoose";
+import { frameModel, linkModel, StrictSchema } from "./general";
 
-const postModel = new Schema<PostModelType>({
+const postModel = new StrictSchema<PostModelType>({
   title: {
     type: String,
     required: [true, "Title of the post is required."],
@@ -62,7 +62,7 @@ const postModel = new Schema<PostModelType>({
     default: 0,
     set: (value: number) => Math.max(value, 0),
   },
-  createdAt: { type: Date, default: Date.now() },
+  createdAt: { type: Date, default: Date.now },
 });
 
 postModel.index(
@@ -81,6 +81,8 @@ postModel.index(
   }
 );
 
-const Post = models.Post || model("Post", postModel);
+const Post: StrictModel<PostModelType> =
+  (models.Post as StrictModel<PostModelType>) ||
+  (model<PostModelType>("Post", postModel) as StrictModel<PostModelType>);
 
 export default Post;

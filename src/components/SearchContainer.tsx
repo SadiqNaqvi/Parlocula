@@ -1,14 +1,19 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { PropsWithChildren, useRef, useState } from "react";
 import InfiniteScroller from "./InfiniteScroller";
-import { InfiniteQueryResponse } from "@type/internal";
+import { GeneralGetReturn, GeneralMultipleReturn, InfiniteQueryResponse } from "@type/internal";
+import { ClickableActionTile, NormalCheckTile } from "./form/CheckAndRadioTile";
+import { queryFunction } from "@lib/utils";
+import toast from "react-hot-toast";
+import { XmarkIcon } from "@assets/Icons";
+import Modal from "./FancyboxModal";
 
 type Props = {
     placeholderSection?: React.ReactNode,
     ComponentToShow: React.ComponentType<any>,
     Loading?: React.ComponentType<any>,
-    queryFn: (query: string, p: number,) => Promise<InfiniteQueryResponse>,
+    queryFn: (query: string, p: number,) => Promise<GeneralMultipleReturn>,
     queryKeys: (q: string) => (string | number)[],
     additional?: any,
     callback?: ((arg: any) => any),
@@ -54,22 +59,21 @@ const SearchContainer = ({ placeholderSection, ComponentToShow, queryFn, Loading
                 </form>
             </header>
             <DefaultWrapper>
-                <section className="size-full">
-                    {query ?
-                        <InfiniteScroller
-                            Component={ComponentToShow}
-                            className="space-y-3 overflow-y-auto"
-                            fetchData={queryFunction}
-                            queryKeys={queryKeys(query)}
-                            Loading={Loading}
-                            additional={additional}
-                            callback={callback}
-                            paginate={false}
-                        />
-                        :
+                {query ?
+                    <InfiniteScroller
+                        Component={ComponentToShow}
+                        fetchData={queryFunction}
+                        queryKeys={queryKeys(query)}
+                        Loading={Loading}
+                        additional={additional}
+                        callback={callback}
+                        paginate={false}
+                    />
+                    :
+                    <section className="size-full">
                         <PlaceholderComponent />
-                    }
-                </section>
+                    </section>
+                }
             </DefaultWrapper>
         </div>
     )
@@ -77,3 +81,94 @@ const SearchContainer = ({ placeholderSection, ComponentToShow, queryFn, Loading
 }
 
 export default SearchContainer;
+
+type ActionProps<T> = {
+    action: (arr: T[]) => unknown,
+    actionButton: React.ReactNode,
+    children: React.ReactNode,
+    queryFn: (query: string, p: number,) => Promise<GeneralGetReturn>,
+    queryKeys: (q: string) => (string | number)[],
+    limit?: number,
+    placeholder?: string,
+    sanitize: (d: T) => {
+        label: string,
+        data: unknown,
+        poster?: string,
+    },
+}
+
+export const ActionSearchContainer = <T,>({ action, sanitize, children, actionButton, queryFn, queryKeys, limit, placeholder }: ActionProps<T>) => {
+
+    const dataMap = useRef<Map<string, T>>(new Map());
+    const [labelArr, setLabelArr] = useState<string[]>([]);
+
+    const removeData = (label: string) => {
+        dataMap.current.delete(label);
+        setLabelArr(labelArr.filter(l => l !== label));
+    }
+
+    const updateDataMap = ({ data, label }: { data: T, label: string }) => {
+        if (Boolean(dataMap.current.get(label))) return removeData(label);
+        else if (limit && labelArr.length >= limit) return toast.error(`Only ${limit} items can be selected`)
+        dataMap.current.set(label, data);
+        setLabelArr([...labelArr, label]);
+    }
+
+    const submit = () => {
+        if (labelArr.length)
+            action(Array.from(dataMap.current.values()));
+    }
+
+    const CheckTile = (d: T) => {
+        const sanitized = sanitize(d);
+        const { label } = sanitized;
+        return <ClickableActionTile
+            action={d => updateDataMap({ data: d as T, label })}
+            checked={Boolean(dataMap.current.get(label))}
+            key={label}
+            {...sanitized} />
+    }
+
+    const Wrapper = ({ children }: PropsWithChildren) => {
+
+        return (
+            <div className="relative forceCenter">
+                {children}
+                {Boolean(labelArr.length) && (
+                    <footer className="flex gap-2 items-center fixed bottom-0">
+                        <div className="flex-1">
+                            <ul className="w-full flex gap-2 overflow-x-auto">
+                                {labelArr.map(l => (
+                                    <li key={l} className="px-2 py-2 bg-gray20 rounded-md text-nowrap">
+                                        <span>{l}</span>
+                                        <button onClick={() => removeData(l)} className="border border-gray40 rounded-md p-2">
+                                            <XmarkIcon className="size-2" />
+                                        </button>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                        <button
+                            onClick={submit}
+                            className="px-3 py-2 rounded-md bg-secondary color-primary">
+                            {actionButton}
+                        </button>
+                    </footer>
+                )}
+            </div>
+        )
+
+    }
+
+    return (
+        <Modal buttonChildren={children} id="actionSearchContainer">
+            <SearchContainer
+                ComponentToShow={CheckTile}
+                queryFn={queryFn}
+                queryKeys={queryKeys}
+                Wrapper={Wrapper}
+                placeholderSection={placeholder}
+            />
+        </Modal>
+    )
+}

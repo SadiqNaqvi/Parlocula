@@ -31,7 +31,7 @@ export const GET = getRequest(async (r: any, params: { username: string }) => {
   );
 
   const posts = response[0];
-  if (!posts) return { success: false, errCode: "pp104" };
+  if (!posts) return { success: false, errCode: "resource_not_found" };
 
   return { result: posts, success: true };
 });

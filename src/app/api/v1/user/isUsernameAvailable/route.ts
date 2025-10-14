@@ -6,7 +6,7 @@ import { NextRequest } from "next/server";
 export const GET = getRequest(async (req: NextRequest) => {
   const username = req.nextUrl.searchParams.get("username");
   if (!username || !usernamePattern.test(username))
-    return { success: false, errCode: "pp205" };
+    return { success: false, errCode: "invalid_input" };
 
   const resp = await User.exists({ username });
   return { result: Boolean(!resp), success: true };

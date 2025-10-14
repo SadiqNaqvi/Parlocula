@@ -19,7 +19,7 @@ export const GET = getRequest(async (r: any, params: { id: string }) => {
   );
 
   const comments = results[0];
-  if (!comments) return { success: false, errCode: "pp104" };
+  if (!comments) return { success: false, errCode: "resource_not_found" };
 
   return { result: comments, success: true };
 });

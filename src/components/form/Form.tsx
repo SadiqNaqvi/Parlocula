@@ -6,19 +6,22 @@ import { forwardRef, HTMLAttributes, } from "react";
 import { useForm, FormProvider } from "react-hook-form"
 import { ZodIssue } from "zod";
 
-type SubmitReturnType = { path: string, message: string }[] | string | null | void | undefined | ZodIssue[]
+export type FormSubmitReturnType = { path: string, message: string }[] | string | null | void | undefined | ZodIssue[]
+
 type FormProps = {
     schema?: any,
-    submit: (data: any) => SubmitReturnType | Promise<SubmitReturnType>,
+    submit: (data: any) => FormSubmitReturnType | Promise<FormSubmitReturnType>,
     defaultVals?: any
+    hideLoading?: boolean
 } & HTMLAttributes<HTMLFormElement>
 
-const FormContainer = ({ children, schema, submit, defaultVals, ...args }: FormProps, ref?: React.LegacyRef<HTMLFormElement>) => {
+const FormContainer = ({ children, schema, submit, defaultVals, hideLoading, ...args }: FormProps, ref?: React.LegacyRef<HTMLFormElement>) => {
 
     const formMethod = useForm({
         resolver: schema ? zodResolver(schema) : undefined,
         defaultValues: defaultVals
     });
+
     const { handleSubmit, setError, formState: { errors, isSubmitting }, reset } = formMethod;
 
     const submitForm = async (data: any) => {
@@ -37,11 +40,11 @@ const FormContainer = ({ children, schema, submit, defaultVals, ...args }: FormP
 
     return (
         <>
-            {isSubmitting &&
+            {isSubmitting && !hideLoading && (
                 <div style={{ margin: 0, padding: 0 }} className="fixed inset-0 backdrop-brightness-[25%] z-[10] cursor-not-allowed">
                     <LoadingSpinner />
                 </div>
-            }
+            )}
             <FormProvider {...formMethod}>
                 <form ref={ref} {...args} onSubmit={handleSubmit(submitForm)}>
                     {children}

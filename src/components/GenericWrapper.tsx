@@ -2,32 +2,49 @@
 
 import { useQueryHook } from "@lib/hooks";
 import { isValidObjectId, queryFunction } from "@lib/utils";
-import { GeneralGetReturn } from "@type/internal";
-import { LoadingSpinner, NotFound, ShowError } from "./ui";
+import useCurrentUser from "@store/user";
+import { GeneralGetReturn, GeneralMultipleReturn } from "@type/internal";
+import Navigate from "./Navigate";
+import { NotFound, ShowError } from "./ui";
+import { FullPageLoadingSpinner } from "./ui/LoadingSpinner";
 
-type QueryProps = {
+type Func = (...args: any[]) => Promise<GeneralGetReturn | GeneralMultipleReturn>
+type QueryProps<F extends Func = Func> = {
     queryKeys: (string | number)[],
-    queryFn: (...args: any) => Promise<GeneralGetReturn>,
-    args: any[],
+    queryFn: F,
+    args: Parameters<F>,
+    onSuccess?: (d: any) => void
 }
 
-type Props<T, P> = {
-    component: (data: T, props: P) => JSX.Element,
+type PropType = { id?: string, [key: string]: any } | null
+
+type Props<T, P extends PropType> = {
     getQueryProps: (props: P) => QueryProps,
+    placeholderData?: T,
     props: P,
-}
+    needUser?: boolean,
+} & ({
+    component: (data: T | null | undefined, props: P) => JSX.Element | null,
+    skipNotFound: true,
+} | {
+    component: (data: T, props: P) => JSX.Element,
+    skipNotFound?: undefined | false,
+})
 
-const GenericWrapper = <T, P extends { id?: string, [key: string]: any }>(
-    { component, getQueryProps, props }: Props<T, P>
+
+const GenericWrapper = <T, P extends PropType>(
+    { component, getQueryProps, props, needUser, skipNotFound, placeholderData }: Props<T, P>
 ) => {
+    const objectId = props?.id?.split('-')[0];
+    const userObj = needUser ? useCurrentUser() : null;
 
-    const objectId = props.id?.split('-')[0];
+    const { args, queryFn, queryKeys, onSuccess } = getQueryProps({ ...(props ?? {}), id: objectId } as P);
 
-    const { args, queryFn, queryKeys } = getQueryProps({ ...(props ?? {}), id: objectId });
-
-    const { data, error, isFetching, refetch } = useQueryHook<T>({
-        queryKeys, queryFn: () => queryFunction(queryFn, args),
-        enabled: Boolean(objectId ? isValidObjectId(objectId) : true),
+    const { data, error, isLoading, refetch } = useQueryHook<T>({
+        queryKeys, queryFn: () => queryFunction(queryFn, args) as Promise<T | null>,
+        enabled: Boolean(objectId ? isValidObjectId(objectId) : true) && Boolean(needUser ? userObj?.user : true),
+        onSuccess,
+        placeholderData,
     });
 
     if (objectId && !isValidObjectId(objectId)) return (
@@ -37,10 +54,15 @@ const GenericWrapper = <T, P extends { id?: string, [key: string]: any }>(
         />
     );
 
-    if (isFetching) return (
-        <div className="size-screen">
-            <LoadingSpinner />
-        </div>
+    if (isLoading || (needUser && userObj?.isHydrated)) return (
+        <FullPageLoadingSpinner />
+    )
+
+    else if (needUser && !userObj?.user) return (
+        <section className="size-screen space-y-4">
+            <ShowError heading="You need to log-in to proceed" />
+            <Navigate comp="link" goto="/join" className="primary">Log in</Navigate>
+        </section>
     )
 
     else if (error) return (
@@ -51,14 +73,14 @@ const GenericWrapper = <T, P extends { id?: string, [key: string]: any }>(
         />
     )
 
-    else if (!data) return (
+    else if (!data && !skipNotFound) return (
         <NotFound
             title="Oops! Looks like the popcorn is missing."
             paras={["Reason: The resource you're looking for might have been deleted.", "Please search it using it's name, title, username, etc. in the explore page."]}
         />
     )
 
-    return component(data, props);
+    return component(data as T, props);
 }
 
 export default GenericWrapper;

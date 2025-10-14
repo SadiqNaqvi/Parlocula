@@ -1,18 +1,19 @@
 "use client";
 
 import { InfiniteScroller } from "@components";
-import { LoadingSpinner, NotFound, ThreadTile } from "@components/ui";
+import { NotFound, ThreadTile } from "@components/ui";
 import { threadsByUser } from "@lib/helpers/common";
-import { generateInitialData, getQueryKeys, queryFunction } from "@lib/utils";
+import { getQueryKeys } from "@lib/utils";
+import useOfflineStore from "@store/offlineStore";
 import useCurrentUser from "@store/user";
+import { InfiniteQueryResponse } from "@type/internal";
 
 const JoinedThreads = () => {
 
-    const { threads, user, isHydrated } = useCurrentUser();
+    const [threadList, setThreadList] = useOfflineStore<InfiniteQueryResponse | undefined>("joined-threads", undefined)
+    const { meta } = useCurrentUser();
 
-    if (!isHydrated) return <LoadingSpinner />
-
-    else if (!user) return (
+    if (!meta) return (
         <NotFound
             title="Nothing to see here"
             paras={["You need to log-in to see your joined threads here."]}
@@ -21,9 +22,13 @@ const JoinedThreads = () => {
 
     return <InfiniteScroller
         Component={ThreadTile}
-        fetchData={(p) => queryFunction(threadsByUser, [user._id, p], p)}
-        queryKeys={getQueryKeys("threadOfUser_uid", { uid: user._id })}
-        initialData={generateInitialData(threads)}
+        fetchData={(p) => threadsByUser(meta.user_id, p)}
+        queryKeys={getQueryKeys("threadOfUser_uid", { uid: meta.user_id })}
+        onSuccess={(d) => {
+            if (d.pages[0]?.page === 1)
+                setThreadList(d.pages[0])
+        }}
+        placeholderData={threadList}
     />
 }
 

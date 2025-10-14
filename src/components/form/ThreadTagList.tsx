@@ -1,6 +1,6 @@
 "use client";
 
-import { CloseButton } from "@components/Modal";
+import { CloseButton } from "@components/FancyboxModal";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { postTags } from "@lib/constants";
 import { tagSchema } from "@lib/schemas";

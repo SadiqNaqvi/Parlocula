@@ -1,7 +1,8 @@
-import { ListItemModelType } from "@type/models";
-import { Schema, model, models } from "mongoose";
+import { ListItemModelType, StrictModel } from "@type/models";
+import { Schema, models, model } from "mongoose";
+import { StrictSchema } from "./general";
 
-const ItemModel = new Schema<ListItemModelType>({
+const itemModel = new StrictSchema<ListItemModelType>({
   media_id: {
     type: Schema.Types.ObjectId,
     ref: "Media",
@@ -19,12 +20,17 @@ const ItemModel = new Schema<ListItemModelType>({
   },
   tmdb_id: { type: String, required: true },
   year: { type: Number, required: true },
-  createdAt: { type: Date, default: Date.now() },
+  createdAt: { type: Date, default: Date.now },
 });
 
-ItemModel.index({ media_id: 1, list_id: 1, tmdb_id: 1 });
-ItemModel.index({ media_id: 1, list_id: 1 }, { unique: true });
+itemModel.index({ media_id: 1, list_id: 1, tmdb_id: 1 });
+itemModel.index({ media_id: 1, list_id: 1 }, { unique: true });
 
-const Item = models.Item || model("Item", ItemModel);
+const Item: StrictModel<ListItemModelType> =
+  (models.Item as StrictModel<ListItemModelType>) ||
+  (model<ListItemModelType>(
+    "Item",
+    itemModel
+  ) as StrictModel<ListItemModelType>);
 
 export default Item;

@@ -47,14 +47,14 @@ export const GET = getRequest(
 
     const result = response[0];
 
-    if (!result) return { success: false, errCode: "pp104" };
+    if (!result) return { success: false, errCode: "resource_not_found" };
 
     const list: FullList = result.list[0];
 
     if (list.isPrivate) {
-      if (!key) return { success: false, errCode: "pp201" };
+      if (!key) return { success: false, errCode: "unauthorized_access" };
       else if (key !== list.listKey)
-        return { success: false, errCode: "pp201" };
+        return { success: false, errCode: "unauthorized_access" };
     }
 
     return {
@@ -79,7 +79,7 @@ export const POST = async (
   if (!success)
     return NextResponse.json({
       success: false,
-      errCode: "pp203",
+      errCode: "form_error",
       formErrors: error.errors,
     });
 
@@ -92,7 +92,7 @@ export const POST = async (
       return NextResponse.json({
         result: null,
         success: false,
-        errCode: "pp101",
+        errCode: "database_connection_fail",
       });
 
     const { add, remove, tmdb_id, year, favourite, recommended, watched } =
@@ -155,7 +155,7 @@ export const POST = async (
     return NextResponse.json(
       {
         success: false,
-        errCode: "pp100",
+        errCode: "unknown_error",
       },
       { status: 500 }
     );

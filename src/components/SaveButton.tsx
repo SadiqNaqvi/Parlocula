@@ -6,8 +6,9 @@ import { saveItem, unsaveItem } from "@lib/helpers/client";
 import { checkIfItemSaved } from "@lib/helpers/common";
 import { getQueryKeys, numberConverter, queryFunction } from "@lib/utils";
 import { MutationFnProps, UserBasedButtonProps } from "@type/other";
+import { LoadingButton } from "./UserBasedButton";
 
-const SaveButton = ({ id, count, type }: { id: string, count: number, type: "Post" | "Comment" | "List" }) => {
+const SaveButton = ({ id, count, type, uid }: { id: string, uid: string | undefined, count: number, type: "Post" | "Comment" | "List" }) => {
 
     const mutationFn = async ({ action, user_id }: MutationFnProps<string>) => {
         if (action === "save")
@@ -31,7 +32,8 @@ const SaveButton = ({ id, count, type }: { id: string, count: number, type: "Pos
     );
 
     return <UserBasedButton
-        Loading={<></>}
+        uid={uid}
+        Loading={<LoadingButton primary={false} />}
         className="flex p-2 border border-gray-500 border-opacity-30 rounded-md"
         Button={Button}
         mutationFn={mutationFn}

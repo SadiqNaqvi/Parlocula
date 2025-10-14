@@ -1,8 +1,7 @@
-import { BookmarkIcon, ChartIcon, CommentIcon, Ellipsis, ShareIcon, ThumbUpIcon } from "@assets/Icons";
+import { BookmarkIcon, CommentIcon, ThumbUpIcon } from "@assets/Icons";
 import { Navigate } from "@components";
-import Carousel from "@components/FancyCarousel";
 import FramesCarousel from "@components/FramesCarousel";
-import { getPoster, numberConverter, timeAgo, refineString } from "@lib/utils";
+import { getPoster, numberConverter, refineString, timeAgo } from "@lib/utils";
 import { MerePost } from "@type/internal";
 import Image from "next/image";
 

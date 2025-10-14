@@ -9,7 +9,7 @@ export const DELETE = deleteRequest(
     const { id } = params;
 
     const posts = await deletePosts({ _id: id, user_id }, session);
-    if (!posts.length) return { success: false, errCode: "pp104" };
+    if (!posts.length) return { success: false, errCode: "resource_not_found" };
 
     const { thread_id, tag } = posts[0];
 

@@ -4,7 +4,7 @@ import ThreadBox, { ThreadBoxLoadingSkeleton } from "@components/ui/ThreadBox";
 import { queryFilters } from "@lib/constants";
 import { getThreadsForMedia } from "@lib/helpers/common";
 import { useQueryHook } from "@lib/hooks";
-import { convertCodeIntoError, queryFunction } from "@lib/utils";
+import { convertErrorIntoCode, queryFunction } from "@lib/utils";
 import { MereThread } from "@type/internal";
 import { useEffect, useRef, useState } from "react";
 
@@ -53,7 +53,7 @@ const ThreadFetcher = ({ id, type }: { id: string, type: string }) => {
 
     else if (error) return (
         <section className="py-4 w-full border-dashed border-red-500 space-x-4">
-            <p className="text-lg text-center">{convertCodeIntoError(error.message) as string}</p>
+            <p className="text-lg text-center">{codetoError(error.message) as string}</p>
             <button className="secondary mx-auto" onClick={() => refetch()}>Try again</button>
         </section>
     )

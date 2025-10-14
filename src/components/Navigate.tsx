@@ -11,29 +11,44 @@ type NavigateType = {
 } & React.ButtonHTMLAttributes<HTMLButtonElement> & React.AnchorHTMLAttributes<HTMLAnchorElement>
 
 
-const Navigate = ({ children, comp, goto, ...args }: NavigateType) => {
+const Navigate = ({ children, comp, goto, type, className, ...args }: NavigateType) => {
 
     const { historyStack, lastPage, popHistory, pushHistory } = useHistoryStack();
     const router = useRouter();
     const pathname = usePathname();
 
     const handleNavigation = () => {
-        if (goto !== "back") {
-            if (!historyStack.length) pushHistory(pathname);
+        if (goto === "back") {
+            historyStack.length && popHistory();
+            router.replace(lastPage && lastPage !== pathname ? lastPage : '/home');
+        } else {
+            if (!historyStack.length)
+                pushHistory(pathname);
             pushHistory(goto);
             comp === "button" && router.push(goto);
-            return
-        };
-        if (historyStack.length) popHistory();
-        router.replace(lastPage && lastPage !== pathname ? lastPage : '/home');
+        }
     }
 
     return (
         <>
-            {comp === "button" ?
-                <button type="button" {...args} onClick={handleNavigation}>{children}</button>
-                :
-                <Link {...args} href={goto} onClick={handleNavigation}>{children}</Link>
+            {comp === "button" ? (
+                <button
+                    {...args}
+                    type="button"
+                    className={className}
+                    onClick={handleNavigation}
+                >
+                    {children}
+                </button>
+            ) : (
+                <Link {...args}
+                    href={goto}
+                    onClick={handleNavigation}
+                    className={(className || '') + (type === "button" ? " no-underline btn" : '')}
+                >
+                    {children}
+                </Link >
+            )
             }
         </>
     )

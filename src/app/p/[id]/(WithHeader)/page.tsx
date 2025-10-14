@@ -3,6 +3,7 @@ import { getQueryClient } from "@lib/queryClient";
 import { getQueryKeys, isValidObjectId, queryFunction, refineSearchParams } from "@lib/utils";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import CommentSection from "./tabs/CommentSection";
+import FilterTiles from "@components/Router/FilterTIles";
 
 type Props = { params: { id: string }, searchParams: { p?: string, f?: string } };
 
@@ -18,7 +19,7 @@ export default async function Page({ params, searchParams }: Props) {
     const { filter, page } = refineSearchParams("comments", searchParams.p, searchParams.f);
 
     await queryClient.prefetchInfiniteQuery({
-        queryKey: getQueryKeys('commentsOfPost_pid_filter_page', { pid, page, filter }),
+        queryKey: getQueryKeys('commentsOfPost_pid_filter_page', { pid, page: String(page), filter }),
         queryFn: () => queryFunction(getCommentsOnPost, [{ id: pid, page, filter }], page),
         initialPageParam: page,
         staleTime: 60 * 60 * 1000,
@@ -27,6 +28,9 @@ export default async function Page({ params, searchParams }: Props) {
 
     return (
         <HydrationBoundary state={dehydrate(queryClient)}>
+            <section className="my-6">
+                <FilterTiles type="comments" />
+            </section>
             <CommentSection filter={filter} id={pid} page={page} />
         </HydrationBoundary>
     )

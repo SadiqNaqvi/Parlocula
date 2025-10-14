@@ -51,7 +51,7 @@ const Page = ({ params: { id } }: { params: { id: string } }) => {
 
         if (!isHydrated) return <LoadingSpinner />
 
-        else if (!user) return <ShowError heading="You're not allowed to edit a post." errCode="pp201" />
+        else if (!user) return <ShowError heading="You're not allowed to edit a post." errCode="unauthorized_access" />
 
         else if (user._id !== data.user_id) return <NotFound title="Oops! Looks like you came across a wrong path" paras={[""]} />
 

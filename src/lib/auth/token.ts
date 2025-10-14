@@ -1,3 +1,4 @@
+import { UserMetaData } from "@store/user";
 import { JWTPayload, SignJWT, jwtVerify } from "jose";
 
 export function getEncryptionKey(): Uint8Array {
@@ -5,7 +6,7 @@ export function getEncryptionKey(): Uint8Array {
   return new Uint8Array(Buffer.from(secret, "hex"));
 }
 
-export const generateToken = async (details: any) => {
+export const generateToken = async (details: UserMetaData) => {
   const secret = getEncryptionKey();
   return await new SignJWT(details)
     .setProtectedHeader({ alg: "HS256" })
@@ -14,19 +15,17 @@ export const generateToken = async (details: any) => {
     .sign(secret);
 };
 
-type ReturnType<T> = T extends undefined
-  ? { user_id: string; username: string }
-  : T;
+type VerifyReturnType<T> = T extends undefined ? UserMetaData : T;
 
 export const verifyToken = async <T = undefined>(
   token: string
-): Promise<(JWTPayload & ReturnType<T>) | null> => {
+): Promise<(JWTPayload & VerifyReturnType<T>) | null> => {
   if (!token) return null;
   const secret = getEncryptionKey();
 
   try {
     const { payload } = await jwtVerify(token, secret);
-    return payload as JWTPayload & ReturnType<T>;
+    return payload as JWTPayload & VerifyReturnType<T>;
   } catch (err: any) {
     console.error("Error verifying token:", err.message);
     if (err.message.includes(`"exp" claim timestamp check failed`))

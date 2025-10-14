@@ -1,21 +1,28 @@
 import placeholder from "@assets/placeholder.png";
-import { GeneralGetReturn, InfiniteQueryResponse } from "@type/internal";
+import {
+  GeneralGetReturn,
+  GeneralMultipleReturn,
+  GeneralPostReturn,
+  GenericDate,
+  InfiniteQueryResponse,
+} from "@type/internal";
 import {
   AvailableCacheTags,
   AvailableQueryKeys,
   AvailableRevalidateTags,
-  CloudinaryMediaObject,
-  CloudinaryMediaOptions,
+  CacheTagsArgs,
+  ErrorCodes,
   getPosterFunctionProps,
   QueryFilterType,
+  QueryKeyArgs,
+  RevalidateTagsArgs
 } from "@type/other";
 import { InputFrame } from "@type/schemas";
 import { Types } from "mongoose";
 import { NextRequest } from "next/server";
-import { ZodIssue } from "zod";
+import toast from "react-hot-toast";
 import {
   cacheTags,
-  cloudinary_media_options,
   cloudinary_postKey,
   cloudinary_uri,
   errorCodes,
@@ -23,7 +30,7 @@ import {
   queryFilters,
   queryKeys,
   queryLimit,
-  revalidateTags,
+  revalidateTags
 } from "./constants";
 
 export const scaleImage = async (file: File): Promise<Blob | null> => {
@@ -34,25 +41,25 @@ export const scaleImage = async (file: File): Promise<Blob | null> => {
   try {
     const blob = await new Promise<Blob | null>(
       (resolve, reject) =>
-        (reader.onloadend = () => {
-          const image = new Image();
-          image.src = reader.result as string;
-          image.onload = () => {
-            const canvas = document.createElement("canvas");
-            canvas.width = image.naturalWidth;
-            canvas.height = image.naturalHeight;
-            const context = canvas.getContext("2d");
-            if (!context) {
-              reject("no context");
-              return null;
-            }
-            context.drawImage(image, 0, 0);
-            canvas.toBlob((blob) => {
-              if (!blob) reject("No blob found");
-              else resolve(blob);
-            }, `image/webp`);
-          };
-        })
+      (reader.onloadend = () => {
+        const image = new Image();
+        image.src = reader.result as string;
+        image.onload = () => {
+          const canvas = document.createElement("canvas");
+          canvas.width = image.naturalWidth;
+          canvas.height = image.naturalHeight;
+          const context = canvas.getContext("2d");
+          if (!context) {
+            reject("no context");
+            return null;
+          }
+          context.drawImage(image, 0, 0);
+          canvas.toBlob((blob) => {
+            if (!blob) reject("No blob found");
+            else resolve(blob);
+          }, `image/webp`);
+        };
+      })
     );
     return blob;
   } catch (err: any) {
@@ -61,7 +68,7 @@ export const scaleImage = async (file: File): Promise<Blob | null> => {
   }
 };
 
-export const timeAgo = (timestamp: number | Date) => {
+export const timeAgo = (timestamp: GenericDate, short?: boolean) => {
   if (!timestamp) return;
   const time = new Date(timestamp).getTime();
 
@@ -70,29 +77,33 @@ export const timeAgo = (timestamp: number | Date) => {
   const mins = Math.floor(secs / 60);
   const hrs = Math.floor(mins / 60);
   const days = Math.floor(hrs / 24);
+  const mons = Math.ceil(days / 30);
   const yrs = Math.floor(days / 365);
 
   const units = [
-    { limit: 60 * 1000, message: "Just Now" },
+    {
+      limit: 60 * 1000,
+      message: short ? "now" : "just now"
+    },
     {
       limit: 60 * 60 * 1000,
-      message: `${mins} min${mins > 1 ? "s" : ""} ago`,
+      message: short ? `${mins} m` : `${mins} min${mins > 1 ? "s" : ""} ago`,
     },
     {
       limit: 24 * 60 * 60 * 1000,
-      message: `${hrs} hour${hrs > 1 ? "s" : ""} ago`,
+      message: short ? `${hrs} h` : `${hrs} hour${hrs > 1 ? "s" : ""} ago`,
     },
     {
       limit: 30 * 24 * 60 * 60 * 1000,
-      message: `${days} day${days > 1 ? "s" : ""} ago`,
+      message: short ? `${days} d` : `${days} day${days > 1 ? "s" : ""} ago`,
     },
     {
       limit: 365 * 24 * 60 * 60 * 1000,
-      message: `${Math.ceil(days / 30)} month${days / 30 > 1 ? "s" : ""} ago`,
+      message: short ? `${mons} mo` : `${mons} month${days / 30 > 1 ? "s" : ""} ago`,
     },
     {
       limit: Infinity,
-      message: `${yrs} year${yrs > 1 ? "s" : ""} ago`,
+      message: short ? `${yrs} y` : `${yrs} year${yrs > 1 ? "s" : ""} ago`,
     },
   ];
 
@@ -110,8 +121,11 @@ export const numberConverter = (num: number): string => {
   return numToShow + comes;
 };
 
-export const calculateAge = (birthDate: Date): number => {
-  if (isNaN(new Date(birthDate).getTime())) return 0;
+export const calculateAge = (bday: GenericDate): number => {
+  const birthDate = new Date(bday);
+
+  if (isNaN(birthDate.getTime())) return 0;
+
   const today = new Date();
   let age = today.getFullYear() - birthDate.getFullYear();
 
@@ -148,7 +162,11 @@ export const formDataToObject = (formData: FormData) => {
         value instanceof File
           ? [...prevFiles, value]
           : (formDataObject.files ?? []);
-    } else formDataObject[key] = JSON.parse(value as string);
+    } else if (value === "undefined") {
+      formDataObject[key] = undefined;
+    } else {
+      formDataObject[key] = JSON.parse(value as string);
+    }
   }
   return formDataObject;
 };
@@ -169,7 +187,7 @@ export const getPoster = (config: getPosterFunctionProps): string => {
     if (!path) return placeholder.src;
     if (path.includes("https")) return path;
 
-    return `${cloudinary_uri}${type??"image"}/upload/${cloudinary_postKey}/${path}${type === "video" ? ".mp4" : ".webp"}`;
+    return `${cloudinary_uri}${type ?? "image"}/upload/${cloudinary_postKey}/${path}${type === "video" ? ".mp4" : ".webp"}`;
   } else {
     const { path, size, type } = config;
     if (!path) return placeholder.src;
@@ -197,7 +215,7 @@ export const getThumbnail = (vid: string) => {
   return vidArr.join(".").concat(".jpg");
 };
 
-export const ObjectId = (id: string) => {
+export const ObjectId = (id?: string) => {
   return new Types.ObjectId(id);
 };
 
@@ -245,15 +263,6 @@ export const decodeObject = (
   }
 };
 
-export const refineZodError = (
-  errors: ZodIssue[]
-): { path: string; message: string }[] => {
-  return errors.map((error) => ({
-    path: `${error.path[0]}`,
-    message: error.message,
-  }));
-};
-
 export const getPageParams = (req: NextRequest, initial: number = 1) => {
   const searchParams = req.nextUrl.searchParams;
   const params = searchParams.get("p") || searchParams.get("page");
@@ -263,20 +272,43 @@ export const getPageParams = (req: NextRequest, initial: number = 1) => {
   return page < 1 ? initial : page; // will return number greater than 0;
 };
 
-export const convertCodeIntoError = (
-  code: string,
-  formError?: ZodIssue[]
-): string | ZodIssue[] => {
-  if (code === "pp203" && formError) return formError;
-  return errorCodes[code]?.message ?? "Something went wrong! Please try again.";
+export const handleMutationResponse = async <T = any>({
+  response,
+  message,
+  onSuccess,
+}: {
+  response: GeneralPostReturn;
+  message?: string;
+  onSuccess?: (result: T) => unknown;
+}) => {
+  const { success, customError, errCode, formError, result } = response;
+  if (success) {
+    await onSuccess?.(result);
+  } else {
+    if (formError) return formError;
+    else if (customError) return customError;
+
+    const error =
+      (errCode && errorCodes[errCode]?.message) ??
+      "Something went wrong! Please try again.";
+
+    message && toast.error(message);
+    toast.error(error);
+  }
+};
+
+export const codetoError = (errCode: ErrorCodes): string => {
+  return (
+    errorCodes[errCode]?.message ?? "Something went wrong! Please try again."
+  );
 };
 
 export const infiniteScrollerResponse = (
   response:
     | {
-        data: any[];
-        total: number;
-      }
+      data: any[];
+      total: number;
+    }
     | InfiniteQueryResponse,
   page: number
 ): InfiniteQueryResponse => {
@@ -306,42 +338,46 @@ export const refineSearchParams = (
   return { page, filter };
 };
 
-type CacheTagsType =
-  | {
-      type: "cache";
-      available: AvailableCacheTags;
-      options: any;
-    }
-  | {
-      type: "revalidate";
-      available: AvailableRevalidateTags;
-      options: any;
-    };
-
-export const getCacheTags = ({ available, options, type }: CacheTagsType) => {
-  const tags =
-    type === "cache"
-      ? cacheTags[available]
-      : type === "revalidate"
-        ? revalidateTags[available]
-        : undefined;
+export const getCacheTags = <K extends AvailableCacheTags>(
+  available: AvailableCacheTags,
+  options: CacheTagsArgs<K>
+) => {
+  const tags = cacheTags[available];
   if (!tags) return [];
 
   return tags.map((tag) =>
     Object.keys(options).reduce(
-      (t, o) => t.replaceAll(`{${o}}`, options[o]),
+      (t, o) => t.replaceAll(`{${o}}`, options[o as keyof typeof options]),
       tag
     )
   );
 };
 
-export const getQueryKeys = (available: AvailableQueryKeys, options: any) => {
+export const getRevalidateTags = <K extends AvailableRevalidateTags>(
+  available: AvailableRevalidateTags,
+  options: RevalidateTagsArgs<K>
+) => {
+  const tags = revalidateTags[available];
+  if (!tags) return [];
+
+  return tags.map((tag) =>
+    Object.keys(options).reduce(
+      (t, o) => t.replaceAll(`{${o}}`, options[o as keyof RevalidateTagsArgs<K>]),
+      tag
+    )
+  );
+};
+
+export const getQueryKeys = <K extends AvailableQueryKeys>(
+  available: K,
+  options: QueryKeyArgs<K>
+): string[] => {
   const keys = queryKeys[available];
   if (!keys) return [];
 
   return keys.map((key) =>
     Object.keys(options).reduce(
-      (t, o) => t.replaceAll(`{${o}}`, options[o]),
+      (t, o) => t.replaceAll(`{${o}}`, options[o as keyof QueryKeyArgs<K>]),
       key
     )
   );
@@ -368,20 +404,27 @@ export const readyFrames = async (
   return { files, filesData };
 };
 
-export const trycatch = async <T = any>(func: () => T, msg?: string) => {
+export const trycatch = <T = GeneralPostReturn>(
+  func: () => Promise<T> | T,
+  msg?: string
+): Promise<T> | T => {
   try {
-    return await func();
+    return func();
   } catch (err: any) {
     console.error(msg || "Error occured:", err.message);
-    return { success: false, errCode: "pp500" };
+    return { success: false, errCode: "unknown_error" } as T;
   }
 };
 
-export const queryFunction = async (
-  func: (...args: any) => Promise<GeneralGetReturn>,
-  args: any[],
-  page?: number
-) => {
+type GetReturns = GeneralGetReturn | GeneralMultipleReturn;
+export const queryFunction = async <
+  F extends (...args: any[]) => Promise<GetReturns>,
+  P extends number | undefined,
+>(
+  func: F,
+  args: Parameters<F>,
+  page?: P
+): Promise<P extends number ? InfiniteQueryResponse : (unknown | null)> => {
   const { success, errCode, result } = await func(...args);
   if (!success) throw new Error(errCode);
   return page ? infiniteScrollerResponse(result, page) : (result ?? null);
@@ -393,10 +436,7 @@ export const generateInitialData = (data: any[]) => ({
 });
 
 export const getLocalUrl = () => {
-  const environment = process.env.NODE_ENV;
-  if (environment === "production")
-    return process.env.NEXT_PUBLIC_PROD_URL ?? "";
-  else return process.env.NEXT_PUBLIC_LOCAL_URL ?? "";
+  return process.env.NEXT_PUBLIC_APP_ROOT ?? "";
 };
 
 export const getTimeInFuture = ({
@@ -404,8 +444,8 @@ export const getTimeInFuture = ({
   unit,
   from,
 }: {
-  timeVal?: number;
   unit: "m" | "h" | "d" | "mo" | "y";
+  timeVal?: number;
   from?: Date | number;
 }) => {
   const provided = from && new Date(from).getTime();
@@ -423,3 +463,67 @@ export const getTimeInFuture = ({
       return now + 1000 * 3600 * 24 * 365 * timeVal;
   }
 };
+
+class ConditionalArray<T> extends Array<T> {
+  /**
+   * @param prop The condition to be checked to concat the item in the array.
+   * @param getItem The function to get the item(s) to be concatenated in the array only if the condition resolves to true. The Non-Nullable `prop` parameter is passed as an argument.
+   * @returns The modified array with the item(s) concatenated if condition resolves to true else the same array.
+   *
+   * Checks the condition, if the condition resolves to true, it `pushes` the item(s) returned from `getItem` function in the array and returns the modified array otherwise returns the same array.
+   */
+  concatConditionally<P extends unknown>(
+    prop: P,
+    getItem: (p: NonNullable<P>) => T | T[]
+  ): this {
+    if (prop) {
+      const item = getItem(prop as NonNullable<P>);
+      const items = Array.isArray(item) ? item : [item];
+      this.push(...items);
+    }
+    return this;
+  }
+}
+
+export const createArray = <T>(initial: T | T[]): ConditionalArray<T> => {
+  const array = Array.isArray(initial) ? initial : [initial];
+  return new ConditionalArray<T>(...array);
+};
+
+export const isMilestoneReached = (n: number | undefined | null) => {
+  if (!n || n < 10) return false;
+  const num = Number(n.toString().replaceAll("0", ""));
+  return [10, 25, 50].includes(num < 10 ? num * 10 : num);
+};
+
+export const capitalize = (str: string) => {
+  if (!str || !str.at(0)) return "";
+  return (str.at(0) ?? "").toUpperCase().concat(str.slice(1, str.length));
+};
+
+// type FieldsWithObject<O, F extends string> = O & {
+//   [K in F]: unknown
+// }
+
+// export const checkFieldsInObject = <O extends Object, F extends string>(fields: F[], object: O): FieldsWithObject<O, F> | null => {
+
+//   const check = fields.every(field => {
+//     if (field in object) return true;
+//     else return false;
+//   })
+
+//   if (check) return object as FieldsWithObject<O, F>;
+//   else return null;
+
+// }
+
+export const checkEditedFields = (oldObj: Record<string, any>, newObj: Record<string, any>) => {
+  const objToReturn: Record<string, any> = {};
+  Object.entries(newObj).forEach(([k, v]) => {
+    if (v instanceof File) return;
+    else if (JSON.stringify(oldObj[k]) === JSON.stringify(newObj[k])) return;
+    objToReturn[k] = v;
+  });
+
+  return objToReturn;
+}

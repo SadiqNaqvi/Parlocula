@@ -1,9 +1,4 @@
 import { getRequest } from "@lib/helpers/common";
-import { Post } from "@model";
-import { NextRequest } from "next/server";
-import { searchHandler } from "../util";
-import { postsAggregationPipeline } from "@lib/pipelines";
+import { searchHandler } from "@lib/pipelines";
 
-export const GET = getRequest(async (r: NextRequest) =>
-  searchHandler(r, postsAggregationPipeline, Post, ["title"])
-);
+export const GET = getRequest(async (r) => await searchHandler({ r, collection: "posts" }));

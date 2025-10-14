@@ -9,7 +9,7 @@ import { register } from "@lib/helpers/client";
 import { isUsernameAvailable } from "@lib/helpers/common";
 import { useCustomReducer } from "@lib/hooks";
 import { registerUserSchemaClient, usernameSchema, userPrefrenceSchema } from "@lib/schemas";
-import { convertCodeIntoError, readyFrames } from "@lib/utils";
+import { codetoError, readyFrames } from "@lib/utils";
 import useCurrentUser from "@store/user";
 import { InputManagerType } from "@type/other";
 import { InputFrame, LinkSchema } from "@type/schemas";
@@ -69,7 +69,6 @@ const Register = ({ email }: { email: string }) => {
                             label={el}
                             key={el}
                             name={el}
-                            className="px-4 py-2 pointer border border-gray20 rounded-full has-[:checked]:border-orange-500"
                         />
                     ))}
                 </div>
@@ -145,7 +144,7 @@ const Register = ({ email }: { email: string }) => {
         }
 
         const { errCode, result, success } = await isUsernameAvailable(data.username);
-        if (!success) return convertCodeIntoError(errCode)
+        if (!success) return codetoError(errCode)
         else if (!result) return [{
             path: "username", message: "Username is not available"
         }]

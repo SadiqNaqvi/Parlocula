@@ -19,7 +19,7 @@ type Props = {
 
 const FancyImage = ({ src, id, download, caption, alt, height, width, type = "image", thumbnail, containerClass, ...args }: Props) => {
 
-    const source = getPoster({external: false, path: src, type });
+    const source = getPoster({ external: false, path: src, type });
 
     return (
         <div

@@ -1,30 +1,58 @@
 "use client";
 
 import { Ellipsis } from "@assets/Icons";
-import { Navigate, OptionMenu } from "@components";
-import OptionList from "@components/ui/OptionList";
+import { OptionMenu } from "@components";
+import { WarningModal } from "@components/Modal";
+import ReportSheet from "@components/ReportSheet";
+import { NestedSheetTrigger } from "@components/ui/OptionList";
+import { blockUser, deleteComment } from "@lib/helpers/client";
 import useCurrentUser from "@store/user";
+import { FullComment } from "@type/internal";
+import EditComment from "./EditComment";
 
-const OptionsButton = ({ author, id }: { author: string, id: string }) => {
+const OptionsButton = ({ author, id, comment }: { author: string, id: string, comment: FullComment }) => {
 
-    const { user, isHydrated } = useCurrentUser();
+    const { meta } = useCurrentUser();
 
-    if (!isHydrated || !user) return null;
+    if (!meta) return null;
 
-    else if (user._id === author) return (
-        <OptionMenu ButtonElement={<Ellipsis />} id="options-picker">
-            <Navigate comp="link" goto={`${id}/edit`} className="px-4 py-2 mb-2 w-full">Edit</Navigate>
-            <OptionList className="text-red-500">Delete</OptionList>
+
+    const handleDelete = () => {
+        deleteComment(id, meta.user_id);
+    }
+
+    const handleBlock = () => {
+        blockUser(meta.user_id, author);
+    }
+
+
+    if (meta.user_id === author) return (
+        <OptionMenu ButtonElement={<Ellipsis />}>
+            <NestedSheetTrigger button="Edit">
+                <EditComment comment={comment} />
+            </NestedSheetTrigger>
+            <NestedSheetTrigger button="Delete">
+                <WarningModal
+                    action="delete this comment"
+                    dangerButton="Delete"
+                    dangerFunc={handleDelete}
+                />
+            </NestedSheetTrigger>
         </OptionMenu>
     )
 
-    else return (
-        <OptionMenu ButtonElement={<Ellipsis />} id="options-picker">
-            <OptionList>Report</OptionList>
-            <OptionList>Flag as Inappropriate</OptionList>
-            <OptionList>Flag as NSFW</OptionList>
-            <OptionList>Flag as Spoiler</OptionList>
-            <OptionList>Block User</OptionList>
+    return (
+        <OptionMenu ButtonElement={<Ellipsis />}>
+            <NestedSheetTrigger button="Report">
+                <ReportSheet id={id} type="comment" />
+            </NestedSheetTrigger>
+            <NestedSheetTrigger button="Block User">
+                <WarningModal
+                    action="block the author this comment"
+                    dangerButton="Block"
+                    dangerFunc={handleBlock}
+                />
+            </NestedSheetTrigger>
         </OptionMenu>
     )
 

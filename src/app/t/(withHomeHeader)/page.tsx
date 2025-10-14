@@ -3,6 +3,7 @@ import { getQueryClient } from "@lib/queryClient";
 import { getQueryKeys, queryFunction, refineSearchParams } from "@lib/utils";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import ThreadList from "./ThreadList";
+import FilterTiles from "@components/Router/FilterTIles";
 
 export default async function Page({ searchParams }: { searchParams: { p?: string, f?: string } }) {
 
@@ -18,6 +19,9 @@ export default async function Page({ searchParams }: { searchParams: { p?: strin
 
     return (
         <HydrationBoundary state={dehydrate(queryClient)}>
+            <section className="my-4">
+                <FilterTiles type="threads" />
+            </section>
             <ThreadList filter={filter} page={page} />
         </HydrationBoundary>
     )

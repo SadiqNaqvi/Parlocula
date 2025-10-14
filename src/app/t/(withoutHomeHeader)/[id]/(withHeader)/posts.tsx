@@ -3,7 +3,7 @@
 import InfiniteScroller from "@components/InfiniteScroller";
 import { FrameTile, PostTile } from "@components/ui";
 import { getPostsOfThread } from "@lib/helpers/common";
-import { getQueryKeys, queryFunction } from "@lib/utils";
+import { getQueryKeys } from "@lib/utils";
 
 type PostTabProps = {
     id: string,
@@ -16,7 +16,6 @@ const PostsSection = ({ id, page = 1, filter, tag }: PostTabProps) => {
 
     const Component = () => {
         if (tag === "frames") return FrameTile;
-        // else if(tag==="links") return LinkList;
         else return PostTile;
     }
 
@@ -32,8 +31,8 @@ const PostsSection = ({ id, page = 1, filter, tag }: PostTabProps) => {
         className={tag === "frames" ? "grid grid-cols-3 gap-3" : undefined}
         notFoundMessage={notFoundMessages}
         Component={Component()}
-        fetchData={(p) => queryFunction(getPostsOfThread, [id, p, filter, tag], p)}
-        queryKeys={getQueryKeys('postsOfThread_tid_filter_page_tag', { tid: id, page, filter, tag: tag ?? "none" })}
+        fetchData={(p) => getPostsOfThread(id, p, filter, tag)}
+        queryKeys={getQueryKeys('postsOfThread_tid_filter_tag', { tid: id, filter, tag: tag ?? "none" })}
     />
 }
 

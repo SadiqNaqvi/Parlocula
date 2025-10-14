@@ -4,8 +4,10 @@ import {
   postRequest,
   updateRequest,
 } from "@lib/helpers/common";
+import { sendNotification } from "@lib/helpers/server";
 import { ObjectId } from "@lib/utils";
 import { Follow, User } from "@model";
+import { User as UserType } from "@type/internal";
 
 // Check the user-user connection.
 export const GET = getRequest(
@@ -70,13 +72,13 @@ const preCheck = async ({
     blocked: true,
   });
 
-  if (isBlocked) return { success: false, errCode: "pp206" };
+  if (isBlocked) return { success: false, errCode: "temporary_banned" };
   return { success: true };
 };
 
 // Following a user.
 export const POST = postRequest({
-  handler: async ({ data, user_id, session, params }) => {
+  handler: async ({ data, user_id, session, username, params }) => {
     const requestedUser = params.id;
     const notification = data.notification;
 
@@ -91,6 +93,7 @@ export const POST = postRequest({
       ],
       { session }
     );
+
     await User.findByIdAndUpdate(
       user_id,
       {
@@ -98,12 +101,30 @@ export const POST = postRequest({
       },
       { session }
     );
-    await User.findByIdAndUpdate(
+
+    const req_user = await User.findByIdAndUpdate<UserType>(
       requestedUser,
       {
         $inc: { follower_count: 1 },
       },
       { session }
+    );
+
+    if (!req_user) return { success: false, errCode: "invalid_object_id" };
+
+    await sendNotification(
+      [
+        {
+          title: `${username} started following you`,
+          path: `/u/${username}`,
+          message: [
+            { type: "link", label: username, path: `/u/${username}` },
+            { type: "text", text: "started following you." },
+          ],
+          user_id: req_user._id,
+        },
+      ],
+      session
     );
 
     return {
@@ -120,13 +141,15 @@ export const POST = postRequest({
 export const DELETE = deleteRequest(async ({ user_id, session, params }) => {
   const requestedUser = params.id;
 
-  await Follow.findOneAndDelete(
+  const doc = await Follow.findOneAndDelete(
     {
       follower: user_id,
       followee: requestedUser,
     },
     { session }
   );
+
+  if (!doc) return { success: true };
 
   await User.findByIdAndUpdate(
     user_id,

@@ -1,36 +1,36 @@
-import { UserModelType } from "@type/models";
-import { Schema, model, models } from "mongoose";
-import { linkModel } from "./general";
+import { StrictModel, UserModelType } from "@type/models";
+import { model, models } from "mongoose";
+import { StrictSchema, linkModel } from "./general";
 
-const userModel = new Schema<UserModelType>(
+const userModel = new StrictSchema<UserModelType>(
   {
     name: {
       type: String,
-      required: [true, "Name of the user is required"],
+      required: true,
     },
     username: {
       type: String,
       unique: true,
       index: true,
-      required: [true, "Name of the user is required"],
+      required: true,
     },
     usernameUpdatedAt: { type: Date, default: null },
     email: {
       type: String,
       unique: true,
       index: true,
-      required: [true, "Email of the user is required"],
+      required: true,
     },
     emailUpdatedAt: { type: Date, default: null },
     dob: {
       type: Date,
-      required: [true, "Date of birth of the user is required"],
+      required: true,
     },
     bio: { type: String, default: "" },
     bioLinks: [linkModel],
     passkey: {
       type: String,
-      required: [true, "Passkey of the user is required"],
+      required: true,
     },
     profile: { type: String, default: "" },
     isActive: { type: Boolean, default: true },
@@ -38,7 +38,7 @@ const userModel = new Schema<UserModelType>(
     // Metadata
     edited_at: { type: Date, default: null },
     session_id: { type: String, index: true },
-    lastLoginAt: { type: Date, default: Date.now() },
+    lastLoginAt: { type: Date, default: Date.now },
     isBanned: { type: Boolean, default: false },
     tempBanned: {
       type: Number,
@@ -92,6 +92,8 @@ userModel.index(
   }
 );
 
-const User = models.User || model<UserModelType>("User", userModel);
+const User: StrictModel<UserModelType> =
+  (models.User as StrictModel<UserModelType>) ||
+  (model<UserModelType>("User", userModel) as StrictModel<UserModelType>);
 
 export default User;

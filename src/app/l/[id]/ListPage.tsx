@@ -16,6 +16,7 @@ type Props = {
     filter: string,
     page: number,
     uid: string | undefined,
+    key: string | undefined,
 }
 
 const getQueryProps = ({ id }: Props) => ({
@@ -25,15 +26,16 @@ const getQueryProps = ({ id }: Props) => ({
 });
 
 const component = (data: FullList, { filter, page, uid }: Props) => {
-    const { _id, createdAt, isPrivate, item_count, key, last_added, list_type, name, poster, saved_count, user_id, username } = data;
+    const { _id, createdAt, isPrivate, item_count, listKey, last_added, list_type, name, poster, collaborators, saved_count, user_id, username } = data;
 
     return (
         <>
             <ObserverHeader
                 titleToShare={`Check out this "${name}" list by ${username} - Popcorn Paragon`}
-                urlToShare={isPrivate ? `/l/private/${_id}?k=${key}` : undefined}
+                urlToShare={isPrivate ? `/l/private/${_id}?k=${listKey}` : undefined}
                 navTitle={name}
                 headerClasses="pb-4 border-b border-gray30">
+                
                 <div className="size-32">
                     {
                         list_type === "custom" ?
@@ -68,15 +70,17 @@ const component = (data: FullList, { filter, page, uid }: Props) => {
                     filter={filter}
                     id={_id}
                     isPrivate={isPrivate}
+                    collaborators={collaborators}
                 />
 
-            </ObserverHeader >
+            </ObserverHeader>
 
             <InfiniteScroller
                 className="mt-6 space-y-4"
                 Component={ItemTile}
-                queryKeys={getQueryKeys("itemsOfList_lid_filter_page", { lid: _id, filter, page })}
-                fetchData={(p) => queryFunction(getItems, [_id, p, filter])}
+                queryKeys={getQueryKeys("itemsOfList_lid_filter", { lid: _id, filter })}
+                fetchData={(p) => getItems(_id, uid, p, filter)}
+                initialPage={page}
             />
         </>
     )

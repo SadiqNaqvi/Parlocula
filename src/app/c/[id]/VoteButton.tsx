@@ -7,7 +7,7 @@ import { getVoteOnComment } from "@lib/helpers/common";
 import { getQueryKeys, numberConverter, queryFunction } from "@lib/utils";
 import { MutationFnProps, UserBasedButtonProps } from "@type/other";
 
-const VoteButton = ({ id, voteCount, author }: { id: string, voteCount: number, author: string }) => {
+const VoteButton = ({ id, voteCount, author, uid }: { id: string, voteCount: number, author: string, uid: string | undefined }) => {
 
     const mutationFn = async ({ newState, action, user_id }: MutationFnProps) => {
         if (action === "vote")
@@ -35,6 +35,7 @@ const VoteButton = ({ id, voteCount, author }: { id: string, voteCount: number, 
     );
 
     return <UserBasedButton
+        uid={uid}
         Button={Button}
         queryFn={(uid) => queryFunction(getVoteOnComment, [id, uid])}
         queryKeys={getQueryKeys("vote_cid", { cid: id })}

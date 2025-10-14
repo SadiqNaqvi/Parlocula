@@ -1,7 +1,8 @@
-import { ReactionModelType } from "@type/models";
-import { Schema, models, model } from "mongoose";
+import { ReactionModelType, StrictModel } from "@type/models";
+import { Schema, model, models } from "mongoose";
+import { StrictSchema } from "./general";
 
-const reactionModel = new Schema<ReactionModelType>(
+const reactionModel = new StrictSchema<ReactionModelType>(
   {
     reaction: {
       type: String,
@@ -23,6 +24,11 @@ const reactionModel = new Schema<ReactionModelType>(
 
 reactionModel.index({ user_id: 1, post_id: 1 }, { unique: true });
 
-const Reaction = models.Reaction || model("Reaction", reactionModel);
+const Reaction: StrictModel<ReactionModelType> =
+  (models.Reaction as StrictModel<ReactionModelType>) ||
+  (model<ReactionModelType>(
+    "Reaction",
+    reactionModel
+  ) as StrictModel<ReactionModelType>);
 
 export default Reaction;

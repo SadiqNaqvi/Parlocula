@@ -1,7 +1,5 @@
-import { LoadingSpinner } from "@components/ui";
+import { FullPageLoadingSpinner } from "@components/ui/LoadingSpinner";
 
-const Loading = () => (
-    <section className="size-screen flex flex-cntr-all"><LoadingSpinner /></section>
-)
+const Loading = () => <FullPageLoadingSpinner />
 
 export default Loading;

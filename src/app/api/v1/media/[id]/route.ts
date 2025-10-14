@@ -5,7 +5,7 @@ export const GET = getRequest(async (_, params: { id: string }) => {
   const { id } = params;
   const mediaDoc = await Media.findOne({ tmdb_id: id });
 
-  if (!mediaDoc) return { success: false, errCode: "pp104" };
+  if (!mediaDoc) return { success: false, errCode: "resource_not_found" };
   return { result: mediaDoc, success: true };
 });
 

@@ -19,6 +19,6 @@ export const GET = getRequest(async (r: NextRequest) => {
   );
 
   const threads = result[0];
-  if (!threads) return { success: false, errCode: "pp104" };
+  if (!threads) return { success: false, errCode: "resource_not_found" };
   return { result: threads, success: true };
 });

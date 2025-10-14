@@ -1,9 +1,12 @@
+import { AllListType } from "@type/models";
 import {
   AvailableCacheTags,
   AvailableQueryKeys,
   AvailableRevalidateTags,
   CloudinaryMediaOptions,
+  ErrorCodes,
   QueryFilterType,
+  ReportReasonType,
 } from "@type/other";
 
 export const movie_genres: Record<string, number> = {
@@ -102,8 +105,6 @@ export const numberOfFrames = {
   videos: 2,
 };
 
-export const postLinksLength = 5;
-
 export const urlPattern =
   /^https:\/\/(www\.)?[a-zA-Z0-9-]{2,}(\.[a-zA-Z0-9-]{2,})+(\/[^\s]*)?(\?[^\s]*)?$/;
 
@@ -153,15 +154,15 @@ export const allowedFormats: Record<string, string[]> = {
 };
 
 export const cloudinary_media_options: Record<CloudinaryMediaOptions, string> =
-  {
-    aspect_ratio: "ar_",
-    crop: "c_",
-    width: "w_",
-    height: "h_",
-    quality: "q_",
-    filter: "f_",
-    round: "r_",
-  };
+{
+  aspect_ratio: "ar_",
+  crop: "c_",
+  width: "w_",
+  height: "h_",
+  quality: "q_",
+  filter: "f_",
+  round: "r_",
+};
 
 export const cloudinary_uri = "https://res.cloudinary.com/dwpbmrgsx/";
 export const cloudinary_postKey = "v1731487676";
@@ -169,103 +170,118 @@ export const cloudinary_postKey = "v1731487676";
 export const queryLimit = 20;
 export const recentlyJoinedLimit = 20;
 export const emailLimit = 3;
-
+export const postLinksLength = 5;
+export const threadManagersLimit = 10;
+export const blockOrBanLimit = 10;
+export const listCollaboratorsLimit = 10;
 export const clientThreadsAndListsLimit = 50;
 
-export const errorCodes: Record<string, { reason: string; message: string }> = {
-  pp100: {
+export const errorCodes: Record<ErrorCodes, { reason: string; message: string }> = {
+  unknown_error: {
     reason: "Server side unknown error.",
     message:
       "Something went wrong on the server side! Please try again but if the error persist, please report it.",
   },
-  pp101: {
+  database_connection_fail: {
     reason: "Database connection failure.",
     message:
       "Failed to connect to the database! Please check your connection and try again.",
   },
-  pp102: {
+  media_upload_fail: {
     reason: "Media upload failure.",
     message:
       "Unable to upload the media files (images/videos) on our hosting provider! Please try again.",
   },
-  pp104: {
+  resource_not_found: {
     reason: "Resource not found",
     message:
       "Unable to find the resource you're looking for! The resource might have been deleted.",
   },
-  pp105: {
+  data_storing_fail: {
     reason: "Data Storing failure",
     message:
       "Unable to store the data in the database! Please try again but if the error persists, report it.",
   },
-  pp106: {
+  session_store_fail: {
     reason: "Session failure",
     message:
       "Your account has been created but we're unable to store a session for you. Please log-in to continue.",
   },
-  pp200: {
+  unstable_internet: {
     reason: "Unstable internet connection of the client.",
     message:
       "Looks like your internet connection is not stable! Please check your connection and try again.",
   },
-  pp201: {
+  unauthorized_access: {
     reason: "Unauthorized user trying to access a private resource.",
     message: "You're not allowed to be here or use this feature.",
   },
-  pp202: {
+  unauthenticated_access: {
     reason: "Un-Authenticated user trying to perform an action.",
     message: "You need to log in to perform this action.",
   },
-  pp203: {
+  form_error: {
     reason: "Form Errors issued by zod.",
     message: "",
   },
-  pp204: {
+  invalid_object_id: {
     reason: "Invalid Object Id found",
     message: "You have came across a wrong way! Please go back and try again.",
   },
-  pp205: {
+  invalid_input: {
     reason: "Invalid Input data other than form data.",
     message:
       "You've given us a wrong information! Please check everything and try again.",
   },
-  pp206: {
+  temporary_banned: {
     reason: "User is temporarily banned to perform post requests.",
     message:
       "You're temporarily banned to perform any post requests. Please try again in some days.",
   },
-  pp207: {
+  blocked_by_author: {
     reason:
-      "A post request could not complete because the current user is blocked by the user related to the content.",
+      "A post request could not complete because the current user is blocked by the author of the content.",
     message: "Something went wrong.",
   },
-  pp208: {
+  not_a_member: {
     reason: "User has not joined the thread but trying to post in it.",
     message:
       "You need to be a member of the thread before start posting in it.",
   },
-  pp209: {
+  email_verification_limit_exceed: {
     reason: "User has reached email verification limit.",
     message:
       "Unable to verify email. Please wait for about an hour and try again.",
   },
-  pp210: {
+  wrong_passkey: {
     reason: "User has provided a wrong passkey while updating their info.",
     message: "Passkey is incorrect. Please try again",
   },
-  pp211: {
+  early_identification_update: {
     reason:
-      "User is trying to update session fields i.e. username or email, within a month of updation.",
+      "User is trying to update identification fields i.e. username or email, within a month of last update.",
     message:
       "You cannot perform this action yet. Please wait for a month and try again.",
   },
-  pp212: {
+  invalid_verification_code: {
     reason: "Incorrect verification code.",
-    message: "Verification Code Incorrect! Please try again.",
+    message: "Incorrect Code! Please try again.",
   },
-  pp500: {
+  verification_code_expired: {
+    reason: "Verification Code expired.",
+    message: "Verification code has been expired! Please try again.",
+  },
+  uncaught_error: {
     reason: "Totally unknown error.",
     message: "Something went wrong! Please try again.",
+  },
+  missing_device_fingerprint: {
+    reason: "Device fingerprint is not provided or stored.",
+    message: "Looks like your device is un-registered. Please try re-sending verification email and try again."
+  },
+  unregistered_user: {
+    reason: "User is not registered. This is not an error but a information to client that user needs to register first.",
+    message: ""
   },
 };
 
@@ -332,62 +348,79 @@ export const oneWeek = oneDay * 7;
 export const queryKeys: Record<AvailableQueryKeys, string[]> = {
   user_username: ["user-{username}"],
   connection_ruid: ["connection-{ruid}"],
-  postsOfUser_username_filter_page: [
+  postsOfUser_username_filter: [
     "posts",
     "{filter}",
-    "{page}",
     "user",
     "{username}",
   ],
+  searchBannedMembers_tid_query: [
+    "search",
+    "bannedMembers",
+    "{tid}",
+    "{query}",
+  ],
+  searchMembers_tid_query: ["search", "members", "{tid}", "{query}"],
   thread_id: ["thread", "{id}"],
+  threadManagers_tid: ["threadManagers", "{tid}"],
   saved_comments_uid: ["saved", "comments", "{uid}"],
   saved_lists_uid: ["saved", "lists", "{uid}"],
   saved_posts_uid: ["saved", "posts", "{uid}"],
-  threadOfUser_uid: ["threads", "user", "{uid}"],
+  threadOfUser_uid: ["threads", "{uid}"],
   threads_filter: ["threads", "{filter}"],
   membership_tid: ["membership", "{tid}"],
-  members_tid_page: ["members", "{tid}", "{page}"],
-  postsOfThread_tid_filter_page_tag: [
+  bannedMembers_tid: ["banned-members", "{tid}"],
+  members_tid: ["members", "{tid}"],
+  postsOfThread_tid_filter_tag: [
     "posts",
     "{filter}",
-    "{page}",
     "thread",
     "{tid}",
     "{tag}",
   ],
-  reposts_pid_page: ["reposts", "{pid}", "{page}"],
+  reposts_pid: ["reposts", "{pid}"],
   post_id: ["post", "{id}"],
   reaction_pid: ["reaction", "{pid}"],
-  commentsOfPost_pid_filter_page: [
+  commentsOfPost_pid_filter: [
     "comments",
     "{filter}",
-    "{page}",
     "post",
     "{pid}",
   ],
-  commentsOfUser_username_filter_page: [
+  commentsOfUser_username_filter: [
     "comments",
     "{filter}",
-    "{page}",
     "user",
     "{username}",
   ],
   comment_cid: ["comment", "{cid}"],
   vote_cid: ["vote", "{cid}"],
-  replies_cid_filter_page: ["replies", "{cid}", "{filter}", "{page}"],
+  replies_cid_filter: ["replies", "{cid}", "{filter}"],
   list_lid: ["list", "{lid}"],
   listsOfUser_username_filter: ["lists-of-user", "{username}", "{filter}"],
-  itemsOfList_lid_filter_page: ["items", "{lid}", "{filter}", "{page}", "list"],
+  itemsOfList_lid_filter: ["items", "{lid}", "{filter}", "list"],
   privateList_lid_key: ["privateList", "{lid}", "{key}"],
-  itemsOfPrivateList_lid_key_filter_page: [
+  itemsOfPrivateList_lid_key_filter: [
     "items",
     "{lid}",
     "{filter}",
-    "{page}",
     "privateList",
     "{key}",
   ],
   isContentSaved_type_id: ["saved", "{type}", "{id}"],
+  notifications_uid: ["notifications-user", "{uid}"],
+  listCollaborators_lid: ["collaborators-{lid}"],
+  "search-followers_uid_query": ["search", "followers", "{uid}", "{query}"],
+  "search-following_uid_query": ["search", "following", "{uid}", "{query}"],
+  followersOfCurrentUser_uid: ["followers", "currentUser", "{uid}"],
+  followingOfCurrentUser_uid: ["following", "currentUser", "{uid}"],
+  rooms_uid: ["rooms", "{uid}"],
+  messages_rmid: ["messages", "{rmid}"],
+  room_rmid_uid: ["room", "{rmid}", "{uid}"],
+  roomInvitations_uid: ["roomInvitations", "{uid}"],
+  roomExists_ruid_uid: ["roomExists", "{ruid}", "{uid}"],
+  reports_cnid: ["reports", "{cnid}"],
+  reportedContents_type_tid: ["reportedContents", "{type}", "threads", "{tid}"]
 };
 
 export const cacheTags: Record<AvailableCacheTags, string[]> = {
@@ -431,10 +464,19 @@ export const cacheTags: Record<AvailableCacheTags, string[]> = {
   ],
   listsForMedia_mid_uid: ["listsForMedia-{mid}-user-{uid}"],
   items_lid_filter_page_key: ["items-{lid}-{page}-{filter}-{key}"],
-  saved_posts_uid_page: ["savedPosts-user-{uid}", "page-{page}"],
-  saved_comments_uid_page: ["savedComments-user-{uid}", "page-{page}"],
-  saved_lists_uid_page: ["savedLists-user-{uid}", "page-{page}"],
+  "saved-posts_uid_page": ["savedPosts-user-{uid}", "page-{page}"],
+  "saved-comments_uid_page": ["savedComments-user-{uid}", "page-{page}"],
+  "saved-lists_uid_page": ["savedLists-user-{uid}", "page-{page}"],
   isSaved_uid_id: ["isSaved-uid-{uid}-content-{id}"],
+  notifications_uid_page: ["notifications-user-{uid}-page-{page}"],
+  threadManagers_tid: ["managers-thread-{tid}"],
+  listCollaborators_lid: ["list-collaborators-{lid}"],
+  followersOfUser_uid_page: ["followers-user-{uid}", "page-{page}"],
+  followingOfUser_uid_page: ["following-user-{uid}", "page-{page}"],
+  roomInvitations_uid: ["roomInvitations-{uid}"],
+  room_rmid_ruid_uid: ["room-rmid-{rmid}-ruid-{ruid}-cuid-{uid}"],
+  reports_cnid: ["reports-{cnid}"],
+  reportExists_cnid_uid: ["reportExists-{cnid}-{uid}"]
 };
 
 export const revalidateTags: Record<AvailableRevalidateTags, string[]> = {
@@ -450,6 +492,7 @@ export const revalidateTags: Record<AvailableRevalidateTags, string[]> = {
     "members-thread-{tid}-page-1",
     "threads-user-{uid}-page-1",
   ],
+  notifications_uid: ["notifications-user-{uid}"],
   loginLogout_uid: ["currentUser-{uid}"],
   postMutation_pid_tid_username_tag: [
     "post-{pid}",
@@ -464,19 +507,27 @@ export const revalidateTags: Record<AvailableRevalidateTags, string[]> = {
     "user-{username}",
   ],
   threadMutation_tid: ["thread-{tid}"],
-  voteMutation_cid_uid: ["vote-comment-{cid}-user-{uid}"],
+  voteMutation_cid_uid_author: [
+    "vote-comment-{cid}-user-{uid}",
+    "notifications-user-{author}",
+  ],
   media_tmdbid: ["media-{tmdbid}"],
   listMutation_lid_username: [
     "list-{lid}",
     "lists-user-{username}-filter-latest-page-2",
   ],
   listUpdation_lid: ["list-{lid}"],
+  listCollaboratorsMutation_lid: ["list-collaborators-{lid}", "list-{lid}"],
   addItemsInList_lid: ["items-{lid}-1-latest"],
   savedPosts_uid: ["savedPosts-user-{uid}"],
   savedComments_uid: ["savedComments-user-{uid}"],
   savedLists_uid: ["savedLists-user-{uid}"],
   isSaved_uid_id: ["isSaved-uid-{uid}-content-{id}"],
-  followUnfollow_rid_uid: ["connection-requestedUser-{rid}-user-{uid}"],
+  followUnfollow_rid_uid: [
+    "connection-requestedUser-{rid}-user-{uid}",
+    "followers-user-{uid}",
+    "following-user-{rid}",
+  ],
   blockUnblock_rid_uid: ["connection-requestedUser-{uid}-user-{rid}"],
   userMutation_uid_username: ["user-{username}", "currentUser-{uid}"],
   userUsernameMutation_uid_oldUsername_newUsername: [
@@ -491,11 +542,14 @@ export const revalidateTags: Record<AvailableRevalidateTags, string[]> = {
     "userExist-{newEmail}",
     "currentUser-{uid}",
   ],
+  threadInviteesMutation_tid: ["managers-thread-{tid}"],
+  threadManagersMutation_tid: ["managers-thread-{tid}", "thread-{tid}"],
+  roomInvitations_uid: ["roomInvitations-{uid}"],
 };
 
 export const optimisedImageProps: Record<
   string,
-  { width: number; height: number; alt: string; [key: string]: any }
+  { width: number; height: number; alt: string;[key: string]: any }
 > = {
   poster: {
     height: 128,
@@ -506,12 +560,44 @@ export const optimisedImageProps: Record<
   },
 };
 
-export const listsToChoose = ["favourite", "recommended"];
-export const predefinedLists = ["favourite", "recommended", "watched"];
+export const listsToChoose: AllListType[] = ["favourite", "recommended"];
+export const predefinedLists: AllListType[] = ["favourite", "recommended", "watched"];
 export const listsToShow = [
   "favourite",
   "recommended",
   "watched",
   "saved",
   "private",
+];
+
+const commonReportOptions: ReportReasonType[] = [
+  "Spam or Promoting Spam",
+  "Harassment/Threatening",
+  "Hate/Abuse",
+  "Promoting or Mentioning illegal activities",
+  "Promoting/Selling Items",
+  "Attached Malicious/Harmful Links",
+  "Promoting/Performing Self harm or Suicide",
+  "Spreading False Information",
+];
+
+export const contentReportOptions: ReportReasonType[] = [
+  "Flag as NSFW",
+  "Flag as Spoiler",
+  "Minor Abuse or Sexualization",
+  "Inappropriate Content",
+  ...commonReportOptions,
+];
+
+export const userReportOptions: ReportReasonType[] = [
+  ...commonReportOptions,
+  "Impersonation/Pretending to be someone else",
+  "No Longer Active",
+  "Scam or Fraud",
+  "Under-age User",
+];
+
+export const threadReportOptions: ReportReasonType[] = [
+  ...commonReportOptions,
+  "Duplicate Thread",
 ];

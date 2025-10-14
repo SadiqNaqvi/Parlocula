@@ -1,7 +1,7 @@
 import { getRequest } from "@lib/helpers/common";
 import { User } from "@model";
 
-export const GET = getRequest(async (_, params: { username: string }) => {
+export const GET = getRequest(async (_, params) => {
   const { username } = params;
 
   const response = await User.aggregate([
@@ -45,7 +45,7 @@ export const GET = getRequest(async (_, params: { username: string }) => {
   ]);
 
   const result = response[0];
-  if (!result) return { success: false, errCode: "pp104" };
+  if (!result) return { success: false, errCode: "resource_not_found" };
 
   return { result, success: true };
 });

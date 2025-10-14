@@ -1,17 +1,22 @@
-import { Bookmark, Comment, Item, List, Post, Reaction, Vote } from "@model";
+import { Bookmark, Comment, Follow, Item, List, Post, Reaction, Vote } from "@model";
+import Message from "@model/messages";
+import Participant from "@model/participants";
+import Room from "@model/rooms";
+import { BookmarkModelType, CommentModelType, ListModelType, PostModelType, RoomModelType } from "@type/models";
 import { ClientSession } from "mongoose";
 import { deleteMultipleMedia } from "./server";
+import { GenericDate } from "@type/internal";
 
 type Doc = { _id: string };
 
-type func = (filter: any, session: ClientSession) => Promise<any[]>;
+type func<M, K extends keyof M = keyof M> = (filter: Partial<Record<K, any>>, session: ClientSession) => Promise<any[]>;
 
-export const deleteBookmarks: func = async (filter, session) => {
+export const deleteBookmarks: func<BookmarkModelType> = async (filter, session) => {
   await Bookmark.deleteMany(filter, { session });
   return [];
 };
 
-export const deleteLists: func = async (filter, session) => {
+export const deleteLists: func<ListModelType> = async (filter, session) => {
   const lists: Doc[] = await List.find(filter, { _id: 1 }, { session });
 
   if (!lists.length) return lists;
@@ -26,7 +31,7 @@ export const deleteLists: func = async (filter, session) => {
   return lists;
 };
 
-export const deleteComments: func = async (filter, session) => {
+export const deleteComments: func<CommentModelType> = async (filter, session) => {
   const comments: Doc[] = await Comment.find(filter, { _id: 1 }, { session });
 
   if (!comments.length) return comments;
@@ -44,7 +49,7 @@ export const deleteComments: func = async (filter, session) => {
   return comments;
 };
 
-export const deletePosts: func = async (filter, session) => {
+export const deletePosts: func<PostModelType> = async (filter, session) => {
   type Post = Doc & { frames: { path: string; type: "image" | "video" }[] };
 
   const posts: Post[] = await Post.find(
@@ -74,3 +79,48 @@ export const deletePosts: func = async (filter, session) => {
   Post.deleteMany(filter, { session, ordered: true });
   return posts;
 };
+
+export const deleteRoom: func<RoomModelType> = async (filter, session) => {
+
+  const rooms = await Room.find(filter);
+
+  for (const r of rooms) {
+    const room = r.toObject();
+    if (!room) continue;
+
+    await Room.findByIdAndDelete(room._id, { session });
+    await Participant.deleteMany({ room_id: room._id }, { session });
+    await Message.deleteMany({ room_id: room._id }, { session });
+  }
+
+  return rooms;
+
+};
+
+export const timeBasedReversion = async (user_id: string, date: GenericDate, session: ClientSession) => {
+
+  const createdAtFilter = { $gt: new Date(date) };
+
+  const filter = {
+    user_id,
+    createdAt: createdAtFilter,
+  }
+
+  await deletePosts(filter, session);
+
+  await deleteComments(filter, session);
+
+  await deleteBookmarks(filter, session);
+
+  await deleteLists(filter, session);
+
+  await Participant.deleteMany(filter, { session });
+
+  await Message.deleteMany(filter, { session });
+
+  await Follow.deleteMany({ follower: user_id, createdAt: createdAtFilter }, { session });
+
+  await Reaction.deleteMany(filter, { session });
+
+  await Vote.deleteMany(filter, { session })
+}

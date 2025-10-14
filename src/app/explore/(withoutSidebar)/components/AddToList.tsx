@@ -9,7 +9,7 @@ import useCurrentUser from "@store/user";
 import { InputMediaType } from "@type/schemas";
 import { InfiniteScroller, ListForm, Modal, Navigate } from "@components";
 import { CheckTile, Form } from "@components/form";
-import { CloseAndTrigger, Popover } from "@components/Modal";
+import { CloseAndTrigger, Popover } from "@components/FancyboxModal";
 import { LoadingSpinner } from "@components/ui";
 
 type Props = {

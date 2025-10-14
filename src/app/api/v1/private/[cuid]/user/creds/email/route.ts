@@ -22,7 +22,7 @@ export const PATCH = updateRequest({
     else if (!passkey)
       return {
         success: false,
-        errCode: "pp203",
+        errCode: "form_error",
         formErrors: [
           {
             path: "passkey",
@@ -36,7 +36,7 @@ export const PATCH = updateRequest({
       { passkey: 1, emailUpdatedAt: 1 }
     );
 
-    if (!user) return { success: false, errCode: "pp202" };
+    if (!user) return { success: false, errCode: "unauthenticated_access" };
     else if (
       user.emailUpdatedAt &&
       getTimeInFuture({ unit: "mo", from: user.emailUpdatedAt }) > Date.now()
@@ -44,17 +44,17 @@ export const PATCH = updateRequest({
       return { success: false, errCode: "pp211" };
 
     if (!bcrypt.compareSync(passkey, user.passkey))
-      return { success: false, errCode: "pp210" };
+      return { success: false, errCode: "wrong_passkey" };
 
     const cookieStore = cookies();
     const sid = cookieStore.get("sid")?.value ?? "";
     const { result, success } = await getSession(sid);
-    if (!success || !result) return { success: false, errCode: "pp100" };
+    if (!success || !result) return { success: false, errCode: "unknown_error" };
 
     if (!(await storeSession(sid, { ...result, email })))
       return {
         success: false,
-        errCode: "pp100",
+        errCode: "unknown_error",
       };
 
     const stored = await User.findByIdAndUpdate(user_id, {
@@ -63,7 +63,7 @@ export const PATCH = updateRequest({
 
     if (!stored) {
       await storeSession(sid, result);
-      return { success: false, errCode: "pp100" };
+      return { success: false, errCode: "unknown_error" };
     }
 
     return {

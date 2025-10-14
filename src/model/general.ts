@@ -1,11 +1,9 @@
 import {
   ConnectionModelType,
   FrameModelType,
-  LastUpdateModelType,
   LinkModelType,
-  RecentlyJoinedModelType
 } from "@type/models";
-import { Schema } from "mongoose";
+import { ApplySchemaOptions, FlatRecord, Schema, SchemaDefinitionProperty, SchemaOptions, SchemaTypeOptions } from "mongoose";
 
 export const linkModel = new Schema<LinkModelType>({
   label: {
@@ -21,6 +19,7 @@ export const linkModel = new Schema<LinkModelType>({
 export const connectionModel = new Schema<ConnectionModelType>({
   type: {
     type: String,
+    enum: ["person", "movie", "show"],
     required: true,
   },
   path: {
@@ -31,21 +30,6 @@ export const connectionModel = new Schema<ConnectionModelType>({
     type: String,
     required: true,
   },
-});
-
-export const recentlyJoinedModel = new Schema<RecentlyJoinedModelType>({
-  name: String,
-  poster: String,
-  thread_id: Schema.Types.ObjectId,
-});
-
-export const lastUpdate = new Schema<LastUpdateModelType>({
-  name: String,
-  poster: String,
-  description: String,
-  nsfw: Boolean,
-  links: [linkModel],
-  connection: [connectionModel],
 });
 
 export const frameModel = new Schema<FrameModelType>({
@@ -60,3 +44,14 @@ export const frameModel = new Schema<FrameModelType>({
   },
   isExternal: Boolean,
 });
+
+type ExactSchemaDefinition<T> = {
+  [K in keyof T]-?: SchemaDefinitionProperty<T[K]> | SchemaTypeOptions<T[K]>;
+};
+
+// Our strict Schema class
+export class StrictSchema<T> extends Schema<T> {
+  constructor(definition: ExactSchemaDefinition<T>, options?: SchemaOptions<any>) {
+    super(definition as any, options);
+  }
+}

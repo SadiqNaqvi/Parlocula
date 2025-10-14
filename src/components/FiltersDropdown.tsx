@@ -5,7 +5,7 @@ import OptionMenu from "./OptionMenu";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { queryFilters } from "@lib/constants";
 import { QueryFilterType } from "@type/other";
-import { CloseButton } from "./Modal";
+import { CloseButton } from "./FancyboxModal";
 
 const FilterDropdown = ({ type }: { type: QueryFilterType }) => {
     const router = useRouter();

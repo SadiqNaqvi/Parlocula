@@ -18,14 +18,14 @@ const ThreadHomeLayout = ({ children }: Readonly<{ children: React.ReactNode, }>
                 <header className="py-8">
                     <h1 className="text-6xl text-center uppercase font-semibold">Welcome to Threads</h1>
                     <p className="text-zinc-500 text-center mt-2">Explore the fandom of your favourite movies, shows, celebrities, characters and connect with the die hard fans.</p>
+                    <section className="mt-4 flex items-center">
+                        <TabContainer className="my-4 w-full">
+                            <TabList href="/t/joined">Joined</TabList>
+                            <TabList href="/t">Popular</TabList>
+                        </TabContainer>
+                        <Navigate className="p-2 border border-gray30 rounded-md mx-2" comp="link" goto="/t/new" ><AddIcon /></Navigate>
+                    </section>
                 </header>
-                <section className="flex items-center">
-                    <TabContainer className="my-4 w-full">
-                        <TabList href="/t/joined">Joined</TabList>
-                        <TabList href="/t">Popular</TabList>
-                    </TabContainer>
-                    <Navigate className="px-2 mx-2" comp="link" goto="/t/new" ><AddIcon /></Navigate>
-                </section>
                 {children}
             </main >
         </>

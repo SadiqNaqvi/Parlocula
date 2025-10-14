@@ -1,7 +1,6 @@
 import { oneHour } from "@lib/constants";
 import { decodeObject, encodeObject } from "@lib/utils";
 import { type User } from "@type/internal";
-import { ContentMutationProps, MereContent } from "@type/other";
 import localforage from "localforage";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
@@ -19,20 +18,25 @@ export const localForageStorage = {
   },
 };
 
+export type UserMetaData = {
+  user_id: string;
+  username: string;
+  profile: string | undefined;
+};
+
 type UserStore = {
   user: User | null;
+  // userhash is stored locally for offline access
   userhash: Buffer<ArrayBuffer> | null;
+  // meta will be updated based on the token and session. it is not stored locally instead it is set every time the app mounts
+  meta: UserMetaData | null;
   setUser: (data: User) => void;
+  setUserMeta: (meta: UserMetaData) => void;
   getUserFromHash: () => (User & { object_expiry: number }) | null;
   setUserHash: (data: User) => void;
   clearUser: () => void;
 
   isHydrated: boolean;
-
-  threads: MereContent[];
-  lists: MereContent[];
-  updateThreads: (a: ContentMutationProps) => void;
-  updateLists: (a: ContentMutationProps) => void;
 };
 
 const useCurrentUser = create(
@@ -40,41 +44,17 @@ const useCurrentUser = create(
     (set, get) => ({
       user: null,
       userhash: null,
+      meta: null,
       isHydrated: false,
 
       setUser: (data: User) => set({ user: data }),
-
+      setUserMeta: (meta: UserMetaData) => set({ meta }),
       setUserHash: (data: User) =>
         set({ userhash: encodeObject(data, 1000 * oneHour * 6), user: data }),
 
       getUserFromHash: () => decodeObject(get().userhash),
 
       clearUser: () => set({ user: null, userhash: null }),
-
-      threads: [],
-      lists: [],
-
-      updateLists: ({ data, action }) => {
-        let tempLists = get().lists;
-        if (action === "add") {
-          if (tempLists.length >= 20) tempLists.pop();
-          tempLists.unshift(data);
-        } else {
-          tempLists = tempLists.filter((el) => el._id !== data.id);
-        }
-        set({ lists: tempLists });
-      },
-
-      updateThreads: ({ data, action }) => {
-        let tempThreads = get().threads;
-        if (action === "add") {
-          if (tempThreads.length >= 20) tempThreads.pop();
-          tempThreads.unshift(data);
-        } else {
-          tempThreads = tempThreads.filter((el) => el._id !== data.id);
-        }
-        set({ threads: tempThreads });
-      },
     }),
     {
       name: "UserStorage",
@@ -87,8 +67,6 @@ const useCurrentUser = create(
       },
       partialize: (state: UserStore) => ({
         userhash: state.userhash,
-        threads: state.threads,
-        lists: state.lists,
       }),
     }
   )

@@ -9,7 +9,7 @@ export const TabContainer = ({ children, className = "" }: { children: React.Rea
     )
 }
 
-export const TabList = ({ children, className = "", href, isActive }: { children: React.ReactNode, isActive?: boolean, href: string, className?: string }) => {
+export const TabList = ({ children, className = "", href }: { children: React.ReactNode, href: string, className?: string }) => {
 
     const router = useRouter();
     const pathname = usePathname();
@@ -18,7 +18,8 @@ export const TabList = ({ children, className = "", href, isActive }: { children
         router.replace(href);
     }
 
-    const active = pathname.includes(href);
+    const [path] = pathname.split('-');
+    const active = path === href;
 
     return (
         <li className={`flex-1 min-w-[24%] *:py-2 border-b-2 border-transparent ${active ? "border-secondary" : "border-gray30"} ${className}`}>
