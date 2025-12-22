@@ -1,80 +1,41 @@
-import { deleteRequest, updateRequest } from "@lib/helpers/common";
-import { ObjectId } from "@lib/utils";
-import { Member, Thread } from "@model";
+import { deleteHandler, updateHandler } from "@lib/helpers/handlers";
+import { Member } from "@model";
 
-// Making sure the current user is a member as well as in the invitees array of the thread.
-const precheck = async (tid: string, uid: string) => {
-  const response = await Member.aggregate([
-    { $match: { thread_id: ObjectId(tid), user_id: ObjectId(uid) } },
-    {
-      $lookup: {
-        from: "threads",
-        localField: "thread_id",
-        foreignField: "_id",
-        as: "thread",
-      },
-    },
-    {
-      $addFields: {
-        invitees: {
-          $ifNull: [
-            {
-              $arrayElemAt: ["$thread.invitees", 0],
-            },
-            [],
-          ],
-        },
-      },
-    },
-    {
-      $project: {
-        invitees: 1,
-      },
-    },
-  ]);
-
-  const member: { invitees: string[] } | null = response[0];
-  if (!member) return { success: false, errCode: "unauthorized_access" };
-
-  if (!member.invitees.find((i: string) => i === uid))
-    return { success: false, errCode: "unauthorized_access" };
-  else return { success: true };
-};
-
-// Invitee accepted manager invitation
-export const PATCH = updateRequest({
-  handler: async ({ user_id, params }) => {
+// Invitee accepts manager invitation
+export const PATCH = updateHandler({
+  handler: async ({ user_id, params, session }) => {
     const { id } = params;
 
-    await Thread.findByIdAndUpdate(id, {
-      $addToSet: { managers: user_id },
-      $pull: { invitees: user_id },
-    });
+    await Member.findOneAndUpdate(
+      { thread_id: id, user_id, role: "invitee" },
+      { $set: { role: "moderator" } },
+      { session }
+    );
 
     return {
       success: true,
       result: null,
-      available: "threadManagersMutation_tid",
-      options: { tid: id },
+      available: "threadManagersMutation_tid_uid",
+      options: { tid: id, uid: user_id },
     };
-  },
-  preCheck: async ({ params, user_id }) => await precheck(params.id, user_id),
+  }
 });
 
-// Invitee rejected manager invitation
-export const DELETE = deleteRequest(async ({ user_id, params }) => {
-  const { id } = params;
-  const resp = await precheck(id, user_id);
-  if (!resp.success) return resp;
+// Invitee rejects manager invitation
+export const DELETE = deleteHandler(async ({ user_id, params, session }) => {
 
-  await Thread.findByIdAndUpdate(id, {
-    $pull: { invitees: user_id },
-  });
+  const { id } = params;
+
+  await Member.findOneAndUpdate(
+    { thread_id: id, user_id, role: "invitee" },
+    { $set: { role: "member" } },
+    { session }
+  );
 
   return {
     success: true,
     result: null,
-    available: "threadInviteesMutation_tid",
-    options: { tid: id },
+    available: "threadManagersMutation_tid_uid",
+    options: { tid: id, uid: user_id },
   };
 });

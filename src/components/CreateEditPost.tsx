@@ -1,15 +1,15 @@
 "use client";
 
-import ChooseThreadButton from "@app/new/threadChoice";
-import { AlertIcon } from "@assets/Icons";
+import ChooseThreadButton from "@app/post/new/threadChoice";
 import { LinkInputManager, Navbar } from "@components";
-import { Form, PostTagList, Textarea, ToggleButton } from "@components/form";
-import { numberOfFrames, postLinksLength, postTags } from "@lib/constants";
+import { Form, Textarea, ToggleButton } from "@components/form";
+import { MereThread } from "@type/internal";
 import { InputManagerType } from "@type/other";
 import { InputFrame, LinkSchema } from "@type/schemas";
 import { useRef, useState } from "react";
-import { BottomSheet } from "./BottomSheet";
-import MediaInputManager from "./form/MediaInputCont";
+import MediaInputManager from "./form/MediaPicker";
+import PostCategoryPicker from "./form/PostCategoryPicker";
+import DescriptiveSheet from "./sheets/DescriptiveSheet";
 
 type PostClientCommon = {
     title: string,
@@ -18,57 +18,44 @@ type PostClientCommon = {
     spoiler: boolean,
 };
 
-type CallbackVal = PostClientCommon & {
-    tag: string,
+export type CreateEditPostReturn = PostClientCommon & {
+    category: string,
     frames: InputFrame[],
     links: LinkSchema[],
     thread_id?: string,
 }
 
 type Props = {
-    defaultVals?: CallbackVal,
-    callback: (arg: CallbackVal) => void,
+    defaultVal: CreateEditPostReturn | undefined,
+    callback: (arg: CreateEditPostReturn) => Promise<any>,
     isEditing: boolean,
-    defaultThread?: string,
+    defaultThread: MereThread | undefined,
+    titleOfQuotedPost: string | undefined,
 }
 
-const CreateEditPost = ({ defaultVals, callback, isEditing, defaultThread }: Props) => {
+const CreateEditPost = ({ defaultVal, callback, isEditing, defaultThread, titleOfQuotedPost }: Props) => {
 
     const formRef = useRef<HTMLFormElement | null>(null);
     const linksRef = useRef<InputManagerType>(null);
     const framesRef = useRef<InputManagerType>(null);
     const threadRef = useRef<InputManagerType>(null);
 
-    const [tag, setTag] = useState(defaultVals?.tag ?? "");
+    const [category, setCategory] = useState(defaultVal?.category ?? "");
 
-    const addTag = (tag: string) => {
-        setTag(tag);
-    }
-
-    const validateExtraFields = (links: any[], frames: InputFrame[]) => {
-        if (!postTags.includes(tag)) return "Invalid Tag! Please choose a valid tag."
-
-        if (tag === "frames" && !(frames.length >= 1 && frames.length <= numberOfFrames.total))
-            return `Frames based post must have at least 1 frame and upto ${numberOfFrames.total} frames are allowed`
-        else if (tag === "links" && !(links.length >= 1 && links.length <= postLinksLength))
-            return `Links based post must have at least 1 link and upto ${postLinksLength} links are allowed`
-        else if (tag !== "frames" && frames.length > 1) return "Only one frame is allowed in non-frame post"
+    const addCategory = (category: string) => {
+        setCategory(category);
     }
 
     const submitForm = async (data: PostClientCommon) => {
-        const thread_id = defaultThread ?? threadRef.current?.getData();
-
-        if (!isEditing && !thread_id) return "Choose a thread to post."
+        const thread_id = defaultThread?._id ?? threadRef.current?.getData();
+        console.log(thread_id)
+        if (!(isEditing || thread_id)) return "Choose a thread to post."
 
         const links = linksRef.current?.getData();
         const frames = framesRef.current?.getData();
 
-
-        const error = validateExtraFields(links, frames);
-        if (error) return error;
-
         const callbackData = Object({
-            ...data, frames, tag, links,
+            ...data, frames, category, links,
             ...(!isEditing && { thread_id })
         })
 
@@ -86,25 +73,34 @@ const CreateEditPost = ({ defaultVals, callback, isEditing, defaultThread }: Pro
                 OptionButton={<button className="primary" onClick={requestSubmit}>Post</button>}
             />
 
-            <section className="flex mb-4 gap-2 overflow-x-auto">
-                {!isEditing && !defaultThread && (
-                    <ChooseThreadButton ref={threadRef} />
-                )}
-                <BottomSheet
-                    className="gap-3 py-2 px-3 rounded-full bg-gray10"
-                    button={tag ?
-                        <>
-                            <AlertIcon className="h-4" />
-                            <span className="text-sm">{tag}</span>
-                        </>
-                        :
-                        "Choose Tag"
-                    }>
-                    <PostTagList defaultTag={tag} func={addTag} />
-                </BottomSheet>
+            {!isEditing && titleOfQuotedPost && (
+                <section className="my-2 w-full border border-gray50 p-2">
+                    <p className="font-semibold line-clamp-2">{titleOfQuotedPost}</p>
+                </section>
+            )}
+
+            <section className="flex flex-cntr-between my-4 overflow-x-auto px-2 sm:px-4">
+                <div className="flex gap-2">
+                    {!isEditing && (
+                        <ChooseThreadButton defaultVal={defaultThread} ref={threadRef} />
+                    )}
+
+                    <PostCategoryPicker defaultCategory={category} func={addCategory} />
+                </div>
+                <div>
+                    <DescriptiveSheet
+                        title="rules"
+                        descriptions={[
+                            "If any of the content in this post, either title, body, frames or links contain NSFW or Spoiler, please mark them accordingly.",
+                            "Wrong flags may lead to temporary or in some cases, permanent ban."
+                        ]}
+                    >
+                        Rules
+                    </DescriptiveSheet>
+                </div>
             </section>
 
-            <Form defaultVals={defaultVals} className="space-y-4" ref={formRef} submit={submitForm}>
+            <Form defaultVals={defaultVal} className="space-y-4 px-2 sm:px-4" ref={formRef} submit={submitForm}>
                 <Textarea
                     required
                     autoFocus
@@ -126,8 +122,9 @@ const CreateEditPost = ({ defaultVals, callback, isEditing, defaultThread }: Pro
                 <ToggleButton label="nsfw" className="mt-3 uppercase w-full" />
                 <ToggleButton label="spoiler" className="mt-3 capitalize w-full" />
             </Form>
-            <section className="mt-4 space-y-3">
-                <MediaInputManager allowBoth defaultFrames={defaultVals?.frames} limit={tag === "frames" ? 5 : undefined} ref={framesRef} />
+
+            <section className="mt-4 space-y-3 px-2 sm:px-4">
+                <MediaInputManager allowBoth defaultFrames={defaultVal?.frames} limit={category === "frames" ? 5 : undefined} ref={framesRef} />
 
                 <LinkInputManager ref={linksRef} />
             </section>

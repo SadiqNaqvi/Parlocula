@@ -1,56 +1,62 @@
 import { Navbar } from "@components";
 import { Form, Input, Poster, Textarea } from "@components/form";
 import ListSelector, { ListSelectorRef } from "@components/ListSelector";
-import { createRoom } from "@lib/helpers/client";
-import { searchUsersForGroup } from "@lib/helpers/common";
-import { useCreateRoomMutation } from "@lib/helpers/room/client";
+import { searchNonBlockedUsers } from "@lib/helpers/common";
+import { createRoomMutation } from "@lib/helpers/mutations";
 import { useCustomReducer } from "@lib/hooks";
 import { roomSchemaClient } from "@lib/schemas";
-import { ObjectId, readyFrames } from "@lib/utils";
+import { getQueryKeys, parloId, readyFrames } from "@lib/utils";
+import { useNavigation } from "@store/historystack";
 import useCurrentUser from "@store/user";
-import { MereUser } from "@type/internal";
-import { InputManagerType } from "@type/other";
-import { InputFrame, RoomSchemaType } from "@type/schemas";
+import { InputManagerType, TypedFunction } from "@type/other";
+import { InputFrame } from "@type/schemas";
+import { nanoid } from "nanoid";
 import { PropsWithChildren, useRef } from "react";
 
 type GroupMetaType = { name: string, poster: InputFrame | null, inviteMessage: string }
 
-const SubmitButton = ({ children, onSubmit }: PropsWithChildren<{ onSubmit?: () => void }>) => {
+const SubmitButton = ({ children, onSubmit }: PropsWithChildren<{ onSubmit?: TypedFunction }>) => {
     return (
         <footer className="fixed w-full bottom-0 p-2 flex sm:justify-center">
             <button onClick={onSubmit} type="submit" className="primary flex-1 sm:flex-0">{children}</button>
         </footer>
     )
-
 }
 
-const CreateGroup = ({ goBack }: { goBack: () => void }) => {
+
+const CreateGroup = ({ goBack }: { goBack: TypedFunction }) => {
 
     const { meta } = useCurrentUser();
     const ref = useRef<ListSelectorRef>(null);
     const posterRef = useRef<InputManagerType<InputFrame | null>>(null);
     const { inviteMessage, name, page = 1, poster, setter } = useCustomReducer<GroupMetaType & { page: number } | undefined>(undefined);
-
-    const createRoom = useCreateRoomMutation();
+    const navigation = useNavigation();
 
     if (!meta) return null;
 
+    const uid = meta.user_id;
+
     const create = async () => {
         const { files, filesData } = await readyFrames(poster ? [poster] : []);
-        const participants = ref.current?.() ?? []
+        const participants = ref.current?.();
 
-        return createRoom.mutate({
-            message: inviteMessage,
-            rmid: ObjectId.toString(),
-            room: {
+        if (!participants || !participants.length) return;
+
+        const rmid = parloId();
+
+        createRoomMutation(
+            rmid,
+            {
                 files, filesData, name,
                 type: "group", participants,
                 poster: poster?.path,
+                display_name: name,
+                inviteMessage
             },
-            ruid: undefined,
-            user: meta,
+            undefined
+        );
 
-        });
+        navigation.goto(`/inbox/${rmid}`);
     }
 
     const storeMeta = (data: Omit<GroupMetaType, "poster">) => {
@@ -71,11 +77,11 @@ const CreateGroup = ({ goBack }: { goBack: () => void }) => {
                 submit={storeMeta}
                 schema={roomSchemaClient}
             >
-                <Input name="name" placeholder="Eg: Marvel Yappers" label="Name of the group" />
+                <Input name="name" placeholder="Eg: Movie Yappers" label="Name of the group" />
 
                 <Textarea
                     name="inviteMessage"
-                    placeholder="Eg: Hey, Let's yap about spiderman"
+                    placeholder="Eg: Hey, Let's yap about the new movie"
                     label="Invitation Message"
                     description="You can neither send more than one invitation message nor change it in future. Make it worth."
                 />
@@ -90,20 +96,23 @@ const CreateGroup = ({ goBack }: { goBack: () => void }) => {
     return (
         <>
             <Navbar onGoBack={goBack} navTitle="Create Group" />
-            <div className="mb-8 w-full">
 
+            <div className="mb-8 w-full">
                 <ListSelector
-                    queryFn={(q, p) => searchUsersForGroup(meta.user_id, q, p)}
-                    queryKeys={(q) => ["usxers", "search", "forGroup", q]}
-                    refiner={(resp: MereUser) => ({
+                    queryFn={(q, p) => searchNonBlockedUsers(uid, q, p)}
+                    queryKeys={(q) => getQueryKeys("searchNonBlockedUser_query_uid", { uid, query: q })}
+                    refiner={(resp) => ({
                         id: resp._id,
                         title: resp.username,
-                        poster: resp.profile
+                        poster: resp.profile,
+
                     })}
                     inputPlaceholder="Search user to add"
-                    ref={ref}
+                    callbackRef={ref}
                 />
+
                 <SubmitButton onSubmit={create}>Create</SubmitButton>
+
             </div>
 
         </>

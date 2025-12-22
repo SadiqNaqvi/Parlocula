@@ -1,0 +1,41 @@
+import LoginModal from "@components/fallbacks/LoginModal";
+import { getUserFromToken } from "@lib/auth/utils";
+import { getSavedContent } from "@lib/helpers/common";
+import { getQueryClient, prefetchInfiniteQuery } from "@lib/providers/queryClient";
+import { getQueryKeys } from "@lib/utils";
+import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
+import { Metadata } from "next";
+import { cookies } from "next/headers";
+import SavedSection from "../Section";
+
+export const generateMetadata = (): Metadata => {
+    return { title: "Saved Shelves" }
+}
+
+const SavedShelfsPage = async () => {
+
+    const jar = cookies();
+    const user = await getUserFromToken(jar);
+    const queryClient = getQueryClient();
+
+    if (!user) return (
+        <LoginModal redirectTo="/settings/saved/shelves" />
+    )
+
+    const { user_id } = user;
+
+    await prefetchInfiniteQuery({
+        queryFn: () => getSavedContent(user_id, "shelf", 1),
+        queryKey: getQueryKeys(`saved-shelfs_uid`, { uid: user_id }),
+        queryClient,
+    })
+
+    return (
+        <HydrationBoundary state={dehydrate(queryClient)}>
+            <SavedSection type="shelf" uid={user_id} />
+        </HydrationBoundary>
+    )
+
+}
+
+export default SavedShelfsPage;

@@ -38,7 +38,7 @@ const ReportContentSection = ({ details }: { details: string[] }) => {
     return (
         <ul>
             {details.map(detail => (
-                <li className="p-2 border-b border-gray40 last:border-transparent">{detail}</li>
+                <li key={detail} className="p-2 border-b border-gray40 last:border-transparent">{detail}</li>
             ))}
         </ul>
     )
@@ -53,23 +53,27 @@ const ReportSection = ({ content_id, isThread, uid }: SectionProps) => {
     const reasons = useRef<ReportReasonType[]>([]);
     const reasonDetailsMap = useRef<Map<ReportReasonType, string[]>>()
 
-    const Component = (data: ReportsType[]) => {
+    const Component = (data: { reports: ReportsType[] }) => {
 
-        const [selectedReason, setSelectedReason] = useOptionalState(data[0]?._id)
-        reasons.current = data?.map(report => report._id);
-        reasonDetailsMap.current = new Map(data.map(report => [report._id, report.content]));
+        const [selectedReason, setSelectedReason] = useOptionalState(data?.reports[0]?._id)
 
-        if (!data || !data.length) return (
+        if (!data || !data.reports || data.reports.length) return (
             <section className="forceCenter">
                 <p>Nothing to see here</p>
             </section>
-        )
+        );
+
+        const { reports } = data;
+
+        reasons.current = reports.map(report => report._id);
+        reasonDetailsMap.current = new Map(reports.map(report => [report._id, report.content]));
 
         return (
             <section>
                 <ul className="flex my-4 overflow-x-auto noScroll gap-2">
                     {reasons.current.map(reason => (
                         <li
+                            key={reason}
                             className={`w-fit rounded-xl border ${selectedReason === reason ? "border-primary" : "border-gray20"}`}
                         >
                             <button

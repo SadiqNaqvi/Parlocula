@@ -1,26 +1,30 @@
-import { getRequest } from "@lib/helpers/common";
-import { searchHandler } from "@lib/pipelines";
-import { getPageParams, ObjectId } from "@lib/utils";
-import { Follow } from "@model";
+import { getHandler } from "@lib/helpers/handlers";
+import { convertMatchToLookupExpr, searchHandler } from "@lib/pipelines";
 
-export const GET = getRequest(async (r, params) => {
+export const GET = getHandler(async (r, params) => {
   const { cuid } = params;
   return await searchHandler({
     r,
-    collection: "users",
-    DocModel: Follow,
+    filterInsideSearch: { isActive: true },
+    type: "users",
     filters: [
-      { $match: { follower: ObjectId(cuid), blocked: false } },
       {
         $lookup: {
-          from: "users",
-          as: "user",
-          localField: "followee",
-          foreignField: "_id",
-        },
+          from: "connections",
+          let: { uid: "$_id" },
+          pipeline: [
+            convertMatchToLookupExpr({
+              follower: cuid,
+              followee: "$$uid",
+              blocked: false,
+            }),
+            { $count: "exists" }
+          ],
+          as: "following"
+        }
       },
-      { $unwind: "user" },
-      { $replaceRoot: { newRoot: "$user" } },
+      { $match: { $expr: { $eq: [{ $size: "$following" }, 1] } } },
+      { $project: { following: 0 } }
     ],
   });
 });

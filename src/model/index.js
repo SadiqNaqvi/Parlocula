@@ -1,13 +1,20 @@
+// @ts-check
+
 export { default as Post } from "./posts";
 export { default as Thread } from "./threads";
 export { default as Member } from "./members";
 export { default as User } from "./users";
 export { default as Comment } from "./comments";
 export { default as Reaction } from "./reactions";
-export { default as Vote } from "./votes";
-export { default as Follow } from "./follows";
-export { default as Media } from "./medias";
-export { default as List } from "./lists";
-export { default as Item } from "./items";
+export { default as Like } from "./likes";
+export { default as Connection } from "./connection";
+export { default as Cinement } from "./cinements";
+export { default as Shelf } from "./shelves";
+export { default as ShelfItem } from "./shelf_items";
 export { default as Bookmark } from "./bookmarks";
-export { default as Notifications } from "./notifications";
+export { default as Notification } from "./notifications";
+export { default as Room } from "./rooms";
+export { default as Participant } from "./participants";
+export {default as Collaborators} from "./collaborators"
+export {default as Message} from "./messages"
+export {default as Reports} from "./reports"

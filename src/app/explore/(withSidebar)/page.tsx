@@ -1,6 +1,5 @@
 import { SearchIcon } from "@assets/Icons";
 import { DataFetcher, Navigate } from "@components";
-import { fetchTrendingMovies } from "@lib/contentFetcher";
 
 export default function ExplorePage() {
 
@@ -19,16 +18,29 @@ export default function ExplorePage() {
             </header>
             <section className="my-3 space-y-3">
                 <h3 className="uppercase text-lg font-semibold">Explore Genres</h3>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                    {movieGenres.concat(showGenres).map((el: string) => (
-                        <Navigate comp="link" className="capitalize cursor-pointer bg-[var(--gray20)] md:hover:bg-[var(--gray10)] p-4 rounded-lg" key={el} goto={`/explore/genres/${el.toLowerCase().replaceAll(' ', '-')}`} role="button">{el}</Navigate>
+                <div className="flex flex-wrap">
+                    {movieGenres.concat(showGenres).map((genre: string) => (
+                        <Navigate
+                            comp="link"
+                            className="capitalize cursor-pointer bg-gray10 md:hover:bg-[var(--gray20)] border border-gray10 p-2 rounded-lg inline"
+                            key={genre}
+                            goto={`/explore/genres/${genre.toLowerCase().replaceAll(' ', '-')}`}
+                            type="button"
+                        >
+                            {genre}
+                        </Navigate>
                     ))}
                 </div>
             </section>
             <section className="my-3 space-y-3">
                 <h3 className="uppercase text-lg font-semibold">Trending Movies</h3>
                 <div className="w-full">
-                    <DataFetcher type="movie" args={[]} func="fetchShowsWithGenres" />
+                    <DataFetcher
+                        querykeys={["movies", "trending"]}
+                        type="movie"
+                        func="fetchTrendingMovies"
+                        args={[]}
+                    />
                 </div>
             </section>
         </>

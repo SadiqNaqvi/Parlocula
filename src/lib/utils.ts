@@ -1,5 +1,7 @@
 import placeholder from "@assets/placeholder.png";
+import { PaginatedData } from "@type/external";
 import {
+  AggregatedResponse,
   GeneralGetReturn,
   GeneralMultipleReturn,
   GeneralPostReturn,
@@ -7,20 +9,22 @@ import {
   InfiniteQueryResponse,
 } from "@type/internal";
 import {
+  ArrayForArrayResponse,
   AvailableCacheTags,
   AvailableQueryKeys,
   AvailableRevalidateTags,
   CacheTagsArgs,
   ErrorCodes,
+  ExtractPlaceholders,
   getPosterFunctionProps,
   QueryFilterType,
   QueryKeyArgs,
   RevalidateTagsArgs
 } from "@type/other";
 import { InputFrame } from "@type/schemas";
-import { Types } from "mongoose";
+import { nanoid } from "nanoid";
 import { NextRequest } from "next/server";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 import {
   cacheTags,
   cloudinary_postKey,
@@ -33,40 +37,39 @@ import {
   revalidateTags
 } from "./constants";
 
-export const scaleImage = async (file: File): Promise<Blob | null> => {
-  if (!file) return null;
-  const reader = new FileReader();
-  reader.readAsDataURL(file);
+export type ParseResponseType<T = Record<string, any>> = {
+  json: T | null,
+  text: string,
+  ok: boolean,
+  status: number,
+}
 
+export const parseResponse = async (response: Response): Promise<ParseResponseType> => {
+  const body = await response.text();
   try {
-    const blob = await new Promise<Blob | null>(
-      (resolve, reject) =>
-      (reader.onloadend = () => {
-        const image = new Image();
-        image.src = reader.result as string;
-        image.onload = () => {
-          const canvas = document.createElement("canvas");
-          canvas.width = image.naturalWidth;
-          canvas.height = image.naturalHeight;
-          const context = canvas.getContext("2d");
-          if (!context) {
-            reject("no context");
-            return null;
-          }
-          context.drawImage(image, 0, 0);
-          canvas.toBlob((blob) => {
-            if (!blob) reject("No blob found");
-            else resolve(blob);
-          }, `image/webp`);
-        };
-      })
-    );
-    return blob;
-  } catch (err: any) {
-    console.log("Failed scaling image" + err);
-    return null;
+    return {
+      json: JSON.parse(body || "null"),
+      text: body,
+      ok: response.ok,
+      status: response.status
+    }
+  } catch (_) {
+    return {
+      text: body,
+      json: null,
+      ok: response.ok,
+      status: response.status
+    }
   }
-};
+}
+
+export const handleArrayForArrayResponse = <T, R>(input: T, result: R[]): ArrayForArrayResponse<T, R> => {
+    if (Array.isArray(input)) {
+        return result as ArrayForArrayResponse<T, R>;
+    } else {
+        return result[0] as ArrayForArrayResponse<T, R>;
+    }
+}
 
 export const timeAgo = (timestamp: GenericDate, short?: boolean) => {
   if (!timestamp) return;
@@ -171,7 +174,7 @@ export const formDataToObject = (formData: FormData) => {
   return formDataObject;
 };
 
-export const refineString = (str: string) => {
+export const makeUrlSafe = (str: string) => {
   if (!str) return "";
 
   return str
@@ -215,53 +218,9 @@ export const getThumbnail = (vid: string) => {
   return vidArr.join(".").concat(".jpg");
 };
 
-export const ObjectId = (id?: string) => {
-  return new Types.ObjectId(id);
-};
+export const parloId = () => nanoid(10);
 
-export const isValidObjectId = (id: string) => {
-  if (!id) return false;
-  return Types.ObjectId.isValid(ObjectId(id));
-};
-
-export const encodeObject = (
-  object: any,
-  expiry: number
-): Buffer<ArrayBuffer> | null => {
-  if (!object || !Object.keys(object).length) return null;
-  if (!process.env.NEXT_PUBLIC_SALT)
-    throw new Error("No Salt can be found while encoding sensetive object!");
-
-  const hash = Buffer.from(
-    JSON.stringify({ ...object, object_expiry: Date.now() + expiry })
-  ).toString("base64");
-
-  const randomIndex = Math.floor(Math.random() * (hash.length + 1));
-  const hashWithSalt =
-    hash.slice(0, randomIndex) +
-    process.env.NEXT_PUBLIC_SALT +
-    hash.slice(randomIndex);
-
-  return Buffer.from(hashWithSalt);
-};
-
-export const decodeObject = (
-  hashArr: Buffer<ArrayBuffer> | undefined | null
-): any => {
-  if (!hashArr) return null;
-  const salt = process.env.NEXT_PUBLIC_SALT;
-  if (!salt)
-    throw new Error("No Salt can be found while decoding secret hash!");
-  const hash = Buffer.from(hashArr).toString();
-  if (!hash.includes(salt)) return null;
-  try {
-    const decoded = Buffer.from(hash.replace(salt, ""), "base64").toString();
-    return JSON.parse(decoded);
-  } catch (err: any) {
-    console.error("Error decoding Object", err.message);
-    return null;
-  }
-};
+export const isValidParloId = (id: string) => Boolean(id.length === 10);
 
 export const getPageParams = (req: NextRequest, initial: number = 1) => {
   const searchParams = req.nextUrl.searchParams;
@@ -272,30 +231,22 @@ export const getPageParams = (req: NextRequest, initial: number = 1) => {
   return page < 1 ? initial : page; // will return number greater than 0;
 };
 
-export const handleMutationResponse = async <T = any>({
-  response,
-  message,
-  onSuccess,
-}: {
-  response: GeneralPostReturn;
-  message?: string;
-  onSuccess?: (result: T) => unknown;
-}) => {
-  const { success, customError, errCode, formError, result } = response;
-  if (success) {
-    await onSuccess?.(result);
-  } else {
-    if (formError) return formError;
-    else if (customError) return customError;
+type ReturnType<F> = {
+  page: number,
+  nsfw: boolean,
+  filter: string | F,
+  query: string | undefined
+}
 
-    const error =
-      (errCode && errorCodes[errCode]?.message) ??
-      "Something went wrong! Please try again.";
+export const getSearchParams = <F extends string | undefined>(url: URL, initial = 1, fallbackFilter?: F): ReturnType<F> => {
+  const { get } = url.searchParams;
+  const query = get('q') || get("query");
+  const page = Math.max(Number(get('p') || get("page") || `${initial}`) || initial, initial);
+  const nsfw = Boolean(get("nsfw") === "true");
+  const filter = get("f") || get("filter") || fallbackFilter;
 
-    message && toast.error(message);
-    toast.error(error);
-  }
-};
+  return { page, nsfw, filter, query } as ReturnType<F>
+}
 
 export const codetoError = (errCode: ErrorCodes): string => {
   return (
@@ -334,7 +285,7 @@ export const refineSearchParams = (
   const filter: string =
     f && queryFilters[queryFilter].includes(f || "")
       ? f
-      : queryFilters[queryFilter][0];
+      : queryFilters[queryFilter]?.[0];
   return { page, filter };
 };
 
@@ -347,7 +298,7 @@ export const getCacheTags = <K extends AvailableCacheTags>(
 
   return tags.map((tag) =>
     Object.keys(options).reduce(
-      (t, o) => t.replaceAll(`{${o}}`, options[o as keyof typeof options]),
+      (t, o) => t.replaceAll(`{${o}}`, `${options[o as ExtractPlaceholders<K>]}`),
       tag
     )
   );
@@ -355,14 +306,14 @@ export const getCacheTags = <K extends AvailableCacheTags>(
 
 export const getRevalidateTags = <K extends AvailableRevalidateTags>(
   available: AvailableRevalidateTags,
-  options: RevalidateTagsArgs<K>
+  options: Partial<RevalidateTagsArgs<K>>
 ) => {
   const tags = revalidateTags[available];
   if (!tags) return [];
 
   return tags.map((tag) =>
     Object.keys(options).reduce(
-      (t, o) => t.replaceAll(`{${o}}`, options[o as keyof RevalidateTagsArgs<K>]),
+      (t, o) => o ? t.replaceAll(`{${o}}`, options[o as keyof RevalidateTagsArgs<K>] as string) : t,
       tag
     )
   );
@@ -384,16 +335,25 @@ export const getQueryKeys = <K extends AvailableQueryKeys>(
 };
 
 export const readyFrames = async (
-  frames: InputFrame[]
+  input: InputFrame | InputFrame[]
 ): Promise<{ files: any[]; filesData: any[] }> => {
+
+  const frames = Array.isArray(input) ? input : [input];
+
   if (!frames || !frames?.length) return { files: [], filesData: [] };
+
   const promises = frames.map(async ({ blob, ...data }) => {
+
     if (!data.shouldUpload || !blob) return { data };
+
     const arrayBuffer = await blob.arrayBuffer();
-    const file = new File([new Uint8Array(arrayBuffer)], "Popcorn Paragon", {
+
+    const file = new File([new Uint8Array(arrayBuffer)], "Parlocula", {
       type: blob.type,
     });
+
     return { file, data };
+
   });
 
   const results = await Promise.all(promises);
@@ -404,7 +364,7 @@ export const readyFrames = async (
   return { files, filesData };
 };
 
-export const trycatch = <T = GeneralPostReturn>(
+export const trycatch = <T>(
   func: () => Promise<T> | T,
   msg?: string
 ): Promise<T> | T => {
@@ -412,23 +372,29 @@ export const trycatch = <T = GeneralPostReturn>(
     return func();
   } catch (err: any) {
     console.error(msg || "Error occured:", err.message);
-    return { success: false, errCode: "unknown_error" } as T;
+    return { success: false, errCode: "unstable_internet" } as T;
   }
 };
 
-type GetReturns = GeneralGetReturn | GeneralMultipleReturn;
-export const queryFunction = async <
-  F extends (...args: any[]) => Promise<GetReturns>,
-  P extends number | undefined,
->(
-  func: F,
-  args: Parameters<F>,
-  page?: P
-): Promise<P extends number ? InfiniteQueryResponse : (unknown | null)> => {
-  const { success, errCode, result } = await func(...args);
+export const refineResponseForQuery = async<T>(queryFn: () => Promise<GeneralGetReturn<T>>): Promise<T | null> => {
+  const { success, errCode, result } = await queryFn();
+
   if (!success) throw new Error(errCode);
-  return page ? infiniteScrollerResponse(result, page) : (result ?? null);
-};
+
+  return result ?? null;
+}
+
+export const refineResponseForInfiniteQuery = async<T>(
+  queryFn: () => Promise<GeneralMultipleReturn<T> | GeneralGetReturn<PaginatedData>>,
+  page: number
+): Promise<InfiniteQueryResponse<T>> => {
+  const { success, errCode, result } = await queryFn();
+
+  if (!success) throw new Error(errCode);
+
+  return infiniteScrollerResponse((result as AggregatedResponse<T>), page);
+
+}
 
 export const generateInitialData = (data: any[]) => ({
   data,
@@ -436,7 +402,7 @@ export const generateInitialData = (data: any[]) => ({
 });
 
 export const getLocalUrl = () => {
-  return process.env.NEXT_PUBLIC_APP_ROOT ?? "";
+  return process.env.NEXT_PUBLIC_PARLOCULA_URL ?? "";
 };
 
 export const getTimeInFuture = ({
@@ -446,7 +412,7 @@ export const getTimeInFuture = ({
 }: {
   unit: "m" | "h" | "d" | "mo" | "y";
   timeVal?: number;
-  from?: Date | number;
+  from?: GenericDate;
 }) => {
   const provided = from && new Date(from).getTime();
   const now = provided && !isNaN(provided) ? provided : Date.now();
@@ -517,7 +483,7 @@ export const capitalize = (str: string) => {
 
 // }
 
-export const checkEditedFields = (oldObj: Record<string, any>, newObj: Record<string, any>) => {
+export const checkEditedFields = <T extends Record<string, any>>(oldObj: T, newObj: Partial<T>): Partial<T> => {
   const objToReturn: Record<string, any> = {};
   Object.entries(newObj).forEach(([k, v]) => {
     if (v instanceof File) return;
@@ -525,5 +491,5 @@ export const checkEditedFields = (oldObj: Record<string, any>, newObj: Record<st
     objToReturn[k] = v;
   });
 
-  return objToReturn;
+  return objToReturn as Partial<T>;
 }

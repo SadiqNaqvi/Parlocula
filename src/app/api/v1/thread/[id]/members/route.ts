@@ -1,26 +1,25 @@
-import { getRequest } from "@lib/helpers/common";
-import { membersAggregationPipeline } from "@lib/pipelines";
-import { ObjectId, getPageParams } from "@lib/utils";
+import { getHandler } from "@lib/helpers/handlers";
+import { usersAggregationPipeline } from "@lib/pipelines";
+import { getSearchParams } from "@lib/utils";
 import { Member } from "@model";
 
 // Get all the members of a thread
-export const GET = getRequest(async (r: any, params: { id: string }) => {
+export const GET = getHandler(async (r, params) => {
   const { id } = params;
-  const page = getPageParams(r, 1) - 1;
-  const result = await Member.aggregate(
-    membersAggregationPipeline({
+  const { page } = getSearchParams(r.nextUrl);
+  const response = await Member.aggregate(
+    usersAggregationPipeline({
       filters: [
-        {
-          $match: { thread_id: ObjectId(id), banned: false },
-        },
+        { $match: { thread_id: id, banned: false } },
       ],
+      localFieldForLookup: "user_id",
       page,
       sort: { createdAt: -1 },
     })
   );
 
-  const members = result[0];
-  if (!members) return { success: false, errCode: "resource_not_found" };
-
-  return { result: members, success: true };
+  return {
+    success: true,
+    result: response[0] ?? { data: [], total: 0 }
+  };
 });

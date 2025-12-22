@@ -21,17 +21,16 @@ const globalStore = create<GlobalStoreType>((set, get) => ({
   getter: (key) => get().store[key],
 }));
 
-export const useGlobalState = <T>(
+export const useGlobalStore = <T>(
   key: string,
-  initial: T
+  initial?: T
 ): [T, (v: T) => void] => {
 
   const { setter, getter } = globalStore.getState();
 
   useEffect(() => {
-    if (getter(key) === undefined)
-      setter(key, initial);
-  }, [key])
+    if (getter(key) === undefined) setter(key, initial);
+  }, [key, getter, setter, initial]);
 
   const state = globalStore((state) => state.store[key]);
 
@@ -40,4 +39,4 @@ export const useGlobalState = <T>(
   return [state, set];
 };
 
-export default useGlobalState;
+export default useGlobalStore;

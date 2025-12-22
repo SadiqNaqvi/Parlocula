@@ -1,47 +1,22 @@
 "use client";
 
 import { BottomSheet } from "@components/BottomSheet";
-import { ShowError } from "@components/ui";
-import MessageBar from "@components/ui/MessageBar";
+import { MessageBar, ShowError } from "@components/ui";
+import MessageSkeleton from "@components/ui/loading/MessageSkeleton";
 import { getMessages } from "@lib/helpers/common";
-import { setOrRemoveRoom, useParticipantSeenUpdate } from "@lib/helpers/room/client";
+import { updateDoc, updateParticipantSeenAt } from "@lib/helpers/mutations";
 import { useInfiniteQueryHook } from "@lib/hooks";
 import { getQueryKeys } from "@lib/utils";
 import useOfflineStore from "@store/offlineStore";
-import { GenericDate, InfiniteQueryResponse, InvitationMessageType, MereMessage, ParticipantEnumType, RoomEnumType } from "@type/internal";
+import { FullRoomType, InfiniteQueryResponse, MereMessage } from "@type/internal";
+import { ErrorCodes } from "@type/other";
 import React, { useEffect, useRef, useState } from "react";
 import MessageBottomSheet from "./MessageBottomSheet";
-import { getAblyOnClient } from "@lib/providers/ably";
 
-const MessageLoading = () => (
-    <div className="w-full flex flex-col px-2">
-        {Array(4).fill(0).map((_, ind) => (
-            <section key={ind} className={`my-3 w-1/2 space-y-1 ${ind % 2 === 0 ? "self-end flex flex-col items-end" : ''}`}>
-                <>
-                    {Array(3).fill(0).map((_, i) => (
-                        <div
-                            style={{ width: `${30 * (i + 1)}%` }}
-                            className="animate-pulse h-2 bg-gray40 rounded-md"
-                            key={i}>
-                        </div>
-                    ))}
-                </>
-            </section>
-        ))}
-    </div>
-)
+const MessageList = ({ uid, room }: { uid: string, room: FullRoomType }) => {
 
-type Props = {
-    rmid: string,
-    uid: string,
-    participantSeenAt: GenericDate,
-    participant_type: ParticipantEnumType,
-    otherParticipantSeenAt: GenericDate | undefined,
-    invitationMessage: InvitationMessageType | undefined,
-    room_type: RoomEnumType,
-}
-
-const MessageList = ({ rmid, uid, participantSeenAt, otherParticipantSeenAt, participant_type, invitationMessage, room_type }: Props) => {
+    const { participantType, type, invitationMessage, seenAt, otherParticipant_seenAt, participant_count } = room;
+    const rmid = room._id;
 
     const qKeys = getQueryKeys("messages_rmid", { rmid });
     const [messageList, setMessageList] = useOfflineStore<InfiniteQueryResponse<MereMessage> | undefined>(qKeys, undefined);
@@ -57,60 +32,62 @@ const MessageList = ({ rmid, uid, participantSeenAt, otherParticipantSeenAt, par
         }
     });
 
-    const mutation = useParticipantSeenUpdate();
-
     useEffect(() => {
-        if (participant_type === "invitee" || !data || !data.pages.length || !data.pages[0]?.results?.length) return;
-        if (room_type === "group")
-            setOrRemoveRoom({ rmid, uid, update: true, room: { seenAt: Date.now() } });
-        else mutation.mutate({ rmid, uid });
-    }, []);
+        if (participantType === "invitee" || !data || !data.pages.length || !data.pages[0]?.results?.length) return;
 
-    const container = useRef<HTMLDivElement>(null);
+        else if (type === "group") {
+            updateDoc(
+                getQueryKeys("room_rmid_uid", { rmid, uid }),
+                { seenAt: Date.now() }
+            );
+        }
 
-    useEffect(() => {
+        else updateParticipantSeenAt(rmid, uid);
+
+        const current = container.current
         const observer = new IntersectionObserver(([entry]) => {
             if (entry.isIntersecting && !isFetchingNextPage && hasNextPage)
                 fetchNextPage();
         }, { threshold: 0.1 })
 
-        if (container.current)
-            observer.observe(container.current);
+        if (current) observer.observe(current);
 
         return () => {
-            if (container.current)
-                observer.unobserve(container.current);
+            if (current) observer.unobserve(current);
         }
-    }, [container.current]);
 
-    if (isLoading) return <MessageLoading />
+    }, []);
+
+    const container = useRef<HTMLDivElement>(null);
+
+    if (isLoading) return <MessageSkeleton />
 
     else if (error) return (
         <ShowError
             heading="Something went wrong"
-            errCode={error.message}
+            errCode={error.message as ErrorCodes}
             retry={refetch}
         />
     )
 
-    if (invitationMessage) return (
+    else if (invitationMessage && (participantType === "invitee" || participant_count === 1)) return (
         <section className="mt-4 px-2">
             <MessageBar
                 _id=""
-                room_type={room_type}
+                room_type={type}
                 content={invitationMessage.content}
                 createdAt={invitationMessage.createdAt}
                 cuid={uid}
                 room_id={rmid}
                 user_id={invitationMessage.user_id}
                 username={invitationMessage.username}
-                seenAt={participantSeenAt}
+                seenAt={seenAt}
                 status="sent"
             />
         </section>
     )
 
-    if (!data || !data.pages[0]?.results?.length) return null;
+    else if (!data || !data.pages[0]?.results?.length) return null;
 
     const handleMessageSelection = (message: any) => {
         setSelectedMessage(message);
@@ -120,30 +97,30 @@ const MessageList = ({ rmid, uid, participantSeenAt, otherParticipantSeenAt, par
 
     return (
         <section className="pb-16 px-2">
+            <div className="my-4 mx-auto" ref={container}>
+                {isFetchingNextPage && (
+                    <MessageSkeleton />
+                )}
+            </div>
+
             <ul className="w-full">
                 {data.pages.map((page, i) => (
                     <React.Fragment key={i}>
                         {page.results.map((msg, ind) => (
                             <MessageBar
                                 {...msg}
-                                otherParticipantSeenAt={otherParticipantSeenAt}
-                                room_type={room_type}
+                                otherParticipantSeenAt={otherParticipant_seenAt}
+                                room_type={type}
                                 key={msg._id}
                                 prevMsgUid={page.results[ind - 1]?.user_id}
                                 cuid={uid}
-                                seenAt={participantSeenAt}
+                                seenAt={seenAt}
                                 onMessageSelect={handleMessageSelection}
                             />
                         ))}
                     </React.Fragment>
                 ))}
             </ul>
-
-            <div className="mt-4 mx-auto" ref={container}>
-                {isFetchingNextPage && (
-                    <MessageLoading />
-                )}
-            </div>
 
             <BottomSheet
                 state={Boolean(selectedMessage)}

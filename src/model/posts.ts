@@ -1,88 +1,44 @@
 import { PostModelType, StrictModel } from "@type/models";
 import { model, models, Schema } from "mongoose";
-import { frameModel, linkModel, StrictSchema } from "./general";
+import { frameModel, linkModel, numberSchema, StrictSchema } from "./general";
+import { oneDay } from "@lib/constants";
+import { parloId } from "@lib/utils";
 
 const postModel = new StrictSchema<PostModelType>({
-  title: {
-    type: String,
-    required: [true, "Title of the post is required."],
-  },
-  body: {
-    type: String,
-    default: "",
-  },
+  _id: { type: String, default: parloId },
+  title: { type: String, required: true },
+  body: { type: String, default: "" },
   links: [linkModel],
-  tag: {
-    type: String,
-    index: true,
-  },
+  links_count: Number,
+  category: String,
   frames: [frameModel],
-  nsfw: {
-    type: Boolean,
-    default: false,
-    index: true,
-  },
-  spoiler: {
-    type: Boolean,
-    default: false,
-  },
+  frames_count: Number,
+  nsfw: { type: Boolean, default: false },
+  spoiler: { type: Boolean, default: false },
   thread_id: {
-    type: Schema.Types.ObjectId,
+    type: String,
     ref: "Thread",
     required: true,
-    index: true,
   },
-  repost_id: {
-    type: Schema.Types.ObjectId,
+  quoted_post_id: {
+    type: String,
     ref: "Post",
-    index: true,
   },
   user_id: {
-    type: Schema.Types.ObjectId,
+    type: String,
     ref: "User",
     required: true,
-    index: true,
   },
-  edited_at: {
-    type: Date,
-    default: null,
-  },
-  comment_count: {
-    type: Number,
-    default: 0,
-    set: (value: number) => Math.max(value, 0),
-  },
-  reaction_count: {
-    type: Number,
-    default: 0,
-    set: (value: number) => Math.max(value, 0),
-  },
-  saved_count: {
-    type: Number,
-    default: 0,
-    set: (value: number) => Math.max(value, 0),
-  },
-  createdAt: { type: Date, default: Date.now },
-});
+  edited_at: Date,
+  comment_count: numberSchema,
+  reaction_count: numberSchema,
+  saved_count: numberSchema,
+}, { timestamps: true, _id: true });
 
-postModel.index(
-  {
-    title: "text",
-  },
-  {
-    background: true,
-    weights: { title: 10 }, // Prioritize title matches
-    name: "post_title_text_index",
-    default_language: "english", // Handles stemming (e.g., "review" matches "reviews")
-    collation: {
-      locale: "en", // Case and punctuation-insensitive
-      strength: 2,
-    },
-  }
-);
+postModel.index({ thread_id: 1, nsfw: 1 });
+postModel.index({ user_id: 1, nsfw: 1 });
 
 const Post: StrictModel<PostModelType> =
-  (models.Post as StrictModel<PostModelType>) ||
-  (model<PostModelType>("Post", postModel) as StrictModel<PostModelType>);
+  (models.Post as any) || model("Post", postModel);
 
 export default Post;

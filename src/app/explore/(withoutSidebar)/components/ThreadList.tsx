@@ -4,9 +4,11 @@ import { InfiniteScroller } from "@components";
 import FilterDropdown from "@components/FiltersDropdown";
 import { ThreadTile } from "@components/ui";
 import { getThreadsForMedia } from "@lib/helpers/common";
-import { queryFunction } from "@lib/utils";
+import useCurrentUser from "@store/user";
 
 const ThreadList = ({ id, filter, page }: { id: string, filter: string, page: number }) => {
+
+    const { filterContent } = useCurrentUser();
 
     return (
         <>
@@ -17,7 +19,7 @@ const ThreadList = ({ id, filter, page }: { id: string, filter: string, page: nu
             <section className="mt-4">
                 <InfiniteScroller
                     Component={ThreadTile}
-                    fetchData={() => queryFunction(getThreadsForMedia, [id, page, filter])}
+                    fetchData={() => getThreadsForMedia(id, page, !filterContent, filter)}
                     queryKeys={["threads-for-media", id, filter]}
                 />
             </section>

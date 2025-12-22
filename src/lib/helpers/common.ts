@@ -1,489 +1,65 @@
-import { getUserFromToken } from "@lib/auth/utils";
-import { connectPPDB } from "@lib/database";
+import { getCacheTags, getLocalUrl, objectToFormData } from "@lib/utils";
 import {
-  formDataToObject,
-  getCacheTags,
-  getLocalUrl,
-  getRevalidateTags,
-  objectToFormData,
-} from "@lib/utils";
-import { UserMetaData } from "@store/user";
-import {
-  Frame,
-  FullList,
-  FullMediaItemType,
+  AggregatedResponse,
+  CurrentUser,
+  FullCinementType,
+  FullComment,
   FullPost,
   FullRoomType,
+  FullShelf,
   GeneralGetReturn,
   GeneralMultipleReturn,
   MereComment,
   MereMessage,
+  MerePost,
+  MereRoomType,
+  MereShelf,
   MereThread,
   MereUser,
   ReportsType,
+  RequestedUser,
   SearchedRoom,
+  ShelfCollaborators,
+  ShelfItemType,
+  ShelvesForCinement,
   Thread,
   ThreadModType,
-  User
 } from "@type/internal";
-import {
-  AvailableCacheTags,
-  AvailableRevalidateTags,
-  CookiesType,
-  HandlerResponse,
-  HandlerWrapperProps,
-  PPGetDataProps,
-  PrecheckProps,
-  PrecheckResponse
-} from "@type/other";
-import { FrameDataSchemaType } from "@type/schemas";
+import { CollaboratorModelType, NotificationModelType, ReportModelType } from "@type/models";
+import { AvailableCacheTags, CookiesType, PPGetDataProps } from "@type/other";
 import axios from "axios";
-import { ClientSession, startSession } from "mongoose";
-import { revalidateTag } from "next/cache";
-import { NextRequest, NextResponse } from "next/server";
-import { ZodSchema } from "zod";
 import { oneDay, queryFilters } from "../constants";
-import { deleteMultipleMedia, mediaUploader } from "./server";
 
-// HELPER FUNCTIONS
+export const ppGetData = async <T, K extends AvailableCacheTags = any>(
+  { url, revalidate, tag, options, cookies, searchParams }: PPGetDataProps<K>
+): Promise<GeneralGetReturn<T>> => {
 
-type HandlerReturn<T> = Promise<NextResponse<T>>
-
-export const getRequest = (
-  handler: (
-    req: NextRequest,
-    params: { id: string; cuid: string;[key: string]: string }
-  ) => Promise<GeneralGetReturn>
-) => {
-  return async function (req: NextRequest, { params }: { params?: any }): HandlerReturn<GeneralGetReturn> {
-    try {
-      const isDbConnected = await connectPPDB();
-      if (!isDbConnected)
-        return NextResponse.json(
-          {
-            success: false,
-            errCode: "database_connection_fail",
-          },
-          { status: 500 }
-        );
-
-      const data = await handler(req, params);
-      return NextResponse.json(data, { status: data.success ? 200 : 500 });
-    } catch (err) {
-      console.error(`Error occurred at path ${req.nextUrl.pathname}:`, err);
-      return NextResponse.json(
-        {
-          errCode: "uncaught_error",
-          success: false,
-        },
-        { status: 500 }
-      );
-    }
-  };
-};
-
-export const ppGetData = async <
-  T extends any,
-  K extends AvailableCacheTags = any,
->({
-  url,
-  revalidate,
-  tag,
-  options,
-  cookies,
-}: PPGetDataProps<K>): Promise<GeneralGetReturn<T>> => {
   const cacheTags = tag && options ? getCacheTags(tag, options) : undefined;
-  const jar =
-    cookies
-      ?.getAll()
-      .map((c) => `${c.name}=${c.value}`)
-      .join("; ") ?? "undefined";
+  const jar = cookies?.getAll().map((c) => `${c.name}=${c.value}`).join("; ");
+
+  const urlToFetch = new URL(url, `${getLocalUrl()}/api/v1`);
+
+  Object.entries(searchParams ?? {}).forEach(([k, v]) => {
+    urlToFetch.searchParams.set(k, `${v}`);
+  });
+
   try {
-    return await fetch(
-      `${getLocalUrl()}/api/v1/${url}`,
-      {
-        next: { revalidate: revalidate ?? 0, tags: cacheTags },
-        headers: {
-          Cookie: jar,
-        },
-      }
-    )
-      .then((res) => res.json());
+
+    return await fetch(urlToFetch.href, {
+      next: { revalidate: revalidate ?? 0, tags: cacheTags },
+      headers: jar ? { Cookie: jar } : undefined,
+    }).then((res) => res.json());
+
   } catch (err: any) {
+
     console.error(`Error occured at path ${url}`, err.message);
-    return {
-      success: false,
-      errCode: "unstable_internet",
-    };
+
+    return { success: false, errCode: "unstable_internet" };
   }
 };
 
-const uploadFiles = async ({
-  files,
-  filesData,
-}: {
-  files: File[];
-  filesData: FrameDataSchemaType[];
-}) => {
-  if (!filesData?.length || !files?.length) return [];
-  const response = await mediaUploader(files);
-
-  if (!response.success) throw new Error("File upload fail", { cause: response.error });
-
-  const results = response.result;
-
-  return filesData
-    .map(({ isExternal, path, type, shouldUpload }) => {
-      if (!shouldUpload) return { path, type, isExternal };
-      const result = results.shift();
-      if (result) return { path: result.url, type, isExternal };
-      else return false;
-    })
-    .filter(Boolean) as Frame[];
-};
-
-const deleteFiles = async (files: Frame[]) => {
-  if (!files.length) return;
-  const ids = files.filter((file) => !file.path.includes("https"));
-  await deleteMultipleMedia(ids.map(({ path, type }) => ({ path, type })));
-};
-
-export const postRequest = <
-  T extends any,
-  K extends AvailableRevalidateTags = any,
->({
-  handler,
-  preCheck,
-  schema,
-}: {
-  handler: (args: HandlerWrapperProps<T>) => Promise<HandlerResponse<K>>;
-  preCheck?: (
-    arg: PrecheckProps<T>
-  ) => PrecheckResponse | Promise<PrecheckResponse>;
-  schema?: ZodSchema;
-}) => {
-  return async function (req: NextRequest, { params }: { params: any }) {
-    const payload = await getUserFromToken(req.cookies);
-
-    if (
-      !(
-        req.url.includes("user/register") ||
-        req.url.includes("user/login") ||
-        req.url.includes("api/v1/media")
-      ) &&
-      !payload
-    )
-      return NextResponse.json(
-        {
-          success: false,
-          errCode: "unauthenticated_access",
-          result: null,
-        },
-        { status: 500 }
-      );
-
-    const user_id = payload?.user_id || "";
-    const username = payload?.username || "";
-
-    const formData = formDataToObject(await req.formData());
-    let dataToPost: T | null = null;
-    if (schema) {
-      const { success, error, data } = schema.safeParse(formData);
-      if (!success)
-        return NextResponse.json(
-          {
-            result: null,
-            success: false,
-            formError: error.errors,
-            errCode: "form_error",
-          },
-          { status: 500 }
-        );
-      dataToPost = data;
-    }
-
-    let frames: Frame[] = [];
-    let revalidateTags: string[] = [];
-    let session: ClientSession | null = null;
-
-    try {
-      const isDbConnected = await connectPPDB();
-      if (!isDbConnected)
-        return NextResponse.json(
-          {
-            result: null,
-            success: false,
-            errCode: "database_connection_fail",
-          },
-          { status: 500 }
-        );
-
-      if (preCheck) {
-        const { errCode, success } = await preCheck({
-          req,
-          params,
-          user_id,
-          username,
-          data: dataToPost ?? (formData as T),
-        });
-        if (!success)
-          return NextResponse.json(
-            { result: null, success, errCode },
-            { status: 500 }
-          );
-      }
-
-      session = await startSession();
-
-      const { files, filesData, ...rest } = formData;
-      frames =
-        filesData && filesData.length
-          ? await uploadFiles({ files, filesData })
-          : [];
-
-      session.startTransaction();
-      const { available, errCode, options, result, success, revalidateQueue } =
-        await handler({
-          data: dataToPost ?? (rest as T),
-          frames,
-          user_id: user_id as string,
-          username: username as string,
-          session,
-          req,
-          params,
-        });
-
-      if (!success) {
-        await deleteFiles(frames);
-        await session.abortTransaction().catch(console.error);
-      } else {
-        if (revalidateQueue && revalidateQueue.length) {
-          revalidateTags = revalidateQueue;
-        } else if (available && options) {
-          revalidateTags = getRevalidateTags(available, options);
-        }
-        await session.commitTransaction().catch(console.error);
-      }
-
-      return NextResponse.json(
-        { result, success, errCode },
-        { status: success ? 200 : 500 }
-      );
-    } catch (err: any) {
-      await deleteFiles(frames);
-      await session?.abortTransaction().catch(console.error);
-      console.error(
-        `Error occurred at path ${req.nextUrl.pathname}:`,
-        err.message
-      );
-      return NextResponse.json(
-        {
-          result: null,
-          success: false,
-          errCode: "unknown_error",
-        },
-        { status: 500 }
-      );
-    } finally {
-      session?.endSession();
-      revalidateTags.forEach((tag) => revalidateTag(tag));
-    }
-  };
-};
-
-export const deleteRequest = <K extends AvailableRevalidateTags = any>(
-  handler: (
-    args: Omit<HandlerWrapperProps, "frames" | "data">
-  ) => Promise<Omit<HandlerResponse<K> & { files?: Frame[] }, "result">>,
-  precheck?: (req: NextRequest, params: any) => PrecheckResponse
-) => {
-  return async (req: NextRequest, { params }: any) => {
-    const payload = await getUserFromToken(req.cookies);
-
-    if (!payload)
-      return NextResponse.json({ success: false, errCode: "unauthenticated_access" });
-
-    const user_id = payload.user_id;
-    const username = payload.username;
-    let revalidateTags: string[] = [];
-    let session: ClientSession | null = null;
-
-    try {
-      const isDbConnected = await connectPPDB();
-      if (!isDbConnected)
-        return NextResponse.json({ success: false, errCode: "database_connection_fail" });
-
-      if (precheck) {
-        const { success, errCode } = await precheck(req, params);
-        if (!success) return NextResponse.json({ success, errCode });
-      }
-
-      session = await startSession();
-
-      session.startTransaction();
-      const { errCode, success, available, options, files, revalidateQueue } =
-        await handler({
-          req,
-          user_id,
-          params,
-          username,
-          session,
-        });
-
-      if (success) {
-        files && (await deleteFiles(files));
-        await session.commitTransaction();
-        if (revalidateQueue && revalidateQueue.length)
-          revalidateTags = revalidateQueue;
-        else if (available && options)
-          revalidateTags = getRevalidateTags(available, options);
-      } else await session.abortTransaction().catch(console.error);
-
-      return NextResponse.json({ success, errCode });
-    } catch (err) {
-      await session?.abortTransaction().catch(console.error);
-      console.error("Error occured while deleting resource", err);
-      return NextResponse.json({
-        success: false,
-        errCode: "unknown_error",
-      });
-    } finally {
-      session?.endSession();
-      revalidateTags.forEach((tag) => revalidateTag(tag));
-    }
-  };
-};
-
-export const updateRequest = <
-  T extends any,
-  K extends AvailableRevalidateTags = any,
->({
-  handler,
-  preCheck,
-  schema,
-}: {
-  handler: (arg: HandlerWrapperProps<T>) => Promise<HandlerResponse<K>>;
-  schema?: ZodSchema;
-  preCheck?: (
-    arg: PrecheckProps<T>
-  ) => PrecheckResponse | Promise<PrecheckResponse>;
-}) => {
-  return async (req: NextRequest, { params }: any) => {
-    // Checking if there is a current user and taking it's user_id and username
-    const payload = await getUserFromToken(req.cookies);
-
-    if (!payload)
-      return NextResponse.json(
-        { success: false, errCode: "unauthenticated_access" },
-        { status: 500 }
-      );
-
-    const user_id = payload.user_id;
-    const username = payload.username;
-
-    const formData = formDataToObject(await req.formData());
-    let dataToUpdate: T | null = null;
-    // Validating the data if a schema is provided
-    if (schema) {
-      const { success, error, data } = schema.safeParse(formData);
-      if (!success)
-        return NextResponse.json(
-          {
-            success: false,
-            formError: error.errors,
-            errCode: "form_error",
-          },
-          { status: 500 }
-        );
-      dataToUpdate = data;
-    }
-
-    let revalidateTags: string[] = [];
-    let frames: Frame[] = [];
-    let session: ClientSession | null = null;
-    try {
-      const isDbConnected = await connectPPDB();
-      if (!isDbConnected)
-        return NextResponse.json({
-          result: null,
-          success: false,
-          errCode: "database_connection_fail",
-        });
-
-      session = await startSession();
-
-      // Some pre-checking eg: if the user is authorized to do this specific thing or not
-      if (preCheck) {
-        const { errCode, success } = await preCheck({
-          data: dataToUpdate ?? (formData as T),
-          params,
-          req,
-          user_id,
-          username,
-        });
-        if (!success)
-          return NextResponse.json({ success, errCode }, { status: 500 });
-      }
-
-      const { files, filesData, filesToRemove, ...rest } = formData;
-      frames = filesData?.length ? await uploadFiles({ files, filesData }) : [];
-
-      session.startTransaction();
-      const { available, errCode, options, result, success, revalidateQueue } =
-        await handler({
-          data: dataToUpdate ?? (rest as T),
-          frames,
-          user_id: user_id as string,
-          username: username as string,
-          session,
-          req,
-          params,
-        });
-
-      if (success) {
-        await deleteMultipleMedia(filesToRemove);
-
-        if (revalidateQueue && revalidateQueue.length)
-          revalidateTags = revalidateQueue;
-        else if (available && options)
-          revalidateTags = getRevalidateTags(available, options);
-
-        await session.commitTransaction();
-      } else {
-        await deleteFiles(frames);
-        await session.abortTransaction().catch(console.error);
-      }
-
-      return NextResponse.json(
-        { result, success, errCode },
-        { status: success ? 200 : 500 }
-      );
-    } catch (err: any) {
-      await session?.abortTransaction().catch(console.error);
-      console.error(
-        `Error occured at path ${req.nextUrl.pathname} while updating data`,
-        err.message
-      );
-      await deleteFiles(frames);
-      return NextResponse.json(
-        {
-          result: null,
-          success: false,
-          errCode: "unknown_error",
-        },
-        { status: 500 }
-      );
-    } finally {
-      session?.endSession();
-      revalidateTags.forEach((tag) => revalidateTag(tag));
-    }
-  };
-};
-
-// FUNCTIONS TO FETCH DATA BOTH ON SERVER AND CLIENT SIDE
-
 export const getCurrentUser = async (id: string, cookies?: CookiesType) =>
-  await ppGetData({
+  await ppGetData<CurrentUser>({
     url: `private/${id}/user`,
     revalidate: oneDay * 2,
     tag: "currentUser_uid",
@@ -491,61 +67,51 @@ export const getCurrentUser = async (id: string, cookies?: CookiesType) =>
     cookies,
   });
 
-export const isUsernameAvailable = async (
-  username: string
-): Promise<GeneralGetReturn> => {
-  if (!username) return { success: true, result: false };
-  const response = await ppGetData({
-    url: `user/isUsernameAvailable?username=${username}`,
+export const getUserFeed = async (cuid: string, page: string, cookies?: CookiesType) =>
+  await ppGetData({
+    url: `private/${cuid}/feed`
+  })
+
+export const isUsernameAvailable = async (username: string) =>
+  await ppGetData({
+    url: "user/isUsernameAvailable",
+    searchParams: { username },
     revalidate: oneDay * 2,
     tag: "usernameAvailability_username",
     options: { username },
   });
 
-  if (!response.success && response.errCode === "resource_not_found")
-    return { success: true, result: true };
-  else return response;
-};
+export const checkIfUserExist = async (email: string) => await ppGetData({
+  url: "user/ifUserExist",
+  searchParams: { email },
+  revalidate: oneDay * 2,
+  tag: "userExistence_email",
+  options: { email },
+});
 
-export const checkIfUserExist = async (email: string) =>
-  await ppGetData({
-    url: `user/ifUserExist?email=${email}`,
-    revalidate: oneDay * 2,
-    tag: "userExistence_email",
-    options: { email },
-  });
+export const getThreadById = async (id: string) => await ppGetData<Thread>({
+  url: `thread/${id}`,
+  revalidate: oneDay * 3,
+  tag: "thread_tid",
+  options: { tid: id },
+});
 
-
-export const getThreadById = async (
-  id: string
-): Promise<GeneralGetReturn<Thread>> =>
-  await ppGetData({
-    url: `thread/${id}`,
-    revalidate: oneDay * 2,
-    tag: "thread_tid",
-    options: { tid: id },
-  });
-
-export const getThreads = async (
-  page: number,
-  filter: string
-): Promise<GeneralMultipleReturn<MereThread>> =>
-  await ppGetData({
-    url: `thread?p=${page}&f=${filter || queryFilters.threads[0]}`,
+export const getThreads = async (page: number, nsfw: boolean, filter = queryFilters.threads[0]) =>
+  await ppGetData<AggregatedResponse<MereThread>>({
+    url: "thread",
+    searchParams: { f: filter, p: page, nsfw },
     revalidate: oneDay,
-    tag: "filteredThreads_filter_page",
-    options: {
-      filter: filter || queryFilters.threads[0],
-      page: page.toString(),
-    },
+    tag: "threads_filter_page_nsfw",
+    options: { filter: filter, nsfw },
   });
 
-export const getMembers = async (tid: string, page: string) =>
-  await ppGetData({
-    url: `thread/${tid}/members?p=${page}`,
+export const getMembers = async (tid: string, page: number) =>
+  await ppGetData<AggregatedResponse<MereUser>>({
+    url: `thread/${tid}/members`,
+    searchParams: { p: page },
     revalidate: oneDay,
     tag: "membersOfThread_tid_page",
-    options: { page, tid },
+    options: { page: String(page), tid },
   });
 
 export const isMember = async (
@@ -566,112 +132,142 @@ export const isMember = async (
 };
 
 export const searchMembers = async (tid: string, query: string, page: number) =>
-  await ppGetData({
-    url: `search/members/${tid}?q=${query}&p=${page}`,
+  await ppGetData<AggregatedResponse<MereUser>>({
+    url: `search/members/${tid}`,
+    searchParams: { p: page, q: query }
   });
 
-export const threadsByUser = async (
+export const joinedThreadsOfUser = async (
   uid: string,
   page = 1,
-  cookies?: CookiesType
+  cookies?: CookiesType,
 ) =>
-  await ppGetData({
-    url: `private/${uid}/thread/user?p=${page}`,
+  await ppGetData<AggregatedResponse<MereThread>>({
+    url: `private/${uid}/thread/user/joined`,
+    searchParams: { p: page },
     revalidate: oneDay * 2,
-    tag: "threadsByUser_uid_page",
-    options: { uid, page: page.toString() },
+    tag: "joinedThreadsOfUser_uid_page",
+    options: { uid, page },
+    cookies,
+  });
+
+export const createdThreadsOfUser = async (uid: string, page = 1, cookies?: CookiesType) =>
+  await ppGetData<AggregatedResponse<MereThread>>({
+    url: `private/${uid}/thread/user/created`,
+    searchParams: { p: page },
+    revalidate: oneDay * 2,
+    cookies,
+  });
+
+export const threadsManageByUser = async (uid: string, page = 1, cookies?: CookiesType) =>
+  await ppGetData<AggregatedResponse<MereThread>>({
+    url: `private/${uid}/thread/user/manages`,
+    searchParams: { p: page },
+    revalidate: oneDay * 2,
     cookies,
   });
 
 export const getPostsOfThread = async (
   tid: string,
   page: number,
-  filter: string,
-  tag?: string
+  nsfw: boolean,
+  filter = queryFilters.posts[0],
+  type: "posts" | "frames" | "links",
+  category = "",
 ): Promise<GeneralMultipleReturn> =>
   await ppGetData({
-    url: `post/thread/${tid}?p=${page}&f=${filter || "latest"}${tag ? `&t=${tag}` : ""
-      }`,
-    revalidate: oneDay,
-    tag: "postsOfThread_filter_tid_page_tag",
-    options: {
-      filter: filter || queryFilters.posts[0],
-      tid,
-      page: page.toString(),
-      tag: tag || "",
+    url: "post/thread",
+    searchParams: {
+      p: page,
+      f: filter,
+      c: category,
+      t: type,
+      nsfw,
     },
+    revalidate: oneDay,
+    tag: "postsOfThread_filter_tid_page_category_nsfw",
+    options: { filter, tid, page, category, nsfw },
   });
 
 export const getPostsOfUser = async (
-  username: string,
+  uid: string,
   page: number,
-  filter: string = "latest"
+  nsfw: boolean,
+  filter = queryFilters.posts[0]
 ) =>
-  await ppGetData({
-    url: `post/user/${username}?p=${page}&f=${filter || "latest"}`,
+  await ppGetData<AggregatedResponse<MerePost>>({
+    url: `post/user/${uid}`,
+    searchParams: { p: page, f: filter, nsfw },
     revalidate: oneDay * 3,
-    tag: "postsOfUser_username_filter_page",
-    options: {
-      filter: filter || queryFilters.posts[0],
-      username,
-      page: page.toString(),
-    },
+    tag: "postsOfUser_uid_filter_page_nsfw",
+    options: { filter, uid, page },
   });
 
-export const getReactionOnPost = async (
-  pid: string,
-  uid: string,
-  cookies?: CookiesType
-): Promise<GeneralGetReturn> => {
-  if (!uid) return { success: true, result: null };
-  const response = await ppGetData({
+export const getReactionOnPost = async (pid: string, uid: string, cookies?: CookiesType) =>
+  await ppGetData({
     url: `private/${uid}/post/${pid}/reaction`,
     revalidate: oneDay * 2,
     tag: "reaction_pid_uid",
     options: { pid, uid },
     cookies,
   });
-  return response;
-};
 
 export const getCommentsOfUser = async (
-  username: string,
-  page: number,
-  filter: string
-) =>
-  await ppGetData({
-    url: `comment/user/${username}?p=${page}&f=${filter || "loved"}`,
-    revalidate: oneDay * 3,
-    tag: "postsOfUser_username_filter_page",
-    options: { filter: filter || "loved", username, page: page.toString() },
-  });
-
-export const getListsOfUser = async (
-  username: string,
-  page: number,
-  filter: string
-) =>
-  await ppGetData({
-    url: `lists/${username}?p=${page}&f=${filter || "recently_added"}`,
-    revalidate: oneDay * 3,
-    tag: "listsOfUser_filter_username_page",
-    options: {
-      filter: filter || "recently_added",
-      username,
-      page: page.toString(),
-    },
-  });
-
-export const getPrivateListsOfUser = async (
   uid: string,
   page: number,
-  filter: string
+  nsfw: boolean,
+  filter = queryFilters.comments[0],
 ) =>
-  await ppGetData({
-    url: `private/${uid}/list?p=${page}&f=${filter || "recently_added"}`,
+  await ppGetData<AggregatedResponse<MereComment>>({
+    url: `comment/user/${uid}`,
+    searchParams: { p: page, f: filter, nsfw },
     revalidate: oneDay * 3,
-    tag: "privateListsOfUser_filter_uid_page",
-    options: { filter: filter || "recently_added", uid, page: page.toString() },
+    tag: "commentsOfUser_uid_filter_page_nsfw",
+    options: { filter, uid, page, nsfw },
+  });
+
+export const getShelvesOfUser = async (
+  uid: string,
+  page: number,
+  filter = queryFilters.shelves[0]
+) =>
+  await ppGetData<AggregatedResponse<MereShelf>>({
+    url: `shelves/${uid}`,
+    searchParams: { p: page, f: filter },
+    revalidate: oneDay * 3,
+    tag: "shelvesOfUser_filter_username_page",
+    options: { filter, uid, page },
+  });
+
+export const getPrivateShelvesOfUser = async (
+  uid: string,
+  page: number,
+  filter = queryFilters.shelves[0]
+) =>
+  await ppGetData<AggregatedResponse<MereShelf>>({
+    url: `private/${uid}/shelf`,
+    searchParams: { p: page, f: filter },
+    revalidate: oneDay * 3,
+    tag: "privateShelvesOfUser_uid_filter_page",
+    options: { filter, uid, page },
+  });
+
+export const getShelvesAsCollaborator = async (uid: string, page: number) =>
+  await ppGetData<AggregatedResponse<MereShelf>>({
+    url: `private/${uid}/shelf/collaborative`,
+    searchParams: { p: page },
+    revalidate: oneDay * 3,
+    tag: "collaborativeShelvesOfUser_uid_page",
+    options: { uid, page },
+  });
+
+export const getShelvesAsInvitee = async (uid: string, page: number) =>
+  await ppGetData<AggregatedResponse<MereShelf>>({
+    url: `private/${uid}/shelf/invited`,
+    searchParams: { p: page },
+    revalidate: oneDay * 3,
+    tag: "invitedShelvesOfUser_uid_page",
+    options: { uid, page },
   });
 
 export const getPostById = async (
@@ -684,131 +280,123 @@ export const getPostById = async (
     options: { pid: id },
   });
 
-export const getReposts = async (id: string, page: number) =>
-  await ppGetData({
-    url: `post/${id}/reposts?p=${page || 1}`,
+export const getQuotesOfPost = async (id: string, page = 1, nsfw: boolean) =>
+  await ppGetData<AggregatedResponse<MerePost>>({
+    url: `post/${id}/quotes`,
+    searchParams: { p: page, nsfw },
     revalidate: oneDay,
-    tag: "reposts_pid_page",
-    options: { pid: id, page: page.toString() },
+    tag: "quotedPosts_pid_page_nsfw",
+    options: { pid: id, page, nsfw },
   });
 
-export const getCommentsOnPost = async ({
-  id,
-  page,
-  filter,
-}: {
-  id: string;
-  page: number;
-  filter: string;
-}) =>
-  await ppGetData({
-    url: `comment/post/${id}?p=${page || 1}&f=${filter || "loved"}`,
+export const getCommentsOnPost = async (
+  id: string,
+  page: number,
+  filter = queryFilters.comments[0],
+  nsfw: boolean,
+) =>
+  await ppGetData<AggregatedResponse<MereComment>>({
+    url: `comment/post/${id}`,
+    searchParams: { p: page, f: filter, nsfw },
     revalidate: oneDay,
-    tag: "filteredComments_pid_filter_page",
-    options: {
-      filter: filter || queryFilters.comments[0],
-      pid: id,
-      page: page.toString(),
-    },
+    tag: "commentsOfPost_pid_filter_page_nsfw",
+    options: { filter, pid: id, page, nsfw },
   });
 
 export const getCommentById = async (id: string) =>
-  await ppGetData<MereComment>({
+  await ppGetData<FullComment>({
     url: `comment/${id}`,
     revalidate: oneDay,
     tag: "comment_cid",
     options: { cid: id },
   });
 
-export const getVoteOnComment = async (
-  cid: string,
-  uid: string,
-  cookies?: CookiesType
-): Promise<GeneralGetReturn> => {
-  if (!uid) return { success: false, errCode: "unauthenticated_access" };
-  const response = await ppGetData({
-    url: `private/${uid}/comment/${cid}/vote`,
+export const checkLikeOnComment = async (cid: string, uid: string, cookies?: CookiesType) =>
+  await ppGetData({
+    url: `private/${uid}/comment/${cid}/like`,
     revalidate: oneDay * 2,
-    tag: "vote_cid_uid",
+    tag: "like_cid_uid",
     options: { cid, uid },
     cookies,
   });
-  return response;
-};
 
 export const getRepliesOnComment = async (
   id: string,
   page: number,
-  filter: string
+  filter = queryFilters.comments[0],
+  nsfw: boolean,
 ) =>
-  await ppGetData({
-    url: `comment/${id}/replies?p=${page ?? 1}${filter ? `&f=${filter}` : ""}`,
+  await ppGetData<AggregatedResponse<MereComment>>({
+    url: `comment/${id}/replies`,
+    searchParams: { p: page, f: filter, nsfw },
     revalidate: oneDay,
-    tag: "replies_cid_filter_page",
-    options: { cid: id, filter, page: page.toString() },
+    tag: "replies_cid_filter_page_nsfw",
+    options: { cid: id, filter, page, nsfw },
   });
 
 export const getThreadsForMedia = async (
   id: string,
-  page: string,
-  filter: string
+  page: number,
+  nsfw: boolean,
+  filter = queryFilters.threads[0],
 ) =>
-  await ppGetData({
-    url: `thread/media/${id}?p=${page}f=${filter || "popular"}`,
+  await ppGetData<AggregatedResponse<MereThread>>({
+    url: `thread/cinement/${id}`,
+    searchParams: { p: page, f: filter, nsfw },
     revalidate: oneDay,
   });
 
 export const getUserByUsername = async (username: string) =>
-  await ppGetData<User>({
+  await ppGetData<RequestedUser>({
     url: `user/${username}`,
     revalidate: oneDay * 2,
     tag: "user_username",
     options: { username },
   });
 
-export const getFollowers = async (
-  uid: string,
-  page = 1,
-  cookies?: CookiesType
-) =>
-  await ppGetData({
+export const getFollowers = async (uid: string, page = 1, cookies?: CookiesType) =>
+  await ppGetData<AggregatedResponse<MereUser>>({
     url: `private/${uid}/user/followers`,
     revalidate: oneDay * 2,
     tag: "followersOfUser_uid_page",
-    options: { uid, page: page.toString() },
+    options: { uid, page },
     cookies,
   });
 
-export const getFollowing = async (
-  uid: string,
-  page = 1,
-  cookies?: CookiesType
-) =>
-  await ppGetData({
+export const getFollowing = async (uid: string, page = 1, cookies?: CookiesType) =>
+  await ppGetData<AggregatedResponse<MereUser>>({
     url: `private/${uid}/user/following`,
     revalidate: oneDay * 2,
     tag: "followingOfUser_uid_page",
-    options: { uid, page: page.toString() },
+    options: { uid, page },
     cookies,
   });
 
-export const getMediaItem = async (
-  tmdbid: string,
-  type: "movie" | "show"
-): Promise<FullMediaItemType | null> => {
-  if (!tmdbid) return null;
-  const id = tmdbid.split("-")[0];
-  const item = await ppGetData<FullMediaItemType>({
-    url: `media/${id}`,
+export const getBlockedUsers = async (uid: string, page = 1, cookies?: CookiesType) =>
+  await ppGetData<AggregatedResponse<MereUser>>({
+    url: `private/${uid}/user/blocked`,
     revalidate: oneDay * 2,
-    tag: "media_tmdbid",
-    options: { tmdbid: id },
+    tag: "blockedByUser_uid_page",
+    options: { uid, page },
+    cookies,
+  });
+
+export const getCinement = async (ext_id: string, type: "movie" | "show"): Promise<FullCinementType | null> => {
+  if (!ext_id) return null;
+
+  const id = ext_id.split("-")[0];
+
+  const item = await ppGetData<FullCinementType>({
+    url: `cinement/${id}`,
+    revalidate: oneDay * 2,
+    tag: "cinement_extid",
+    options: { extid: id },
   });
 
   if (item.success) return item.result;
 
   const media = await fetch(
-    `https://testlalaapp.vercel.app/api/${type}?id=${tmdbid}`,
+    `https://testlalaapp.vercel.app/api/${type}?id=${ext_id}`,
     { next: { revalidate: oneDay * 2 } }
   ).then((r) => r.json());
 
@@ -826,48 +414,42 @@ export const getMediaItem = async (
   };
 
   const { result } = await axios
-    .post(`${getLocalUrl()}/api/v1/media/${id}`, objectToFormData(data))
+    .post(`${getLocalUrl()}/api/v1/cinement/${id}`, objectToFormData(data))
     .then((r) => r.data);
 
   return result;
 };
 
-export const getListsForMedia = async (
-  id: string,
-  uid: string,
-  cookies?: CookiesType
-) =>
-  await ppGetData({
-    url: `/private/${uid}/media/${id}`,
-    tag: "listsForMedia_mid_uid",
+export const getShelvesForCinement = async (id: string, uid: string, cookies?: CookiesType) =>
+  await ppGetData<ShelvesForCinement>({
+    url: `/private/${uid}/cinement/${id}`,
+    tag: "shelvesForMedia_mid_uid",
     options: { mid: id, uid },
     revalidate: oneDay,
     cookies,
   });
 
-export const getList = async (
+export const getShelf = async (
   id: string,
-  uid: string,
-  key?: string
+  uid: string | undefined,
+  key: string = 'none'
 ): Promise<GeneralGetReturn> => {
-  if (!id) return { success: false, errCode: "resource_not_found" };
-
-  const { success, errCode, result } = await ppGetData<FullList>({
-    url: `private/${uid}/list/${id}${key ? `k=${key}` : ""}`,
+  const { success, errCode, result } = await ppGetData<FullShelf>({
+    url: `private/${uid}/shelf/${id}`,
+    searchParams: { k: key },
     revalidate: oneDay * 2,
-    tag: "list_lid_key",
-    options: { lid: id, key: key ?? "none" },
+    tag: "shelf_sid_key",
+    options: { lid: id, key },
   });
 
-  if (!success) return { success, errCode };
-  else if (!result) return { success, result };
+  if (!success || !result) return { success, errCode, result };
 
   if (result.isPrivate) {
     if (!uid) return { success: false, errCode: "unauthenticated_access" };
     else if (
       !(
         result.user_id === uid ||
-        result.listKey === key ||
+        result.shelfKey === key ||
         result.collaborators?.find((u) => u === uid)
       )
     )
@@ -876,87 +458,91 @@ export const getList = async (
   return { success, result };
 };
 
-export const getCollaboratorsOfList = async (
-  uid: string | undefined,
-  lid: string,
-  cookies: CookiesType
-): Promise<GeneralGetReturn> => {
-  if (!uid) return { success: false, errCode: "unauthenticated_access" };
-  return await ppGetData({
-    url: `private/${uid}/list/${lid}/collaborators`,
+export const getShelfConnection = async (uid: string, sid: string, cookies?: CookiesType) =>
+  await ppGetData<Required<CollaboratorModelType>>({
+    url: `private/${uid}/shelf/${sid}/isCollaborator`,
+    revalidate: oneDay * 3,
+    tag: "isShelfCollaborator_uid_sid",
+    options: { sid, uid },
+    cookies,
+  })
+
+export const getCollaboratorsOfShelf = async (uid: string, sid: string, cookies: CookiesType) =>
+  await ppGetData<ShelfCollaborators>({
+    url: `private/${uid}/shelf/${sid}/collaborators`,
     cookies,
     revalidate: oneDay * 3,
-    tag: "listCollaborators_lid",
-    options: { lid },
+    tag: "shelfCollaborators_sid",
+    options: { sid },
   });
-};
 
 export const getItems = async (
   id: string,
   uid: string | undefined,
   page: number,
-  filter: string,
-  key?: string
-): Promise<GeneralGetReturn> => {
-  if (!id) return { success: false, errCode: "resource_not_found" };
-
-  return await ppGetData({
-    url: `private/${uid}/item/${id}?p=${page}&f=${filter}${key ? `&k=${key}` : ""}`,
+  filter = queryFilters.items[0],
+  key = "none"
+) =>
+  await ppGetData<AggregatedResponse<ShelfItemType>>({
+    url: `private/${uid}/item/${id}`,
+    searchParams: { k: key, f: filter, p: page },
     revalidate: oneDay,
-    tag: "items_lid_filter_page_key",
-    options: { lid: id, filter, page: String(page), key: key ?? "none" },
+    tag: "items_sid_filter_page_key",
+    options: { sid: id, filter, page, key },
   });
-};
 
 export const searchPosts = async (query: string, nsfw: boolean, page = 1) =>
-  await ppGetData({
-    url: `search/posts?q=${query}${nsfw ? "&nsfw=true" : ""}&p=${page}`,
-    revalidate: oneDay,
+  await ppGetData<AggregatedResponse<MerePost>>({
+    url: "search/posts",
+    searchParams: { q: query, nsfw, p: page },
   });
 
 export const searchComments = async (query: string, nsfw: boolean, page = 1) =>
-  await ppGetData({
-    url: `search/comments?q=${query}${nsfw ? "&nsfw=true" : ""}&p=${page}`,
-    revalidate: oneDay,
+  await ppGetData<AggregatedResponse<MereComment>>({
+    url: "search/comments",
+    searchParams: { q: query, nsfw, p: page },
   });
 
 export const searchThreads = async (query: string, nsfw: boolean, page = 1) =>
-  await ppGetData({
-    url: `search/threads?q=${query}${nsfw ? "&nsfw=true" : ""}&p=${page}`,
+  await ppGetData<AggregatedResponse<MereThread>>({
+    url: "search/threads",
+    searchParams: { q: query, nsfw, p: page },
   });
 
-export const searchUsers = async (query: string, page = 1) => {
-  const { success, result } = await ppGetData({
-    url: `search/users?q=${query}&p=${page}`,
+export const searchUsers = async (query: string, page = 1) =>
+  await ppGetData<AggregatedResponse<MereUser>>({
+    url: "search/users",
+    searchParams: { q: query, p: page }
   });
-  if (success) return result;
-};
 
-export const searchLists = async (query: string, page = 1) => {
-  const { success, result } = await ppGetData({
-    url: `search/lists?q=${query}&p=${page}`,
-  });
-  if (success) return result;
-};
+export const searchShelves = async (query: string, page = 1) =>
+  await ppGetData<AggregatedResponse<MereShelf>>({
+    url: "search/shelves",
+    searchParams: { q: query, p: page }
+  })
 
 export const searchFollowers = async (q: string, uid: string, p = 1) =>
-  await ppGetData({
-    url: `private/${uid}/search/followers?q=${q}&p=${p}`,
+  await ppGetData<AggregatedResponse<MereUser>>({
+    url: `private/${uid}/search/followers`,
+    searchParams: { q, p }
+  });
+
+export const searchBlockedUsers = async (q: string, uid: string, p = 1) =>
+  await ppGetData<AggregatedResponse<MereUser>>({
+    url: `private/${uid}/search/blocked`,
+    searchParams: { q, p }
   });
 
 export const searchFollowing = async (q: string, uid: string, p = 1) =>
-  await ppGetData({
-    url: `private/${uid}/search/following?q=${q}&p=${p}`,
+  await ppGetData<AggregatedResponse<MereUser>>({
+    url: `private/${uid}/search/following`,
+    searchParams: { q, p }
   });
 
-export const searchBannedMembers = async (
-  tid: string,
-  uid: string,
-  q: string,
-  p = 1
-) =>
-  await ppGetData({
-    url: `private/${uid}/search/banned/${tid}?q=${q}&p=${p}`,
+export const searchBannedMembers = async (tid: string, uid: string, q: string, p = 1) =>
+  await ppGetData<AggregatedResponse<MereUser>>({
+    url: `private/${uid}/search/banned/${tid}`,
+    searchParams: { q, p }
   });
 
 export const checkIfItemSaved = async (
@@ -974,15 +560,16 @@ export const checkIfItemSaved = async (
 
 export const getSavedContent = async (
   uid: string,
-  type: "comment" | "list" | "post",
+  type: "comment" | "shelf" | "post",
   page = 1,
   cookies?: CookiesType
 ) =>
-  await ppGetData({
-    url: `private/${uid}/bookmark/${type}?p=${page}`,
+  await ppGetData<AggregatedResponse>({
+    url: `private/${uid}/bookmark/${type}`,
+    searchParams: { p: page },
     revalidate: oneDay * 2,
     tag: `saved-${type}s_uid_page`,
-    options: { uid, page: page.toString() },
+    options: { uid, page },
     cookies,
   });
 
@@ -1004,25 +591,24 @@ export const getNotificationsOfUser = async (
   page: number,
   cookies?: CookiesType
 ) =>
-  await ppGetData({
-    url: `private/${uid}/notifications?p=${page}`,
+  await ppGetData<AggregatedResponse<NotificationModelType>>({
+    url: `private/${uid}/notification`,
+    searchParams: { p: page },
     revalidate: oneDay,
     tag: "notifications_uid_page",
-    options: { uid, page: page.toString() },
+    options: { uid, page },
     cookies,
   });
 
-export const getBannedMembers = async (tid: string, uid: string, p = 1) =>
-  await ppGetData({
-    url: `private/${uid}/thread/${tid}/banned?p=${p}`,
+export const getBannedMembers = async (tid: string, uid: string, p = 1, cookies?: CookiesType) =>
+  await ppGetData<AggregatedResponse<MereUser>>({
+    url: `private/${uid}/thread/${tid}/banned`,
+    searchParams: { p },
+    cookies,
   });
 
-export const getManagers = async (
-  tid: string,
-  uid: string,
-  cookies: CookiesType
-): Promise<GeneralGetReturn> => {
-  const { success, result, errCode } = await ppGetData<ThreadModType[]>({
+export const getManagers = async (tid: string, uid: string, cookies?: CookiesType) =>
+  await ppGetData<ThreadModType>({
     url: `private/${uid}/thread/${tid}/managers`,
     tag: "threadManagers_tid",
     options: { tid },
@@ -1030,15 +616,10 @@ export const getManagers = async (
     cookies,
   });
 
-  if (!success) return { success, errCode };
-  else if (result.find((u) => u.user_id === uid && u.role === "moderator"))
-    return { success, result };
-  else return { success: false, errCode: "unauthorized_access" };
-};
-
 export const getRooms = async (uid: string, page = 1, cookies?: CookiesType) =>
-  await ppGetData({
-    url: `private/${uid}/room?p=${page}`,
+  await ppGetData<AggregatedResponse<MereRoomType>>({
+    url: `private/${uid}/room`,
+    searchParams: { p: page },
     cookies,
   });
 
@@ -1047,8 +628,9 @@ export const getInvitedRooms = async (
   page = 1,
   cookies?: CookiesType
 ) =>
-  await ppGetData({
-    url: `private/${uid}/room/invitation?p=${page}`,
+  await ppGetData<AggregatedResponse<MereRoomType>>({
+    url: `private/${uid}/room/invitation`,
+    searchParams: { p: page },
     cookies,
   });
 
@@ -1062,12 +644,24 @@ export const getRoomById = async (
     cookies,
   });
 
+export const getParticipantsOfRoom = async (
+  uid: string,
+  rmid: string,
+  page = 1,
+  cookies?: CookiesType
+) =>
+  await ppGetData<AggregatedResponse<MereUser>>({
+    url: `private/${uid}/room/${rmid}/participant`,
+    searchParams: { p: page },
+    cookies,
+  });
+
 export const getRoomByUserId = async (
   uid: string,
   ruid: string,
   cookies?: CookiesType
 ) =>
-  await ppGetData({
+  await ppGetData<FullRoomType>({
     url: `private/${uid}/room/user/${ruid}`,
     cookies,
   });
@@ -1079,32 +673,49 @@ export const getMessages = async (
   cookies?: CookiesType
 ): Promise<GeneralMultipleReturn<MereMessage>> =>
   await ppGetData({
-    url: `private/${uid}/room/${rmid}/message?p=${page}`,
+    url: `private/${uid}/room/${rmid}/message`,
+    searchParams: { p: page },
     cookies,
   });
 
 export const getUserMeta = async (uid: string) =>
-  await ppGetData<UserMetaData>({ url: `user/meta/${uid}` });
+  await ppGetData<MereUser>({ url: `user/meta/${uid}` });
 
-export const getReportsOnContent = (content_id: string) => {
-  return ppGetData({
+export const getReportsOnContent = (content_id: string) =>
+  ppGetData<{ reports: ReportsType[] }>({
     url: `report/${content_id}`,
     revalidate: oneDay,
     tag: "reports_cnid",
     options: { cnid: content_id }
   });
-}
+
+export const checkIfReportExists = (cnid: string, uid: string, type: "post" | "comment" | "thread" | "user", cookies?: CookiesType) =>
+  ppGetData<ReportModelType>({
+    url: `private/${uid}/report/${cnid}`,
+    searchParams: { t: type },
+    cookies,
+    revalidate: oneDay * 3
+  })
 
 export const getReportsOnThread = (tid: string, uid: string) =>
-  ppGetData<ReportsType>({ url: `private/${uid}/report/${tid}` });
+  ppGetData<{ reports: ReportsType[] }>({
+    url: `private/${uid}/report/${tid}/thread`
+  });
 
 export const getReportedContents = (tid: string, uid: string, type: "post" | "comment", page = 1) =>
-  ppGetData<ReportsType>({ url: `private/${uid}/report/${tid}/${type}s?p=${page}` });
+  ppGetData<AggregatedResponse<ReportsType>>({
+    url: `private/${uid}/report/${tid}/${type}s`,
+    searchParams: { p: page },
+  });
 
 export const searchRooms = async (uid: string, query: string, page = 1) =>
-  await ppGetData<GeneralMultipleReturn<SearchedRoom>>({ url: `private/${uid}/room/search?q=${query}&p=${page}` })
+  await ppGetData<AggregatedResponse<SearchedRoom>>({
+    url: `private/${uid}"search/rooms" `,
+    searchParams: { q: query, p: page },
+  });
 
-
-export const searchUsersForGroup = async (uid: string, query: string, page = 1) =>
-  await ppGetData({ url: `private/${uid}/room/search/users?q=${query}&p=${page}` }) as GeneralMultipleReturn<MereUser>
-
+export const searchNonBlockedUsers = async (uid: string, query: string, page = 1): Promise<GeneralMultipleReturn<MereUser>> =>
+  await ppGetData({
+    url: `private/${uid}/search/users`,
+    searchParams: { q: query, p: page }
+  });

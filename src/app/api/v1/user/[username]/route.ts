@@ -1,29 +1,26 @@
-import { getRequest } from "@lib/helpers/common";
+import { getHandler } from "@lib/helpers/handlers";
+import { convertMatchToLookupExpr } from "@lib/pipelines";
 import { User } from "@model";
 
-export const GET = getRequest(async (_, params) => {
+// Get User by username
+export const GET = getHandler(async (_, params) => {
   const { username } = params;
 
   const response = await User.aggregate([
     { $match: { username, isActive: true } },
     {
       $lookup: {
-        from: "lists",
+        from: "shelves",
         let: { id: "$_id" },
         pipeline: [
-          {
-            $match: {
-              $expr: {
-                $and: [
-                  { $eq: ["$user_id", "$$id"] },
-                  { $eq: ["$isPrivate", false] },
-                  { $ne: ["$list_type", "custom"] },
-                ],
-              },
-            },
-          },
+          convertMatchToLookupExpr({
+            user_id: "$$id",
+            isPrivate: false,
+            shelf_type: "custom"
+          }),
+          { $project: { _id: 1, name: 1, poster: 1 } }
         ],
-        as: "predefine_lists",
+        as: "predefinedShelves",
       },
     },
     {
@@ -38,14 +35,11 @@ export const GET = getRequest(async (_, params) => {
         following: 1,
         posts: 1,
         comments: 1,
-        public_lists: 1,
-        predefine_lists: { _id: 1, name: 1, poster: 1 },
+        publicShelves: 1,
+        predefinedShelves: 1,
       },
     },
   ]);
 
-  const result = response[0];
-  if (!result) return { success: false, errCode: "resource_not_found" };
-
-  return { result, success: true };
+  return { result: response[0], success: true };
 });

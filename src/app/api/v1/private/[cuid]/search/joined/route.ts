@@ -1,42 +1,30 @@
-import { getRequest } from "@lib/helpers/common";
-import { threadsAggregationPipeline } from "@lib/pipelines";
-import { getPageParams, ObjectId } from "@lib/utils";
-import { Member } from "@model";
-import { NextRequest } from "next/server";
+import { getHandler } from "@lib/helpers/handlers";
+import { convertMatchToLookupExpr, searchHandler } from "@lib/pipelines";
 
 // Search the joined threads of the current user.
-export const GET = getRequest(
-  async (r: NextRequest, params: { cuid: string }) => {
-    const page = getPageParams(r) - 1;
-    const { cuid } = params;
-
-    const query = r.nextUrl.searchParams.get("q");
-    if (!query) return { success: false, errCode: "pp500" };
-
-    const result = await Member.aggregate(
-      threadsAggregationPipeline({
-        filters: [
-          { $match: { userId: ObjectId(cuid) } },
-          {
-            $lookup: {
-              from: "Thread",
-              localField: "thread_id",
-              foreignField: "_id",
-              as: "thread",
-            },
-          },
-          { $unwind: "$thread" },
-          { $replaceRoot: { newRoot: "$thread" } },
-          {
-            $search: { text: { query, path: "name" } },
-          },
-          { $addFields: { score: { $meta: "searchScore" } } },
-        ],
-        page,
-        sort: { score: -1 },
-      })
-    );
-
-    return { result, success: true };
-  }
-);
+export const GET = getHandler(async (r, params) => {
+  const { cuid } = params;
+  return await searchHandler({
+    r,
+    type: "threads",
+    filters: [
+      {
+        $lookup: {
+          from: "members",
+          let: { tid: "$_id" },
+          pipeline: [
+            convertMatchToLookupExpr({
+              user_id: cuid,
+              thread_id: "$$tid",
+              banned: false,
+            }),
+            { $count: "exists" }
+          ],
+          as: "member"
+        }
+      },
+      { $match: { $expr: { $eq: [{ $size: "$member" }, 1] } } },
+      { $project: { member: 0 } }
+    ],
+  });
+});

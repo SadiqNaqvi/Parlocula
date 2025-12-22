@@ -2,24 +2,25 @@
 
 import { Navbar } from "@components";
 import EmailVerifier from "@components/auth/EmailVerifier";
-import { DatePicker, Form, Input } from "@components/form";
+import { Form, Input } from "@components/form";
+import { generateFingerprint } from "@lib/auth";
 import { errorCodes } from "@lib/constants";
-import { invalidateSession } from "@lib/helpers/client";
+import { handleErrorFromMutation, invalidateSession } from "@lib/helpers/mutations";
 import { verifyCode } from "@lib/helpers/server";
 import { sessionInvalidationSchema } from "@lib/schemas";
-import { useRouter } from "next/navigation";
+import { useNavigation } from "@store/historystack";
 import { useState } from "react";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 
 const InvalidateSection = ({ email }: { email: string }) => {
 
-    const router = useRouter();
+    const navigation = useNavigation();
 
-    const performInvalidation = async (data: { passKey: string, date?: number }) => {
+    const performInvalidation = async (data: { passKey: string }) => {
         const { success, errCode, formError } = await invalidateSession({ ...data, email })
         if (success) {
             toast.success("Invalidation Successfull");
-            router.push("/join");
+            navigation.goto("/join");
         }
         else if (formError) return formError;
         else errorCodes[errCode]?.message ||
@@ -35,22 +36,16 @@ const InvalidateSection = ({ email }: { email: string }) => {
             </p>
 
             <Form submit={performInvalidation} schema={sessionInvalidationSchema}>
-
                 <Input placeholder="PassKey" name="passKey" />
-
-                <DatePicker
-                    name="date"
-                    description="Optional"
-                />
             </Form>
 
-            <ul className="mt-2 text-zinc-500 text-sm space-y-1">
+            {/* <ul className="mt-2 text-zinc-500 text-sm space-y-1">
                 <li>
                     Parlocula supports Time-based reversion.
                     This means you can revert your account upto a specified time in the past.
                 </li>
                 <li>
-                    All the documents 'created' within this time range will be deleted example: Posts, Threads, Lists, Rooms, Messages, etc.
+                    All the documents {"'"}created{"'"} within this time range will be deleted example: Posts, Threads, Shelves, Rooms, Messages, etc.
                 </li>
                 <li>
                     Your account would start looking like how it was before the specified time.
@@ -62,7 +57,7 @@ const InvalidateSection = ({ email }: { email: string }) => {
                     This action cannot be undone. So be sure before you choose this.
                 </li>
 
-            </ul>
+            </ul> */}
         </>
     )
 
@@ -73,13 +68,10 @@ const InvalidatePage = () => {
     const [email, setEmail] = useState("");
 
     const verifyEmail = async (email: string, code: number) => {
-        const { success, errCode, formError } = await verifyCode(code);
+        const response = await verifyCode(code, await generateFingerprint());
 
-        if (success) setEmail(email);
-
-        else if (formError) return formError;
-
-        else return errCode;
+        if (response.success) setEmail(email);
+        else return handleErrorFromMutation(response);
     }
 
     if (!email) return (

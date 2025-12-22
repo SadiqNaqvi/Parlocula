@@ -18,11 +18,12 @@ const Carousel = ({ children, className }: { children: React.ReactNode, classNam
 
     useEffect(() => {
         if (!containerRef.current) return;
+
         const container = containerRef.current;
         const instance = new NativeCarousel(container, options);
 
         return () => { instance.destroy(); };
-    }, [containerRef.current]);
+    }, []);
 
     return (
         <section className={`f-carousel ${className}`} ref={containerRef}>

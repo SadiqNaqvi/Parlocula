@@ -2,9 +2,11 @@
 
 import { getPoster, getThumbnail } from "@lib/utils";
 import Image from "next/image";
+import { ParloImage } from "./ui";
+import { Frame } from "@type/internal";
 
 type Props = {
-    src: string,
+    src: Frame | string,
     id: string,
     alt: string,
     height: number,
@@ -15,39 +17,38 @@ type Props = {
     type?: "image" | "video",
     className?: string,
     containerClass?: string,
-};
+}
 
-const FancyImage = ({ src, id, download, caption, alt, height, width, type = "image", thumbnail, containerClass, ...args }: Props) => {
+const FancyImage = ({ id, download, caption, alt, src, height, width, type = "image", thumbnail, containerClass, ...args }: Props) => {
 
-    const source = getPoster({ external: false, path: src, type });
+    const source = typeof src === "string" ? src : src.path;
 
     return (
         <div
             className={containerClass ?? "size-fit"}
             style={{ cursor: "pointer" }}
-            key={src}
+            key={source}
             data-src={source}
-            data-frame={id}
+            data-fancybox={id}
+            data-frame
             data-download-src={download ? source : undefined}
             data-download-filename={download}
             data-caption={caption}>
             {type === "image" ?
-                <Image
-                    {...args}
-                    priority={false}
-                    loading="lazy"
-                    data-lazy-src={thumbnail ?? source}
-                    src={thumbnail ?? source}
+                <ParloImage
+                    // data-lazy-src={thumbnail ?? source}
+                    frame={thumbnail ?? source}
                     alt={alt}
                     height={height}
-                    width={width} />
+                    width={width}
+                />
                 :
                 <video
                     {...args}
                     height={height}
                     width={width}
                     preload="metadata"
-                    poster={getThumbnail(src)}>
+                    poster={getThumbnail(source)}>
                     <source src={source} />
                 </video>
             }

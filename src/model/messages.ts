@@ -1,35 +1,31 @@
 import { MessageModelType, StrictModel } from "@type/models";
 import { Schema, model, models } from "mongoose";
 import { StrictSchema } from "./general";
+import { oneDay } from "@lib/constants";
+import { parloId } from "@lib/utils";
 
 export const messageModel = new StrictSchema<MessageModelType>({
-  _id: Schema.ObjectId,
+  _id: { type: String, default: parloId },
   content: { type: String, required: true },
   createdAt: { type: Date, default: Date.now },
   room_id: {
-    type: Schema.ObjectId,
+    type: String,
     ref: "Room",
     required: true,
-    index: true,
   },
   user_id: {
-    type: Schema.ObjectId,
+    type: String,
     ref: "User",
     required: true,
-    index: true,
   },
   username: { type: String, required: true },
-  replied_to: { type: Schema.Types.ObjectId, ref: 'Message', required: false, default: undefined },
-  replied_content: { type: Schema.Types.ObjectId, ref: 'Message', required: false, default: undefined },
+  replied_to: { type: String, ref: 'Message', required: false, default: undefined },
+  replied_content: { type: String, ref: 'Message', required: false, default: undefined },
 });
-
-messageModel.index({ createdAt: 1 }, { expireAfterSeconds: 3600 * 24 });
+messageModel.index({ createdAt: 1 }, { expireAfterSeconds: oneDay * 3 });
+messageModel.index({ room_id: 1, createdAt: 1 });
 
 const Message: StrictModel<MessageModelType> =
-  (models.Message as StrictModel<MessageModelType>) ||
-  (model<MessageModelType>(
-    "Message",
-    messageModel
-  ) as StrictModel<MessageModelType>);
+  (models.Message as any) || model("Message", messageModel);
 
 export default Message;

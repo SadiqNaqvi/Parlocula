@@ -1,17 +1,18 @@
-import { ClientSession, PipelineStage } from "mongoose";
-import { Frame, GeneralGetReturn, GenericDate, InfiniteQueryResponse, MereMessage } from "./internal";
-import { NextRequest } from "next/server";
-import { ReadonlyRequestCookies } from "next/dist/server/web/spec-extension/adapters/request-cookies";
+import { PipelineStage } from "mongoose";
 import { RequestCookies } from "next/dist/compiled/@edge-runtime/cookies";
-import { MessageModelType, NotificationModelType } from "./models";
+import { ReadonlyRequestCookies } from "next/dist/server/web/spec-extension/adapters/request-cookies";
+import { GenericDate, InfiniteQueryResponse, MereMessage } from "./internal";
+import { NotificationModelType } from "./models";
 
-export type UserBasedButtonProps<T = any> = {
-  state: T | null;
-  isPending: boolean;
-  onClick: (newState: T, action: any) => void;
-};
+type Arguments<A> =
+  A extends undefined ? [] :
+  A extends any[] ? A : [A];
+export type TypedFunction<A = undefined, R = void> = (...args: Arguments<A>) => R
 
-export type UsersListType =
+export type ArrayForArrayResponse<T, R> = T extends any[] ? R[] : R;
+
+
+export type UsersShelfType =
   | "favourite"
   | "recommended"
   | "watched"
@@ -32,6 +33,7 @@ export type ErrorCodes =
   | "invalid_object_id"
   | "invalid_input"
   | "temporary_banned"
+  | "rate_limit_exceed"
   | "blocked_by_author"
   | "not_a_member"
   | "email_verification_limit_exceed"
@@ -50,36 +52,40 @@ export type AvailableCacheTags =
   | "connection_rid_uid"
   | "usernameAvailability_username"
   | "userExistence_email"
-  | "threadsByUser_uid_page"
-  | "postsOfUser_username_filter_page"
-  | "commentsOfUser_username_filter_page"
+  | "joinedThreadsOfUser_uid_page"
+  | "postsOfUser_uid_filter_page_nsfw"
+  | "commentsOfUser_uid_filter_page_nsfw"
   | "thread_tid"
   | "membersOfThread_tid_page"
-  | "filteredThreads_filter_page"
-  | "postsOfThread_filter_tid_page_tag"
+  | "threads_filter_page_nsfw"
+  | "postsOfThread_filter_tid_page_category_nsfw"
   | "member_tid_uid"
   | "post_pid"
   | "reaction_pid_uid"
-  | "filteredComments_pid_filter_page"
-  | "reposts_pid_page"
+  | "commentsOfPost_pid_filter_page_nsfw"
+  | "quotedPosts_pid_page_nsfw"
   | "comment_cid"
-  | "replies_cid_filter_page"
-  | "vote_cid_uid"
-  | "media_tmdbid"
-  | "list_lid_key"
-  | "listsOfUser_filter_username_page"
-  | "privateListsOfUser_filter_uid_page"
-  | "items_lid_filter_page_key"
+  | "replies_cid_filter_page_nsfw"
+  | "like_cid_uid"
+  | "cinement_extid"
+  | "shelf_sid_key"
+  | "shelvesOfUser_uid_filter_page"
+  | "privateShelvesOfUser_uid_filter_page"
+  | "collaborativeShelvesOfUser_uid_page"
+  | "invitedShelvesOfUser_uid_page"
+  | "items_sid_filter_page_key"
   | "saved-posts_uid_page"
   | "saved-comments_uid_page"
-  | "saved-lists_uid_page"
+  | "saved-shelfs_uid_page"
   | "isSaved_uid_id"
-  | "listsForMedia_mid_uid"
+  | "shelvesForMedia_mid_uid"
   | "threadManagers_tid"
-  | "listCollaborators_lid"
+  | "shelfCollaborators_sid"
+  | "isShelfCollaborator_uid_sid"
   | "notifications_uid_page"
   | "followersOfUser_uid_page"
   | "followingOfUser_uid_page"
+  | "blockedByUser_uid_page"
   | "roomInvitations_uid"
   | "room_rmid_ruid_uid"
   | "reports_cnid"
@@ -93,71 +99,81 @@ export type AvailableRevalidateTags =
   | "userEmailMutation_uid_oldEmail_newEmail"
   | "threadMutation_tid"
   | "threadMembershipMutation_tid_uid"
-  | "threadManagersMutation_tid"
-  | "threadInviteesMutation_tid"
-  | "postMutation_pid_tid_username_tag"
+  | "threadManagersMutation_tid_uid"
+  | "postMutation_pid_tid_uid_category"
   | "postUpdation_pid"
   | "reactionMutation_pid_uid"
-  | "commentMutation_cid_username_pid"
+  | "commentMutation_cid_uid_pid"
   | "commentUpdation_cid"
-  | "voteMutation_cid_uid_author"
-  | "media_tmdbid"
-  | "listMutation_lid_username"
-  | "listCollaboratorsMutation_lid"
-  | "listUpdation_lid"
-  | "addItemsInList_lid"
+  | "likesMutation_cid_uid_author"
+  | "cinement_extid"
+  | "shelfMutation_sid_uid_key"
+  | "shelfUpdation_sid_key"
+  | "shelfCollaboratorMutation_uid_sid"
+  | "addItemsInShelf_sid"
   | "savedPosts_uid"
   | "savedComments_uid"
-  | "savedLists_uid"
+  | "savedShelves_uid"
   | "isSaved_uid_id"
   | "followUnfollow_rid_uid"
   | "blockUnblock_rid_uid"
   | "notifications_uid"
-  | "roomInvitations_uid";
+  | "roomInvitations_uid"
 
 export type AvailableQueryKeys =
   | "user_username"
   | "connection_ruid"
-  | "postsOfUser_username_filter"
-  | "threadOfUser_uid"
+  | "postsOfUser_uid_filter"
+  | "joinedThreadsOfUser_uid"
+  | "createdThreadsOfUser_uid"
+  | "threadsManageByUser_uid"
   | "threads_filter"
   | "thread_id"
   | "members_tid"
   | "membership_tid"
-  | "postsOfThread_tid_filter_tag"
+  | "postsOfThread_tid_filter_category"
   | "post_id"
   | "reaction_pid"
   | "commentsOfPost_pid_filter"
-  | "reposts_pid"
-  | "commentsOfUser_username_filter"
+  | "quotes_pid"
+  | "commentsOfUser_uid_filter"
   | "comment_cid"
-  | "vote_cid"
+  | "like_cid"
   | "replies_cid_filter"
-  | "list_lid"
-  | "listsOfUser_username_filter"
-  | "itemsOfList_lid_filter"
-  | "privateList_lid_key"
-  | "itemsOfPrivateList_lid_key_filter"
+  | "shelf_sid"
+  | "shelvesOfUser_uid_filter"
+  | "privateShelvesOfUser_uid_filter"
+  | "collaboratedShelvesOfUser_uid"
+  | "invitedShelvesOfUser_uid"
+  | "itemsOfShelf_sid_filter"
+  | "privateShelf_sid_key"
+  | "itemsOfPrivateShelf_sid_key_filter"
+  | "shelfsForCinement_cnid"
   | "isContentSaved_type_id"
-  | "saved_posts_uid"
-  | "saved_comments_uid"
-  | "saved_lists_uid"
+  | "saved-posts_uid"
+  | "saved-comments_uid"
+  | "saved-shelfs_uid"
   | "notifications_uid"
-  | "listCollaborators_lid"
+  | "shelfCollaborators_sid"
   | "followersOfCurrentUser_uid"
   | "followingOfCurrentUser_uid"
+  | "blockedByCurrentUser_uid"
+  | "shelfConnection_sid"
   | "bannedMembers_tid"
   | "threadManagers_tid"
   | "search-followers_uid_query"
   | "search-following_uid_query"
   | "searchMembers_tid_query"
   | "searchBannedMembers_tid_query"
+  | "searchNonBlockedUser_query_uid"
   | "rooms_uid"
   | "messages_rmid"
   | "room_rmid_uid"
+  | "participantsOfRoom_rmid_uid"
   | "roomInvitations_uid"
   | "roomExists_ruid_uid"
   | "reports_cnid"
+  | "ifReportExists_cnid_type"
   | "reportedContents_type_tid";
 
 export type AblyEventType =
@@ -202,48 +218,6 @@ export type ReportReasonType =
   | "Scam or Fraud"
   | "No Longer Active";
 
-export type HandlerWrapperProps<T = any> = {
-  data: T;
-  frames: Frame[];
-  user_id: string;
-  username: string;
-  session: ClientSession;
-  req: NextRequest;
-  params: { id: string; cuid: string };
-};
-
-export type PrecheckProps<T = any> = Omit<
-  HandlerWrapperProps<T>,
-  "frames" | "session"
->;
-export type PrecheckResponse = Omit<GeneralGetReturn, "result">;
-
-export type HandlerResponse<K extends AvailableRevalidateTags> =
-  | {
-    result: any;
-    success: true;
-    errCode?: null;
-    options: RevalidateTagsArgs<K>;
-    available: K;
-    revalidateQueue?: undefined;
-  }
-  | {
-    result: any;
-    success: true;
-    errCode?: null;
-    options?: undefined;
-    available?: undefined;
-    revalidateQueue: string[];
-  }
-  | {
-    result?: null;
-    success: false;
-    errCode: ErrorCodes;
-    options?: undefined;
-    available?: undefined;
-    revalidateQueue?: undefined;
-  };
-
 export type CloudinaryMediaOptions =
   | "aspect_ratio"
   | "crop"
@@ -262,7 +236,7 @@ export type QueryFilterType =
   | "posts"
   | "comments"
   | "userPosts"
-  | "lists"
+  | "shelves"
   | "items";
 
 export type PipelineFunc<T = { [key: string]: any }> = (
@@ -270,6 +244,9 @@ export type PipelineFunc<T = { [key: string]: any }> = (
     filters: PipelineStage[];
     page: number;
     sort?: any;
+    localFieldForLookup?: string,
+    replaceRoot?: string,
+    limit?: number;
   } & T
 ) => PipelineStage[];
 
@@ -387,7 +364,7 @@ export type QueryKeyArgs<K extends AvailableQueryKeys> = Record<
 
 export type CacheTagsArgs<K extends AvailableCacheTags> = Record<
   ExtractPlaceholders<K>,
-  string
+  string | number | boolean
 >;
 
 export type RevalidateTagsArgs<K extends AvailableRevalidateTags> = Record<
@@ -401,6 +378,7 @@ export type PPGetDataProps<K extends AvailableCacheTags> = {
   url: string;
   cookies?: CookiesType;
   revalidate?: number;
+  searchParams?: Record<string, string | number | boolean>;
 } & (
     | {
       tag?: undefined;

@@ -1,6 +1,6 @@
 "use client";
 import { disablePush, enablePush } from "@lib/providers/notification";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 
 export default function Page() {
     const send = () => {

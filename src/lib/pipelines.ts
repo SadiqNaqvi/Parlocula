@@ -1,11 +1,55 @@
-import { Comment, Follow, List, Member, Post, Thread, User } from "@model";
+import { Comment, Connection, Member, Post, Shelf, Thread, User } from "@model";
 import { GeneralGetReturn } from "@type/internal";
-import { MongooseModel } from "@type/models";
 import { PipelineFunc } from "@type/other";
-import { PipelineStage } from "mongoose";
+import { FilterQuery, PipelineStage, Types } from "mongoose";
 import { NextRequest } from "next/server";
-import { queryLimit, recentlyJoinedLimit } from "./constants";
-import { getPageParams, ObjectId } from "./utils";
+import { oneDay, queryLimit } from "./constants";
+import { createArray, getPageParams, getSearchParams } from "./utils";
+
+type Collections = "users" | "posts" | "threads" | "comments" | "shelves";
+
+export const userProjection = {
+  username: 1,
+  profile: 1,
+  name: 1,
+  followers: 1,
+  posts: 1,
+}
+
+export const postProjection = {
+  user: 0,
+  thread: 0,
+  user_id: 0,
+  body: 0,
+  links: 0,
+}
+
+export const threadProjection = {
+  name: 1,
+  nsfw: 1,
+  member_count: 1,
+  post_count: 1,
+  poster: 1,
+}
+
+export const commentProjection = {
+  user: 0,
+  reply: 0,
+  post_id: 0,
+  edited_at: 0,
+}
+
+export const shelfProjection = {
+  user_id: 0,
+  save_count: 0,
+  createdAt: 0,
+  updatedAt: 0,
+}
+
+export const attachNsfwInPipeline = (obj: Object, nsfw: boolean) => {
+  if (nsfw) return obj;
+  return { ...obj, nsfw }
+}
 
 export const createPipeline = ({
   filters,
@@ -13,12 +57,14 @@ export const createPipeline = ({
   projection,
   sort,
   preProjection,
+  limit = queryLimit
 }: {
   filters: PipelineStage[];
   page: number;
   sort: Record<string, number | string>;
   preProjection?: PipelineStage[];
   projection: Record<string, any>;
+  limit?: number;
 }): PipelineStage[] => [
     ...filters,
     {
@@ -26,8 +72,8 @@ export const createPipeline = ({
         total: [{ $count: "count" }],
         data: [
           ...(sort ? [{ $sort: sort }] : []),
-          { $skip: page * queryLimit },
-          { $limit: queryLimit },
+          { $skip: page * limit },
+          { $limit: limit },
           ...(preProjection ?? []),
           { $project: projection },
         ] as PipelineStage.FacetPipelineStage[],
@@ -42,63 +88,182 @@ export const createPipeline = ({
     },
   ];
 
-export const postsAggregationPipeline: PipelineFunc<{
-  isLinkBased?: boolean;
-}> = ({ filters, sort, page = 1, isLinkBased }) =>
-    createPipeline({
-      filters,
-      sort,
-      page,
-      preProjection: [
-        {
-          $lookup: {
-            from: "users",
-            localField: "user_id",
-            foreignField: "_id",
-            as: "user",
-          },
-        },
-        {
-          $lookup: {
-            from: "threads",
-            localField: "thread_id",
-            foreignField: "_id",
-            as: "thread",
-          },
-        },
-        {
-          $addFields: {
-            name: { $arrayElemAt: ["$thread.name", 0] },
-            username: { $arrayElemAt: ["$user.username", 0] },
-            poster: { $arrayElemAt: ["$user.profile", 0] },
-            links_count: { $size: "$links" },
-          },
-        },
-      ],
-      projection: {
-        user: 0,
-        thread: 0,
-        user_id: 0,
-        body: 0,
-        [isLinkBased ? "frames" : "links"]: 0,
-      },
-    });
+const projectionMap: Record<Collections, { [field: string]: number }> = {
+  comments: commentProjection,
+  posts: postProjection,
+  shelves: shelfProjection,
+  threads: threadProjection,
+  users: userProjection
+}
 
-export const commentsAggregationPipelineWithReplies: PipelineFunc = ({
-  filters,
-  page,
-  sort,
-}) =>
+export const convertMatchToLookupExpr = <T = any>(matchObj: FilterQuery<T>): PipelineStage.Match => {
+  const convertCondition = (key: string, value: any) => {
+    // Primitive -> $eq
+    if (typeof value !== "object" || value === null) {
+      return { $eq: [`$${key}`, value] };
+    }
+
+    // Operators
+    const expressions = [];
+
+    for (const op in value) {
+      const val = value[op];
+
+      const operatorMap: Record<string, string> = {
+        $eq: "$eq",
+        $ne: "$ne",
+        $gt: "$gt",
+        $lt: "$lt",
+        $gte: "$gte",
+        $lte: "$lte",
+        $in: "$in",
+        $nin: "$nin",
+      };
+
+      if (!operatorMap[op]) {
+        throw new Error(`Unsupported operator: ${op}`);
+      }
+
+      expressions.push({
+        [operatorMap[op]]: [`$${key}`, val],
+      });
+    }
+
+    // If only one operator → return directly
+    return expressions.length === 1 ? expressions[0] : { $and: expressions };
+  }
+
+  const parse = (match: FilterQuery<T>): FilterQuery<T>["$expr"] => {
+    const exprConditions = [];
+
+    for (const key in match) {
+      const value = match[key] as FilterQuery<T>[];
+
+      // Handle logical operators at root
+      if (key === "$and" || key === "$or") {
+        exprConditions.push({
+          [key]: value.map((item) => {
+            const parsed = parse(item);
+            return parsed.$expr || parsed;
+          }),
+        });
+      } else {
+        exprConditions.push(convertCondition(key, value));
+      }
+    }
+
+    return {
+      $expr: exprConditions.length === 1
+        ? exprConditions[0]
+        : { $and: exprConditions }
+    };
+  }
+
+  return { $match: parse(matchObj) };
+}
+
+const lookupOrAndChangeRoot = (collection: Collections, forLookup: string | undefined, forReplaceRoot: string | undefined): PipelineStage[] => {
+  if (!forLookup && !forReplaceRoot) return [];
+
+  const project = projectionMap[collection];
+  if (!project) throw new Error("invalid collection passed in lookupOrAndChangeRoot function");
+
+  // This is to optimise performance, why lookup for all the documents when we need to skip & limit documents later. So first skip & limit then lookup and replace root.
+
+  return createArray<PipelineStage>([])
+    .concatConditionally(forLookup, (localField) => ({
+      $lookup: {
+        from: collection,
+        localField,
+        foreignField: "_id",
+        pipeline: [{ $project: project }],
+        as: collection,
+      }
+    })
+    ).concatConditionally(Boolean(forReplaceRoot || forLookup), () => ({
+      $replaceRoot: {
+        newRoot: {
+          $arrayElemAt: [`$${forReplaceRoot || collection}`, 0]
+        }
+      }
+    }));
+
+}
+
+export const postsAggregationPipeline: PipelineFunc<{ isLinkBased: boolean; excludeQuotedPost: boolean }> = (
+  { filters, sort, page = 1, isLinkBased, localFieldForLookup, replaceRoot, excludeQuotedPost }
+) =>
   createPipeline({
     filters,
-    page,
     sort,
+    page,
     preProjection: [
+      ...lookupOrAndChangeRoot("posts", localFieldForLookup, replaceRoot),
       {
         $lookup: {
           from: "users",
           localField: "user_id",
           foreignField: "_id",
+          pipeline: [{ $project: { username: 1, profile: 1 } }],
+          as: "user",
+        },
+      },
+      {
+        $lookup: {
+          from: "threads",
+          localField: "thread_id",
+          foreignField: "_id",
+          pipeline: [{ $project: { name: 1, poster: 1 } }],
+          as: "thread",
+        },
+      },
+      ...(excludeQuotedPost ? [] : [
+        {
+          $lookup: {
+            from: "posts",
+            localField: "quoted_post_id",
+            foreignField: "_id",
+            pipeline: [{ $project: { title: 1, frames_count: 1, links_count: 1 } }],
+            as: "quoted_post",
+          },
+        }
+      ]),
+      {
+        $addFields: {
+          thread_name: { $arrayElemAt: ["$thread.name", 0] },
+          username: { $arrayElemAt: ["$user.username", 0] },
+          profile: { $arrayElemAt: ["$user.profile", 0] },
+          poster: { $arrayElemAt: ["$thread.poster", 0] },
+          quoted_post_title: { $ifNull: [{ $arrayElemAt: ["$quoted_post.title", 0] }, ""] },
+          quoted_post_frames_count: { $ifNull: [{ $arrayElemAt: ["$quoted_post.frames_count", 0] }, 0] },
+          quoted_post_links_count: { $ifNull: [{ $arrayElemAt: ["$quoted_post.links_count", 0] }, 0] }
+        },
+      },
+    ],
+    projection: {
+      user: 0,
+      thread: 0,
+      user_id: 0,
+      body: 0,
+      [isLinkBased ? "frames" : "links"]: 0,
+    },
+  });
+
+export const commentsAggregationPipelineWithReplies: PipelineFunc = (
+  { filters, page, sort, localFieldForLookup, replaceRoot }
+) =>
+  createPipeline({
+    filters,
+    page,
+    sort,
+    preProjection: [
+      ...lookupOrAndChangeRoot("comments", localFieldForLookup, replaceRoot),
+      {
+        $lookup: {
+          from: "users",
+          localField: "user_id",
+          foreignField: "_id",
+          pipeline: [{ $project: { username: 1, profile: 1 } }],
           as: "user",
         },
       },
@@ -107,6 +272,7 @@ export const commentsAggregationPipelineWithReplies: PipelineFunc = ({
           from: "comments",
           localField: "replied_to",
           foreignField: "_id",
+          pipeline: [{ $project: { content: 1, attachment: 1 } }],
           as: "reply",
         },
       },
@@ -118,38 +284,39 @@ export const commentsAggregationPipelineWithReplies: PipelineFunc = ({
           profile: {
             $ifNull: [{ $arrayElemAt: ["$user.profile", 0] }, ""],
           },
-          parent: {
-            $substr: [
-              { $ifNull: [{ $arrayElemAt: ["$reply.content", 0] }, ""] },
-              0,
-              50,
-            ],
+          parentComment: {
+            content: {
+              $substr: [
+                { $ifNull: [{ $arrayElemAt: ["$reply.content", 0] }, ""] },
+                0,
+                50,
+              ],
+            },
+            attachment: {
+              $ifNull: [{ $arrayElemAt: ["$reply.attachment", 0] }, ""]
+            },
           },
         },
       },
     ],
-    projection: {
-      user_id: 0,
-      user: 0,
-      reply: 0,
-    },
+    projection: commentProjection,
   });
 
-export const commentsAggregationPipeline: PipelineFunc = ({
-  filters,
-  page,
-  sort,
-}) =>
+export const commentsAggregationPipeline: PipelineFunc = (
+  { filters, page, sort, localFieldForLookup, replaceRoot }
+) =>
   createPipeline({
     filters,
     sort,
     page,
     preProjection: [
+      ...lookupOrAndChangeRoot("comments", localFieldForLookup, replaceRoot),
       {
         $lookup: {
           from: "users",
           localField: "user_id",
           foreignField: "_id",
+          pipeline: [{ $project: { username: 1, profile: 1 } }],
           as: "user",
         },
       },
@@ -164,55 +331,32 @@ export const commentsAggregationPipeline: PipelineFunc = ({
         },
       },
     ],
-    projection: {
-      user_id: 0,
-      user: 0,
-      replied_to: 0,
-      post_id: 0,
-      edited_at: 0,
-    },
+    projection: commentProjection,
   });
 
-export const threadsAggregationPipeline: PipelineFunc = ({
-  filters,
-  page,
-  sort,
-}) =>
+export const threadsAggregationPipeline: PipelineFunc = (
+  { filters, page, sort, localFieldForLookup, replaceRoot }
+) =>
   createPipeline({
     filters,
     sort,
     page,
-    projection: {
-      name: 1,
-      nsfw: 1,
-      member_count: 1,
-      post_count: 1,
-      poster: 1,
-    },
+    preProjection: lookupOrAndChangeRoot("threads", localFieldForLookup, replaceRoot),
+    projection: threadProjection,
   });
 
-export const listsAggregationPipeline: PipelineFunc = ({
-  filters,
-  page,
-  sort,
-}) =>
+export const shelvesAggregationPipeline: PipelineFunc = (
+  { filters, page, sort, localFieldForLookup, replaceRoot }
+) =>
   createPipeline({
     filters,
     sort,
     page,
-    projection: {
-      name: 1,
-      poster: 1,
-      item_count: 1,
-      saved_count: 1,
-    },
+    preProjection: lookupOrAndChangeRoot("shelves", localFieldForLookup, replaceRoot),
+    projection: shelfProjection,
   });
 
-export const itemsAggregationPipeline: PipelineFunc = ({
-  filters,
-  page,
-  sort,
-}) =>
+export const itemsAggregationPipeline: PipelineFunc<{ shelf_creator: string }> = ({ filters, page, sort, shelf_creator }) =>
   createPipeline({
     filters,
     sort,
@@ -220,90 +364,71 @@ export const itemsAggregationPipeline: PipelineFunc = ({
     preProjection: [
       {
         $lookup: {
-          from: "media",
-          localField: "media_id",
+          from: "cinements",
+          localField: "cinement_id",
           foreignField: "_id",
-          as: "media",
+          pipeline: [{ $project: { title: 1, cinement_type: 1, poster: 1 } }],
+          as: "cinement",
         },
       },
-      {
-        $addFields: {
-          title: { $arrayElemAt: ["$media.title", 0] },
-          media_type: { $arrayElemAt: ["$media.media_type", 0] },
-          poster: {
-            $ifNull: [{ $arrayElemAt: ["$media.poster", 0] }, ""],
-          },
-        },
-      },
-    ],
-    projection: { media: 0 },
-  });
-
-export const usersAggregationPipeline: PipelineFunc = ({
-  filters,
-  page,
-  sort,
-}) =>
-  createPipeline({
-    filters,
-    sort,
-    page,
-    projection: {
-      username: 1,
-      profile: 1,
-      name: 1,
-      followers: 1,
-      posts: 1,
-    },
-  });
-
-export const bookmarkAggregationPipeline: PipelineFunc<{
-  type: "post" | "list" | "comment";
-}> = ({ filters, page, type }) => {
-  const sort = { createdAt: -1 };
-  if (type === "comment")
-    return commentsAggregationPipeline({ filters, page, sort });
-  else if (type === "list")
-    return listsAggregationPipeline({ filters, page, sort });
-  else if (type === "post")
-    return postsAggregationPipeline({ filters, page, sort });
-  else return [];
-};
-
-export const membersAggregationPipeline: PipelineFunc = ({
-  filters,
-  page,
-  sort,
-}) =>
-  createPipeline({
-    filters,
-    sort,
-    page,
-    preProjection: [
       {
         $lookup: {
           from: "users",
           localField: "user_id",
           foreignField: "_id",
-          as: "user",
-        },
+          pipeline: [{ $project: { username: 1 } }],
+          as: "user"
+        }
       },
       {
         $addFields: {
-          username: { $arrayElemAt: ["$user.username", 0] },
-          profile: { $arrayElemAt: ["$user.profile", 0] },
+          title: { $arrayElemAt: ["$cinement.title", 0] },
+          cinement_type: { $arrayElemAt: ["$cinement.cinement_type", 0] },
+          poster: { $arrayElemAt: ["$cinement.poster", 0] },
+          added_by: {
+            $cond: {
+              if: { $eq: ["$user_id", shelf_creator] },
+              then: undefined,
+              else: { $arrayElemAt: ["$user.username", 0] },
+            },
+          },
         },
       },
     ],
-    projection: { user: 0, user_id: 0 },
+    projection: { cinement: 0, user: 0 },
   });
 
-export const currentUserPipeline = (filter: any) => [
+export const usersAggregationPipeline: PipelineFunc = (
+  { filters, page, sort, localFieldForLookup, replaceRoot, limit }
+) =>
+  createPipeline({
+    filters,
+    sort,
+    page,
+    preProjection: lookupOrAndChangeRoot("users", localFieldForLookup, replaceRoot),
+    projection: userProjection,
+    limit,
+  });
+
+export const bookmarkAggregationPipeline: PipelineFunc<{
+  type: "post" | "shelf" | "comment";
+}> = ({ filters, page, type, localFieldForLookup, replaceRoot }) => {
+  const sort = { createdAt: -1 };
+  if (type === "comment")
+    return commentsAggregationPipeline({ filters, page, sort, localFieldForLookup, replaceRoot });
+  else if (type === "shelf")
+    return shelvesAggregationPipeline({ filters, page, sort, localFieldForLookup, replaceRoot });
+  else if (type === "post")
+    return postsAggregationPipeline({ filters, page, sort, localFieldForLookup, replaceRoot, excludeQuotedPost: true, isLinkBased: false });
+  else return [];
+};
+
+export const currentUserPipeline = (filter: PipelineStage.Match["$match"]) => [
   { $match: filter },
 
   {
     $lookup: {
-      from: "lists",
+      from: "shelves",
       let: { id: "$_id" },
       pipeline: [
         {
@@ -311,276 +436,174 @@ export const currentUserPipeline = (filter: any) => [
             $expr: {
               $and: [
                 { $eq: ["$user_id", "$$id"] },
-                { $eq: ["$list_type", "custom"] },
+                { $ne: ["$shelf_type", "custom"] },
               ],
             },
           },
         },
-        { $limit: queryLimit },
+        { $project: shelfProjection }
       ],
-      as: "lists",
-    },
-  },
-
-  {
-    $lookup: {
-      from: "lists",
-      let: { id: "$_id" },
-      pipeline: [
-        {
-          $match: {
-            $expr: {
-              $and: [
-                { $eq: ["$user_id", "$$id"] },
-                { $ne: ["$list_type", "custom"] },
-              ],
-            },
-          },
-        },
-      ],
-      as: "predefine_lists",
-    },
-  },
-
-  {
-    $lookup: {
-      from: "members",
-      let: { id: "$_id" },
-      pipeline: [
-        {
-          $match: {
-            $expr: {
-              $eq: ["$user_id", "$$id"],
-            },
-          },
-        },
-        { $limit: recentlyJoinedLimit },
-      ],
-      as: "members",
-    },
-  },
-
-  {
-    $lookup: {
-      from: "threads",
-      localField: "members.thread_id",
-      foreignField: "_id",
-      as: "threads",
+      as: "predefinedShelves",
     },
   },
 
   {
     $project: {
-      initialGenres: 0,
       isActive: 0,
       lastLoginAt: 0,
-      password: 0,
       session_id: 0,
-      members: 0,
-      lists: {
-        key: 0,
-        user_id: 0,
-        save_count: 0,
-        createdAt: 0,
-        updatedAt: 0,
-      },
-      predefine_lists: {
-        key: 0,
-        user_id: 0,
-        save_count: 0,
-        createdAt: 0,
-        updatedAt: 0,
-      },
-      threads: {
-        connection: 0,
-        created_by: 0,
-        description: 0,
-        links: 0,
-        nsfw: 0,
-        tags: 0,
-        createdAt: 0,
-        updatedAt: 0,
-      },
+      passkey: 0,
     },
   },
 ];
 
-export const getFollowers = async (
-  user_id: string,
-  limit = 50
-): Promise<{ follower: string }[]> => {
-  return await Follow.aggregate([
+export const getFollowersToNotify = async (user_id: string, limit = 50): Promise<{ follower: string }[]> => {
+  return await Connection.aggregate([
     {
-      $match: {
-        followee: ObjectId(user_id),
-        notification: true,
-      },
+      $match: { followee: user_id, notification: true },
     },
     {
       $lookup: {
         from: "users",
-        as: "user",
         localField: "follower",
         foreignField: "_id",
+        pipeline: [
+          convertMatchToLookupExpr({ isActive: true }),
+          { $project: { updatedAt: 1 } }
+        ],
+        as: "user",
       },
     },
-    {
-      $match: {
-        "user.isActive": true,
-        "users.lastLoginAt": {
-          $gt: new Date(Date.now() - 1000 * 3600 * 24 * 40),
-        },
-        "users.notification": true,
-      },
-    },
+    { $sort: { "$user.updatedAt": -1 } },
     { $limit: limit },
     { $project: { follower: 1 } },
   ]);
 };
 
-export const getMembers = async (
+export const getMembersToNotify = async (
   tid: string,
   limit = 50
 ): Promise<{ user_id: string }[]> => {
   return await Member.aggregate([
     {
-      $match: {
-        thread_id: ObjectId(tid),
-        notification: true,
-      },
+      $match: { thread_id: tid, notification: true },
     },
     {
       $lookup: {
         from: "users",
-        as: "user",
         localField: "follower",
         foreignField: "_id",
+        pipeline: [
+          convertMatchToLookupExpr({ isActive: true }),
+          { $project: { updatedAt: 1 } }
+        ],
+        as: "user",
       },
     },
-    {
-      $match: {
-        "user.isActive": true,
-        "users.lastLoginAt": {
-          $gt: new Date(Date.now() - 1000 * 3600 * 24 * 40),
-        },
-        "users.notification": true,
-      },
-    },
+    { $sort: { "$user.updatedAt": -1 } },
     { $limit: limit },
     { $project: { user_id: 1 } },
   ]);
 };
 
-type Collections = "users" | "posts" | "threads" | "comments" | "lists";
-export const searchHandler = async ({
-  collection,
-  r,
-  DocModel,
-  filters,
-}: {
-  r: NextRequest;
-  collection: Collections;
-  DocModel?: MongooseModel;
-  filters?: PipelineStage[];
-}): Promise<GeneralGetReturn> => {
-  const searchParams = r.nextUrl.searchParams;
-  const query: string | null = searchParams.get("q");
-  const nsfw: string | null = searchParams.get("nsfw");
+const performAggregation = ({ filters, page, sort, type }: { filters: PipelineStage[], page: number, sort?: any, type: Collections }) => {
+  if (type === "posts") return Post.aggregate(postsAggregationPipeline({ filters, page, sort, excludeQuotedPost: true, isLinkBased: false }));
+  else if (type === "comments") return Comment.aggregate(commentsAggregationPipeline({ filters, page, sort }));
+  else if (type === "shelves") return Shelf.aggregate(shelvesAggregationPipeline({ filters, page, sort }));
+  else if (type === "threads") return Thread.aggregate(threadsAggregationPipeline({ filters, page, sort }));
+  else return User.aggregate(usersAggregationPipeline({ filters, page, sort }));
+}
+
+type FilterInsideSearchType = Record<string, boolean | number | string>;
+
+type SearchHandlerProps = {
+  filters: PipelineStage[],
+  type: Collections,
+  r: NextRequest,
+  applyNsfwCheck?: boolean,
+  filterInsideSearch?: FilterInsideSearchType
+}
+
+const createSearchFilter = (filter: FilterInsideSearchType) => {
+  return Object.entries(filter).map(([path, value]) => ({
+    equals: { path, value }
+  }));
+}
+
+export const searchHandler = async ({ r, type, filters, applyNsfwCheck, filterInsideSearch }: SearchHandlerProps): Promise<GeneralGetReturn> => {
+
+  const { get } = r.nextUrl.searchParams;
+
+  const query: string | null = get("q");
   if (!query) return { success: false, errCode: "unknown_error" };
 
-  const page = getPageParams(r, 0);
+  const { page, nsfw } = getSearchParams(r.nextUrl, 0);
 
-  const config: Record<
-    Collections,
+  const isFiltering = nsfw === false;
+
+  const pathsDict: Record<Collections, string[]> = {
+    "users": ["username", "name"],
+    "posts": ["title"],
+    "threads": ["name"],
+    "comments": ["content"],
+    "shelves": ["name"],
+  }
+
+  const indexNameDict: Record<Collections, string> = {
+    "users": "searchIndexForUsers_username_name",
+    "posts": "searchIndexForPosts_title",
+    "threads": "searchIndexForThreads_name",
+    "comments": "searchIndexForComments_content",
+    "shelves": "searchIndexForShelves_name",
+  }
+
+  const paths = pathsDict[type];
+  const index = indexNameDict[type];
+
+  if (!paths || !index) throw new Error(`Incorrect type passed in search handler, got: ${type}`)
+
+  const searchFilters: PipelineStage[] = [
     {
-      model: MongooseModel;
-      filter: Record<string, boolean>;
-      pipeline: PipelineFunc;
-      paths: string[];
-    }
-  > = {
-    users: {
-      model: User,
-      filter: { isActive: true },
-      pipeline: usersAggregationPipeline,
-      paths: ["username", "name"],
-    },
-    posts: {
-      model: Post,
-      filter: nsfw ? {} : { nsfw: false },
-      pipeline: postsAggregationPipeline,
-      paths: ["title"],
-    },
-    threads: {
-      model: Thread,
-      filter: nsfw ? {} : { nsfw: false },
-      pipeline: threadsAggregationPipeline,
-      paths: ["name"],
-    },
-    comments: {
-      model: Comment,
-      filter: nsfw ? {} : { nsfw: false },
-      pipeline: commentsAggregationPipeline,
-      paths: ["content"],
-    },
-    lists: {
-      model: List,
-      filter: { isPrivate: false },
-      pipeline: listsAggregationPipeline,
-      paths: ["name"],
-    },
-  };
-
-  const { filter, pipeline, paths } = config[collection];
-  const chosenModel = DocModel ?? config[collection].model;
-  const chosenFilters = filters ?? [{ $match: filter }];
-
-  const resp = await chosenModel.aggregate(
-    pipeline({
-      filters: [
-        // ...chosenFilters,
-        {
-          $search: {
-            compound: {
-              should: paths.map((path) => ({
-                autocomplete: {
-                  query,
-                  path,
-                  fuzzy: { maxEdits: 2, prefixLength: 1 },
-                },
-              })),
+      $search: {
+        index,
+        compound: {
+          should: paths.map((path) => ({
+            autocomplete: {
+              query,
+              path,
+              fuzzy: { maxEdits: 2, prefixLength: 1 },
             },
-          },
+          })),
+          filter: (applyNsfwCheck || filterInsideSearch) ? createSearchFilter({
+            ...(applyNsfwCheck && isFiltering && { nsfw }),
+            ...(filterInsideSearch && filterInsideSearch),
+          }) : undefined,
         },
-        {
-          $addFields: {
-            score: { $meta: "searchScore" },
-          },
-        },
-      ],
-      page,
-      sort: { score: -1 },
-    })
-  );
+      },
+    },
+    {
+      $addFields: {
+        score: { $meta: "searchScore" },
+      },
+    },
+    { $sort: { score: -1 } },
+    { $skip: page * queryLimit },
+    { $limit: 100 },
+    ...filters
+  ];
 
-  const result = resp[0] ?? { data: [], total: 0 };
-  return { success: true, result };
-};
+  const response = await performAggregation({ filters: searchFilters, page, type });
 
-export const roomAggregationPipeline = ({
-  invitation,
-  page,
-  cuid,
-}: {
-  invitation: boolean;
-  page: number;
-  cuid: string;
-}) =>
+  return { success: true, result: response[0] ?? { data: [], total: 0 } }
+
+}
+
+export const roomAggregationPipeline = ({ invitation, page, cuid, }: { invitation: boolean; page: number; cuid: string; }) =>
   createPipeline({
     filters: [
       {
         $match: {
-          user_id: ObjectId(cuid),
+          user_id: cuid,
           type: invitation ? { $eq: "invitee" } : { $ne: "invitee" },
         },
       },
@@ -589,23 +612,20 @@ export const roomAggregationPipeline = ({
           from: "rooms",
           let: { hideAt: "$hideAt", room_id: "$room_id" },
           pipeline: [
+            convertMatchToLookupExpr({ _id: "$$room_id", $gt: ["$lastMessageAt", "$$hideAt"] }),
             {
-              $match: {
-                $expr: {
-                  $and: [
-                    { $eq: ["$_id", "$$room_id"] },
-                    {
-                      $gt: ["$lastMessageAt", "$$hideAt"],
-                    },
-                  ],
-                },
-              },
-            },
+              $project: {
+                type: 1,
+                lastMessageBy: 1,
+                lastMessageAt: 1,
+                invitationMessage: 1,
+              }
+            }
           ],
           as: "room",
         },
       },
-      { $match: { "room.0": { $exists: true } } },
+      // { $match: { "room.0": { $exists: true } } },
     ],
     preProjection: [
       {
@@ -618,18 +638,13 @@ export const roomAggregationPipeline = ({
           from: "participants",
           let: { room_id: "$room_id", isGroup: "$isGroup" },
           pipeline: [
-            {
-              $match: {
-                $expr: {
-                  $and: [
-                    { $eq: ["$$isGroup", false] },
-                    { $eq: ["$room_id", "$$room_id"] },
-                    { $ne: ["$user_id", ObjectId(cuid)] },
-                  ],
-                },
-              },
-            },
+            convertMatchToLookupExpr({
+              "$isGroup": false,
+              room_id: "$$room_id",
+              user_id: cuid
+            }),
             { $limit: 1 },
+            { $project: { user_id: 1, seen_at: 1 } }
           ],
           as: "participant",
         },
@@ -642,16 +657,11 @@ export const roomAggregationPipeline = ({
             isGroup: "$isGroup",
           },
           pipeline: [
-            {
-              $match: {
-                $expr: {
-                  $and: [
-                    { $eq: ["$$isGroup", false] },
-                    { $eq: ["$_id", "$$uid"] },
-                  ],
-                },
-              },
-            },
+            convertMatchToLookupExpr({
+              "$isGroup": false,
+              _id: "$$uid"
+            }),
+            { $project: { username: 1, profile: 1 } }
           ],
           as: "user",
         },
@@ -731,57 +741,41 @@ export const roomAggregationPipeline = ({
     },
   });
 
-export const reportAggregationPipeline = ({
-  content_id,
-  page,
-  isThread
-}: {
-  content_id: string,
-  page: number,
-  isThread: boolean,
-}) => {
-
-  return [
-    {
-      $match: {
-        content_id: ObjectId(content_id),
-        content_type: isThread ? { $eq: "Thread" } : { $ne: "Thread" }
-      }
-    },
-    {
-      $group: {
-        "_id": "$reason",
-        count: {
-          $sum: 1
-        },
-        details: {
-          $push: {
-            $ifNull: ["$details", "$$REMOVE"]
-          }
-        }
-      }
-    },
-    {
-      $project: {
-        count: 1,
-        content: {
-          $slice: [
-            "$details",
-            (page - 1) * queryLimit,
-            queryLimit
-          ]
+export const reportAggregationPipeline = ({ content_id, page, isThread }: { content_id: string, page: number, isThread: boolean }) => [
+  {
+    $match: {
+      content_id: content_id,
+      content_type: isThread ? { $eq: "Thread" } : { $ne: "Thread" }
+    }
+  },
+  {
+    $group: {
+      "_id": "$reason",
+      count: {
+        $sum: 1
+      },
+      details: {
+        $push: {
+          $ifNull: ["$details", "$$REMOVE"]
         }
       }
     }
-  ]
+  },
+  {
+    $project: {
+      count: 1,
+      content: {
+        $slice: [
+          "$details",
+          (page - 1) * queryLimit,
+          queryLimit
+        ]
+      }
+    }
+  }
+]
 
-}
-
-export const reportedContentAggregation = ({
-  content_type, thread_id, page
-}: {
-  content_type: "Post" | "Comment", thread_id: string, page: number
-}): PipelineStage[] => {
+export const reportedContentAggregation = ({ content_type, thread_id, page }: { content_type: "Post" | "Comment", thread_id: string, page: number }): PipelineStage[] => {
 
   const contentType = `${content_type.toLowerCase()}s`;
   const finalContentFields = content_type === "Post" ? [
@@ -800,10 +794,7 @@ export const reportedContentAggregation = ({
   return createPipeline({
     filters: [
       {
-        $match: {
-          content_type,
-          ext_id: ObjectId(thread_id)
-        }
+        $match: { content_type, ext_id: thread_id }
       },
       {
         $group: {
@@ -869,5 +860,3 @@ export const reportedContentAggregation = ({
     }
   });
 }
-
-// In the above pipleine, add a lookup stage which fetches the content based on content_type and then projects only the important fields.

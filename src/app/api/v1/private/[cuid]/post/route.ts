@@ -1,64 +1,51 @@
-import { postRequest } from "@lib/helpers/common";
+import { parloculaAppURL } from "@lib/constants";
+import { postHandler, PrecheckFunction } from "@lib/helpers/handlers";
 import { sendNotification } from "@lib/helpers/server";
-import { getFollowers, getMembers } from "@lib/pipelines";
+import { convertMatchToLookupExpr, getFollowersToNotify, getMembersToNotify } from "@lib/pipelines";
 import { postSchemaServer } from "@lib/schemas";
-import { createArray, ObjectId } from "@lib/utils";
-import { Notifications, Post, Thread, User } from "@model";
-import { NotificationModelType, ThreadModelType } from "@type/models";
+import { createArray } from "@lib/utils";
+import { Post, Thread, User } from "@model";
 import { PostSchemaType } from "@type/schemas";
-import Ably from "ably";
 
-// Checking if the current user is a member of the thread and if user is blocked by the author of the repost.
-const preCheck = async ({
+// Checking if the current user is a member of the thread and if user is blocked by the author of the quoted post.
+const preCheck: PrecheckFunction<PostSchemaType> = async ({
   user_id,
   data,
-}: {
-  user_id: string;
-  data: PostSchemaType;
 }) => {
-  const { thread_id, repost_id, repost_author } = data;
+  const { thread_id, quoted_post_id, quoted_post_author } = data;
 
-  if (!thread_id || (repost_id && !repost_author))
+  if (!thread_id || (quoted_post_id && !quoted_post_author))
     return { success: false, errCode: "invalid_input" };
 
   const pipeline = createArray([
-    { $match: { _id: ObjectId(user_id) } },
+    { $match: { _id: user_id } },
     {
       $lookup: {
         from: "members",
-        as: "isMember",
         let: { id: "$_id" },
         pipeline: [
-          {
-            $match: {
-              $expr: {
-                $and: [
-                  { $eq: ["$user_id", "$$id"] },
-                  { $eq: ["$thread_id", ObjectId(thread_id)] },
-                  { $eq: ["$banned", false] },
-                ],
-              },
-            },
-          },
+          convertMatchToLookupExpr({
+            user_id: "$$id",
+            thread_id: thread_id,
+            banned: false
+          }),
+          { $project: { _id: 1 } }
         ],
+        as: "isMember",
       },
     },
-  ]).concatConditionally(repost_author, (author) => ({
+  ]).concatConditionally(quoted_post_author, (author) => ({
     $lookup: {
-      from: "follows",
+      from: "connections",
       as: "isBlocked",
       let: { id: "$_id" },
       pipeline: [
-        {
-          $match: {
-            $expr: {
-              $and: [
-                { $eq: ["$follower", "$$id"] },
-                { $eq: ["$followee", ObjectId(author)] },
-              ],
-            },
-          },
-        },
+        convertMatchToLookupExpr({
+          follower: "$$id",
+          followee: author,
+          blocked: true
+        }),
+        { $project: { _id: 1 } }
       ],
     },
   }));
@@ -69,31 +56,54 @@ const preCheck = async ({
 
   if (!check.isMember || !check.isMember.length)
     return { success: false, errCode: "not_a_member" };
-  else if (repost_id && !check.isBlocked.length)
+  else if (quoted_post_id && check.isBlocked.length)
     return { success: false, errCode: "blocked_by_author" };
   return { success: true };
 };
 
 // Posting in a thread.
-export const POST = postRequest({
-  handler: async ({ data, frames, user_id, username, session }) => {
-    const { repost_author, ...rest } = data as PostSchemaType;
+export const POST = postHandler<PostSchemaType>({
+  handler: async ({ data, frames, user_id, username, session, profile, isNsfw }) => {
+
+    const { quoted_post_author, quoted_post_id, ...rest } = data;
+
     const post = (
-      await Post.create([{ ...rest, frames, user_id }], { session })
+      await Post.create([
+        {
+          ...rest,
+          frames,
+          frames_count: frames.length,
+          links_count: rest.links.length,
+          user_id,
+          quoted_post_id
+        }
+      ], { session })
     )[0];
 
-    const thread = await Thread.findByIdAndUpdate<ThreadModelType>(
+    if (!post)
+      return { success: false, errCode: "data_storing_fail" }
+
+    const thread = await Thread.findByIdAndUpdate(
       post.thread_id,
-      { $inc: { post_count: 1 } },
+      {
+        $inc: { post_count: 1 },
+        $set: { lastPostedAt: new Date() },
+      },
       { session }
     );
 
-    if (!thread) return { success: false, errCode: "resource_not_found" };
+    if (!thread)
+      return { success: false, errCode: "resource_not_found" };
 
-    await User.findByIdAndUpdate(user_id, { $inc: { posts: 1 } }, { session });
+    const user = await User.findByIdAndUpdate(user_id, { $inc: { posts: 1 } }, { session });
 
-    const followers = await getFollowers(user_id, 50);
-    const members = await getMembers(post.thread_id, 100);
+    if (!user)
+      return { success: false, errCode: "unauthenticated_access" }
+
+    const tid = thread._id;
+
+    const followers = await getFollowersToNotify(user_id);
+    const members = await getMembersToNotify(tid);
 
     await sendNotification(
       Array.from(
@@ -104,20 +114,21 @@ export const POST = postRequest({
         )
       ).map((u) => ({
         title: `${username} has created a new post in ${thread.name}`,
-        path: `/p/${post._id}`,
+        path: `/post/${post._id}`,
+        poster: profile,
         message: [
-          { type: "link", label: username, path: `/u/${username}` },
+          { type: "link", label: username, path: `/user/${username}` },
           { type: "text", text: "has created a new post in thread" },
           {
             type: "link",
             label: `${thread.name}.`,
-            path: `/t/${post.thread_id}`,
+            path: `/thread/${post.thread_id}`,
           },
           { type: "text", text: "Be the first one to" },
           {
             type: "link",
             label: "check it out.",
-            path: `/p/${post._id}`,
+            path: `/post/${post._id}`,
           },
         ],
         user_id: u,
@@ -128,8 +139,13 @@ export const POST = postRequest({
     return {
       result: post,
       success: true,
-      available: "postMutation_pid_tid_username_tag",
-      options: { pid: post._id, tid: post.thread_id, tag: data.tag, username },
+      available: "postMutation_pid_tid_uid_category",
+      options: { pid: post._id, tid, category: data.category, uid: user_id },
+      warnTeamParlocula: rest.nsfw || !isNsfw ? undefined : {
+        title: "Possibly NSFW Post with incorrect flags",
+        desc: "This Post may contain NSFW Frames while nsfw is set to false.",
+        path: `${parloculaAppURL}/p/${post._id}`
+      }
     };
   },
   schema: postSchemaServer,

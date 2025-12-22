@@ -6,9 +6,10 @@ type OfflineStoreType<T = any> = {
     store: Record<string, T>;
     setter: (key: string, val: T) => void;
     getter: (key: string) => T | undefined;
+    clear: () => void
 };
 
-const offlineStore = create(persist<OfflineStoreType>(
+export const offlineStore = create(persist<OfflineStoreType>(
     (set, get) => ({
         store: {},
         setter: (key, val) => {
@@ -20,6 +21,7 @@ const offlineStore = create(persist<OfflineStoreType>(
             }));
         },
         getter: (key) => get().store[key],
+        clear: () => set({ store: {} }),
     }),
     {
         name: "OfflineStorage",
@@ -36,10 +38,8 @@ export const useOfflineStore = <T>(
     const stringKey = Array.isArray(key) ? key.join(":") : key;
 
     useEffect(() => {
-        if (getter(stringKey) === undefined) {
-            setter(stringKey, initial);
-        }
-    }, [key]);
+        if (getter(stringKey) === undefined) setter(stringKey, initial);
+    }, [key, getter, setter]);
 
     const state = offlineStore((state) => state.store[stringKey]);
 

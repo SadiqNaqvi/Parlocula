@@ -1,77 +1,50 @@
+import { parloId } from "@lib/utils";
 import { StrictModel, ThreadModelType } from "@type/models";
-import { model, models, Schema } from "mongoose";
-import { connectionModel, linkModel, StrictSchema } from "./general";
+import { model, models } from "mongoose";
+import { basedOnModel, frameModel, linkModel, numberSchema, StrictSchema } from "./general";
 
-const threadModel = new StrictSchema<ThreadModelType>(
-  {
-    name: {
-      type: String,
-      unique: true,
-      required: true,
-    },
-    description: {
-      type: String,
-      required: true,
-    },
-    poster: String,
-    nsfw: {
-      type: Boolean,
-      default: false,
-    },
-    links: {
-      type: [linkModel],
-      required: false,
-    },
-    connection: {
-      type: [connectionModel],
-      required: true,
-    },
-    created_by: {
-      type: Schema.Types.ObjectId,
-      ref: "Thread",
-      required: true,
-    },
-    edited_at: Date,
-    edited_by: {
-      type: Schema.Types.ObjectId,
-      ref: "Thread",
-      default: null,
-    },
-    post_count: {
-      type: Number,
-      default: 0,
-      set: (value: number) => Math.max(value, 0),
-    },
-    member_count: {
-      type: Number,
-      default: 1,
-      set: (value: number) => Math.max(value, 0),
-    },
+const threadModel = new StrictSchema<ThreadModelType>({
+  _id: { type: String, default: parloId },
+  name: {
+    type: String,
+    required: true,
   },
-  { timestamps: true }
-);
+  description: {
+    type: String,
+    required: true,
+  },
+  poster: frameModel,
+  nsfw: {
+    type: Boolean,
+    default: false,
+  },
+  links: {
+    type: [linkModel],
+    required: false,
+    default: [],
+  },
+  connections: {
+    type: [basedOnModel],
+    default: []
+  },
+  created_by: {
+    type: String,
+    ref: "User",
+    required: true,
+  },
+  edited_at: Date,
+  edited_by: String,
+  post_count: numberSchema,
+  comment_count: numberSchema,
+  lastCommentedAt: Date,
+  lastPostedAt: Date,
+  member_count: { ...numberSchema, default: 0 },
+}, { timestamps: true, _id: false });
 
-threadModel.index(
-  {
-    name: "text",
-  },
-  {
-    background: true,
-    weights: { name: 10 }, // Prioritize name matches
-    name: "thread_name_text_index",
-    default_language: "english", // Handles stemming (e.g., "review" matches "reviews")
-    collation: {
-      locale: "en", // Case and punctuation-insensitive
-      strength: 2,
-    },
-  }
-);
+threadModel.index({ name: 1 }, { unique: true });
+threadModel.index({ created_by: 1 });
 
 const Thread: StrictModel<ThreadModelType> =
-  (models.Thread as StrictModel<ThreadModelType>) ||
-  (model<ThreadModelType>(
-    "Thread",
-    threadModel
-  ) as StrictModel<ThreadModelType>);
+  (models.Thread as any) || model("Thread", threadModel);
 
 export default Thread;

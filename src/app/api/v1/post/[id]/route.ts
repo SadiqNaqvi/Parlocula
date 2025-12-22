@@ -1,17 +1,18 @@
-import { getRequest } from "@lib/helpers/common";
-import { ObjectId } from "@lib/utils";
+import { getHandler } from "@lib/helpers/handlers";
 import { Post } from "@model";
 
-export const GET = getRequest(async (r: any, params: { id: string }) => {
+// Get full post by id
+export const GET = getHandler(async (r, params) => {
   const { id } = params;
-  
-  const result = await Post.aggregate([
-    { $match: { _id: ObjectId(id) } },
+
+  const response = await Post.aggregate([
+    { $match: { _id: id } },
     {
       $lookup: {
         from: "threads",
         localField: "thread_id",
         foreignField: "_id",
+        pipeline: [{ $project: { name: 1 } }],
         as: "thread",
       },
     },
@@ -20,32 +21,37 @@ export const GET = getRequest(async (r: any, params: { id: string }) => {
         from: "users",
         localField: "user_id",
         foreignField: "_id",
+        pipeline: [{ $project: { username: 1, profile: 1 } }],
         as: "user",
       },
     },
     {
       $lookup: {
         from: "posts",
-        as: "repost",
-        localField: "repost_id",
+        localField: "quoted_post_id",
         foreignField: "_id",
+        pipeline: [{ $project: { title: 1, frames_count: 1, links_count: 1 } }],
+        as: "quoted_post",
       },
     },
     {
       $addFields: {
         username: { $ifNull: [{ $arrayElemAt: ["$user.username", 0] }, ""] },
-        poster: { $ifNull: [{ $arrayElemAt: ["$thread.poster", 0] }, ""] },
+        thread_name: { $ifNull: [{ $arrayElemAt: ["$thread.name", 0] }, ""] },
+        poster: { $ifNull: [{ $arrayElemAt: ["$user.profile", 0] }, ""] },
+        quoted_post_title: { $ifNull: [{ $arrayElemAt: ["$quoted_post.title", 0] }, ""] },
+        quoted_post_frames_count: { $ifNull: [{ $arrayElemAt: ["$quoted_post.frames_count", 0] }, 0] },
+        quoted_post_links_count: { $ifNull: [{ $arrayElemAt: ["$quoted_post.links_count", 0] }, 0] }
       },
     },
     {
       $project: {
         user: 0,
         thread: 0,
+        quoted_post: 0,
       },
     },
   ]);
 
-  const post = result[0];
-  if (!post) return { success: false, errCode: "resource_not_found" };
-  return { result: post, success: true };
+  return { result: response[0], success: true };
 });

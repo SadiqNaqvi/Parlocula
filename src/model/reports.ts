@@ -1,49 +1,36 @@
+import { parloId } from "@lib/utils";
 import { ReportModelType, StrictModel } from "@type/models";
-import { Schema, models, model } from "mongoose";
+import { model, models } from "mongoose";
 import { StrictSchema } from "./general";
 
-const reportModel = new StrictSchema<ReportModelType>(
-  {
-    user_id: {
-      type: Schema.Types.ObjectId,
-      ref: "Report",
-      required: true,
-      index: true,
-    },
-    reason: {
-      type: String,
-      required: true,
-    },
-    details: String,
-    ext_id: { type: Schema.Types.ObjectId, index: true, required: false },
-    content_id: {
-      type: Schema.Types.ObjectId,
-      refPath: "content_type",
-      required: true,
-      index: true,
-    },
-    content_type: {
-      type: String,
-      enum: ["Post", "Comment", "User", "Thread"],
-      index: true,
-    },
+const reportModel = new StrictSchema<ReportModelType>({
+  _id: { type: String, default: parloId },
+  user_id: {
+    type: String,
+    ref: "Report",
+    required: true,
   },
-  { timestamps: true }
-);
+  reason: {
+    type: String,
+    required: true,
+  },
+  details: String,
+  ext_id: String,
+  content_id: {
+    type: String,
+    refPath: "content_type",
+    required: true,
+  },
+  content_type: {
+    type: String,
+    enum: ["Post", "Comment", "User", "Thread"],
+  },
+}, { timestamps: true, _id: false });
 
-reportModel.index(
-  { Report_id: 1, content_id: 1 },
-  {
-    unique: true,
-    partialFilterExpression: { Report_id: { $exists: true, $ne: null } },
-  }
-);
+reportModel.index({ content_id: 1, content_type: 1, user_id: 1 });
+reportModel.index({ content_type: 1, ext_id: 1 }, { partialFilterExpression: { $exists: "$ext_id" } });
 
 const Report: StrictModel<ReportModelType> =
-  (models.Report as StrictModel<ReportModelType>) ||
-  (model<ReportModelType>(
-    "Report",
-    reportModel
-  ) as StrictModel<ReportModelType>);
+  (models.Report as any) || (model("Report", reportModel) as StrictModel<ReportModelType>);
 
 export default Report;

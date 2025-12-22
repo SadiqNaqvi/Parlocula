@@ -1,25 +1,14 @@
 "use client";
 
 import { fetchMoviesWithCast, fetchMoviesWithCompany, fetchMoviesWithGenres, fetchMoviesWithYear, fetchShowsWithGenres, fetchSimilarMovies, fetchSimilarShows, fetchTrendingMovies, fetchTrendingShows } from "@lib/contentFetcher";
-import { refineGeneralData, } from "@lib/dataRefiner";
 import { useQueryHook } from "@lib/hooks";
-import { refineString } from "@lib/utils";
-import { GeneralReturnType, RefinedGeneralData } from "@type/external";
+import { makeUrlSafe } from "@lib/utils";
+import { ExtGeneralPaginatedData, RefinedGeneralData } from "@type/external";
 import { useEffect, useRef, useState } from "react";
 import VerticleMovieCard, { VerticleMovieCardSkeleton } from "./ui/VerticleMovieCard";
+import { GeneralGetReturn } from "@type/internal";
 
-type DataType = GeneralReturnType & { results: any[] };
-type FuncMapType = "fetchSimilarMovies" |
-    "fetchMoviesWithCast" |
-    "fetchMoviesWithGenres" |
-    "fetchMoviesWithYear" |
-    "fetchMoviesWithCompany" |
-    "fetchSimilarShows" |
-    "fetchShowsWithGenres" |
-    "fetchTrendingMovies" |
-    "fetchTrendingShows"
-
-const funcMap: Record<FuncMapType, (...arg: any) => any> = {
+const funcMap = {
     fetchMoviesWithCast,
     fetchMoviesWithCompany,
     fetchMoviesWithGenres,
@@ -31,50 +20,75 @@ const funcMap: Record<FuncMapType, (...arg: any) => any> = {
     fetchTrendingShows,
 }
 
-export default function DataFetcher({ func, args, type, className = '', except }: { func: FuncMapType, args: any[], type: string, className?: string, except?: string, }) {
+type AllowedFunctions = keyof typeof funcMap;
+
+type FuncMap = typeof funcMap
+
+type Props<T extends AllowedFunctions> = {
+    func: T,
+    args: Parameters<FuncMap[T]>,
+    type: string,
+    className?: string,
+    except?: string,
+    querykeys: string[],
+}
+
+type lala = Props<"fetchMoviesWithCast">
+
+const DataFetcher = <T extends AllowedFunctions>({ func, args, type, className = '', querykeys, except }: Props<T>) => {
 
     const [isVisible, setIsVisible] = useState(false);
     const container = useRef(null);
 
     useEffect(() => {
+
+        const current = container.current;
+
         const observer = new IntersectionObserver(([entry]) => {
             if (entry.isIntersecting && !isVisible && entry.intersectionRatio >= 0.2)
                 setIsVisible(true);
         }, { threshold: [0.2] })
 
-        if (container.current)
-            observer.observe(container.current);
+        if (current) observer.observe(current);
 
         return () => {
-            if (container.current)
-                observer.unobserve(container.current);
+            if (current) observer.unobserve(current);
         }
     }, []);
 
-    const fetchDataWithNew = async () => {
-        const functionToFetch = funcMap[func];
-        const res: DataType = await functionToFetch(...args);
-        if (!res) throw new Error("");
+    const fetchDataWithNew = async (): Promise<GeneralGetReturn> => {
+        const functionToFetch = funcMap[func] as (...args: any) => ReturnType<FuncMap[T]>;
 
-        let contents = res.results;
-        if (except) contents = contents.filter((el: any) => String(el.id) !== except)
+        const response = await functionToFetch(...args);
 
-        return refineGeneralData(contents);
+        if (!response) return { success: false, errCode: "unstable_internet" };
+
+        let contents = ("results" in response ? response.results : response.result?.results) || [];
+        if (except)
+            contents = contents.filter((el: any) => String(el.id) !== except)
+
+        return {
+            success: true,
+            result: contents
+        };
     }
 
-    const { refetch, isFetching, error, data } = useQueryHook({
+    const { refetch, isRefetching, isFetching, error, data } = useQueryHook<RefinedGeneralData[]>({
         enabled: isVisible,
-        queryKeys: [func, ...args],
+        queryKeys: querykeys,
         queryFn: fetchDataWithNew,
     });
 
-    if (isFetching) return (
+    if (!isVisible) return (
+        <div className="h-64 w-full"></div>
+    );
+
+    else if (isFetching || isRefetching) return (
         <div className={"flex gap-4 pb-2 overflow-x-hidden" + className} ref={container}>
-            {[1, 2, 3, 4, 5, 6, 7, 8].map(el => (
-                <VerticleMovieCardSkeleton key={el} />
-            ))
-                // :
-                // <div className="h-64 w-full"></div>
+            {
+                Array(8).fill(0).map((_, i) => (
+                    <VerticleMovieCardSkeleton key={i} />
+                ))
             }
         </div>
     )
@@ -89,15 +103,11 @@ export default function DataFetcher({ func, args, type, className = '', except }
 
     return (
         <div className={"flex gap-4 pb-2 overflow-x-auto" + className}>
-            {data.slice(0, 20).map((el: RefinedGeneralData) => (
-                <VerticleMovieCard
-                    link={`/explore/${type}/${el.id}-${refineString(el.title)}`}
-                    poster={el.poster}
-                    title={el.title}
-                    rating={el.rating}
-                    year={el.year.toString()}
-                    key={el.id} />
+            {data.slice(0, 20).map((content: RefinedGeneralData) => (
+                <VerticleMovieCard {...content} key={content.id} />
             ))}
         </div>
     )
 }
+
+export default DataFetcher;

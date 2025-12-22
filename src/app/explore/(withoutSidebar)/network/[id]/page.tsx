@@ -16,9 +16,9 @@ type Props = { params: { id: string } };
 export const generateMetadata = async ({ params }: Props): Promise<Metadata> => {
     const data = await fetchData(params);
 
-    if (!data) return { title: "Popcorn Paragon" };
+    if (!data) return { title: "Parlocula" };
     return {
-        title: `${data.name} - Popcorn Paragon`,
+        title: `${data.title} - Parlocula`,
         description: data.description,
     };
 };
@@ -39,27 +39,27 @@ const Page = async ({ params }: Props) => {
     return (
         <>
             <ObserverHeader
-                titleToShare={`Check out the movies and shows from ${content.name} on Popcorn Paragon`}
-                navTitle={content.name}>
+                titleToShare={`Check out the movies and shows from ${content.title} on Parlocula`}
+                navTitle={content.title}>
 
                 <div className="flex gap-4">
                     <FancyImage
                         id="poster"
-                        thumbnail={getPoster({ external: true, type: "logo", path: content.logo_path, size: "w154" })}
-                        src={getPoster({ external: true, type: "logo", path: content.logo_path, size: "original" })}
+                        thumbnail={getPoster({ external: true, type: "logo", path: content.poster, size: "w154" })}
+                        src={getPoster({ external: true, type: "logo", path: content.poster, size: "original" })}
                         height={160}
                         width={160}
-                        download={`Poster of ${content.name} - Popcorn Paragon`}
+                        download={`Poster of ${content.title} - Parlocula`}
                         className="border-4 border-primary object-contain bg-gray30 size-24 sm:size-40 rounded-full"
-                        alt={`Poster of ${content.name}`}
+                        alt={`Poster of ${content.title}`}
                     />
                 </div>
 
-                <h1 data-observe className="text-xl sm:text-4xl mt-4 font-semibold uppercase">{content.name}</h1>
+                <h1 data-observe className="text-xl sm:text-4xl mt-4 font-semibold uppercase">{content.title}</h1>
 
                 {content.description && <p className="text-sm text-gray-500 mt-6 line-clamp-4">{content.description}</p>}
             </ObserverHeader>
-            <MediaFetcher id={content.id.toString()}
+            <MediaFetcher id={content.tmdb_id}
                 sections={[
                     { label: "movies", section: "movies_network" },
                     { label: "shows", section: "shows_network" }

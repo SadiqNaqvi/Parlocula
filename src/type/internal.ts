@@ -1,6 +1,7 @@
 import { ZodIssue } from "zod";
 import { ErrorCodes, ReportReasonType } from "./other";
-import { PreDefinedListType } from "./models";
+import { AllShelves, FrameModelType, PredefinedShelves, UserModelType } from "./models";
+import { UserMetaData } from "@store/user";
 
 export type GenericDate = Date | number | string;
 
@@ -32,21 +33,26 @@ export type GeneralPostReturn<T = any> =
     result?: undefined;
   };
 
-export type InfiniteQueryResponseDB<T = any> = {
+export type AggregatedResponse<T = any> = {
   data: T[];
   total: number;
 }
 
-export type GeneralMultipleReturn<T = any> = GeneralGetReturn<InfiniteQueryResponseDB<T>>;
+export type GeneralMultipleReturn<T = any> = GeneralGetReturn<AggregatedResponse<T>>;
 
-export type Session = {
+export type TokenPayload = {
   user_id: string;
   username: string;
-  email: string;
+  profile: FrameModelType | undefined;
+  filterContent: boolean;
   isBanned: boolean;
   banEndsAt: GenericDate | undefined;
+  dob: GenericDate;
+}
+
+export type Session = TokenPayload & {
+  email: string;
   expireOn: GenericDate;
-  profile: string | undefined;
 };
 
 export type InfiniteQueryResponse<T = any> = {
@@ -73,55 +79,66 @@ export type Frame = {
   path: string;
   type: "image" | "video";
   isExternal: boolean;
+  hash: string;
+  size: number;
 };
 
-export type PredefineListsType = {
+export type ShelfMetaData = {
   _id: string;
-  name: PreDefinedListType;
-  poster?: string;
+  name: PredefinedShelves;
+  poster?: Frame;
 };
 
 export type MereUser = {
   username: string;
-  profile?: string;
+  profile: Frame | undefined;
   _id: string;
+  followers?: number,
+  posts?: number
 };
 
-export type User = {
-  _id: string;
-  name: string;
-  username: string;
-  email: string;
-  profile: string;
-  bio: string;
-  dob: GenericDate;
-  bioLinks: Link[];
-  edited_at: GenericDate | null;
+export type MereNonCustomShelf = MereShelf & { name: PredefinedShelves }
+export type CurrentUser = Omit<
+  UserModelType, "passkey" | "session_id" | "isActive" | "lastLoginAt"
+> & { predefinedShelves: MereNonCustomShelf[], _id: string }
+// {
+//   _id: string;
+//   name: string;
+//   username: string;
+//   email: string;
+//   profile: string;
+//   bio: string;
+//   dob: GenericDate;
+//   bioLinks: Link[];
 
-  usernameUpdatedAt?: GenericDate;
-  emailUpdatedAt?: GenericDate;
+//   edited_at: GenericDate | null;
+//   usernameUpdatedAt?: GenericDate;
+//   emailUpdatedAt?: GenericDate;
+//   tempBanned: number;
 
-  followers: number;
-  following: number;
-  posts: number;
-  comments: number;
-  public_lists: number;
-  predefine_lists: PredefineListsType[];
-};
+//   filterContent: boolean;
+//   followers: number;
+//   following: number;
+//   posts: number;
+//   comments: number;
+//   publicShelves: number;
+//   predefinedShelves: ShelfMetaData[];
+
+// };
 
 export type RequestedUser = {
   _id: string;
   name: string;
   username: string;
-  profile: string;
+  profile: Frame;
   bio: string;
   bioLinks: Link[];
   followers: number;
   following: number;
   posts: number;
   comments: number;
-  public_lists: number;
-  predefine_lists: PredefineListsType[];
+  publicShelves: number;
+  predefinedShelves: ShelfMetaData[];
 };
 
 export type UserConnectionType = {
@@ -141,24 +158,24 @@ export type ThreadConnection = {
 export type MereThread = {
   _id: string;
   name: string;
-  poster: string;
-  member_count: number;
-  post_count: number;
+  poster: Frame;
+  member_count?: number;
+  post_count?: number;
 };
 
 export type Thread = document & {
   name: string;
   description: string;
-  poster: string;
+  poster: Frame;
   nsfw: boolean;
   links: Link[];
-  connection: ThreadConnection[];
+  connections: ThreadConnection[];
   created_by: string;
-  creator: string | null;
+  creator: string | undefined;
   edited_by: string | null;
   member_count: number;
   post_count: number;
-  managers: string[];
+  managers: { username: string, _id: string }[];
 };
 
 export type ThreadMembership = {
@@ -175,117 +192,135 @@ type PostBasic = document & {
   spoiler: boolean;
   thread_id: string;
   user_id: string;
-  name?: string;
-  poster?: string;
+  username: string;
+  thread_name: string
+  poster: Frame | undefined;
   reaction_count: number;
   comment_count: number;
   saved_count: number;
   editedAt: GenericDate | null;
+  category: string;
+  quoted_post_id: string | undefined;
+  quoted_post_title: string | undefined;
+  quoted_post_frames_count: number;
+  quoted_post_links_count: number;
+  frames_count: number;
+  links_count: number;
 };
 
 export type FullPost = PostBasic & {
-  edited_at: GenericDate | null;
+  edited_at: GenericDate | undefined;
   body: string;
-  tag: string;
-  username?: string;
   frames: Frame[];
   links: Link[];
 };
 
 export type MerePost = PostBasic & {
-  tag: string;
   frames?: Frame[];
-  username?: string;
+  profile: Frame | undefined;
 };
 
 export type MereFrame = PostBasic & {
   frames: Frame[];
+  profile: string | undefined;
 };
 
 export type MereLink = PostBasic & {
   links: Link[];
+  profile: string | undefined;
 };
+
+export type CommentReplyType = {
+  content: string,
+  attachment: string,
+}
 
 export type MereComment = document & {
   _id: string;
   content: string;
   post_id: string;
-  upvote_count: number;
+  likes_count: number;
+  saved_count: number;
+  user_id: string;
   nsfw: boolean;
   spoiler: boolean;
-  replied_to?: string;
+  replied_to: string | undefined;
+  parentComment: CommentReplyType | undefined;
   username?: string;
-  profile?: string;
-  parent?: string;
-  attachment?: string;
+  profile?: Frame;
+  attachment: string;
   edited_at: GenericDate | undefined;
+  status?: "sending" | "sent";
 };
 
 export type FullComment = MereComment & {
   post_author: string;
-  saved_count: number;
-  user_id: string;
+  thread_id: string;
 };
 
-export type MediaItemType = {
+export type CinementType = {
   title: string;
-  poster: string;
+  poster: Frame;
   year: number;
-  media_type: "movie" | "show";
-  tmdb_id: string;
+  cinement_type: "movie" | "show";
+  ext_id: string;
 };
 
-export type FullMediaItemType = MediaItemType & {
+export type FullCinementType = CinementType & {
   _id: string;
-  rating: number;
-  rating_count: number;
-};
+} & Record<PredefinedShelves, number>;
 
-export type MereList = {
+export type MereShelf = {
   _id: string;
   name: string;
-  list_type: "custom" | "favourite" | "recommended" | "watched";
-  item_count: number;
-  saved_count: number;
-  poster: string;
+  shelf_type: AllShelves;
+  item_count?: number;
+  saved_count?: number;
+  poster: string | undefined;
+  isPrivate: boolean;
+  shelfKey: string | undefined;
+  last_added: GenericDate | undefined;
 };
 
-export type FullList = MereList &
+export type FullShelf = MereShelf &
   document & {
     user_id: string;
     username: string;
-    isPrivate: boolean;
-    listKey: string;
-    last_added: GenericDate;
     collaborators: string[];
+    save_count: number,
+    createdAt: GenericDate,
   };
 
-export type ListCollaborators = {
-  _id: string;
-  user_id: string;
-  name: string;
-  collaborators: MereUser[];
-  invitees: MereUser[];
+export type ShelvesForCinement = {
+  shelves: string[]
+}
+
+export type ShelfCollaborator = UserMetaData & { type: "invitee" | "collaborator" }
+export type ShelfCollaborators = {
+  creator: string;
+  collaborators: ShelfCollaborator[];
 };
 
-export type ListItemType = {
+export type ShelfItemType = {
   _id: string;
-  media_id: string;
-  list_id: string;
+  cinement_id: string;
+  shelf_id: string;
   user_id: string;
-  tmdb_id: string;
+  ext_id: string;
   year: number;
   createdAt: GenericDate;
   title: string;
-  poster?: string;
-  media_type: "movie" | "show";
+  poster: string | undefined;
+  cinement_type: "movie" | "show";
+  added_by: string | undefined;
 };
 
-export type ThreadModType = MereUser & {
-  user_id: string;
-  role: "moderator" | "moderator_invitees";
-};
+export type ModeratorType = UserMetaData & { role: "moderator" | "moderator_invitees" };
 
+export type ThreadModType = {
+  creator: UserMetaData,
+  managers: ModeratorType[],
+}
 export type ReportsType = {
   _id: ReportReasonType,
   count: number,
@@ -337,7 +372,7 @@ export type InvitationMessageType = {
 export type MereRoomType = {
   room_id: string;
   display_name: string;
-  poster: string | undefined;
+  poster: Frame | undefined;
   seenAt: GenericDate;
   mute: boolean;
   type: ParticipantEnumType;
@@ -346,6 +381,7 @@ export type MereRoomType = {
   lastMessageBy: string;
   lastMessageAt: GenericDate;
   lastMessage: string;
+  createdAt?: GenericDate;
 };
 
 export type RoomListResponse = MereRoomType & {
@@ -356,25 +392,26 @@ export type RoomListResponse = MereRoomType & {
 export type SearchedRoom = {
   _id: string;
   display_name: string;
-  poster?: string;
+  poster?: Frame;
 }
 
 export type FullRoomType = {
   _id: string;
   display_name: string;
-  poster?: string;
+  poster: Frame | undefined;
+  participant_count: number;
   type: RoomEnumType;
   seenAt: GenericDate;
   mute: boolean;
   participantType: ParticipantEnumType;
   otherParticipant_id: string | undefined;
   otherParticipant_seenAt: GenericDate | undefined;
-  // users: (MereUser & Omit<ParticipantType, "mute" | "hideAt">)[];
-  users: string[],
   invitationMessage: InvitationMessageType;
   lastMessage: string;
   lastMessageBy: string;
   lastMessageAt: GenericDate;
+  createdAt: GenericDate;
+
 };
 
 export type MessageReplyType = {
@@ -396,11 +433,12 @@ export type MereMessage = {
 export type CachedFullRoomType = {
   type: "private" | "group";
   name: string;
-  poster: string | undefined;
+  poster: Frame | undefined;
   invitationMessage: InvitationMessageType;
   lastMessage: string;
   lastMessageBy: string;
   lastMessageAt: GenericDate;
+  createdAt: GenericDate;
 };
 
 export type CachedParticipantType = ParticipantType & {

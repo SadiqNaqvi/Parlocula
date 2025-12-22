@@ -10,7 +10,7 @@ export const getAblyOnClient = (client_id: string) => {
 
   if (!ably_realtime) {
     ably_realtime = new Ably.Realtime({
-      authUrl: `${process.env.NEXT_PUBLIC_APP_ROOT}/api/v1/ably`,
+      authUrl: `${process.env.NEXT_PUBLIC_PARLOCULA_URL}/api/v1/ably`,
       clientId: client_id,
       autoConnect: true,
     });

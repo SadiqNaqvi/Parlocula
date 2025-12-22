@@ -1,34 +1,26 @@
 import "@/app/globals.css";
 import Fancybox from "@components/Fancybox";
-import MainLoader from "@components/loading/mainLoading";
+import MainLoader from "@components/ui/loading/mainLoading";
 import { getUserFromToken } from "@lib/auth/utils";
-import { getCurrentUser, getNotificationsOfUser, getRooms } from "@lib/helpers/common";
-import ReactQueryProvider from "@lib/provider";
-import { getQueryClient } from "@lib/queryClient";
-import { getQueryKeys, queryFunction } from "@lib/utils";
+import { getCurrentUser, getNotificationsOfUser } from "@lib/helpers/common";
+import ReactQueryProvider, { fetchQuery, getQueryClient, prefetchInfiniteQuery } from "@lib/providers/queryClient";
+import { getQueryKeys } from "@lib/utils";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { Metadata } from "next";
-import { ReadonlyRequestCookies } from "next/dist/server/web/spec-extension/adapters/request-cookies";
+import { ThemeProvider } from "next-themes";
 import { Montserrat } from "next/font/google";
 import { cookies } from "next/headers";
 import { PropsWithChildren, Suspense } from "react";
-import { Toaster } from "react-hot-toast";
+import { Toaster } from "sonner";
 import UserHydrator from "./UserHydrator";
 
 const fontFam = Montserrat({ subsets: ["latin"], weight: ["100", "200", "300", "400", "500", "600", "700"] });
 
 export const metadata: Metadata = {
-  title: "Popcorn Paragon",
+  title: "Parlocula",
   description: "Stop Searching Start Watching",
   keywords: "movies, tv shows, web series, movie recommendation, movie recommendation system, tv show recommendation system, movies suggestion, movie suggestion, show suggestion, series suggestion",
 };
-
-const fetchCurrentUser = async (uid: string, cookies: ReadonlyRequestCookies) => {
-  const { success, errCode, result } = await getCurrentUser(uid, cookies)
-
-  if (!success && errCode === "unauthenticated_access") return null;
-  return result;
-}
 
 const NotificationFetcher = async ({ children }: PropsWithChildren) => {
 
@@ -49,15 +41,17 @@ const NotificationFetcher = async ({ children }: PropsWithChildren) => {
     //   });
 
     const [resp] = await Promise.all([
-      queryClient.fetchQuery({
+      fetchQuery({
+        queryClient,
         queryKey: getQueryKeys("user_username", { username }),
-        queryFn: () => fetchCurrentUser(user_id, jar)
+        queryFn: () => getCurrentUser(user_id, jar),
       }),
-      //     queryClient.prefetchInfiniteQuery({
-      //       initialPageParam: 1,
-      //       queryKey: getQueryKeys("notifications_uid", { uid: user_id }),
-      //       queryFn: () => queryFunction(getNotificationsOfUser, [user_id, 1, jar], 1)
-      //     }),
+      prefetchInfiniteQuery({
+        queryClient,
+        initialPageParam: 1,
+        queryKey: getQueryKeys("notifications_uid", { uid: user_id }),
+        queryFn: () => getNotificationsOfUser(user_id, 1, jar)
+      }),
     ]);
 
     if (!resp) user = null;
@@ -76,19 +70,21 @@ const NotificationFetcher = async ({ children }: PropsWithChildren) => {
 const RootLayout = async ({
   children,
 }: PropsWithChildren) => {
-
   return (
-    <html lang="en">
-      <body className={fontFam.className}>
-        <Toaster position="top-center" />
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${fontFam.className}`}>
+        <Toaster swipeDirections={["bottom", "left", "right"]} />
         <ReactQueryProvider>
-          <Fancybox>
-            <Suspense fallback={<MainLoader />}>
-              <NotificationFetcher>{children}</NotificationFetcher>
-            </Suspense>
-          </Fancybox>
+          <ThemeProvider enableSystem defaultTheme="system" attribute={"class"}>
+            <Fancybox>
+              <Suspense fallback={<MainLoader />}>
+                <NotificationFetcher>
+                  {children}
+                </NotificationFetcher>
+              </Suspense>
+            </Fancybox>
+          </ThemeProvider>
         </ReactQueryProvider>
-        {/* <script src="https://kit.fontawesome.com/5d93eb1089.js"></script> */}
       </body>
     </html>
   );

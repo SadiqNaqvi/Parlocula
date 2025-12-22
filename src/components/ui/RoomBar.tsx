@@ -2,10 +2,13 @@ import { BellSlashIcon } from "@assets/Icons";
 import Navigate from "@components/Navigate";
 import { getPoster, timeAgo } from "@lib/utils";
 import useCurrentUser from "@store/user";
-import { MereRoomType } from "@type/internal";
+import { MereRoomType, SearchedRoom } from "@type/internal";
 import Image from "next/image";
+import ParloImage from "./ParloImage";
 
-const RoomBar = ({ lastMessageAt, lastMessageBy, mute, otherParticipant_seenAt, display_name, poster, room_id, seenAt, lastMessage, type, }: MereRoomType) => {
+type RoomBarProps = Partial<Omit<MereRoomType, "display_name" | "poster">> & SearchedRoom;
+
+const RoomBar = ({ lastMessageAt, lastMessageBy, mute, otherParticipant_seenAt, display_name, poster, room_id, _id, seenAt, lastMessage, type, }: RoomBarProps) => {
 
     const { meta } = useCurrentUser();
 
@@ -17,16 +20,15 @@ const RoomBar = ({ lastMessageAt, lastMessageBy, mute, otherParticipant_seenAt, 
     return (
         <Navigate
             className="p-2 sm:p-4"
-            goto={`/inbox/${room_id}-${display_name}`}
+            goto={`/inbox/${room_id || _id}-${display_name}`}
             comp="link">
             <article className="flex gap-3 items-center">
                 <div>
-                    <Image
+                    <ParloImage
                         alt={`Profile picture of ${display_name}`}
-                        width={40}
-                        height={40}
-                        src={getPoster({ path: poster })}
-                        className="size-10 rounded-full object-cover"
+                        size={40}
+                        frame={poster}
+                        className="rounded-full object-cover"
                     />
                 </div>
                 <div className={`space-y-1 ${newMessage ? "font-semibold" : ""}`}>

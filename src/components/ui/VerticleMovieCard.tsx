@@ -1,5 +1,7 @@
-import { getPoster } from "@lib/utils";
+import { getPoster, makeUrlSafe } from "@lib/utils";
 import Navigate from "@components/Navigate";
+import Image from "next/image";
+import { RefinedGeneralData } from "@type/external";
 
 export const VerticleMovieCardSkeleton = () => (
     <div className="min-w-40 w-40 aspect-[2/3] space-y-2">
@@ -11,19 +13,20 @@ export const VerticleMovieCardSkeleton = () => (
     </div>
 )
 
-type props = {
-    link: string,
-    poster: string,
-    title: string,
-    year: string,
-    rating: string | number,
-};
-
-export default function VerticleMovieCard({ link, poster, title, year, rating }: props) {
+export default function VerticleMovieCard({ id, type, poster, title, year, rating, redirect }: RefinedGeneralData & { redirect?: string }) {
+    const link = redirect ?? `/explore/${type}/${id}-${makeUrlSafe(title)}`;
     return (
         <Navigate key={link} comp="link" goto={link}>
             <figure className="min-w-44 w-44 relative cursor-pointer">
-                <img src={getPoster({ external: true, path: poster, type: "poster", size: "w185", })} loading="lazy" alt='' className="w-full aspect-[2/3] object-cover" />
+
+                <Image
+                    src={getPoster({ external: true, path: poster, type: "poster", size: "w185", })}
+                    height={176}
+                    width={176}
+                    loading="lazy"
+                    alt={`Poster of ${title}`}
+                    className="w-full aspect-[2/3] object-cover" />
+
                 <figcaption className="absolute *:px-2 inset-0 fade-effect flex flex-col justify-end">
                     <h3 className="font-bold line-clamp-2 text-wrap">{title}</h3>
                     <div className="flex flex-cntr-between my-1">
@@ -31,6 +34,7 @@ export default function VerticleMovieCard({ link, poster, title, year, rating }:
                         <span className="text-xs px-2 py-1 rounded-md bg-gray40">{rating}/10</span>
                     </div>
                 </figcaption>
+
             </figure>
         </Navigate>
     )

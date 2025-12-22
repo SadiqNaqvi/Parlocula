@@ -1,14 +1,34 @@
 import { LinkIcon } from "@assets/Icons"
-import { LinkModelType } from "@type/models"
+import BottomSheet from "@components/BottomSheet"
+import Navigate from "@components/Navigate"
+import { getLocalUrl } from "@lib/utils"
+import { Link as LinkType } from "@type/internal"
 import Link from "next/link"
 
-const LinkTile = ({ label, path }: LinkModelType) => {
+const LabelAndIcon = ({ label }: { label: string }) => (
+    <div className="flex items-center gap-2">
+        <span><LinkIcon /></span>
+        <span>{label}</span>
+    </div>
+);
+
+const LinkTile = ({ label, path }: LinkType) => {
+
+    if (path.startsWith('/') || new URL(getLocalUrl()).origin === new URL(path).origin) return (
+        <Navigate comp="link" goto={path}>
+            <LabelAndIcon label={label} />
+        </Navigate>
+    )
+
     return (
-        <Link href={path}
-            className="w-fit px-4 py-2 rounded-md bg-gray-500 bg-opacity-30 text-sky-400">
-            <LinkIcon className="size-4" />
-            <span>{label}</span>
-        </Link>
+        <BottomSheet button={<LabelAndIcon label={label} />}>
+            <div className="py-4">
+                <h4 className="text-center text-xl mb-2">You are about to be redirected to this path.</h4>
+                <p className="text-zinc-500 text-center text-sm">Please make sure, you know this path well before you proceed.</p>
+                <Link className="text-sky-500 text-sm my-4" href={path}>{path}</Link>
+                <p className="text-zinc-500 text-center text-sm">Click on this path to proceed.</p>
+            </div>
+        </BottomSheet>
     )
 }
 

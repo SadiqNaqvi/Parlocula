@@ -1,4 +1,4 @@
-import { AllListType } from "@type/models";
+import { AllShelves } from "@type/models";
 import {
   AvailableCacheTags,
   AvailableQueryKeys,
@@ -9,72 +9,6 @@ import {
   ReportReasonType,
 } from "@type/other";
 
-export const movie_genres: Record<string, number> = {
-  action: 28,
-  adventure: 12,
-  animation: 16,
-  comedy: 35,
-  crime: 80,
-  documentary: 99,
-  drama: 18,
-  family: 10751,
-  fantasy: 14,
-  history: 36,
-  horror: 27,
-  music: 10402,
-  mystery: 9648,
-  romance: 10749,
-  sciencefiction: 878,
-  tvmovie: 10770,
-  thriller: 53,
-  war: 10752,
-  western: 37,
-};
-
-export const show_genres: Record<string, number> = {
-  action: 10759,
-  adventure: 10759,
-  animation: 16,
-  comedy: 35,
-  crime: 80,
-  documentary: 99,
-  drama: 18,
-  family: 10751,
-  kids: 10762,
-  mystery: 9648,
-  news: 10763,
-  reality: 10764,
-  scifi: 10765,
-  fantasy: 10765,
-  soap: 10766,
-  talk: 10767,
-  war: 10768,
-  politics: 10768,
-  western: 37,
-};
-
-export const genresToChoose = [
-  "action",
-  "adventure",
-  "animation",
-  "comedy",
-  "thriller",
-  "crime",
-  "drama",
-  "family",
-  "fantasy",
-  "horror",
-  "mystery",
-  "romance",
-  "science fiction",
-  "war",
-  "tv movie",
-  "music",
-  "history",
-  "documentary",
-  "western",
-];
-
 export const searchFilters = [
   "all",
   "movies",
@@ -83,20 +17,22 @@ export const searchFilters = [
   "users",
   "posts",
   "comments",
-  "lists",
+  "shelves",
   "people",
   "collections",
   "companies",
 ];
 
-export const postTags = [
+export const parloculaAppURL = process.env.NODE_ENV === "development" ?
+  "http://localhost:3000"
+  : process.env.NEXT_PUBLIC_PARLOCULA_URL!
+
+export const availablePostCategories = [
   "discussion",
   "question",
   "roast/joke",
   "information",
-  "frames",
-  "links",
-  "others",
+  "theory/speculations",
 ];
 
 export const numberOfFrames = {
@@ -111,6 +47,9 @@ export const urlPattern =
 export const mediaUrlPattern =
   /^(https:\/\/)?([\w\-]+\.)+[\w\-]+(\/[\w\-%.~+\/]*)*(\.(jpg|jpeg|png|bmp|webp|mp4|mov|avi|mkv|flv|wmv|webm|3gp))(?=[\/?]|$)/i;
 
+export const megaFilePattern =
+  /^https:\/\/mega(\.(nz|io))\/file\/[a-zA-Z0-9-]{3,}(\#)[a-zA-Z0-9-]{5,}$/;
+
 export const passwordValidator =
   /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$/;
 
@@ -119,7 +58,7 @@ export const usernamePattern = /^[a-z][a-z0-9_]*$/;
 export const emailPattern =
   /^[a-zA-Z]+[a-zA-Z0-9-]{2,}\@+[a-z]{4,}\.[a-z]{3,}$/;
 
-export const externalImgUrlPrefix = "https://image.tmdb.org/t/p/";
+export const externalImgUrlPrefix = "https://image.tmdb.org/thread/post/";
 
 export const backdrop_sizes = ["w300", "w780", "w1280", "original"];
 export const logo_sizes = [
@@ -143,9 +82,12 @@ export const poster_sizes = [
 export const profile_sizes = ["w45", "w185", "h632", "original"];
 export const still_sizes = ["w92", "w185", "w300", "original"];
 
+export const oneKb = 1024;
+export const oneMb = oneKb * oneKb;
+
 export const allowedSizes: Record<string, number> = {
-  image: 1024 * 1024 * 3,
-  video: 1024 * 1024 * 10,
+  image: oneMb * 3,
+  video: oneMb * 10,
 };
 
 export const allowedFormats: Record<string, string[]> = {
@@ -172,9 +114,11 @@ export const recentlyJoinedLimit = 20;
 export const emailLimit = 3;
 export const postLinksLength = 5;
 export const threadManagersLimit = 10;
+export const participantsRemoveOrInviteLimit = 10;
+export const participantsLimitForGroup = 50;
 export const blockOrBanLimit = 10;
-export const listCollaboratorsLimit = 10;
-export const clientThreadsAndListsLimit = 50;
+export const shelfCollaboratorsLimit = 10;
+export const clientThreadsAndShelvesLimit = 50;
 
 export const errorCodes: Record<ErrorCodes, { reason: string; message: string }> = {
   unknown_error: {
@@ -238,6 +182,10 @@ export const errorCodes: Record<ErrorCodes, { reason: string; message: string }>
     message:
       "You're temporarily banned to perform any post requests. Please try again in some days.",
   },
+  rate_limit_exceed: {
+    reason: "User hit rate limit.",
+    message: "Oops! Looks like you are doing things too fast. Slow down, calm yourself and try again after some time."
+  },
   blocked_by_author: {
     reason:
       "A post request could not complete because the current user is blocked by the author of the content.",
@@ -283,6 +231,10 @@ export const errorCodes: Record<ErrorCodes, { reason: string; message: string }>
     reason: "User is not registered. This is not an error but a information to client that user needs to register first.",
     message: ""
   },
+  custom_error: {
+    reason: "A custom error. Not from anything listed above.",
+    message: ""
+  },
 };
 
 export const queryFilters: Record<QueryFilterType, string[]> = {
@@ -290,7 +242,7 @@ export const queryFilters: Record<QueryFilterType, string[]> = {
   posts: ["hot", "latest", "controversial", "popular"],
   comments: ["loved", "latest"],
   userPosts: ["latest", "oldest", "popular"],
-  lists: ["latest", "a_to_z", "z_to_a", "recently_added"],
+  shelves: ["latest", "a_to_z", "z_to_a", "recently_added"],
   items: ["latest", "year"],
 };
 
@@ -300,11 +252,11 @@ export const mediaInputConfig: Record<
 > = {
   image: {
     accept: ".jpg, .png, .jpeg, .webp, .avif",
-    size: { label: "3mb", value: 1024 * 1024 * 3 },
+    size: { label: "5mb", value: oneMb * 5 },
   },
   video: {
     accept: ".mp4, .3gp, .mkv, .mov, .m4v",
-    size: { label: "10mb", value: 1024 * 1024 * 10 },
+    size: { label: "100mb", value: oneMb * 100 },
   },
 };
 
@@ -333,7 +285,7 @@ export const filterToSort: Record<QueryFilterType, any> = {
     latest: { createdAt: -1 },
     year: { year: -1 },
   },
-  lists: {
+  shelves: {
     latest: { createdAt: -1 },
     a_to_z: { title: 1 },
     z_to_z: { title: -1 },
@@ -341,18 +293,19 @@ export const filterToSort: Record<QueryFilterType, any> = {
   },
 };
 
-export const oneHour = 3600;
+export const oneHour = 3600 * 1000;
 export const oneDay = oneHour * 24;
 export const oneWeek = oneDay * 7;
 
 export const queryKeys: Record<AvailableQueryKeys, string[]> = {
   user_username: ["user-{username}"],
+  searchNonBlockedUser_query_uid: ["searchNonBlockedUser", "{query}", "{uid}"],
   connection_ruid: ["connection-{ruid}"],
-  postsOfUser_username_filter: [
+  postsOfUser_uid_filter: [
     "posts",
     "{filter}",
     "user",
-    "{username}",
+    "{uid}",
   ],
   searchBannedMembers_tid_query: [
     "search",
@@ -363,22 +316,24 @@ export const queryKeys: Record<AvailableQueryKeys, string[]> = {
   searchMembers_tid_query: ["search", "members", "{tid}", "{query}"],
   thread_id: ["thread", "{id}"],
   threadManagers_tid: ["threadManagers", "{tid}"],
-  saved_comments_uid: ["saved", "comments", "{uid}"],
-  saved_lists_uid: ["saved", "lists", "{uid}"],
-  saved_posts_uid: ["saved", "posts", "{uid}"],
-  threadOfUser_uid: ["threads", "{uid}"],
+  "saved-comments_uid": ["saved", "comments", "{uid}"],
+  "saved-shelfs_uid": ["saved", "shelves", "{uid}"],
+  "saved-posts_uid": ["saved", "posts", "{uid}"],
+  joinedThreadsOfUser_uid: ["joined", "threads", "{uid}"],
+  createdThreadsOfUser_uid: ["created", "threads", "{uid}"],
+  threadsManageByUser_uid: ["manages", "threads", "{uid}"],
   threads_filter: ["threads", "{filter}"],
   membership_tid: ["membership", "{tid}"],
   bannedMembers_tid: ["banned-members", "{tid}"],
   members_tid: ["members", "{tid}"],
-  postsOfThread_tid_filter_tag: [
+  postsOfThread_tid_filter_category: [
     "posts",
     "{filter}",
     "thread",
     "{tid}",
-    "{tag}",
+    "{category}",
   ],
-  reposts_pid: ["reposts", "{pid}"],
+  quotes_pid: ["quotes", "{pid}"],
   post_id: ["post", "{id}"],
   reaction_pid: ["reaction", "{pid}"],
   commentsOfPost_pid_filter: [
@@ -387,40 +342,47 @@ export const queryKeys: Record<AvailableQueryKeys, string[]> = {
     "post",
     "{pid}",
   ],
-  commentsOfUser_username_filter: [
+  commentsOfUser_uid_filter: [
     "comments",
     "{filter}",
     "user",
-    "{username}",
+    "{uid}",
   ],
   comment_cid: ["comment", "{cid}"],
-  vote_cid: ["vote", "{cid}"],
+  like_cid: ["like", "{cid}"],
   replies_cid_filter: ["replies", "{cid}", "{filter}"],
-  list_lid: ["list", "{lid}"],
-  listsOfUser_username_filter: ["lists-of-user", "{username}", "{filter}"],
-  itemsOfList_lid_filter: ["items", "{lid}", "{filter}", "list"],
-  privateList_lid_key: ["privateList", "{lid}", "{key}"],
-  itemsOfPrivateList_lid_key_filter: [
-    "items",
-    "{lid}",
+  shelf_sid: ["shelf", "{sid}"],
+  shelvesOfUser_uid_filter: ["shelves-of-user", "{uid}", "{filter}"],
+  itemsOfShelf_sid_filter: ["itemsOfShelf", "{sid}", "{filter}"],
+  privateShelf_sid_key: ["privateShelf", "{sid}", "{key}"],
+  itemsOfPrivateShelf_sid_key_filter: [
+    "itemsOfPrivateShelf",
+    "{sid}",
     "{filter}",
-    "privateList",
     "{key}",
   ],
   isContentSaved_type_id: ["saved", "{type}", "{id}"],
   notifications_uid: ["notifications-user", "{uid}"],
-  listCollaborators_lid: ["collaborators-{lid}"],
+  shelfCollaborators_sid: ["collaborators-{sid}"],
   "search-followers_uid_query": ["search", "followers", "{uid}", "{query}"],
   "search-following_uid_query": ["search", "following", "{uid}", "{query}"],
   followersOfCurrentUser_uid: ["followers", "currentUser", "{uid}"],
   followingOfCurrentUser_uid: ["following", "currentUser", "{uid}"],
+  blockedByCurrentUser_uid: ["blockedByCurrentUser", "{uid}"],
   rooms_uid: ["rooms", "{uid}"],
   messages_rmid: ["messages", "{rmid}"],
   room_rmid_uid: ["room", "{rmid}", "{uid}"],
+  participantsOfRoom_rmid_uid: ["parrticipantsOfRoom", "{rmid}", "{uid}"],
   roomInvitations_uid: ["roomInvitations", "{uid}"],
   roomExists_ruid_uid: ["roomExists", "{ruid}", "{uid}"],
   reports_cnid: ["reports", "{cnid}"],
-  reportedContents_type_tid: ["reportedContents", "{type}", "threads", "{tid}"]
+  reportedContents_type_tid: ["reportedContents", "{type}", "threads", "{tid}"],
+  collaboratedShelvesOfUser_uid: ["collaboratedShelvesOfUser", "{uid}"],
+  invitedShelvesOfUser_uid: ["invitedShelvesOfUser", "{uid}"],
+  privateShelvesOfUser_uid_filter: ["privateShelvesOfUser", "{uid}", "{filter}"],
+  shelfConnection_sid: ["shelfConnection", "{sid}"],
+  shelfsForCinement_cnid: ["shelfsForCinement", "{cnid}"],
+  ifReportExists_cnid_type: ["reportExists", "{cnid}", "{type}"]
 };
 
 export const cacheTags: Record<AvailableCacheTags, string[]> = {
@@ -428,65 +390,76 @@ export const cacheTags: Record<AvailableCacheTags, string[]> = {
   currentUser_uid: ["currentUser-{uid}"],
   usernameAvailability_username: ["isUsernameAvailable-{username}"],
   userExistence_email: ["userExist-{email}"],
-  postsOfUser_username_filter_page: [
-    "filter-{filter}-posts-user-{username}-page-{page}",
+  postsOfUser_uid_filter_page_nsfw: [
+    "filter-{filter}-posts-user-{uid}-page-{page}-nsfw-{nsfw}",
   ],
-  commentsOfUser_username_filter_page: [
-    "filter-{filter}-comments-user-{username}-page-{page}",
+  postsOfThread_filter_tid_page_category_nsfw: [
+    "filter-{filter}-posts-thread-{tid}-page-{page}-tag-{category}-nsfw-{nsfw}",
   ],
-  postsOfThread_filter_tid_page_tag: [
-    "filter-{filter}-posts-thread-{tid}-page-{page}-tag-{tag}",
-  ],
-  filteredThreads_filter_page: ["filter-{filter}-threads-page-{page}"],
+
+  threads_filter_page_nsfw: ["filter-{filter}-threads-page-{page}-nsfw-{nsfw}"],
+
   membersOfThread_tid_page: ["members-thread-{tid}-page-{page}"],
-  threadsByUser_uid_page: ["threads-user-{uid}-page-{page}"],
+
+  joinedThreadsOfUser_uid_page: ["threads-user-{uid}-page-{page}"],
   post_pid: ["post-{pid}"],
-  filteredComments_pid_filter_page: [
-    "comments-post-{pid}-filter-{filter}-page-{page}",
+  commentsOfPost_pid_filter_page_nsfw: [
+    "comments-post-{pid}-filter-{filter}-page-{page}-nsfw-{nsfw}",
   ],
-  reposts_pid_page: ["reposts-post-{pid}-page-{page}"],
+  quotedPosts_pid_page_nsfw: ["quotedPosts-post-{pid}-page-{page}-nsfw-{nsfw}"],
   comment_cid: ["comment-{cid}"],
-  replies_cid_filter_page: [
-    "replies-comment-{cid}-filter-{filter}-page-{page}",
+  commentsOfUser_uid_filter_page_nsfw: [
+    "filter-{filter}-comments-user-{uid}-page-{page}-nsfw-{nsfw}",
+  ],
+  replies_cid_filter_page_nsfw: [
+    "replies-comment-{cid}-filter-{filter}-page-{page}-nsfw-{nsfw}",
   ],
   reaction_pid_uid: ["reaction-post-{pid}-user-{uid}"],
   connection_rid_uid: ["connection-requestedUser-{rid}-user-{uid}"],
-  vote_cid_uid: ["vote-comment-{cid}-user-{uid}"],
+  like_cid_uid: ["likes-comment-{cid}-user-{uid}"],
   member_tid_uid: ["member-thread-{tid}-user-{uid}"],
   thread_tid: ["thread-{tid}"],
-  media_tmdbid: ["media-{tmdbid}"],
-  list_lid_key: ["list-{lid}-{key}"],
-  listsOfUser_filter_username_page: [
-    "lists-user-{username}-filter-{filter}-page-{page}",
+  cinement_extid: ["cinement-{extid}"],
+  shelf_sid_key: ["shelf-{sid}-{key}"],
+  shelvesOfUser_uid_filter_page: [
+    "shelves-user-{uid}-filter-{filter}-page-{page}",
   ],
-  privateListsOfUser_filter_uid_page: [
-    "private-lists-user-{uid}-filter-{filter}-page-{page}",
+  privateShelvesOfUser_uid_filter_page: [
+    "private-shelves-user-{uid}-filter-{filter}-page-{page}",
   ],
-  listsForMedia_mid_uid: ["listsForMedia-{mid}-user-{uid}"],
-  items_lid_filter_page_key: ["items-{lid}-{page}-{filter}-{key}"],
+  shelvesForMedia_mid_uid: ["shelvesForMedia-{mid}-user-{uid}"],
+  items_sid_filter_page_key: ["items-{sid}-{page}-{filter}-{key}"],
   "saved-posts_uid_page": ["savedPosts-user-{uid}", "page-{page}"],
   "saved-comments_uid_page": ["savedComments-user-{uid}", "page-{page}"],
-  "saved-lists_uid_page": ["savedLists-user-{uid}", "page-{page}"],
+  "saved-shelfs_uid_page": ["savedShelves-user-{uid}", "page-{page}"],
   isSaved_uid_id: ["isSaved-uid-{uid}-content-{id}"],
   notifications_uid_page: ["notifications-user-{uid}-page-{page}"],
   threadManagers_tid: ["managers-thread-{tid}"],
-  listCollaborators_lid: ["list-collaborators-{lid}"],
+  shelfCollaborators_sid: ["shelf-collaborators-{sid}"],
   followersOfUser_uid_page: ["followers-user-{uid}", "page-{page}"],
   followingOfUser_uid_page: ["following-user-{uid}", "page-{page}"],
+  blockedByUser_uid_page: ["blockedByUser-user-{uid}-page-{page}"],
   roomInvitations_uid: ["roomInvitations-{uid}"],
   room_rmid_ruid_uid: ["room-rmid-{rmid}-ruid-{ruid}-cuid-{uid}"],
   reports_cnid: ["reports-{cnid}"],
-  reportExists_cnid_uid: ["reportExists-{cnid}-{uid}"]
+  reportExists_cnid_uid: ["reportExists-{cnid}-{uid}"],
+  collaborativeShelvesOfUser_uid_page: ["collaborativeShelvesOfUser-{uid}-{page}"],
+  invitedShelvesOfUser_uid_page: ["invitedShelvesOfUser-{uid}-{page}"],
+  isShelfCollaborator_uid_sid: ["isShelfCollaborator-{uid}-{sid}"],
 };
 
 export const revalidateTags: Record<AvailableRevalidateTags, string[]> = {
-  commentMutation_cid_username_pid: [
+  commentMutation_cid_uid_pid: [
     "comment-{cid}",
-    "filter-latest-comments-user-{username}-page-1",
-    "comments-post-{pid}-filter-latest-page-1",
-    "replies-comment-{cid}-filter-latest-page-1",
+    "filter-latest-comments-user-{uid}-page-1-nsfw-true",
+    "filter-latest-comments-user-{uid}-page-1-nsfw-false",
+    "comments-post-{pid}-filter-latest-page-1-nsfw-true",
+    "comments-post-{pid}-filter-latest-page-1-nsfw-false",
+    "replies-comment-{cid}-filter-latest-page-1-nsfw-true",
+    "replies-comment-{cid}-filter-latest-page-1-nsfw-false",
   ],
   commentUpdation_cid: ["comment-{cid}"],
+
   threadMembershipMutation_tid_uid: [
     "member-thread-{tid}-user-{uid}",
     "members-thread-{tid}-page-1",
@@ -494,10 +467,12 @@ export const revalidateTags: Record<AvailableRevalidateTags, string[]> = {
   ],
   notifications_uid: ["notifications-user-{uid}"],
   loginLogout_uid: ["currentUser-{uid}"],
-  postMutation_pid_tid_username_tag: [
+  postMutation_pid_tid_uid_category: [
     "post-{pid}",
-    "filter-latest-posts-thread-{tid}-page-1-tag-{tag}",
-    "filter-latest-posts-user-{username}-page-1",
+    "filter-latest-posts-thread-{tid}-page-1-tag-{category}-nsfw-true",
+    "filter-latest-posts-thread-{tid}-page-1-tag-{category}-nsfw-false",
+    "filter-latest-posts-user-{uid}-page-1-nsfw-true",
+    "filter-latest-posts-user-{uid}-page-1-nsfw-false",
   ],
   postUpdation_pid: ["post-{pid}"],
   reactionMutation_pid_uid: ["reaction-post-{pid}-user-{uid}"],
@@ -507,28 +482,31 @@ export const revalidateTags: Record<AvailableRevalidateTags, string[]> = {
     "user-{username}",
   ],
   threadMutation_tid: ["thread-{tid}"],
-  voteMutation_cid_uid_author: [
-    "vote-comment-{cid}-user-{uid}",
+  likesMutation_cid_uid_author: [
+    "likes-comment-{cid}-user-{uid}",
     "notifications-user-{author}",
   ],
-  media_tmdbid: ["media-{tmdbid}"],
-  listMutation_lid_username: [
-    "list-{lid}",
-    "lists-user-{username}-filter-latest-page-2",
+  cinement_extid: ["cinement-{extid}"],
+  shelfMutation_sid_uid_key: [
+    "shelf-{sid}-{key}",
+    "shelves-user-{uid}-filter-latest-page-1",
   ],
-  listUpdation_lid: ["list-{lid}"],
-  listCollaboratorsMutation_lid: ["list-collaborators-{lid}", "list-{lid}"],
-  addItemsInList_lid: ["items-{lid}-1-latest"],
+  shelfUpdation_sid_key: ["shelf-{sid}-{key}"],
+  shelfCollaboratorMutation_uid_sid: ["shelf-collaborators-{sid}", "shelf-{sid}-{key}", "isShelfCollaborator-{uid}-{sid}"],
+  addItemsInShelf_sid: ["items-{sid}-1-latest"],
   savedPosts_uid: ["savedPosts-user-{uid}"],
   savedComments_uid: ["savedComments-user-{uid}"],
-  savedLists_uid: ["savedLists-user-{uid}"],
+  savedShelves_uid: ["savedShelves-user-{uid}"],
   isSaved_uid_id: ["isSaved-uid-{uid}-content-{id}"],
   followUnfollow_rid_uid: [
     "connection-requestedUser-{rid}-user-{uid}",
     "followers-user-{uid}",
     "following-user-{rid}",
   ],
-  blockUnblock_rid_uid: ["connection-requestedUser-{uid}-user-{rid}"],
+  blockUnblock_rid_uid: [
+    "connection-requestedUser-{uid}-user-{rid}",
+    "blockedByUser-user-{uid}-page-1"
+  ],
   userMutation_uid_username: ["user-{username}", "currentUser-{uid}"],
   userUsernameMutation_uid_oldUsername_newUsername: [
     "user-{oldUsername}",
@@ -542,8 +520,11 @@ export const revalidateTags: Record<AvailableRevalidateTags, string[]> = {
     "userExist-{newEmail}",
     "currentUser-{uid}",
   ],
-  threadInviteesMutation_tid: ["managers-thread-{tid}"],
-  threadManagersMutation_tid: ["managers-thread-{tid}", "thread-{tid}"],
+  threadManagersMutation_tid_uid: [
+    "managers-thread-{tid}",
+    "thread-{tid}",
+    "member-thread-{tid}-user-{uid}"
+  ],
   roomInvitations_uid: ["roomInvitations-{uid}"],
 };
 
@@ -560,15 +541,7 @@ export const optimisedImageProps: Record<
   },
 };
 
-export const listsToChoose: AllListType[] = ["favourite", "recommended"];
-export const predefinedLists: AllListType[] = ["favourite", "recommended", "watched"];
-export const listsToShow = [
-  "favourite",
-  "recommended",
-  "watched",
-  "saved",
-  "private",
-];
+export const predefinedShelves: AllShelves[] = ["favourite", "recommended", "watched"];
 
 const commonReportOptions: ReportReasonType[] = [
   "Spam or Promoting Spam",
@@ -601,3 +574,9 @@ export const threadReportOptions: ReportReasonType[] = [
   ...commonReportOptions,
   "Duplicate Thread",
 ];
+
+/*
+1. remove ObjectId(id) from aggregation pipelines since we started using nanoid
+2. update isValidParloId() to validate nanoid
+3. Shelf Private Key updation
+*/

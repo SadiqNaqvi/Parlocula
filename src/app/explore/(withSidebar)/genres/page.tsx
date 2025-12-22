@@ -1,5 +1,5 @@
-import { LeftChevron, RightChevron } from "@assets/Icons";
-import { DataFetcher, Navigate } from "@components";
+import { RightChevron } from "@assets/Icons";
+import { DataFetcher, Navbar, Navigate } from "@components";
 
 export default function Page() {
 
@@ -23,16 +23,11 @@ export default function Page() {
     return (
         <>
             <main className="max-w-screen-lg mx-auto px-4 w-full">
-                <header className="py-10">
-                    <Navigate comp="button" goto="back" className="iconBtn">
-                        <LeftChevron />
-                    </Navigate>
-                    <h1 className="text-3xl uppercase font-semibold">Genres</h1>
-                </header>
+                <Navbar navTitle="Genres" />
                 <ul className="sticky top-0 bg-primary py-2 overflow-x-auto flex gap-4 noScroll">
                     {movieGenres.concat(showGenres).map(el =>
                         <li className="capitalize text-nowrap" key={el}>
-                            <Navigate comp="link" goto={`genres/${el.replaceAll(' ', '')}`} role="button" className="px-4 py-3 bg-gray20 block rounded-md">{el}</Navigate>
+                            <Navigate comp="link" goto={`${el.replaceAll(' ', '-')}`} role="button" className="px-4 py-3 bg-gray20 block rounded-md">{el}</Navigate>
                         </li>
                     )}
                 </ul>
@@ -40,12 +35,13 @@ export default function Page() {
                     <section className="mt-4 space-y-4" key={el.value}>
                         <div className="flex flex-cntr-between">
                             <h2 className="text-xl uppercase font-semibold">{el.label}</h2>
-                            <Navigate comp="link" goto={`genres/${el.value}`}><RightChevron /></Navigate>
+                            <Navigate comp="link" goto={`${el.value}`}><RightChevron /></Navigate>
                         </div>
                         <DataFetcher
-                            args={[el.value]}
+                            args={[{ genre: el.value, page: 1, sort_by: "popularity" }]}
                             type={el.type}
                             func={el.type === "movie" ? "fetchMoviesWithGenres" : "fetchShowsWithGenres"}
+                            querykeys={[`${el.type}sByGenre`, el.value]}
                         />
                     </section>
                 ))

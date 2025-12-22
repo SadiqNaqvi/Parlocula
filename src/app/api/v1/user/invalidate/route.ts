@@ -1,18 +1,19 @@
 import { deleteSession } from "@lib/auth";
-import { updateRequest } from "@lib/helpers/common";
-import { timeBasedReversion } from "@lib/helpers/deletion";
+import { updateHandler } from "@lib/helpers/handlers";
 import { sessionInvalidationSchema } from "@lib/schemas";
 import { User } from "@model";
 import { SessionInvalidationServerSchemaType } from "@type/schemas";
 import bcrypt from "bcrypt";
 
+export const PATCH = updateHandler<SessionInvalidationServerSchemaType>({
+    handler: async ({ data }) => {
 
-export const PATCH = updateRequest<SessionInvalidationServerSchemaType>({
-    handler: async ({ data, session }) => {
+        const { email, passKey } = data;
 
-        const { email, passKey, date } = data;
-
-        const user = await User.findOne({ email }).exec().then(u => u?.toObject());
+        const user = await User.findOne(
+            { email },
+            { session_id: 1, passkey: 1 }
+        ).exec().then(u => u?.toObject());
 
         if (!user)
             return { success: false, errCode: "resource_not_found" }
@@ -20,8 +21,6 @@ export const PATCH = updateRequest<SessionInvalidationServerSchemaType>({
             return { success: false, errCode: "unauthorized_access" }
 
         await deleteSession(user.session_id);
-
-        if (date) await timeBasedReversion(user._id.toString(), date, session)
 
         return {
             success: true,
@@ -31,4 +30,4 @@ export const PATCH = updateRequest<SessionInvalidationServerSchemaType>({
     },
 
     schema: sessionInvalidationSchema,
-})
+});

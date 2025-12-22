@@ -1,33 +1,58 @@
-import { getRequest } from "@lib/helpers/common";
-import { ObjectId } from "@lib/utils";
+import { getHandler } from "@lib/helpers/handlers";
+import { convertMatchToLookupExpr } from "@lib/pipelines";
 import { Thread } from "@model";
 
-export const GET = getRequest(async (r: any, params: { id: string }) => {
+// Get the details of the thread by thread id;
+export const GET = getHandler(async (r, params) => {
   const { id } = params;
 
   const results = await Thread.aggregate([
-    { $match: { _id: ObjectId(id) } },
+    { $match: { _id: id } },
     {
       $lookup: {
         from: "users",
-        as: "user",
         localField: "created_by",
         foreignField: "_id",
+        pipeline: [{ $project: { username: 1 } }],
+        as: "user",
       },
     },
     {
-      $addFields: {
-        creator: { $ifNull: [{ arrayElemAt: ["$user.username", 0] }, ""] },
+      $lookup: {
+        from: "members",
+        pipeline: [
+          convertMatchToLookupExpr({
+            thread_id: id,
+            role: "moderators"
+          }),
+          { $project: { user_id: 1 } }
+        ],
+        as: "moderators",
+      },
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "moderators.user_id",
+        foreignField: "_id",
+        pipeline: [{ $project: { username: 1, _id: 1 } }],
+        as: "managers",
       },
     },
     {
       $project: {
+        "managers.username": 1,
+        "managers._id": 1,
+        creator: { $ifNull: [{ arrayElemAt: ["$user.username", 0] }, ""] },
+      }
+    },
+    {
+      $project: {
         user: 0,
+        moderators: 0,
       },
     },
   ]);
-
-  if (!results.length) return { success: false, errCode: "resource_not_found" };
 
   return { result: results[0], success: true };
 });

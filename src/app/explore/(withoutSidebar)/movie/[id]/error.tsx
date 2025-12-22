@@ -1,13 +1,15 @@
 "use client";
 
-export default function Error({ error, reset }: { error: Error, reset: () => void }) {
+import { ShowError } from "@components/ui";
+
+export default function Error({ error, reset }: { error: any, reset: () => void }) {
     console.log(error);
     return (
-        <section className="h-full w-full flex flex-cntr-all">
-            <div>
-                <h1 className="text-2xl">Oops! Look like something happend while fetching your movie</h1>
-                <button onClick={() => reset()}>Try Again</button>
-            </div>
-        </section>
+        <ShowError
+            heading="Oops! Looks like The Parlocula Explorers got into some trouble"
+            errCode={error.message}
+            retry={reset}
+            fullScreen
+        />
     )
 }

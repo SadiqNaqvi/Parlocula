@@ -1,44 +1,39 @@
-import { Bookmark, Comment, Follow, Item, List, Post, Reaction, Vote } from "@model";
-import Message from "@model/messages";
-import Participant from "@model/participants";
-import Room from "@model/rooms";
-import { BookmarkModelType, CommentModelType, ListModelType, PostModelType, RoomModelType } from "@type/models";
-import { ClientSession } from "mongoose";
-import { deleteMultipleMedia } from "./server";
-import { GenericDate } from "@type/internal";
+import { deleteMediaFiles } from "@lib/providers/media";
+import { Bookmark, Comment, Like, Message, Participant, Post, Reaction, Room, Shelf, ShelfItem, User } from "@model";
+import { BookmarkModelType, CommentModelType, PostModelType, RoomModelType, ShelfModelType } from "@type/models";
+import { ClientSession, FilterQuery } from "mongoose";
 
 type Doc = { _id: string };
 
-type func<M, K extends keyof M = keyof M> = (filter: Partial<Record<K, any>>, session: ClientSession) => Promise<any[]>;
-
-export const deleteBookmarks: func<BookmarkModelType> = async (filter, session) => {
+export const deleteBookmarks = async (filter: FilterQuery<BookmarkModelType & Doc>, session: ClientSession): Promise<BookmarkModelType[]> => {
   await Bookmark.deleteMany(filter, { session });
   return [];
 };
 
-export const deleteLists: func<ListModelType> = async (filter, session) => {
-  const lists: Doc[] = await List.find(filter, { _id: 1 }, { session });
+export const deleteShelfs = async (filter: FilterQuery<ShelfModelType & Doc>, session: ClientSession): Promise<ShelfModelType[]> => {
+  const shelfs = await Shelf.find(filter, { session })
+    .exec();
 
-  if (!lists.length) return lists;
+  if (!shelfs.length) return shelfs;
 
-  const ids = lists.map((el) => el._id);
+  const ids = shelfs.map((el) => el._id);
 
-  Item.deleteMany({ list_id: { $in: ids } }, { session });
+  ShelfItem.deleteMany({ shelf_id: { $in: ids } }, { session });
 
-  deleteBookmarks({ content_type: "List", content_id: { $in: ids } }, session);
+  deleteBookmarks({ content_type: "Shelf", content_id: { $in: ids } }, session);
 
-  List.deleteMany(filter, { session });
-  return lists;
+  Shelf.deleteMany(filter, { session });
+  return shelfs;
 };
 
-export const deleteComments: func<CommentModelType> = async (filter, session) => {
-  const comments: Doc[] = await Comment.find(filter, { _id: 1 }, { session });
+export const deleteComments = async (filter: FilterQuery<CommentModelType & Doc>, session: ClientSession): Promise<CommentModelType[]> => {
+  const comments = await Comment.find(filter, { _id: 1 }, { session });
 
   if (!comments.length) return comments;
 
   const ids = comments.map((el) => el._id);
 
-  Vote.deleteMany({ _id: { $in: ids } }), { session };
+  Like.deleteMany({ _id: { $in: ids } }), { session };
 
   deleteBookmarks(
     { content_type: "Comment", content_id: { $in: ids } },
@@ -49,12 +44,10 @@ export const deleteComments: func<CommentModelType> = async (filter, session) =>
   return comments;
 };
 
-export const deletePosts: func<PostModelType> = async (filter, session) => {
-  type Post = Doc & { frames: { path: string; type: "image" | "video" }[] };
+export const deletePosts = async (filter: FilterQuery<PostModelType & Doc>, session: ClientSession): Promise<PostModelType[]> => {
 
-  const posts: Post[] = await Post.find(
+  const posts = await Post.find(
     filter,
-    { frames: 1 },
     { session, ordered: true }
   );
 
@@ -62,11 +55,11 @@ export const deletePosts: func<PostModelType> = async (filter, session) => {
 
   const paths = posts.flatMap((post) =>
     post.frames
-      .filter((frame) => !frame.path.includes("https"))
-      .map(({ path, type }) => ({ path, type }))
+      .filter((frame) => !frame.isExternal)
+      .map((path) => path.path)
   );
 
-  deleteMultipleMedia(paths);
+  deleteMediaFiles(paths);
 
   const ids = posts.map((el) => el._id);
 
@@ -77,10 +70,11 @@ export const deletePosts: func<PostModelType> = async (filter, session) => {
   deleteBookmarks({ content_type: "Post", content_id: { $in: ids } }, session);
 
   Post.deleteMany(filter, { session, ordered: true });
+
   return posts;
 };
 
-export const deleteRoom: func<RoomModelType> = async (filter, session) => {
+export const deleteRooms = async (filter: FilterQuery<RoomModelType & Doc>, session: ClientSession): Promise<RoomModelType[]> => {
 
   const rooms = await Room.find(filter);
 
@@ -97,6 +91,38 @@ export const deleteRoom: func<RoomModelType> = async (filter, session) => {
 
 };
 
+export const deleteUser = async (user_id: string, session: ClientSession, profile: string | undefined) => {
+
+  await deleteBookmarks({ user_id }, session);
+
+  await deleteShelfs({ user_id }, session);
+
+  const rooms = await Room.find({ user_id });
+
+  for (const r of rooms) {
+    const room = r.toObject();
+    if (!room) continue;
+
+    if (room.type === "private") {
+      // If room is a private room, then delete the room as well as all the participants in it.
+
+      await Room.findByIdAndDelete(room._id, { session });
+      await Message.deleteMany({ room_id: room._id }, { session });
+      await Participant.deleteMany({ room_id: room._id }, { session });
+    } else {
+      // If room is not a private room, then delete the participant only
+      await Participant.deleteOne({ user_id, room_id: room._id }, { session });
+    }
+  }
+
+  if (profile) deleteMediaFiles(profile);
+
+  await User.findByIdAndDelete(user_id, { session });
+
+}
+
+// A feature for future.
+/*
 export const timeBasedReversion = async (user_id: string, date: GenericDate, session: ClientSession) => {
 
   const createdAtFilter = { $gt: new Date(date) };
@@ -112,15 +138,16 @@ export const timeBasedReversion = async (user_id: string, date: GenericDate, ses
 
   await deleteBookmarks(filter, session);
 
-  await deleteLists(filter, session);
+  await deleteShelfs(filter, session);
 
   await Participant.deleteMany(filter, { session });
 
   await Message.deleteMany(filter, { session });
 
-  await Follow.deleteMany({ follower: user_id, createdAt: createdAtFilter }, { session });
+  await Connection.deleteMany({ follower: user_id, createdAt: createdAtFilter }, { session });
 
   await Reaction.deleteMany(filter, { session });
 
-  await Vote.deleteMany(filter, { session })
+  await Like.deleteMany(filter, { session })
 }
+  */

@@ -1,40 +1,31 @@
-import { oneHour } from "@lib/constants";
-import { decodeObject, encodeObject } from "@lib/utils";
-import { type User } from "@type/internal";
-import localforage from "localforage";
+import { calculateAge } from "@lib/utils";
+import { localForageStorage } from "@store/utils";
+import { CurrentUser, Frame } from "@type/internal";
+import { TypedFunction } from "@type/other";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-
-export const localForageStorage = {
-  getItem: async (key: string): Promise<any> => {
-    const data = await localforage.getItem(key);
-    return data ?? null;
-  },
-  setItem: async (key: string, value: any): Promise<void> => {
-    await localforage.setItem(key, value);
-  },
-  removeItem: async (key: string): Promise<void> => {
-    await localforage.removeItem(key);
-  },
-};
 
 export type UserMetaData = {
   user_id: string;
   username: string;
-  profile: string | undefined;
+  profile: Frame | undefined;
 };
 
 type UserStore = {
-  user: User | null;
-  // userhash is stored locally for offline access
-  userhash: Buffer<ArrayBuffer> | null;
+  user: CurrentUser | null;
+
   // meta will be updated based on the token and session. it is not stored locally instead it is set every time the app mounts
   meta: UserMetaData | null;
-  setUser: (data: User) => void;
+
+  dataSaver: boolean;
+
+  filterContent: boolean;
+
+  setUser: (data: CurrentUser) => void;
   setUserMeta: (meta: UserMetaData) => void;
-  getUserFromHash: () => (User & { object_expiry: number }) | null;
-  setUserHash: (data: User) => void;
   clearUser: () => void;
+  toggleDataSaver: TypedFunction<boolean>;
+  setContentFiltering: TypedFunction<boolean>;
 
   isHydrated: boolean;
 };
@@ -43,18 +34,27 @@ const useCurrentUser = create(
   persist(
     (set, get) => ({
       user: null,
-      userhash: null,
       meta: null,
       isHydrated: false,
 
-      setUser: (data: User) => set({ user: data }),
+      dataSaver: false,
+
+      filterContent: true,
+      setUser: (data) => set({ user: data }),
       setUserMeta: (meta: UserMetaData) => set({ meta }),
-      setUserHash: (data: User) =>
-        set({ userhash: encodeObject(data, 1000 * oneHour * 6), user: data }),
 
-      getUserFromHash: () => decodeObject(get().userhash),
+      clearUser: () => set({ user: null, meta: null, dataSaver: false, filterContent: true }),
 
-      clearUser: () => set({ user: null, userhash: null }),
+      toggleDataSaver: (newState) => set({ dataSaver: newState }),
+      setContentFiltering: (newState) => {
+        const dob = get().user?.dob;
+
+        if (!dob) return;
+
+        else if (newState === false && calculateAge(dob) < 18) return;
+
+        set({ filterContent: newState })
+      }
     }),
     {
       name: "UserStorage",
@@ -66,7 +66,7 @@ const useCurrentUser = create(
           }, 0);
       },
       partialize: (state: UserStore) => ({
-        userhash: state.userhash,
+        user: state.user,
       }),
     }
   )

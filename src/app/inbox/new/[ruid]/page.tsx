@@ -1,9 +1,8 @@
 import { getUserFromToken } from "@lib/auth/utils";
 import { getRoomByUserId, getUserMeta } from "@lib/helpers/common";
-import { getQueryClient } from "@lib/queryClient";
-import { getQueryKeys, queryFunction } from "@lib/utils";
+import { fetchQuery, getQueryClient } from "@lib/providers/queryClient";
+import { getQueryKeys } from "@lib/utils";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
-import { FullRoomType, MereUser } from "@type/internal";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import NewRoom from "./NewRoom";
@@ -17,15 +16,15 @@ const NewRoomPage = async ({ params: { ruid } }: { params: { ruid: string } }) =
     else if (ruid === user.user_id) redirect("/inbox");
 
     const [room, ruser] = await Promise.all([
-        queryClient.fetchQuery({
+        fetchQuery({
+            queryClient,
             queryKey: getQueryKeys("roomExists_ruid_uid", { ruid, uid: user.user_id }),
-            queryFn: () => queryFunction(getRoomByUserId, [user.user_id, ruid, jar]) as Promise<FullRoomType> | null,
-            staleTime: 60 * 60 * 1000,
-            gcTime: 60 * 60 * 1000,
+            queryFn: () => getRoomByUserId(user.user_id, ruid, jar),
         }),
-        queryClient.fetchQuery({
+        fetchQuery({
+            queryClient,
             queryKey: [`userMeta:${ruid}`],
-            queryFn: () => queryFunction(getUserMeta, [ruid]) as Promise<MereUser>,
+            queryFn: () => getUserMeta(ruid),
         }),
     ]);
 
@@ -34,7 +33,7 @@ const NewRoomPage = async ({ params: { ruid } }: { params: { ruid: string } }) =
 
     return (
         <HydrationBoundary state={dehydrate(queryClient)}>
-            <NewRoom ruser={ruser} user={user} />
+            <NewRoom ruser={ruser} />
         </HydrationBoundary>
     )
 }

@@ -1,29 +1,19 @@
-import { getRequest } from "@lib/helpers/common";
+import { getHandler } from "@lib/helpers/handlers";
 import { usersAggregationPipeline } from "@lib/pipelines";
-import { getPageParams, ObjectId } from "@lib/utils";
-import { Follow } from "@model";
+import { getPageParams } from "@lib/utils";
+import { Connection } from "@model";
 
-export const GET = getRequest(async (r, params) => {
+// Get followers of the users the current user follows
+export const GET = getHandler(async (r, params) => {
   const { cuid } = params;
   const page = getPageParams(r) - 1;
 
-  const resp = await Follow.aggregate(
+  const resp = await Connection.aggregate(
     usersAggregationPipeline({
-      filters: [
-        { $match: { follower: ObjectId(cuid) } },
-        {
-          $lookup: {
-            from: "users",
-            as: "user",
-            localField: "followee",
-            foreignField: "_id",
-          },
-        },
-        { $unwind: "$user" },
-        { $replaceRoot: { newRoot: "$user" } },
-      ],
+      filters: [{ $match: { follower: cuid, blocked: false } }],
       page,
       sort: { createdAt: -1 },
+      localFieldForLookup: "user_id",
     })
   );
 

@@ -1,11 +1,11 @@
 import Navigate from "@components/Navigate";
 import { getPoster } from "@lib/utils";
-import { ListItemType } from "@type/internal";
+import { ShelfItemType } from "@type/internal";
 import Image from "next/image";
 
-const ItemTile = ({ media_type, poster, title, tmdb_id, year, _id }: ListItemType) => (
+const ShelfItemBar = ({ cinement_id, poster, title, ext_id, year, _id }: ShelfItemType) => (
     <article key={_id} className="w-full flex flex-cntr-between">
-        <Navigate className="w-full" goto={`/explore/${media_type}/${tmdb_id}`} comp="link">
+        <Navigate className="w-full" goto={`/explore/${cinement_id}/${ext_id}`} comp="link">
             <div className="flex items-center gap-3 w-full">
                 <Image
                     width={64}
@@ -23,4 +23,4 @@ const ItemTile = ({ media_type, poster, title, tmdb_id, year, _id }: ListItemTyp
     </article>
 )
 
-export default ItemTile;
+export default ShelfItemBar;

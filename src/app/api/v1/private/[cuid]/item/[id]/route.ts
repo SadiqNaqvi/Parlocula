@@ -1,115 +1,70 @@
 import { filterToSort } from "@lib/constants";
-import { connectPPDB } from "@lib/database";
-import { getRequest } from "@lib/helpers/common";
+import { getHandler, postHandler } from "@lib/helpers/handlers";
 import { itemsAggregationPipeline } from "@lib/pipelines";
 import { cinementToAddAndRemove } from "@lib/schemas";
-import { formDataToObject, getPageParams, ObjectId } from "@lib/utils";
-import { Item, List, Media } from "@model";
-import { FullList } from "@type/internal";
-import { length } from "localforage";
-import { startSession } from "mongoose";
-import { revalidateTag } from "next/cache";
-import { NextRequest, NextResponse } from "next/server";
+import { getSearchParams } from "@lib/utils";
+import { Cinement, Shelf, ShelfItem } from "@model";
+import { CinementToAddAndRemoveType } from "@type/schemas";
 
-// Getting items for a list including private, id = list_id
-export const GET = getRequest(
-  async (r: any, params: { id: string; cuid: string }) => {
-    const { id } = params; // List_id
+// Getting items for a shelf including private, id = shelf_id
+export const GET = getHandler(async (r, params) => {
+  const { id } = params; // shelf_id
 
-    const page = getPageParams(r) - 1;
-    const filter = r.nextUrl.searchParams.get("f")?.trim() || "latest";
-    const sort = filterToSort.items[filter] ?? filterToSort.items.latest;
+  const { page, filter } = getSearchParams(r.nextUrl, 0, "latest");
 
-    const key = r.nextUrl.searchParams.get("k");
+  const sort = filterToSort.items[filter] ?? filterToSort.items.latest;
 
-    const response = await Item.aggregate([
-      ...itemsAggregationPipeline({
-        filters: [{ $match: { list_id: ObjectId(id) } }],
-        page,
-        sort,
-      }),
+  const key = r.nextUrl.searchParams.get("k");
 
-      // To validate the key in the params we are fetching the list and then we will match both the keys
-      {
-        $addFields: {
-          list_id: ObjectId(id),
-        },
-      },
-      {
-        $lookup: {
-          from: "lists",
-          localField: "list_id",
-          foreignField: "_id",
-          as: "list",
-        },
-      },
-    ]);
+  const shelfResponse = await Shelf.findById(id, { shelfKey: 1, isPrivate: 1, user_id: 1 }).exec();
 
-    const result = response[0];
+  if (!shelfResponse) return { success: false, errCode: "resource_not_found" }
 
-    if (!result) return { success: false, errCode: "resource_not_found" };
+  const response = await ShelfItem.aggregate(
+    itemsAggregationPipeline({
+      filters: [{ $match: { shelf_id: id } }],
+      page,
+      sort,
+      shelf_creator: shelfResponse.user_id,
+    })
+  );
 
-    const list: FullList = result.list[0];
+  const items = response[0];
 
-    if (list.isPrivate) {
-      if (!key) return { success: false, errCode: "unauthorized_access" };
-      else if (key !== list.listKey)
-        return { success: false, errCode: "unauthorized_access" };
-    }
+  if (!items)
+    return { success: true, result: { data: [], total: 0 } };
 
-    return {
-      success: true,
-      result: {
-        total: result.total,
-        data: result.data,
-      },
-    };
-  }
+  const shelf = shelfResponse.toObject();
+
+  if (shelf.isPrivate && (!key || (key !== shelf.shelfKey)))
+    return { success: false, errCode: "unauthorized_access" };
+
+  return { success: true, result: items };
+}
 );
 
-// Adding/Removing an item to/from multiple lists, id = media_id
-export const POST = async (
-  req: NextRequest,
-  { params }: { params: { id: string; cuid: string } }
-) => {
-  const { id, cuid } = params;
+// Adding/Removing a cinement to/from multiple shelves, id = cinement_id
+// Must only be done by the creator
+export const POST = postHandler<CinementToAddAndRemoveType>({
+  handler: async ({ data, params, session }) => {
 
-  const formData = formDataToObject(await req.formData());
-  const { success, error, data } = cinementToAddAndRemove.safeParse(formData);
-  if (!success)
-    return NextResponse.json({
-      success: false,
-      errCode: "form_error",
-      formErrors: error.errors,
-    });
-
-  const session = await startSession();
-  let idsToRevalidate: string[] = [];
-
-  try {
-    const isDbConnected = await connectPPDB();
-    if (!isDbConnected)
-      return NextResponse.json({
-        result: null,
-        success: false,
-        errCode: "database_connection_fail",
-      });
-
-    const { add, remove, tmdb_id, year, favourite, recommended, watched } =
+    const { id, cuid } = params;
+    const { add, remove, ext_id, year, favourite, recommended, watched } =
       data;
 
-    const dataToCreate = add.map((list_id) => ({
-      list_id,
+    const dataToCreate = add.map((shelf_id) => ({
+      shelf_id,
       year,
-      tmdb_id,
-      media_id: id,
+      ext_id,
+      cinement_id: id,
       user_id: cuid,
     }));
 
-    session.startTransaction();
     if (dataToCreate.length) {
-      await Item.create(dataToCreate, { session, ordered: true });
-      await List.updateMany(
+
+      await ShelfItem.create(dataToCreate, { session, ordered: true });
+
+      await Shelf.updateMany(
         { _id: { $in: add } },
         { $inc: { item_count: 1 } },
         { session }
@@ -117,17 +72,23 @@ export const POST = async (
     }
 
     if (remove.length) {
-      await Item.deleteMany({ _id: id, list_id: { $in: remove } }, { session });
-      await List.updateMany(
+
+      await ShelfItem.deleteMany({ _id: id, shelf_id: { $in: remove } }, { session });
+
+      await Shelf.updateMany(
         { _id: { $in: remove } },
         { $inc: { item_count: -1 } },
-        { session }
+        { session, order: true }
       );
+
     }
 
+    let idsToRevalidate: string[] = [];
+
     if (favourite !== "none" || recommended !== "none" || watched !== "none") {
-      await Media.findOneAndUpdate(
-        { _id: ObjectId(id) },
+
+      await Cinement.findOneAndUpdate(
+        { _id: id },
         {
           $inc: {
             favourite:
@@ -139,35 +100,36 @@ export const POST = async (
         },
         { session }
       );
-      idsToRevalidate.push(`media-${tmdb_id}`);
+
+      idsToRevalidate.push(`media-${ext_id}`);
     }
 
-    await session.commitTransaction();
-    idsToRevalidate.concat(add).concat(remove);
-    return NextResponse.json({
+    return {
       success: true,
-      result: idsToRevalidate,
-    });
-  } catch (err: any) {
-    console.error("Error occured at path: private/item/[id]/", err.message);
-    await session.abortTransaction();
-    idsToRevalidate = [];
-    return NextResponse.json(
-      {
-        success: false,
-        errCode: "unknown_error",
-      },
-      { status: 500 }
-    );
-  } finally {
-    // Can do this in try block but it sometimes throw error.
-    idsToRevalidate.forEach((id) => {
-      revalidateTag(`items-${id}-1-latest`);
-    });
-    console.log(idsToRevalidate.length);
-    if (idsToRevalidate.length) {
-      revalidateTag(`listsForMedia-${id}-user-${cuid}`);
-      console.log("ho gya");
+      result: null,
+      revalidateQueue: idsToRevalidate
+        .concat(add.concat(remove).map(id => `items-${id}-1-latest`))
+        .concat([`shelfsForMedia-${id}-user-${cuid}`])
     }
-  }
-};
+  },
+  preCheck: async ({ data, user_id }) => {
+    const { add, remove } = data;
+    const shelves = await Shelf.find({ $in: [...add, ...remove] }, { user_id });
+
+    if (!shelves.length) return {
+      success: false,
+      errCode: "resource_not_found"
+    }
+
+    const isCreator = shelves.every(shelf => shelf.user_id === user_id);
+
+    if (!isCreator) return {
+      success: false,
+      errCode: "unauthorized_access"
+    }
+
+    return { success: true }
+
+  },
+  schema: cinementToAddAndRemove,
+});

@@ -1,0 +1,25 @@
+import { getHandler } from "@lib/helpers/handlers";
+import { threadsAggregationPipeline } from "@lib/pipelines";
+import { getPageParams } from "@lib/utils";
+import { Member } from "@model";
+
+// Get all the joined threads of the current user
+export const GET = getHandler(async (r, params) => {
+
+  const page = getPageParams(r) - 1;
+  const { cuid } = params;
+
+  const response = await Member.aggregate(
+    threadsAggregationPipeline({
+      filters: [{ $match: { user_id: cuid, banned: false } }],
+      localFieldForLookup: "thread_id",
+      page,
+      sort: { createdAt: -1 }
+    })
+  );
+
+  return {
+    result: response[0] ?? { data: [], total: 0 },
+    success: true
+  };
+});

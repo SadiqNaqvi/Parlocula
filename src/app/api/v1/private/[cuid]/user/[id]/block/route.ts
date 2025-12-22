@@ -1,45 +1,13 @@
-import { deleteRequest, postRequest } from "@lib/helpers/common";
-import { ObjectId } from "@lib/utils";
-import { Follow, User } from "@model";
+import { deleteRooms } from "@lib/helpers/deletion";
+import { deleteHandler, postHandler } from "@lib/helpers/handlers";
+import { Connection, User } from "@model";
 
 // Blocking a user
-export const POST = postRequest({
+export const POST = postHandler({
   handler: async ({ params, user_id, session }) => {
     const { id } = params;
-    const follow = (
-      await Follow.aggregate([
-        {
-          $facet: {
-            isFollower: [
-              // If current user is a follower of the requested User?
-              {
-                $match: {
-                  follower: ObjectId(user_id),
-                  followee: ObjectId(id),
-                },
-              },
-            ],
-            isFollowing: [
-              // If current user is a being followed by the requested User?
-              {
-                $match: {
-                  followee: ObjectId(id),
-                  follower: ObjectId(user_id),
-                },
-              },
-            ],
-          },
-        },
-        {
-          $project: {
-            isFollower: { $size: "$isFollower" },
-            isFollowing: { $size: "$isFollowing" },
-          },
-        },
-      ])
-    )[0];
 
-    await Follow.updateOne(
+    const update = await Connection.updateOne(
       {
         follower: id,
         followee: user_id,
@@ -53,39 +21,25 @@ export const POST = postRequest({
       { session, upsert: true }
     );
 
-    if (follow.isFollower) {
-      await User.findByIdAndUpdate(
-        user_id,
-        {
-          $inc: { following_count: -1 },
-        },
-        { session }
-      );
+    if (update.modifiedCount) {
       await User.findByIdAndUpdate(
         id,
         {
-          $inc: { follower_count: -1 },
+          $inc: { following: -1 },
+        },
+        { session }
+      );
+
+      await User.findByIdAndUpdate(
+        user_id,
+        {
+          $inc: { followers: -1 },
         },
         { session }
       );
     }
 
-    if (follow.isFollowing) {
-      await User.findByIdAndUpdate(
-        user_id,
-        {
-          $inc: { follower_count: -1 },
-        },
-        { session }
-      );
-      await User.findByIdAndUpdate(
-        id,
-        {
-          $inc: { following_count: -1 },
-        },
-        { session }
-      );
-    }
+    await deleteRooms({ participants: [id, user_id].sort() }, session);
 
     return {
       result: null,
@@ -97,10 +51,10 @@ export const POST = postRequest({
 });
 
 // Unblocking a user
-export const DELETE = deleteRequest(async ({ params, user_id }) => {
+export const DELETE = deleteHandler(async ({ params, user_id }) => {
   const { id } = params;
 
-  await Follow.findOneAndDelete({
+  await Connection.findOneAndDelete({
     follower: id,
     followee: user_id,
     blocked: true,

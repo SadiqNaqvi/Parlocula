@@ -1,51 +1,70 @@
 "use client";
 
-import { ForwardedRef, forwardRef, MutableRefObject, Ref, useImperativeHandle, useState } from "react";
-import { Form, Input } from "./form";
+import appToast from "@lib/providers/toast";
+import { PaginatedData } from "@type/external";
+import { Frame, GeneralGetReturn, GeneralMultipleReturn } from "@type/internal";
+import { RefObject, useImperativeHandle, useState } from "react";
 import GeneralTile from "./GeneralTile";
+import SearchInList, { QueryFnReturn } from "./SearchInList";
 import InfiniteScroller from "./InfiniteScroller";
-import { GeneralMultipleReturn } from "@type/internal";
-import { CheckBoxIcon, EmptyBoxIcon } from "@assets/Icons";
 
-type Props = {
-    queryKeys: (q: string) => string[],
-    queryFn: (query: string, page: number) => Promise<GeneralMultipleReturn>,
-    inputPlaceholder?: string;
-    refiner: (resp: any) => { title: string, poster?: string, id: string }
+export type ListSelectorRef<R = string> = () => R[];
+export type RefinedValues<R = unknown> = {
+    title: string,
+    poster: string | Frame | undefined,
+    id: string,
+    returnVal?: R,
 }
 
-export type ListSelectorRef = () => string[];
+type Props<T, R> = {
+    inputPlaceholder?: string;
+    callbackRef: RefObject<ListSelectorRef<R>>,
+    limit?: number;
+    returnIds?: boolean,
+    refiner: ((resp: T) => RefinedValues<R>) | undefined,
+    queryKeys: ((q: string) => string[]) | undefined,
+    queryFn: ((query: string, page: number) => QueryFnReturn<T>) | undefined,
+    queryKeysForList?: string[],
+    queryFnForList?: (p: number) => QueryFnReturn<T>,
+    data?: RefinedValues[];
+}
 
-const ListSelector = forwardRef(({ queryFn, queryKeys, inputPlaceholder, refiner }: Props, ref: Ref<ListSelectorRef>) => {
+const ListSelector = <T, R>({ queryFn, queryKeys, data, inputPlaceholder, refiner, callbackRef, limit, returnIds = true, queryFnForList, queryKeysForList }: Props<T, R>) => {
 
-    const [query, setQuery] = useState('');
-    const [selectedParticipants, setSelectedParticipants] = useState<Map<string, boolean>>(new Map());
+    const [selectedParticipants, setSelectedParticipants] = useState<Map<string, any>>(new Map());
 
-    useImperativeHandle<ListSelectorRef, ListSelectorRef>(ref, () => () => selectedParticipants.keys().toArray());
-
-    const updateQuery = (data: { query: string }) => {
-        const input = data.query;
-
-        if (!input || input.length < 3) return;
-
-        setQuery(input);
+    const handleReturn = (): R[] => {
+        if (returnIds) {
+            return selectedParticipants.keys().toArray() as R[]
+        } else {
+            return selectedParticipants.values().toArray()
+        }
     }
 
-    const handleSelection = (id: string) => {
+    useImperativeHandle<ListSelectorRef<R>, ListSelectorRef<R>>(callbackRef, () => handleReturn);
+
+    const handleSelection = (id: string, returnVal: any | undefined) => {
         let temp = new Map(selectedParticipants);
-        if (selectedParticipants.has(id)) temp.delete(id);
-        else temp.set(id, true);
+
+        if (selectedParticipants.has(id))
+            temp.delete(id);
+
+        else if (limit && selectedParticipants.size >= limit)
+            return appToast.error(`Only ${limit} selections are allowed.`)
+
+        else temp.set(id, returnVal || true);
 
         setSelectedParticipants(temp);
     }
 
-    const component = (response: any) => {
-        const { id, title, poster } = refiner(response);
+    const Component = (response: any) => {
+        if (!refiner) return;
+        const { id, title, poster, returnVal } = refiner(response);
         return (
             <GeneralTile
                 title={title}
                 poster={poster}
-                onClick={() => handleSelection(id)}
+                onClick={() => handleSelection(id, returnVal)}
                 showCheckBox
                 checked={selectedParticipants.has(id)}
                 className="pointer w-full"
@@ -53,21 +72,41 @@ const ListSelector = forwardRef(({ queryFn, queryKeys, inputPlaceholder, refiner
         );
     }
 
-    return (
-        <>
-            <Form submit={updateQuery}>
-                <Input defaultValue={query} name="query" placeholder={inputPlaceholder || "Search here"} />
-            </Form>
-
-            <InfiniteScroller
-                Component={component}
-                queryKeys={queryKeys(query)}
-                fetchData={(p) => queryFn(query, p)}
-                enabled={!!query}
-            />
-        </>
+    if (queryKeysForList && queryFnForList) return (
+        <InfiniteScroller
+            Component={Component}
+            fetchData={queryFnForList}
+            queryKeys={queryKeysForList}
+        />
     )
 
-})
+    else if (queryKeys && queryFn) return (
+        <SearchInList
+            Component={Component}
+            queryFn={queryFn}
+            queryKeys={queryKeys}
+            queryKeysForList={queryKeysForList}
+            queryFnForList={queryFnForList}
+            inputPlaceholder={inputPlaceholder}
+        />
+    )
+
+    else if (data && data.length) return (
+        <ul>
+            {data.map(({ id, title, poster, returnVal }) => (
+                <GeneralTile
+                    key={id}
+                    title={title}
+                    poster={poster}
+                    onClick={() => handleSelection(id, returnVal)}
+                    showCheckBox
+                    checked={selectedParticipants.has(id)}
+                    className="pointer w-full"
+                />
+            ))}
+        </ul>
+    )
+
+}
 
 export default ListSelector;

@@ -1,8 +1,111 @@
 import pattern from "@assets/logo_pattern.webp";
 import { Navigate } from "@components";
 import { getUserFromToken } from "@lib/auth/utils";
+import { Metadata } from "next";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+
+const title = "Parlocula – Where Stories Bring Us Together";
+const description =
+  "Parlocula is the ultimate community for movie and show lovers. Discover wiki pages for cinements, join discussions, create shelves, share theories, and explore the world of cinema — even as a guest.";
+
+const keywords = [
+  // Primary
+  "Parlocula",
+  "cinema community",
+  "movie discussions",
+  "TV show community",
+  "movie wiki platform",
+  // Secondary
+  "cinement wiki",
+  "fan theories",
+  "movie shelves",
+  "TV show discussions",
+  "community for film lovers",
+  "cinephile platform",
+  "film fan social network",
+  "discussion threads movies",
+  // Real-time & Features
+  "real-time discussions",
+  "cinema shelves",
+  "movie discovery",
+  "trending movies and shows",
+  // Long-tail (SEO GOLD)
+  "community for people who love movies and shows",
+  "platform to talk about movies and tv shows",
+  "social media app for movie lovers",
+  "discuss films and shows online",
+  "share your movie opinions",
+  "join movie communities online",
+].join(", ");
+
+const url = "https://parlocula.com";
+const image = "https://parlocula.com/og-image.jpg"; // replace with your real OG image
+
+export const metadata: Metadata = {
+  title,
+  description,
+  keywords,
+  alternates: {
+    canonical: url,
+  },
+
+  openGraph: {
+    title,
+    description,
+    url,
+    siteName: "Parlocula",
+    images: [
+      {
+        url: image,
+        width: 1200,
+        height: 630,
+        alt: "Parlocula – Cinema Community Platform",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+
+  twitter: {
+    card: "summary_large_image",
+    title,
+    description,
+    images: [image],
+    creator: "@parlocula", // optional — change if needed
+  },
+
+  robots: {
+    index: true,
+    follow: true,
+    nocache: false,
+  },
+
+  icons: {
+    icon: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
+  },
+
+  other: {
+    "theme-color": "#000000",
+  },
+
+  // JSON-LD Structured Data
+  // -------------------------
+  // Helps Google understand this page is a landing homepage for a product.
+  // jsonLd: {
+  //   "@context": "https://schema.org",
+  //   "@type": "WebSite",
+  //   name: "Parlocula",
+  //   url,
+  //   potentialAction: {
+  //     "@type": "SearchAction",
+  //     target: `${url}/explore/search?q={query}`,
+  //     "query-input": "required name=query",
+  //   },
+  //   description,
+  // },
+}
 
 const IndexPage = async () => {
 
@@ -18,7 +121,7 @@ const IndexPage = async () => {
 
         <div>
           <h1 className="text-4xl font-semibold text-center">Parlocula</h1>
-          <p className="text-center">The new way to explore your fandom.</p>
+          <p className="text-center">Where Stories Bring Us Together.</p>
         </div>
 
         <div className="flex gap-2 flex-col sm:flex-row fixed sm:static bottom-0 w-full sm:w-fit sm:mx-auto p-4 bg-primarylight bg-opacity-50 sm:bg-transparent rounded-t-md">

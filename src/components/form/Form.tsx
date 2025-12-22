@@ -1,6 +1,6 @@
 "use client";
 
-import LoadingSpinner from "@components/ui/LoadingSpinner";
+import LoadingSpinner from "@components/ui/loading/LoadingSpinner";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { forwardRef, HTMLAttributes, } from "react";
 import { useForm, FormProvider } from "react-hook-form"
@@ -12,10 +12,11 @@ type FormProps = {
     schema?: any,
     submit: (data: any) => FormSubmitReturnType | Promise<FormSubmitReturnType>,
     defaultVals?: any
-    hideLoading?: boolean
+    hideLoading?: boolean,
+    skipReset?: boolean;
 } & HTMLAttributes<HTMLFormElement>
 
-const FormContainer = ({ children, schema, submit, defaultVals, hideLoading, ...args }: FormProps, ref?: React.LegacyRef<HTMLFormElement>) => {
+const FormContainer = ({ children, schema, submit, defaultVals, hideLoading, skipReset, ...args }: FormProps, ref?: React.LegacyRef<HTMLFormElement>) => {
 
     const formMethod = useForm({
         resolver: schema ? zodResolver(schema) : undefined,
@@ -35,7 +36,8 @@ const FormContainer = ({ children, schema, submit, defaultVals, hideLoading, ...
                     else setError(error.path.join('.'), { message: error.message })
                 })
             else setError("custom", { message: errors })
-        } else reset();
+        }
+        else if (!skipReset) reset();
     }
 
     return (
@@ -57,6 +59,8 @@ const FormContainer = ({ children, schema, submit, defaultVals, hideLoading, ...
     )
 }
 
-const Form = forwardRef(FormContainer)
+const Form = forwardRef(FormContainer);
+
+Form.displayName = "Form";
 
 export default Form;

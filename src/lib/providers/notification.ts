@@ -2,7 +2,7 @@
 
 import Ably from "ably";
 import Push from "ably/push";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 import { trycatch } from "../utils";
 
 export const checkPushStatus = () => {
@@ -18,7 +18,7 @@ export const enablePush = (user_id: string) =>
     }
 
     const client = new Ably.Realtime({
-      authUrl: `${process.env.NEXT_PUBLIC_APP_ROOT}/api/v1/ably`,
+      authUrl: `${process.env.NEXT_PUBLIC_PARLOCULA_URL}/api/v1/ably`,
       pushServiceWorkerUrl: "/sw.js",
       clientId: user_id,
       plugins: { Push },
@@ -31,7 +31,7 @@ export const enablePush = (user_id: string) =>
 export const disablePush = (user_id: string) =>
   trycatch(() => {
     new Ably.Realtime({
-      authUrl: `${process.env.NEXT_PUBLIC_APP_ROOT}/api/v1/ably`,
+      authUrl: `${process.env.NEXT_PUBLIC_PARLOCULA_URL}/api/v1/ably`,
       pushServiceWorkerUrl: "/sw.js",
       clientId: user_id,
       plugins: { Push },

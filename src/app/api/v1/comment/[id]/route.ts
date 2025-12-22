@@ -1,19 +1,20 @@
-import { getRequest } from "@lib/helpers/common";
-import { ObjectId } from "@lib/utils";
+import { getHandler } from "@lib/helpers/handlers";
 import { Comment } from "@model";
 
-export const GET = getRequest(async (r: any, params: { id: string }) => {
+// Get comment details by id
+export const GET = getHandler(async (r, params) => {
   const { id } = params;
 
-  const result = await Comment.aggregate([
+  const response = await Comment.aggregate([
     {
-      $match: { _id: ObjectId(id) },
+      $match: { _id: id },
     },
     {
       $lookup: {
         from: "users",
         localField: "user_id",
         foreignField: "_id",
+        pipeline: [{ $project: { username: 1, profile: 1 } }],
         as: "user",
       },
     },
@@ -22,20 +23,20 @@ export const GET = getRequest(async (r: any, params: { id: string }) => {
         from: "posts",
         localField: "post_id",
         foreignField: "_id",
+        pipeline: [{ $project: { user_id: 1, thread_id: 1 } }],
         as: "post",
       },
     },
     {
       $addFields: {
         username: { $arrayElemAt: ["$user.username", 0] },
-        post_author: { $arrayElemAt: ["$post.user_id", 0] },
         profile: { $arrayElemAt: ["$user.profile", 0] },
+        post_author: { $arrayElemAt: ["$post.user_id", 0] },
+        thread_id: { $arrayElemAt: ["$post.thread_id", 0] },
       },
     },
     { $project: { user: 0, post: 0 } },
   ]);
-  const comment = result[0];
-  if (!comment) return { success: false, errCode: "resource_not_found" };
 
-  return { result: comment, success: true };
+  return { result: response[0], success: true };
 });

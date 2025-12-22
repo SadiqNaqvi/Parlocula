@@ -1,36 +1,46 @@
-import { updateRequest } from "@lib/helpers/common";
+import { parloculaAppURL } from "@lib/constants";
+import { updateHandler } from "@lib/helpers/handlers";
 import { threadUpdateSchema } from "@lib/schemas";
 import { Member, Thread } from "@model";
 import { ThreadUpdateSchema } from "@type/schemas";
 
-// Making sure that only managers and creator are allowed to update a thread.
-export const PATCH = updateRequest<ThreadUpdateSchema>({
-  handler: async ({ data, frames, params, user_id }) => {
+// Making sure that only managers are allowed to update a thread.
+export const PATCH = updateHandler<ThreadUpdateSchema>({
+  handler: async ({ data, frames, params, username, isNsfw }) => {
+
     const dataToUpdate = Object({
       ...data,
       edited_at: new Date(),
-      edited_by: user_id,
-      ...(frames.length && { poster: frames[0].path }),
+      edited_by: username,
+      ...(frames.length && { poster: frames[0] }),
     });
-    const doc = Thread.findByIdAndUpdate(params.id, { $set: dataToUpdate });
+
+    const doc = await Thread.findByIdAndUpdate(params.id, { $set: dataToUpdate }).then(r => r?.toObject());
+    if (!doc) return { success: false, errCode: "resource_not_found" }
 
     return {
       success: true,
       available: "threadMutation_tid",
       options: { tid: params.id },
       result: doc,
+      warnTeamParlocula: doc.nsfw || !isNsfw ? undefined : {
+        title: "Possibly NSFW Poster of the Thread with incorrect flags",
+        desc: "This poster of the thread may be NSFW",
+        path: `${parloculaAppURL}/t/${doc._id}`
+      }
     };
   },
   preCheck: async ({ user_id, params }) => {
     const { id } = params;
-    const isMod = await Member.exists({
+
+    const isManager = await Member.exists({
       user_id,
       thread_id: id,
-      role: "moderator",
+      role: { $in: ["moderator", "creator"] },
       banned: false,
     });
 
-    if (isMod) return { success: true };
+    if (isManager) return { success: true };
 
     return { success: false, errCode: "unauthorized_access" };
   },

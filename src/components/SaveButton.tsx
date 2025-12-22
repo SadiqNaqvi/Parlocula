@@ -2,42 +2,55 @@
 
 import { BookmarkFillIcon, BookmarkIcon } from "@assets/Icons";
 import { UserBasedButton } from "@components";
-import { saveItem, unsaveItem } from "@lib/helpers/client";
 import { checkIfItemSaved } from "@lib/helpers/common";
-import { getQueryKeys, numberConverter, queryFunction } from "@lib/utils";
-import { MutationFnProps, UserBasedButtonProps } from "@type/other";
-import { LoadingButton } from "./UserBasedButton";
+import { getQueryKeys, numberConverter } from "@lib/utils";
+import { LoadingButton, UserBasedButtonProps } from "./UserBasedButton";
 
-const SaveButton = ({ id, count, type, uid }: { id: string, uid: string | undefined, count: number, type: "Post" | "Comment" | "List" }) => {
+type Props = {
+    id: string,
+    uid: string | undefined,
+    count: number | undefined,
+    type: "Post" | "Comment" | "Shelf",
+    author: string,
+}
 
-    const mutationFn = async ({ action, user_id }: MutationFnProps<string>) => {
-        if (action === "save")
-            await saveItem({
-                content_id: id,
-                content_type: type,
-                content_author: user_id
-            }, user_id);
-        else await unsaveItem(id, user_id);
-    }
+const SaveButton = ({ id, count, type, uid, author }: Props) => {
 
-    const Button = ({ onClick, state }: UserBasedButtonProps<boolean>) => (
-        <button className="space-x-2" onClick={() => onClick(!state, state ? "unsave" : "save")}>
-            <span>{state ? <BookmarkFillIcon /> : <BookmarkIcon />}</span>
-            {type === "List" ?
-                <span>{state ? "Saved" : "Save"}</span>
-                :
-                <span>{numberConverter(count + (state ? 1 : 0))}</span>
+    const Button = ({ onClick, state, user_id }: UserBasedButtonProps<boolean>) => {
+
+        const handleClick = () => {
+            if (state) {
+                onClick(false, "unsave_content", [id, user_id]);
+            } else {
+                onClick(true, "save_content", [
+                    { content_author: author, content_id: id, content_type: type },
+                    user_id
+                ])
             }
-        </button>
-    );
+        }
+
+        return (
+            <button className="space-x-2" onClick={handleClick}>
+                <span>
+                    {state ? <BookmarkFillIcon /> : <BookmarkIcon />}
+                </span>
+                {type === "Shelf" ?
+                    <span>{state ? "Saved" : "Save"}</span>
+                    :
+                    <span>
+                        {numberConverter((count || 0) + (state ? 1 : 0))}
+                    </span>
+                }
+            </button>
+        )
+    };
 
     return <UserBasedButton
         uid={uid}
         Loading={<LoadingButton primary={false} />}
         className="flex p-2 border border-gray-500 border-opacity-30 rounded-md"
         Button={Button}
-        mutationFn={mutationFn}
-        queryFn={(uid) => queryFunction(checkIfItemSaved, [id, uid])}
+        queryFn={(uid) => checkIfItemSaved(id, uid)}
         queryKeys={getQueryKeys("isContentSaved_type_id", { type: type.toLowerCase(), id })}
     />
 }

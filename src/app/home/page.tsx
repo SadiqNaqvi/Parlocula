@@ -1,11 +1,171 @@
-export default function Home() {
+"use client";
+
+import { NotFound, PostBar, ShowError, VerticleMovieCard } from "@components/ui";
+import LoadingSpinner, { FullPageLoadingSpinner } from "@components/ui/loading/LoadingSpinner";
+import { updateFeedViewed } from "@lib/helpers/mutations";
+import { FeedPost, useFeedHook } from "@lib/hooks";
+import useCurrentUser from "@store/user";
+import { ErrorCodes } from "@type/other";
+import { useEffect, useRef } from "react";
+
+const HomeNav = () => {
+    return (
+        <nav className="p-4 border-b border-gray40">
+            <h1 className="">Parlocula</h1>
+        </nav>
+    )
+}
+
+const FeedCard = ({ post, setViewed }: { post: FeedPost, setViewed: (post: string) => void }) => {
+
+    const postListContainer = useRef<HTMLLIElement>(null);
+    const isVisibleRef = useRef(false);
+    const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    useEffect(() => {
+
+        const { current } = postListContainer;
+
+        if (!current) return;
+
+        const observer = new IntersectionObserver(([entry]) => {
+            if (entry.isIntersecting) {
+
+                isVisibleRef.current = true;
+
+                timeoutRef.current = setTimeout(() => {
+                    if (isVisibleRef.current) {
+                        setViewed(post._id);
+                    }
+                }, 2000);
+
+            } else {
+                isVisibleRef.current = true;
+                if (timeoutRef.current) {
+                    clearTimeout(timeoutRef.current)
+                }
+            }
+        }, { threshold: 0.8 });
+
+        observer.observe(current);
+
+        return () => {
+            if (current) observer.unobserve(current);
+        }
+
+    }, [])
+
+
+    if ("isSlide" in post) return (
+        <li className="list-style-none">
+            <article className="px-2 py-4 w-full">
+                <h3 className="font-semibold text-sm uppercase mb-2">{post.title}</h3>
+                <ul className="flex w-full overflow-x-auto noScroll gap-2">
+                    {post.data.map(content => (
+                        <VerticleMovieCard {...content} />
+                    ))}
+                </ul>
+            </article>
+        </li>
+    )
+
+    return (
+        <li ref={postListContainer} className="list-style-none">
+            <PostBar {...post} />
+        </li>
+    )
+
+}
+
+const HomeFeedPage = () => {
+
+    const { data, isLoading, error, hasNextPage, isFetchingNextPage, fetchNextPage, refetch } = useFeedHook();
+    const viewedMap = useRef(new Map<string, true>());
+    const loadingContainerRef = useRef<HTMLDivElement>(null);
+    const { dataSaver, meta } = useCurrentUser();
+
+    useEffect(() => {
+        if (dataSaver) return;
+
+        const current = loadingContainerRef.current;
+
+        const observer = new IntersectionObserver(([entry]) => {
+            if (entry.isIntersecting && !isFetchingNextPage && hasNextPage)
+                fetchNextPage();
+        }, { threshold: 0.1 });
+
+        if (current && hasNextPage) observer.observe(current);
+
+        return () => {
+            if (current) observer.unobserve(current);
+        }
+    }, [dataSaver, isFetchingNextPage, fetchNextPage, hasNextPage]);
+
+    useEffect(() => {
+        return () => {
+            const current = viewedMap.current
+
+            if (current.size && meta) {
+                const posts = Array.from(current.keys());
+                updateFeedViewed(meta.user_id, posts);
+            }
+        }
+    }, []);
+
+    if (isLoading)
+        return <FullPageLoadingSpinner path={["Parlocula"]} />
+
+    else if (error) return (
+        <ShowError
+            heading="Oops! Error occured"
+            errCode={error.message as ErrorCodes}
+            retry={refetch}
+        />
+    )
+
+    else if (!data) return (
+        <>
+            <HomeNav />
+            <NotFound
+                title="Such an empty feed"
+                paras={["Guess its time to start joining threads, following users and start posting"]}
+            />
+        </>
+    )
+
+    const manuallyLoadNextPage = () => {
+        fetchNextPage();
+    }
+
+    const setViewed = (pid: string) => {
+        viewedMap.current.set(pid, true);
+    }
 
     return (
         <>
-            <header className="h-dvh flex flex-cntr-all flex-col">
-                <h1 className="text-5xl text-center font-normal mb-4">Stop Searching Start Watching with <br /> Popcorn Paragon</h1>
-                <p className="text-md text-gray-500">Let AI search movies for you based on your taste!</p>
-            </header>
+            <HomeNav />
+            <div id="feedContainer">
+                <ul>
+                    {data.pages.
+                        flatMap(page => page.results)
+                        .map((post) => (
+                            <FeedCard post={post} setViewed={setViewed} key={post._id} />
+                        ))}
+                </ul>
+                {hasNextPage &&
+                    (!dataSaver || isFetchingNextPage ?
+                        <div ref={loadingContainerRef} className="mt-4 py-2">
+                            <LoadingSpinner />
+                        </div>
+                        :
+                        <div className="w-full flex flex-cntr-all">
+                            <button className="primary" onClick={manuallyLoadNextPage}>Load More</button>
+                        </div>
+                    )
+                }
+            </div>
         </>
     )
 }
+
+export default HomeFeedPage;

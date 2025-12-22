@@ -1,0 +1,95 @@
+import { BellIcon, BellSlashIcon } from "@assets/Icons";
+import { BottomSheetRef, Navigate, OptionMenu, UserBasedButton, UserBasedButtonProps } from "@components";
+import OptionList from "@components/ui/OptionList";
+import { checkUserConnection } from "@lib/helpers/common";
+import { AvailableMutations } from "@lib/providers/mutationStore";
+import { getQueryKeys } from "@lib/utils";
+import { UserConnectionType } from "@type/internal";
+import { useRef } from "react";
+
+type Props = {
+    rid: string,
+    uid: string | undefined,
+}
+
+const ActionButton = ({ rid, uid }: Props) => {
+
+    const sheetRef = useRef<BottomSheetRef>(null);
+    if (rid === uid) return (
+        <Navigate
+            className="primary btn w-full sm:w-fit"
+            role="button"
+            goto="/settings/edit"
+            comp="link">
+            Edit Profile
+        </Navigate>
+    )
+
+    const Button = ({ user_id, onClick, state }: UserBasedButtonProps<UserConnectionType>) => {
+
+        if (!state || state.isBlocked)
+            return <button className="flex-1 sm:w-fit primary">Follow</button>
+
+        const handleClick = (action: AvailableMutations) => {
+            if (action === "update_user_notification")
+                onClick({ ...state, follows: true }, action, [user_id, rid, { notification: !state.notification }])
+            else {
+                let newState = state;
+
+                if (action === "block_user")
+                    newState = { ...state, haveBlocked: true }
+                else if (action === "unblock_user")
+                    newState = { ...state, haveBlocked: false, follows: false }
+                else if (action === "unfollow_user")
+                    newState = { ...state, haveBlocked: false, follows: false }
+                else if (action === "follow_user")
+                    newState = { ...state, follows: true }
+                else if (action === "remove_follower")
+                    newState = { ...state, followBack: true }
+
+                onClick(newState, action, [user_id, rid]);
+                sheetRef.current?.close();
+            }
+        }
+
+        const { followBack, follows, haveBlocked, notification } = state;
+
+        if (haveBlocked) return (
+            <button className="flex-1 sm:w-fit secondary" onClick={() => handleClick("unblock_user")}>
+                Unblock
+            </button>
+        )
+
+        else if (!follows) return (
+            <button className="flex-1 sm:w-fit primary" onClick={() => handleClick("follow_user")}>
+                {followBack ? "Follow back" : "Follow"}
+            </button>
+        )
+
+        else return (
+            <>
+                <OptionMenu
+                    sheetRef={sheetRef}
+                    ButtonElement={<>Unfollow {notification ? <BellIcon /> : <BellSlashIcon />}</>}
+                    className="flex-1 sm:w-fit secondary"
+                >
+                    <OptionList onClick={() => handleClick("unfollow_user")}>Unfollow</OptionList>
+                    <OptionList onClick={() => handleClick("block_user")}>Block</OptionList>
+                    <OptionList onClick={() => handleClick("remove_follower")}>Remove Follower</OptionList>
+                    <OptionList onClick={() => handleClick("update_user_notification")}>{notification ? "Disable" : "Enable"} Notification</OptionList>
+                </OptionMenu>
+            </>
+        )
+    }
+
+    return (
+        <UserBasedButton
+            Button={Button}
+            uid={uid}
+            queryFn={(uid) => checkUserConnection(uid, rid)}
+            queryKeys={getQueryKeys("connection_ruid", { ruid: rid })}
+        />
+    )
+}
+
+export default ActionButton;

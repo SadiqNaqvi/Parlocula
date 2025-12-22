@@ -1,26 +1,66 @@
 import Navigate from "@components/Navigate";
-import { NotificationType } from "@type/schemas";
+import { acceptCollaboratorInvitation, acceptManagerInvitation, rejectCollaboratorInvitation } from "@lib/helpers/mutations";
+import { getPoster, timeAgo } from "@lib/utils";
+import { NotificationModelType } from "@type/models";
+import Image from "next/image";
+import ParloImage from "./ParloImage";
 
-const NotificationTile = ({ message, type, request_type, status }: NotificationType) => {
+const RequestBar = ({ type, status, request_type, metadata }: Required<Pick<NotificationModelType, "type" | "status" | "request_type" | "metadata">>) => {
+    if (type === "informative") return;
+
+    const handleAction = (accept: boolean) => {
+        if (request_type === "collaborator_invitation" && "shelf_id" in metadata) {
+            if (accept) acceptCollaboratorInvitation(metadata.shelf_id);
+            else rejectCollaboratorInvitation(metadata.shelf_id);
+        } else if (request_type === "manager_invitation" && "thread_id" in metadata) {
+            if (accept) acceptManagerInvitation(metadata.thread_id);
+            else rejectCollaboratorInvitation(metadata.thread_id);
+        }
+    }
+
+    if (status === "pending") return (
+        <div className="flex mt-4 gap-2">
+            <button className="flex-1 primary" onClick={() => handleAction(true)}>Accept</button>
+            <button className="flex-1 secondary" onClick={() => handleAction(false)}>Deny</button>
+        </div>
+    )
     return (
-        <article className="px-2 py-4 wrap-anywhere">
-            <p>
-                {message.map((m, i) => {
-                    if (m.type === "text") return m.text + ' ';
-                    else return <Navigate key={i} comp="link" className="no-underline inline font-semibold" goto={m.path}>{m.label + ' '}</Navigate>
-                })}
-            </p>
-            <div>
-                {type === "request" && status === "pending" && (
-                    <div className="flex mt-4 gap-2">
-                        <button className="flex-1 primary">Accept</button>
-                        <button className="flex-1 secondary">Deny</button>
-                    </div>
-                )}
-                {type === "request" && status !== "pending" && (
-                    <p className={`text-sm ${status === "accepted" ? "text-green-500" : "text-red-500"}`}>Status: {status}</p>
+        <p className={`text-sm ${status === "accepted" ? "text-green-500" : "text-red-500"}`}>Status: {status}</p>
+    )
+}
+
+const NotificationTile = ({ message, type, request_type, status, poster, createdAt, expiresAt, metadata }: Required<NotificationModelType>) => {
+    return (
+        <article className="px-2 py-4 space-y-3 wrap-anywhere">
+
+            <div className="flex gap-3">
+                <section>
+                    <p>
+                        {message.map((m, i) => {
+                            if (m.type === "text") return m.text + ' ';
+                            else return <Navigate key={i} comp="link" className="no-underline inline font-semibold" goto={m.path}>{m.label + ' '}</Navigate>
+                        })}
+                    </p>
+                </section>
+                {poster && (
+                    <section>
+                        <ParloImage
+                            size={50}
+                            className="h-full aspect-square max-h-12 rounded-md"
+                            alt="Poster of the notification"
+                            frame={poster}
+                        />
+                    </section>
                 )}
             </div>
+
+            <RequestBar metadata={metadata} status={status} type={type} request_type={request_type} />
+
+            <ul className="flex text-sm text-zinc-500 gap-2">
+                <li>{timeAgo(createdAt)}</li>
+                <li>Expires: {new Date(expiresAt).toDateString()}</li>
+            </ul>
+
         </article>
     )
 }

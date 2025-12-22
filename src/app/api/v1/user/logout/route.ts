@@ -1,17 +1,20 @@
 import { deleteSession } from "@lib/auth";
-import { deleteRequest } from "@lib/helpers/common";
+import { deleteHandler } from "@lib/helpers/handlers";
 import { User } from "@model";
 import { cookies } from "next/headers";
 
-export const DELETE = deleteRequest(async () => {
+export const DELETE = deleteHandler(async ({ user_id }) => {
   const cookieStore = cookies();
   const session_id = cookieStore.get("sid")?.value;
-  if (!session_id) return { success: false, errCode: "pp500" };
 
-  const user = await User.findOneAndUpdate(
+  if (!session_id)
+    return { success: false, errCode: "unauthenticated_access" };
+
+  await User.findOneAndUpdate(
     { session_id },
-    { $set: { session_id: null } }
+    { $set: { session_id: undefined } }
   );
+
   await deleteSession(session_id);
 
   cookieStore.delete("sid");
@@ -21,7 +24,7 @@ export const DELETE = deleteRequest(async () => {
     result: null,
     success: true,
     available: "loginLogout_uid",
-    options: { uid: user._id },
+    options: { uid: user_id },
     files: [],
   };
 });

@@ -1,4 +1,4 @@
-import AddToList from "@app/explore/(withoutSidebar)/components/AddToList";
+import AddToShelf from "@app/explore/(withoutSidebar)/components/AddToShelf";
 import { CollectionIcon, CrownIcon, HeartIcon, LinkIcon, StarIcon } from "@assets/Icons";
 import { DataFetcher } from "@components";
 import FancyImage from "@components/FancyImage";
@@ -6,29 +6,32 @@ import Navigate from "@components/Navigate";
 import ObserverHeader from "@components/ObserverHeader";
 import { ContentBox, NotFound, VerticleMovieCard } from "@components/ui";
 import InteractiveDetailSection from "@components/ui/InteractiveDetailSection";
-import { getPoster } from "@lib/utils";
-import { refineString } from "@lib/utils";
+import { createArray, getPoster } from "@lib/utils";
+import { makeUrlSafe } from "@lib/utils";
 import { RefinedCast, RefinedMovieData, RefinedShowData } from "@type/external";
 import ShowTrailerButton from "./ShowTrailerButton";
 import ThreadFetcher from "./ThreadFetcher";
+import { CinementSchemaType } from "@type/schemas";
+import { FullCinementType } from "@type/internal";
 
 type Props = {
     type: "movie"
-    content: RefinedMovieData | undefined
+    content: RefinedMovieData & FullCinementType | undefined
 } | {
     type: "show"
-    content: RefinedShowData | undefined
+    content: RefinedShowData & FullCinementType | undefined
 }
 
 const MediaPage = ({ content, type }: Props) => {
 
     if (!content) return (
         <NotFound
-            title="Oops! Looks like the popcorn is missing"
+            title="Oops! Looks like The Parlocula Explorers couldn't find anything"
             paras={[
                 `Possible reasons: ${type} id is incorrect`,
                 `Please search the ${type} with its title in the Explore Page`
             ]}
+            redirectToExplore
         />
     )
 
@@ -37,28 +40,35 @@ const MediaPage = ({ content, type }: Props) => {
         { label: "IMDB", path: `https://imdb.com/title/${content.imdb_id}` },
     ];
 
-    const mediaForList = {
+    const cinementForShelf: CinementSchemaType = {
         title: content.title,
         poster: content.poster,
-        tmdb_id: content.tmdb_id,
+        ext_id: content.tmdb_id,
         year: content.year,
-        media_type: type,
+        cinement_type: type,
         isConfirm: true,
-        media_id: content.media_id
+        cinement_id: content._id,
     }
 
-    const metadata = [
+    const metadata = createArray([
         { label: "Rated", val: content.rated },
         { label: "Rating", val: content.tmdb_rating },
-        type === "movie" ? { label: "Runtime", val: content.runtime } :
-            { label: "Seasons", val: content.seasons.length },
         { label: "Year", val: content.year },
-    ]
+    ]).concatConditionally(type === "movie", () =>
+    ({
+        label: "Runtime",
+        val: ("runtime" in content ? content.runtime : '')
+    })
+    ).concatConditionally(type === "show", () =>
+    ({
+        label: "Seasons",
+        val: ("seasons" in content ? content.seasons.length : 0)
+    }))
 
     return (
         <>
             <ObserverHeader
-                titleToShare={`Check out ${content.title} on Popcorn Paragon`}
+                titleToShare={`Check out ${content.title} on Parlocula`}
                 navTitle={content.title}>
 
                 <div className="w-full mt-2">
@@ -71,7 +81,7 @@ const MediaPage = ({ content, type }: Props) => {
                         id="backdrop-popover"
                         thumbnail={getPoster({ external: true, type: "backdrop", path: content.backdrop, size: "w780" })}
                         src={getPoster({ external: true, type: "backdrop", path: content.backdrop, size: "original" })}
-                        download={`${content.title} - Popcorn Paragon`}
+                        download={`${content.title} - Parlocula`}
                     />
                 </div>
 
@@ -83,7 +93,7 @@ const MediaPage = ({ content, type }: Props) => {
                         src={getPoster({ external: true, type: "poster", path: content.poster, size: "original" })}
                         height={160}
                         width={160}
-                        download={`Poster of ${content.title} - Popcorn Paragon`}
+                        download={`Poster of ${content.title} - Parlocula`}
                         className="border-4 border-primary object-cover size-24 sm:size-40 ml-4 translate-y-[-50%] rounded-full"
                         alt={`Poster of ${content.title}`}
                     />
@@ -112,10 +122,10 @@ const MediaPage = ({ content, type }: Props) => {
 
                 <div className="mt-4 text-sm flex gap-2">
                     <ShowTrailerButton trailers={content.trailers} />
-                    <AddToList
+                    <AddToShelf
                         released={new Date(content.release_date) < new Date()}
                         className="flex-1 py-1 flex flex-cntr-all border border-gray50 rounded-md"
-                        media={mediaForList} />
+                        cinement={cinementForShelf} />
                 </div>
 
                 <ul className="my-4 flex gap-3 md:gap-4 overflow-x-auto noScroll">
@@ -151,12 +161,11 @@ const MediaPage = ({ content, type }: Props) => {
                     <div className="flex gap-4 overflow-x-auto pb-2">
                         {content.seasons.map(el => (
                             <VerticleMovieCard
+                                {...el}
                                 key={el.id}
-                                link={`${content.tmdb_id}/season-${el.season_number}`}
-                                poster={el.poster}
-                                title={el.title}
-                                rating={el.rating}
-                                year={`${new Date(el.release_date).getFullYear()}`}
+                                type="show"
+                                redirect={`${content.tmdb_id}/season-${el.season_number}`}
+                                year={new Date(el.release_date).getFullYear()}
                             />
                         ))}
                     </div>
@@ -168,7 +177,7 @@ const MediaPage = ({ content, type }: Props) => {
                 <div className="overflow-x-auto flex gap-4 pb-2">
                     {content.cast.map((el: RefinedCast) => (
                         <ContentBox
-                            link={`/explore/person/${el.id}-${refineString(el.name)}`}
+                            link={`/explore/person/${el.id}-${makeUrlSafe(el.name)}`}
                             detail={el.character}
                             key={el.id}
                             img={el.poster}
@@ -232,16 +241,25 @@ const MediaPage = ({ content, type }: Props) => {
                     type={type}
                     func={type === "movie" ? "fetchSimilarMovies" : "fetchSimilarShows"}
                     args={[content.tmdb_id]}
+                    querykeys={[`similar-${type}`, content.ext_id]}
                 />
             </section>
 
             {content.cast.splice(0, 2).map((el) => (
                 <section key={el.id} className="space-y-2 my-2 py-4 bg-primarylight">
+
                     <div className="flex flex-cntr-between">
                         <h3 className="uppercase text-sm font-semibold">More of {el.name}</h3>
                         <Navigate comp="link" role="button" goto={`/explore/person/${el.id}`}>More</Navigate>
                     </div>
-                    <DataFetcher type="movie" func="fetchMoviesWithCast" args={[el.id]} except={content.tmdb_id} />
+
+                    <DataFetcher
+                        type="movie"
+                        func="fetchMoviesWithCast"
+                        args={[el.id]}
+                        except={content.tmdb_id}
+                        querykeys={["moviesWithCast", `${el.id}`]}
+                    />
                 </section>
             ))}
         </>

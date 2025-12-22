@@ -1,48 +1,44 @@
 "use client";
 
-import { useCreateRoomMutation } from "@lib/helpers/room/client";
 import { LeftChevron, SendIcon } from "@assets/Icons";
-import { Navigate } from "@components";
-import MessageBar from "@components/ui/MessageBar";
-import { getPoster, ObjectId } from "@lib/utils";
-import { UserMetaData } from "@store/user";
+import { Form, Input } from "@components/form";
+import { ParloImage } from "@components/ui";
+import { createRoomMutation } from "@lib/helpers/mutations";
+import { getPoster, parloId } from "@lib/utils";
+import { useNavigation } from "@store/historystack";
 import { MereUser } from "@type/internal";
-import { MessageSchemaType } from "@type/schemas";
 import Image from "next/image";
-import { useRef, useState } from "react";
+import { useRef } from "react";
+import { Drawer } from "vaul";
 
-const NewRoom = ({ ruser, user }: { ruser: MereUser, user: UserMetaData }) => {
+const NewRoom = ({ ruser }: { ruser: MereUser }) => {
 
-    const [message, setMessage] = useState<MessageSchemaType | null>(null);
     const formRef = useRef<HTMLFormElement>(null);
+    const navigation = useNavigation();
 
-    const mutation = useCreateRoomMutation();
+    const createRoom = async ({ content }: { content: string }) => {
 
-    const createRoom = async (data: FormData) => {
+        const inviteMessage = content?.trim();
+        if (!inviteMessage || !inviteMessage.length) return;
+        const ruid = ruser._id;
 
-        const content = data.get("content")?.toString().trim();
-        if (!content || !content.length) return;
+        const rmid = parloId();
 
-        const message: MessageSchemaType = {
-            _id: ObjectId().toString(),
-            content,
-            createdAt: Date.now(),
-            username: ruser.username,
-            replied_to: undefined,
-            replied_content: undefined,
-            room: {
+        createRoomMutation(
+            rmid,
+            {
+                files: [],
+                filesData: [],
+                inviteMessage,
+                participants: [ruid],
+                type: "private",
                 display_name: ruser.username,
-                poster: ruser.profile,
-                mute: false,
-            }
-        }
+                poster: ruser.profile?.path,
+            },
+            ruid
+        );
 
-        mutation.mutate({
-            message, ruser, user,
-            rmid: ObjectId().toString(),
-        });
-
-        setMessage(message);
+        navigation.goto(`/inbox/${rmid}`);
 
         formRef.current?.reset();
     }
@@ -50,46 +46,29 @@ const NewRoom = ({ ruser, user }: { ruser: MereUser, user: UserMetaData }) => {
     return (
         <>
             <header className="border-b border-gray40 flex py-4 px-2 items-center gap-4">
-                <Navigate comp="button" goto="back"><LeftChevron /></Navigate>
-                <Navigate comp="link" goto="info" className="inline">
-                    <div className="flex gap-4 items-center">
-                        <Image
-                            height={48}
-                            width={48}
-                            alt="Poster of room"
-                            className="size-12 object-cover rounded-full"
-                            src={getPoster({ path: ruser.profile })} />
+                <Drawer.Close>
+                    <LeftChevron />
+                </Drawer.Close>
+                <div className="flex gap-4 items-center">
+                    <ParloImage
+                        containerClassName="rounded-full overflow-hidden"
+                        frame={ruser.profile}
+                        size={48}
+                        alt="Poster of room"
+                    />
 
-                        <h1>{ruser.username}</h1>
-                    </div>
-                </Navigate>
+                    <h1>{ruser.username}</h1>
+                </div>
             </header>
             <section className="p-4 min-h-[25dvh]">
-                {
-                    message ? (
-                        <MessageBar
-                            _id=""
-                            room_type={"private"}
-                            content={message.content}
-                            createdAt={message.createdAt}
-                            cuid={user.user_id}
-                            room_id={""}
-                            user_id={user.user_id}
-                            username={message.username}
-                            status="sent"
-                            seenAt={Date.now()}
-                        />
-                    ) : (
-                        <p className="text-center text-zinc-500">Invite this user to chat with you. You can only send 1 message, make it worth.</p>
-                    )
-                }
+                <p className="text-center text-zinc-500">Invite this user to chat with you. You can only send 1 message, make it worth.</p>
             </section>
             <footer className="w-stretch fixed bottom-0 px-2 py-4">
-                <form
+                <Form
                     ref={formRef}
                     className="flex items-center gap-2"
-                    action={createRoom}>
-                    <input
+                    submit={createRoom}>
+                    <Input
                         placeholder="Send Message"
                         enterKeyHint="send"
                         name="content"
@@ -99,7 +78,7 @@ const NewRoom = ({ ruser, user }: { ruser: MereUser, user: UserMetaData }) => {
                     <button type="submit" className="size-fit p-2">
                         <SendIcon />
                     </button>
-                </form>
+                </Form>
             </footer>
         </>
     )

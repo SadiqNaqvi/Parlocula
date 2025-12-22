@@ -1,10 +1,11 @@
 import OptionList from "@components/ui/OptionList";
-import { removeMessageFromClient, useRemoveMessage, useRetryMessage } from "@lib/helpers/room/client";
-import useGlobalState from "@store/globalStore";
+import { filterDocsInInfiniteQueryResult, sendMessage, unsendMessage } from "@lib/helpers/mutations";
+import { getQueryKeys } from "@lib/utils";
+import useGlobalStore from "@store/globalStore";
 import { GenericDate, MereMessage, MessageReplyType } from "@type/internal";
 import { MessageSchemaType } from "@type/schemas";
 import { PropsWithChildren } from "react";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 
 const MessageDetailsSection = ({ createdAt, content, status, children }: PropsWithChildren<{ createdAt: GenericDate, content: string, status: string | undefined }>) => {
 
@@ -37,14 +38,13 @@ type Props = {
 
 const MessageBottomSheet = ({ uid, message, close }: Props) => {
 
+    const setReply = useGlobalStore<MessageReplyType | undefined>(`reply-${message?.room_id}`, undefined)[1];
+
     if (!message) return null;
 
     const { status, content, room_id, user_id, _id, createdAt } = message;
     const isCurrent = user_id === uid;
 
-    const retry = useRetryMessage();
-    const setReply = useGlobalState<MessageReplyType | undefined>(`reply-${room_id}`, undefined)[1];
-    const unsendMutation = useRemoveMessage();
 
     const handleCopy = () => {
         if (navigator && "clipboard" in navigator) {
@@ -58,7 +58,7 @@ const MessageBottomSheet = ({ uid, message, close }: Props) => {
     }
 
     const handleRetry = () => {
-        retry.mutate({ message, rmid: room_id, uid: user_id });
+        sendMessage(room_id, user_id, message);
 
         close();
     }
@@ -70,14 +70,17 @@ const MessageBottomSheet = ({ uid, message, close }: Props) => {
     }
 
     const handleUnsend = () => {
-        unsendMutation.mutate({ msgid: _id, rmid: room_id, uid: user_id });
+        unsendMessage(room_id, _id, user_id);
 
         close();
     }
 
     // To remove messages that couldn't sync because of error
     const handleRemoveMessgage = () => {
-        removeMessageFromClient(_id, room_id);
+        filterDocsInInfiniteQueryResult(
+            getQueryKeys("messages_rmid", { rmid: room_id }),
+            [_id]
+        );
 
         close();
     }

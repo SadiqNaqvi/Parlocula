@@ -11,9 +11,9 @@ export const generateMetadata = async ({ params }: Props): Promise<Metadata> => 
     const id = params.id.split('-')[0];
 
     const data = await fetchPerson(id);
-    if (!data) return { title: "Popcorn Paragon" };
+    if (!data) return { title: "Parlocula" };
     return {
-        title: `Threads on ${data.name} - Popcorn Paragon`,
+        title: `Threads on ${data.name} - Parlocula`,
         description: data.biography,
     }
 }

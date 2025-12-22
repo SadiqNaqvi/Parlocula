@@ -1,19 +1,18 @@
 
 "use client";
 
+import { AddIcon, LinkIcon, XmarkIcon } from "@assets/Icons";
+import BottomSheet from "@components/BottomSheet";
 import { linkSchema } from "@lib/schemas";
+import { InputManagerType, TypedFunction } from "@type/other";
 import { LinkSchema } from "@type/schemas";
-import { Form, Input } from ".";
-import Modal, { closeFancyBox } from "../FancyboxModal";
 import { forwardRef, useImperativeHandle, useState } from "react";
-import { AddIcon, XmarkIcon } from "@assets/Icons";
-import { InputManagerType } from "@type/other";
+import { Form, Input } from ".";
 
-export const InputPrompt = ({ func, classes = "", }: { func: any, classes?: string, }) => {
+export const InputPrompt = ({ submit, classes = "", }: { submit: TypedFunction<LinkSchema>, classes?: string, }) => {
 
     const submitLink = (data: LinkSchema) => {
-        func(data);
-        closeFancyBox();
+        submit(data);
     }
 
     return (
@@ -44,18 +43,18 @@ type Props = {
     defaultLinks?: LinkSchema[],
 }
 
-const RemovalLinkTile = ({ func, title }: { func: () => void, title: string }) => {
-    return (
-        <li className="flex p-2 rounded-md bg-gray10 items-center gap-3 min-w-fit whitespace-nowrap">
-            <span className="text-sky-500">{title}</span>
-            <button onClick={func} type="button" className=" border border-gray30 bg-gray20 p-1 rounded-md">
-                <XmarkIcon className="h-2" />
-            </button>
-        </li>
-    )
-}
+const LinkTile = ({ remove, path }: { remove: TypedFunction<string>, path: string }) => (
+    <li className="flex p-2 rounded-md bg-gray10 items-center gap-3 min-w-fit whitespace-nowrap">
+        <LinkIcon />
+        <span className="text-sky-500">{path}</span>
+        <button onClick={() => remove(path)} type="button" className=" border border-gray30 bg-gray20 p-1 rounded-md">
+            <XmarkIcon className="h-2" />
+        </button>
+    </li>
+)
 
 const LinkInputManager = forwardRef<InputManagerType<LinkSchema[]>, Props>(({ title, limit = 5, defaultLinks }: Props, ref) => {
+
     const [links, setLinks] = useState<LinkSchema[]>(defaultLinks ?? []);
 
     useImperativeHandle(ref, () => ({
@@ -72,24 +71,30 @@ const LinkInputManager = forwardRef<InputManagerType<LinkSchema[]>, Props>(({ ti
     }
 
     return (
-        <div className="flex flex-cntr-between">
+        <div className="flex flex-cntr-between gap-2">
+
             <div>
                 {links.length ?
                     <ul className="flex gap-2 overflow-x-auto noScroll">
-                        {links.map(link => (
-                            <RemovalLinkTile func={() => removeLinks(link.path)} key={link.path} title={link.path} />
+                        {links.map(({ path }) => (
+                            <LinkTile remove={removeLinks} key={path} path={path} />
                         ))}
                     </ul>
                     :
                     <h4 className="capitalize">{title ?? "Attach Links"}</h4>
                 }
             </div>
-            <Modal id="link-input" buttonChildren={<AddIcon />} className={`iconBtn ${links.length >= limit ? "fadeToNone" : ""}`}>
-                <InputPrompt func={getLinks} />
-            </Modal>
+
+            {links.length < limit && (
+                <BottomSheet button={<AddIcon />}>
+                    <InputPrompt submit={getLinks} />
+                </BottomSheet>
+            )}
         </div>
     )
 
 });
+
+LinkInputManager.displayName = "LinkInputManager";
 
 export default LinkInputManager;

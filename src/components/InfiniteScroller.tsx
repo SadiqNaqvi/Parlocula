@@ -2,17 +2,18 @@
 
 import { useInfiniteQueryHook } from "@lib/hooks";
 import useCurrentUser from "@store/user";
-import { GeneralGetReturn, GeneralMultipleReturn, InfiniteQueryResponse, InfiniteQueryResponseDB } from "@type/internal";
+import { InfiniteData } from "@tanstack/react-query";
+import { PaginatedData } from "@type/external";
+import { AggregatedResponse, GeneralGetReturn, GeneralMultipleReturn, InfiniteQueryResponse } from "@type/internal";
+import { ErrorCodes } from "@type/other";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect, useRef } from "react";
+import NotFound from "./fallbacks/NotFound";
 import { LoadingSpinner, ShowError } from "./ui";
-import NotFound from "./ui/NotFound";
-import { GeneralReturnType } from "@type/external";
-import { InfiniteData } from "@tanstack/react-query";
 
-type InfiniteScrollerProps = {
+export type InfiniteScrollerProps = {
     Component: React.ComponentType<any>,
-    fetchData: (pageParams: number) => Promise<GeneralMultipleReturn | GeneralGetReturn>,
+    fetchData: (pageParams: number) => Promise<GeneralMultipleReturn | GeneralGetReturn<PaginatedData>>,
     queryKeys: (string | number)[],
     NotFoundSection?: React.ReactNode,
     notFoundMessage?: { title: string, paras: string[] },
@@ -23,8 +24,7 @@ type InfiniteScrollerProps = {
     Loading?: React.ComponentType<any>,
     className?: string;
     paginate?: boolean;
-    autoLoad?: boolean;
-    placeholderData?: GeneralReturnType<any> | InfiniteQueryResponseDB<any>
+    placeholderData?: InfiniteQueryResponse<any> | AggregatedResponse<any>
     onSuccess?: (d: InfiniteData<InfiniteQueryResponse<any>, number>) => void,
     enabled?: boolean
 }
@@ -36,13 +36,13 @@ const defaultNotFoundMessages = {
     paras: ["Please search the resouce using it's name, title, username, etc."],
 }
 
-export default function InfiniteScroller({ Loading, autoLoad = false, onSuccess, placeholderData, Component, fetchData, queryKeys, NotFoundSection, notFoundMessage = defaultNotFoundMessages, initialPage = 1, enabled = true, initialData, callback, className = defaultClasses, paginate = true, additional }: InfiniteScrollerProps) {
+export default function InfiniteScroller({ Loading, onSuccess, placeholderData, Component, fetchData, queryKeys, NotFoundSection, notFoundMessage = defaultNotFoundMessages, initialPage = 1, enabled = true, initialData, callback, className = defaultClasses, paginate = true, additional }: InfiniteScrollerProps) {
 
     const container = useRef(null);
     const searchParams = useSearchParams();
     const router = useRouter();
     const pathname = usePathname();
-    const { meta } = useCurrentUser();
+    const { meta, dataSaver, isHydrated } = useCurrentUser();
 
     const updateSearchParams = (page: number) => {
         const params = new URLSearchParams(searchParams);
@@ -60,7 +60,8 @@ export default function InfiniteScroller({ Loading, autoLoad = false, onSuccess,
         queryKeys: queryKeys,
         queryFn: (p) => fetchData(p)
             .then(res => {
-                if (paginate && res.success && res.result?.data?.length && p > 1) updateSearchParams(p)
+                if (paginate && res.success && (("results" in res.result && res.result?.results?.length) || ("data" in res.result && res.result?.data?.length)) && p > 1)
+                    updateSearchParams(p)
                 return res;
             }),
         initialData,
@@ -71,20 +72,21 @@ export default function InfiniteScroller({ Loading, autoLoad = false, onSuccess,
     });
 
     useEffect(() => {
-        if (autoLoad) return;
+        if (!isHydrated || dataSaver) return;
+
+        const current = container.current;
+
         const observer = new IntersectionObserver(([entry]) => {
             if (entry.isIntersecting && !isFetchingNextPage && hasNextPage)
                 fetchNextPage();
         }, { threshold: 0.1 })
 
-        if (container.current)
-            observer.observe(container.current);
+        if (current && hasNextPage) observer.observe(current);
 
         return () => {
-            if (container.current)
-                observer.unobserve(container.current);
+            if (current) observer.unobserve(current);
         }
-    }, [container.current]);
+    }, [dataSaver, isHydrated]);
 
     const manuallyLoadNextPage = () => {
         fetchNextPage();
@@ -105,17 +107,15 @@ export default function InfiniteScroller({ Loading, autoLoad = false, onSuccess,
         else return NotFoundSection;
     }
 
-    if (isLoading)
-        return <LoadingComponent />
+    if (isLoading) return <LoadingComponent />
 
-    else if (error)
-        return (
-            <ShowError
-                retry={refetch}
-                errCode={error.message}
-                heading="Unable to fetch the resource you're looking for"
-            />
-        )
+    else if (error) return (
+        <ShowError
+            retry={refetch}
+            errCode={error.message as ErrorCodes}
+            heading="Unable to fetch the resource you're looking for"
+        />
+    )
 
     else if (!data?.pages[0]?.results?.length && initialPage !== 1)
         return (
@@ -134,8 +134,8 @@ export default function InfiniteScroller({ Loading, autoLoad = false, onSuccess,
             <ul className={className} id="infiniteScroller">
                 {data?.pages.map((content, ind) => (
                     <React.Fragment key={ind}>
-                        {content.results.map((el: any, i: any) => (
-                            <li key={el.id || el._id || el.tmdb_id || i} className="list-none">
+                        {content.results.map((el, i) => (
+                            <li key={el.id || el._id || el.tmdb_id || `${ind}${i}`} className="list-none">
                                 <Component {...el} callback={callback} additional={additional} user={meta} />
                             </li>
                         ))}
@@ -143,7 +143,7 @@ export default function InfiniteScroller({ Loading, autoLoad = false, onSuccess,
                 ))}
             </ul>
             {hasNextPage &&
-                (autoLoad || isFetchingNextPage ?
+                ((isHydrated && !dataSaver) || isFetchingNextPage ?
                     <div ref={container} className="mt-4 py-2">
                         <LoadingComponent />
                     </div>

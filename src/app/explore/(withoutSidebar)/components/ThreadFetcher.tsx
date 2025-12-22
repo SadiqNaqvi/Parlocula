@@ -1,11 +1,13 @@
 "use client";
 
+import { ShowError } from "@components/ui";
 import ThreadBox, { ThreadBoxLoadingSkeleton } from "@components/ui/ThreadBox";
 import { queryFilters } from "@lib/constants";
 import { getThreadsForMedia } from "@lib/helpers/common";
 import { useQueryHook } from "@lib/hooks";
-import { convertErrorIntoCode, queryFunction } from "@lib/utils";
+import useCurrentUser from "@store/user";
 import { MereThread } from "@type/internal";
+import { ErrorCodes } from "@type/other";
 import { useEffect, useRef, useState } from "react";
 
 const ThreadFetcher = ({ id, type }: { id: string, type: string }) => {
@@ -14,7 +16,12 @@ const ThreadFetcher = ({ id, type }: { id: string, type: string }) => {
     const [isVisible, setIsVisible] = useState(false);
     const container = useRef(null);
 
+    const { filterContent } = useCurrentUser();
+
     useEffect(() => {
+
+        const current = container.current;
+
         const observer = new IntersectionObserver(([entry]) => {
             if (entry.isIntersecting && !isVisible) {
                 if (entry.intersectionRatio >= 0.2)
@@ -24,19 +31,19 @@ const ThreadFetcher = ({ id, type }: { id: string, type: string }) => {
             }
         }, { threshold: [0.2, 0.5] })
 
-        if (container.current)
-            observer.observe(container.current);
+        if (current)
+            observer.observe(current);
 
         return () => {
-            if (container.current)
-                observer.unobserve(container.current);
+            if (current)
+                observer.unobserve(current);
         }
-    }, []);
+    }, [isVisible, setIsVisible]);
 
     const { refetch, isFetching, error, data } = useQueryHook<{ data: MereThread[] }>({
         enabled: isVisible,
-        queryKeys: ["threads-for-media", id, queryFilters.threads[0]],
-        queryFn: () => queryFunction(getThreadsForMedia, [id, 1]),
+        queryKeys: ["threads-for-media", id, "hot"],
+        queryFn: () => getThreadsForMedia(id, 1, !filterContent),
     });
 
     if (isFetching) return (
@@ -52,10 +59,11 @@ const ThreadFetcher = ({ id, type }: { id: string, type: string }) => {
     )
 
     else if (error) return (
-        <section className="py-4 w-full border-dashed border-red-500 space-x-4">
-            <p className="text-lg text-center">{codetoError(error.message) as string}</p>
-            <button className="secondary mx-auto" onClick={() => refetch()}>Try again</button>
-        </section>
+        <ShowError
+            heading="Oops Looks like we couldn't proceed"
+            errCode={error.message as ErrorCodes}
+            retry={refetch}
+        />
     )
 
     else if (!data) return (

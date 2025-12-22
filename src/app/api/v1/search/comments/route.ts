@@ -1,7 +1,12 @@
-import { getRequest } from "@lib/helpers/common";
+import { getHandler } from "@lib/helpers/handlers";
 import { searchHandler } from "@lib/pipelines";
 import { NextRequest } from "next/server";
 
-export const GET = getRequest(async (r: NextRequest) =>
-  searchHandler({ r, collection: "comments" })
+export const GET = getHandler(async (r: NextRequest) =>
+  searchHandler({
+    r,
+    filters: [],
+    applyNsfwCheck: true,
+    type: "comments"
+  })
 );

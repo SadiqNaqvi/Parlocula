@@ -1,18 +1,19 @@
-import { getRequest } from "@lib/helpers/common";
-import { filterToSort, queryLimit } from "@lib/constants";
-import { getPageParams } from "@lib/utils";
+import { filterToSort } from "@lib/constants";
+import { getHandler } from "@lib/helpers/handlers";
+import { threadsAggregationPipeline } from "@lib/pipelines";
+import { getSearchParams } from "@lib/utils";
 import { Thread } from "@model";
 import { NextRequest } from "next/server";
-import { threadsAggregationPipeline } from "@lib/pipelines";
 
-export const GET = getRequest(async (r: NextRequest) => {
-  const page = getPageParams(r) - 1;
-  const filter = r.nextUrl.searchParams.get("f") || "latest";
+// Get threads by filters
+export const GET = getHandler(async (r: NextRequest) => {
+
+  const { filter, nsfw, page } = getSearchParams(r.nextUrl, 0, "latest");
   const sort = filterToSort.threads[filter] ?? filterToSort.threads.latest;
 
   const result = await Thread.aggregate(
     threadsAggregationPipeline({
-      filters: [],
+      filters: nsfw ? [] : [{ $match: { nsfw } }],
       page,
       sort,
     })

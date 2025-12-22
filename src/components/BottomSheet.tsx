@@ -8,6 +8,15 @@ type PortalProps = PropsWithChildren<{
   ref?: MutableRefObject<any>,
 }>
 
+export const NestedSheet = ({ button, children, className }: PropsWithChildren<{ className?: string, button: React.ReactNode }>) => {
+  return (
+    <Drawer.NestedRoot>
+      <Drawer.Trigger className={className}>{button}</Drawer.Trigger>
+      <DrawerPortal>{children}</DrawerPortal>
+    </Drawer.NestedRoot>
+  )
+}
+
 export const DrawerPortal = ({ children, allowHandle, ref }: PortalProps) => (
   <Portal>
     <Overlay className="fixed inset-0 bg-black/40" />
@@ -33,12 +42,7 @@ export type BottomSheetRef = {
 
 export const BottomSheet = forwardRef(({ children, state, onClose, allowHandle, button, className }: BottomSheetProps, ref) => {
 
-  const [open, setOpen] = useState(false);
-
-  useEffect(() => {
-    if (state === undefined) return;
-    setOpen(state)
-  }, [state]);
+  const [open, setOpen] = useState<boolean | undefined>(state);
 
   useImperativeHandle(ref, () => ({
     open: () => setOpen(true),
@@ -51,7 +55,11 @@ export const BottomSheet = forwardRef(({ children, state, onClose, allowHandle, 
       {button && (
         <Drawer.Trigger className={className}>{button}</Drawer.Trigger>
       )}
-      <DrawerPortal allowHandle={allowHandle}>{children}</DrawerPortal>
+      <DrawerPortal allowHandle={allowHandle}>
+        <aside className="mx-auto w-full max-w-screen-sm">
+          {children}
+        </aside>
+      </DrawerPortal>
     </Root>
   )
 });
@@ -59,32 +67,3 @@ export const BottomSheet = forwardRef(({ children, state, onClose, allowHandle, 
 BottomSheet.displayName = "BottomSheet";
 
 export default BottomSheet;
-
-/*
-
-export const BottomSheet = forwardRef<BottomSheetHandle, BottomSheetProps>(
-  ({ children, defaultOpen = false, onOpenChange, allowHandle }, ref) => {
-    const [open, setOpen] = useState(defaultOpen);
-
-    useImperativeHandle(ref, () => ({
-      open: () => setOpen(true),
-      close: () => setOpen(false),
-      toggle: () => setOpen((prev) => !prev),
-    }));
-
-    return (
-      <Root
-        open={open}
-        onOpenChange={(o) => {
-          setOpen(o);
-          onOpenChange?.(o);
-        }}
-      >
-        <DrawerPortal allowHandle={allowHandle}>{children}</DrawerPortal>
-      </Root>
-    );
-  }
-);
-
-BottomSheet.displayName = "BottomSheet";
- */

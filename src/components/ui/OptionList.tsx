@@ -1,6 +1,6 @@
 "use client";
 
-import { DrawerPortal } from "@components/BottomSheet";
+import { NestedSheet } from "@components/BottomSheet";
 import Navigate from "@components/Navigate";
 import { PropsWithChildren } from "react";
 import { Drawer } from "vaul";
@@ -10,10 +10,9 @@ const defaultClassName = "py-2 px-4 capitalize hover:bg-zinc-500 hover:bg-opacit
 export const NestedSheetTrigger = ({ children, button, className }: PropsWithChildren<{ button: React.ReactNode, className?: string }>) => {
     return (
         <li className={`${className} border-b border-gray30 w-full`}>
-            <Drawer.NestedRoot>
-                <Drawer.Trigger className={defaultClassName}>{button}</Drawer.Trigger>
-                <DrawerPortal>{children}</DrawerPortal>
-            </Drawer.NestedRoot>
+            <NestedSheet button={button} className={defaultClassName}>
+                {children}
+            </NestedSheet>
         </li>
     )
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { PropsWithChildren } from "react";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 
 type Props = PropsWithChildren<{
     title: string

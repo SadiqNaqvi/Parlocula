@@ -1,53 +1,46 @@
-import { filterToSort, postTags } from "@lib/constants";
-import { getRequest } from "@lib/helpers/common";
-import { postsAggregationPipeline } from "@lib/pipelines";
-import { ObjectId, getPageParams } from "@lib/utils";
+import { availablePostCategories, filterToSort } from "@lib/constants";
+import { getHandler } from "@lib/helpers/handlers";
+import { attachNsfwInPipeline, postsAggregationPipeline } from "@lib/pipelines";
+import { getSearchParams } from "@lib/utils";
 import { Post } from "@model";
 import { NextRequest } from "next/server";
 
-export const GET = getRequest(
+// Get posts of a thread
+export const GET = getHandler(
   async (r: NextRequest, params: { id: string }) => {
     const { id } = params;
 
-    const page = getPageParams(r) - 1;
-
-    const searchParams = r.nextUrl.searchParams;
-    const filter = searchParams.get("f")?.trim() || "latest";
-    const tag = searchParams.get("t");
+    const { page, nsfw, filter } = getSearchParams(r.nextUrl, 0, "latest");
 
     const sort = filterToSort.posts[filter] ?? filterToSort.posts.latest;
 
-    const filters: any = { thread_id: ObjectId(id) };
-    if (tag && postTags.includes(tag)) filters.tag = tag;
+    const { get } = r.nextUrl.searchParams;
 
-    console.log("filters", filters);
+    const categoryParam = get("c");
+    const category = categoryParam && availablePostCategories.includes(categoryParam) ? categoryParam : ""
+
+    const postTypeParam = get("t");
+    const postType = postTypeParam && ["frames", "links"].includes(postTypeParam) ? postTypeParam : ""
+
+    const filters = {
+      thread_id: id,
+      ...(
+        postType ? { $expr: { $ne: [`$${postType}_count`, 0] } }
+          :
+          category ? { category } : {}
+      )
+    };
 
     const response = await Post.aggregate(
       postsAggregationPipeline({
-        filters: [{ $match: filters }],
+        filters: [{ $match: attachNsfwInPipeline(filters, nsfw) }],
+        excludeQuotedPost: false,
         sort,
         page,
-        isLinkBased: tag === "links",
+        isLinkBased: postType === "links",
       })
     );
 
-    const posts = response[0];
-    if (!posts) return { success: false, errCode: "resource_not_found" };
-
-    return { result: posts, success: true };
+    return { result: response[0] ?? { data: [], total: 0 }, success: true };
   }
 );
-
-/*
-THREAD
-1. Hot - Descending date and user count
-2. Popular - Descending user count and post count
-3. Trending - Created within a week and descending post count
-4. Newest 
-
-POST
-1. Hot - Descending date and views
-2. Popular - Descending views, date and upvotes 
-3. Controversial - Descending date and comments
-4. Newest
-*/

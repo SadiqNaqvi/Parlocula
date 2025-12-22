@@ -32,14 +32,16 @@ const CheckTile = ({ name, label, disable = false, checked = false, poster, clas
                 className="sr-only peer"
             />
             <div className="flex gap-3 items-center">
-                {poster && <Image
-                    height={48}
-                    width={48}
-                    alt={`Poster of ${label}`}
-                    loading="lazy"
-                    className="size-12 rounded-full object-cover"
-                    src={poster}
-                />}
+                {poster && (
+                    <Image
+                        height={48}
+                        width={48}
+                        alt={`Poster of ${label}`}
+                        loading="lazy"
+                        className="size-12 rounded-full object-cover"
+                        src={getPoster({ path: poster })}
+                    />
+                )}
 
                 <span className="font-medium">{label}</span>
             </div>
@@ -92,6 +94,7 @@ type ActionTileProps = {
     action: (d: unknown) => unknown,
     className?: string,
 }
+
 export const ClickableActionTile = ({ action, data, label, poster, checked, className = '' }: ActionTileProps) => {
 
     return (

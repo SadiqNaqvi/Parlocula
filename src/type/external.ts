@@ -79,7 +79,7 @@ export type GeneralCollectionData = {
   backdrop_path: string | null;
 };
 
-export type GeneralReturnType<T = any> = {
+export type PaginatedData<T = any> = {
   results: T[];
   page: number;
   total_pages: number;
@@ -374,12 +374,10 @@ export type RefinedMovieData = {
   homepage: string;
   imdb_id: string;
   imdb_rating: string;
-  media_id: string;
   language: string;
   languages: string[];
   original_title: string;
   plot: string;
-  popcorn_rating: number;
   poster: string;
   production_companies: {
     name: string;
@@ -498,19 +496,27 @@ export type RefinedSearchData = {
   media_type: string;
 };
 
+export type ExtSearchDataCinementOnly = {
+  title: string;
+  poster: string;
+  year: number;
+  media_type: "movie" | "show";
+  tmdb_id: string;
+}
+
 export type RefinedGeneralData = {
   title: string;
   poster: string;
   year: number;
   id: string;
-  rating: string;
-  type:"movie"|"show"
+  rating: string | number;
+  type: "movie" | "show"
 };
 
 export type RefinedGeneralContentData = {
   backdrop: string;
   tmdb_id: string;
-  media_type?: string;
+  media_type: "movie" | "show";
   overview: string;
   poster: string;
   rating: number;
@@ -565,11 +571,11 @@ export type RefinedCompanyData = {
   } | null;
 };
 
-export type GeneralMovieReturn = GeneralReturnType<GeneralMovieData>;
+export type GeneralMovieReturn = PaginatedData<GeneralMovieData>;
 
-export type GeneralShowReturn = GeneralReturnType<GeneralShowData>;
+export type GeneralShowReturn = PaginatedData<GeneralShowData>;
 
-export type SearchCollectionReturn = GeneralReturnType<
+export type SearchCollectionReturn = PaginatedData<
   GeneralCollectionData & {
     adult: boolean;
     original_language: string;
@@ -577,16 +583,21 @@ export type SearchCollectionReturn = GeneralReturnType<
   }
 >;
 
-export type SearchCompanyReturn = GeneralReturnType & {
-  results: GeneralCompanyData[];
-};
+export type SearchCompanyReturn = PaginatedData<GeneralCompanyData>;
 
-export type SearchPersonReturn = GeneralReturnType & {
-  results: GeneralPersonData &
-    {
-      original_name: string;
-      known_for: GeneralMovieData[];
-    }[];
-};
+export type SearchPersonReturn = PaginatedData<GeneralPersonData &
+{
+  original_name: string;
+  known_for: GeneralMovieData[];
+}>
 
 export type SortOptions = "popularity" | "rating" | "year" | "title";
+
+
+export type GeneralExtReturn<T = any> = (
+  { success: true; response: T }
+  | { success: false; response: string }
+);
+
+export type ExtGeneralPaginatedData = PaginatedData<RefinedGeneralData>
+export type ExtPaginatedSearchData = PaginatedData<RefinedSearchData>

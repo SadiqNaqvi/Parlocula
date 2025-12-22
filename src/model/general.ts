@@ -1,9 +1,15 @@
 import {
-  ConnectionModelType,
+  BasedOnModelType,
   FrameModelType,
-  LinkModelType,
+  LinkModelType
 } from "@type/models";
-import { ApplySchemaOptions, FlatRecord, Schema, SchemaDefinitionProperty, SchemaOptions, SchemaTypeOptions } from "mongoose";
+import { Schema, SchemaDefinitionProperty, SchemaOptions, SchemaTypeOptions } from "mongoose";
+
+export const numberSchema = {
+  type: Number,
+  default: 0,
+  set: (value: number) => Math.max(value, 0),
+}
 
 export const linkModel = new Schema<LinkModelType>({
   label: {
@@ -16,7 +22,7 @@ export const linkModel = new Schema<LinkModelType>({
   },
 });
 
-export const connectionModel = new Schema<ConnectionModelType>({
+export const basedOnModel = new Schema<BasedOnModelType>({
   type: {
     type: String,
     enum: ["person", "movie", "show"],

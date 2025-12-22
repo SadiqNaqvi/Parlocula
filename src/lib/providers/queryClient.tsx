@@ -1,0 +1,97 @@
+"use client";
+
+import { defaultShouldDehydrateQuery, isServer, Query, QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { refineResponseForInfiniteQuery, refineResponseForQuery } from "../utils";
+import { GeneralGetReturn, GeneralMultipleReturn } from "@type/internal";
+
+const makeQueryClient = () =>
+    new QueryClient({
+        defaultOptions: {
+            queries: {
+                staleTime: 1000 * 60 * 60,
+                gcTime: 1000 * 60 * 60,
+            },
+            dehydrate: {
+                // include pending queries in dehydration
+                shouldDehydrateQuery: (query: Query) =>
+                    defaultShouldDehydrateQuery(query) ||
+                    query.state.status === "pending",
+            },
+        },
+    });
+
+let browserQueryClient: QueryClient | undefined = undefined;
+
+export const getQueryClient = () => {
+    if (isServer) return makeQueryClient();
+    else {
+        if (!browserQueryClient) browserQueryClient = makeQueryClient();
+        return browserQueryClient;
+    }
+};
+
+type QueryProps<T = unknown> = {
+    queryClient: QueryClient,
+    queryKey: string[],
+    queryFn: () => Promise<GeneralGetReturn<T>>
+}
+
+type InfiniteQueryProps<T = unknown> = QueryProps & {
+    queryFn: () => Promise<GeneralMultipleReturn<T>>,
+    initialPageParam?: number
+}
+
+export const fetchQuery = async <T = unknown>({ queryClient, queryFn, queryKey }: QueryProps<T>): Promise<T | null> => {
+    try {
+        return await queryClient.fetchQuery<T>({
+            queryKey,
+            queryFn: () => refineResponseForQuery<T>(queryFn) as Promise<T>,
+            staleTime: 60 * 60 * 1000,
+            gcTime: 60 * 60 * 1000
+        });
+    } catch (e: any) {
+        console.log("Error occured while fetching content", e.message);
+        return null;
+    }
+}
+
+export const prefetchQuery = ({ queryClient, queryFn, queryKey }: QueryProps) => queryClient.prefetchQuery({
+    queryKey,
+    queryFn: () => refineResponseForQuery(queryFn),
+    staleTime: 60 * 60 * 1000,
+    gcTime: 60 * 60 * 1000
+});
+
+export const fetchInfiniteQuery = async  <T = unknown>({ queryClient, queryFn, queryKey, initialPageParam = 1 }: InfiniteQueryProps<T>) => {
+    try {
+        return await queryClient.fetchInfiniteQuery({
+            queryKey,
+            queryFn: () => refineResponseForInfiniteQuery(queryFn, initialPageParam) as Promise<T>,
+            staleTime: 60 * 60 * 1000,
+            gcTime: 60 * 60 * 1000,
+            initialPageParam,
+        });
+    } catch (e: any) {
+        console.log("Error occured while fetching infinite data", e.message);
+        return null;
+    }
+}
+
+export const prefetchInfiniteQuery = ({ queryClient, queryFn, queryKey, initialPageParam = 1 }: InfiniteQueryProps) => queryClient.prefetchInfiniteQuery({
+    queryKey,
+    queryFn: () => refineResponseForInfiniteQuery(queryFn, initialPageParam),
+    staleTime: 60 * 60 * 1000,
+    gcTime: 60 * 60 * 1000,
+    initialPageParam,
+});
+
+export default function ReactQueryProvider({ children }: { children: React.ReactNode }) {
+    const queryClient = getQueryClient();
+    return (
+        <QueryClientProvider client={queryClient}>
+            {children}
+            <ReactQueryDevtools initialIsOpen={false} />
+        </QueryClientProvider>
+    );
+}

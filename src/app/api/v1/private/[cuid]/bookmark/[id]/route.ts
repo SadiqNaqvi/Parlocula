@@ -1,47 +1,35 @@
-import { deleteRequest, getRequest } from "@lib/helpers/common";
-import { ObjectId } from "@lib/utils";
-import { Bookmark, Comment, List, Post } from "@model";
+import { deleteHandler, getHandler } from "@lib/helpers/handlers";
+import { Bookmark, Comment, Post, Shelf } from "@model";
 
-// To check if a content is saved by the current user.
-export const GET = getRequest(
-  async (_, params: { id: string; cuid: string }) => {
-    const { id, cuid } = params;
+// Check if a content is saved by the current user.
+export const GET = getHandler(async (_, params) => {
+  const { id, cuid } = params;
 
-    const isSaved = await Bookmark.exists({
-      content_id: ObjectId(id),
-      user_id: cuid,
-    });
+  const isSaved = await Bookmark.exists({ content_id: id, user_id: cuid });
 
-    return { success: true, result: Boolean(isSaved) };
-  }
-);
-
-const getModel = (content_type: "List" | "Post" | "Comment") => {
-  switch (content_type) {
-    case "List":
-      return List;
-    case "Comment":
-      return Comment;
-    case "Post":
-      return Post;
-    default:
-      undefined;
-  }
-};
+  return { success: true, result: Boolean(isSaved) };
+});
 
 // Unsave content
-export const DELETE = deleteRequest(async ({ params, session, user_id }) => {
+export const DELETE = deleteHandler(async ({ params, session, user_id }) => {
   const { id } = params;
   const doc = await Bookmark.findOneAndDelete({ content_id: id, user_id });
 
-  const Model = getModel(doc?.content_type);
+  if (!doc) return { success: true, result: null };
 
-  if (Model && doc)
-    await Model.findOneAndUpdate(
-      { _id: ObjectId(doc.content_id) },
-      { $inc: { saved_count: -1 } },
-      { session }
-    );
+  const updates = [
+    { _id: doc.content_id },
+    { $inc: { saved_count: -1 } }
+  ]
+
+  if (doc.content_type === "Shelf")
+    await Shelf.findOneAndUpdate(...updates, { session });
+
+  else if (doc.content_type === "Comment")
+    await Comment.findOneAndUpdate(...updates, { session });
+
+  else if (doc.content_type === "Post")
+    await Post.findOneAndUpdate(...updates, { session });
 
   return {
     success: true,

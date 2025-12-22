@@ -1,19 +1,27 @@
 "use client";
 
 import { useQueryHook } from "@lib/hooks";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { MutationFnProps } from "@type/other";
-import { HTMLAttributes, useCallback, useRef } from "react";
-import toast from "react-hot-toast";
+import { AvailableMutations, MutationFunctionAgruments, performMutation, setMutation } from "@lib/providers/mutationStore";
+import appToast from "@lib/providers/toast";
+import { useQueryClient } from "@tanstack/react-query";
+import { useRef } from "react";
 
-type Props = {
+type OnClickFunc = <M extends AvailableMutations, T>(newState: T, action: M, args: MutationFunctionAgruments<M>) => void
+
+export type UserBasedButtonProps<T> = {
+    state: T | null | undefined;
+    user_id: string;
+    onClick: OnClickFunc;
+};
+
+type Props<T> = {
     queryKeys: string[],
     uid: string | undefined,
     queryFn: (user_id: string) => Promise<any>,
-    Button: (arg: { state: any, isPending: boolean, onClick: (newState: any, action: any) => void }) => JSX.Element,
-    mutationFn: (_: MutationFnProps) => any;
+    Button: (arg: UserBasedButtonProps<T>) => JSX.Element,
+    className?: string,
     Loading?: React.ReactNode,
-} & HTMLAttributes<HTMLButtonElement>
+}
 
 export const LoadingButton = ({ primary = true }: { primary?: boolean }) => (
     <button className={primary ? "primary gap-3" : undefined}>
@@ -22,87 +30,29 @@ export const LoadingButton = ({ primary = true }: { primary?: boolean }) => (
     </button>
 );
 
-const MUTATION_MAP_KEY = "user_mutation_queue";
-
-const getMutationQueueMap = (): Record<string, any> => {
-    try {
-        const raw = localStorage.getItem(MUTATION_MAP_KEY);
-        return raw ? JSON.parse(raw) : {};
-    } catch {
-        return {};
-    }
-}
-
-const setMutationQueueMap = (map: Record<string, any>) => {
-    localStorage.setItem(MUTATION_MAP_KEY, JSON.stringify(map));
-}
-
-const updateMutationInQueue = (queueId: string, data: any) => {
-    const map = getMutationQueueMap();
-    map[queueId] = data;
-    setMutationQueueMap(map);
-}
-
-const clearMutationFromQueue = (queueId: string) => {
-    const map = getMutationQueueMap();
-    delete map[queueId];
-    setMutationQueueMap(map);
-}
-
-const getAllQueuedMutations = (): [string, any][] => {
-    const map = getMutationQueueMap();
-    return Object.entries(map);
-}
-
-const UserBasedButton = ({ Button, queryFn, queryKeys, className, mutationFn, Loading, uid }: Props) => {
+const UserBasedButton = <T,>({ Button, queryFn, queryKeys, className, Loading, uid }: Props<T>) => {
 
     const queryClient = useQueryClient();
 
-    const debounceRef = useRef<NodeJS.Timeout | null>(null);
-    const queueId = queryKeys.join("-");
+    const mutation_id = queryKeys.join("-");
 
-    const { data, error, isLoading, refetch } = useQueryHook({
+    const debounceRef = useRef<NodeJS.Timeout | null>(null);
+
+    const { data, error, isLoading, refetch } = useQueryHook<T>({
         queryFn: () => queryFn(uid ?? ""),
         queryKeys,
         enabled: Boolean(uid),
     });
 
-    const { isPending, mutateAsync } = useMutation({
-        mutationFn,
-        onMutate: async () => {
-            await queryClient.cancelQueries({ queryKey: queryKeys });
-
-            const previousState = queryClient.getQueryData(queryKeys);
-
-            return { previousState };
-        },
-        onError: (a, _, c) => queryClient.setQueryData(queryKeys, c?.previousState),
-    });
-
-    const debounceMutation = useCallback(() => {
-        if (debounceRef.current) clearTimeout(debounceRef.current);
-
-        debounceRef.current = setTimeout(async () => {
-            const queued = getAllQueuedMutations();
-
-            for (const [key, data] of queued) {
-                try {
-                    await mutateAsync(data);
-                    clearMutationFromQueue(key);
-                } catch (e) {
-                    console.error(`Mutation failed for ${key}`, e);
-                }
-            }
-        }, 30000);
-    }, [mutateAsync]);
-
-    if (!uid) return <Button state={null} isPending={false} onClick={() => toast.error("You need to log in!")} />
+    if (!uid) return (
+        <Button state={null} user_id="" onClick={() => appToast.error("You need to log in!")} />
+    )
 
     const LoadingComponent = Loading ?? <LoadingButton />;
 
     if (isLoading) return LoadingComponent;
 
-    if (error) return (
+    else if (error) return (
         <button
             onClick={() => refetch()}
             className={className || "secondary"}>
@@ -110,23 +60,31 @@ const UserBasedButton = ({ Button, queryFn, queryKeys, className, mutationFn, Lo
         </button>
     )
 
-    const handleClick = (newState: any, action: any) => {
-        const payload = { newState, action, user_id: uid };
+    const handleClick = <M extends AvailableMutations, T>(newState: T, action: M, args: MutationFunctionAgruments<M>) => {
 
         // Optimistic update
         queryClient.setQueryData(queryKeys, newState);
 
         // Save latest intent to local queue (overwrite)
-        updateMutationInQueue(queueId, payload);
+        setMutation(mutation_id, { payload: args, type: action });
 
         // Trigger debounce logic
-        debounceMutation();
+        if (debounceRef.current) clearTimeout(debounceRef.current);
+
+        debounceRef.current = setTimeout(() => {
+            const previousState = queryClient.getQueryData(queryKeys);
+
+            performMutation(mutation_id)
+                .then(completed => {
+                    if (!completed) {
+                        queryClient.setQueryData(queryKeys, previousState);
+                    }
+                });
+
+        }, 10000);
     };
 
-    return <Button
-        state={data}
-        isPending={isPending}
-        onClick={handleClick} />
+    return <Button user_id={uid} state={data} onClick={handleClick} />
 }
 
 export default UserBasedButton;

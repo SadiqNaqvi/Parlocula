@@ -1,25 +1,28 @@
-import { getRequest } from "@lib/helpers/common";
-import { filterToSort, queryLimit } from "@lib/constants";
-import { ObjectId, getPageParams } from "@lib/utils";
+import { filterToSort } from "@lib/constants";
+import { getHandler } from "@lib/helpers/handlers";
+import { attachNsfwInPipeline, commentsAggregationPipelineWithReplies } from "@lib/pipelines";
+import { getSearchParams } from "@lib/utils";
 import { Comment } from "@model";
-import { commentsAggregationPipelineWithReplies } from "@lib/pipelines";
 
-export const GET = getRequest(async (r: any, params: { id: string }) => {
+// Get comments on a post
+export const GET = getHandler(async (r, params) => {
   const { id } = params;
-  const page = getPageParams(r) - 1;
-  const filter = r.nextUrl.searchParams.get("f")?.trim() || "latest";
+
+  const { page, filter, nsfw } = getSearchParams(r.nextUrl, 0, "latest");
   const sort = filterToSort.comments[filter] ?? filterToSort.comments.latest;
 
-  const results = await Comment.aggregate(
+  const response = await Comment.aggregate(
     commentsAggregationPipelineWithReplies({
-      filters: [{ $match: { post_id: ObjectId(id) } }],
+      filters: [{
+        $match: attachNsfwInPipeline({ post_id: id }, nsfw)
+      }],
       sort,
       page,
     })
   );
 
-  const comments = results[0];
-  if (!comments) return { success: false, errCode: "resource_not_found" };
-
-  return { result: comments, success: true };
+  return {
+    success: true,
+    result: response[0] ?? { data: [], total: 0 },
+  };
 });

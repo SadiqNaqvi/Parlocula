@@ -1,10 +1,12 @@
-import { getRequest } from "@lib/helpers/common";
+import { getHandler } from "@lib/helpers/handlers";
 import { usernamePattern } from "@lib/constants";
 import { User } from "@model";
 import { NextRequest } from "next/server";
 
-export const GET = getRequest(async (req: NextRequest) => {
+// Check if a username is available to use or not.
+export const GET = getHandler(async (req: NextRequest) => {
   const username = req.nextUrl.searchParams.get("username");
+
   if (!username || !usernamePattern.test(username))
     return { success: false, errCode: "invalid_input" };
 

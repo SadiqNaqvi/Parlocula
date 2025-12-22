@@ -1,13 +1,13 @@
 'use client';
 
 import { setUserOnRefreshOrLogin } from '@lib/helpers/user';
-import { getQueryClient } from '@lib/queryClient';
+import { getQueryClient } from '@lib/providers/queryClient';
 import { getQueryKeys } from '@lib/utils';
 import useCurrentUser, { UserMetaData } from '@store/user';
-import { User as UserType } from '@type/internal';
+import { TokenPayload, User as UserType } from '@type/internal';
 import { useEffect } from 'react';
 
-const UserHydrator = ({ user }: { user: UserMetaData | null | undefined }) => {
+const UserHydrator = ({ user }: { user: TokenPayload | null }) => {
 
     const { clearUser, getUserFromHash } = useCurrentUser();
 
@@ -26,7 +26,7 @@ const UserHydrator = ({ user }: { user: UserMetaData | null | undefined }) => {
 
         // Update user hash with the freshly fetched user data.
         if (prefetchedUser) {
-            cleanUpFunc = setUserOnRefreshOrLogin(prefetchedUser);
+            cleanUpFunc = setUserOnRefreshOrLogin(prefetchedUser, user.filterContent);
         }
         else {
             // For offline
@@ -35,13 +35,13 @@ const UserHydrator = ({ user }: { user: UserMetaData | null | undefined }) => {
             // The Local Storage (indexed db here) may got cleared but we know that the user exists.
             if (!localUser) return;
 
-            cleanUpFunc = setUserOnRefreshOrLogin(localUser)
+            cleanUpFunc = setUserOnRefreshOrLogin(localUser, user.filterContent)
             queryClient.setQueryData(qkeys, localUser);
         }
 
         return cleanUpFunc;
 
-    }, [user]);
+    }, [user, clearUser, getUserFromHash]);
 
     return null;
 }

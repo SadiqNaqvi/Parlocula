@@ -3,8 +3,7 @@
 import { InfiniteScroller } from "@components";
 import { VerticleMovieCard } from "@components/ui";
 import { fetchMoviesWithCompany, fetchMoviesWithNetwork, fetchShowsWithCompany, fetchShowsWithNetwork } from "@lib/contentFetcher";
-import { queryFunction, refineString } from "@lib/utils";
-import { GeneralReturnType, PersonWork, RefinedGeneralData, SortOptions } from "@type/external";
+import { PaginatedData, RefinedGeneralData, SortOptions } from "@type/external";
 import { GeneralGetReturn } from "@type/internal";
 import { useState } from "react";
 
@@ -21,7 +20,7 @@ type Props = ({
 })[]
 
 const funcMap: Record<Sections, (id: string, page?: number, sort_by?: SortOptions)
-    => Promise<GeneralReturnType<RefinedGeneralData> | undefined>> =
+    => Promise<PaginatedData<RefinedGeneralData> | undefined>> =
 {
     movies_company: fetchMoviesWithCompany,
     shows_company: fetchShowsWithCompany,
@@ -33,16 +32,6 @@ const MediaFetcher = ({ sections, id }: { sections: Props, id: string, }) => {
 
     const [active, setActive] = useState(sections[0].section);
     const data = sections.find(el => el.section === active)?.data;
-
-    const MediaCard = (data: any) => (
-        <VerticleMovieCard
-            poster={data.poster}
-            rating={data.rating}
-            year={String(data.year ?? new Date(data.release_date).getFullYear())}
-            title={data.title}
-            link={`/explore/${active.includes("movie") ? "movie" : "show"}/${data.id}-${refineString(data.title)}`}
-        />
-    )
 
     const functionToFetch = async (p: number): Promise<GeneralGetReturn> => {
         if (active === "cast" || active === "crew")
@@ -88,8 +77,8 @@ const MediaFetcher = ({ sections, id }: { sections: Props, id: string, }) => {
             <div>
                 <InfiniteScroller
                     className="flex flex-wrap gap-4"
-                    Component={MediaCard}
-                    fetchData={(p) => queryFunction(functionToFetch, [p])}
+                    Component={VerticleMovieCard}
+                    fetchData={functionToFetch}
                     queryKeys={[active, id]}
                     initialData={data ? { data, total: data.length } : undefined}
                     initialPage={1}

@@ -1,13 +1,15 @@
-import { deleteRequest } from "@lib/helpers/common";
-import { Follow, User } from "@model";
+import { deleteHandler } from "@lib/helpers/handlers";
+import { Connection, User } from "@model";
 
-// Removing the current user from a user's following
-export const DELETE = deleteRequest(async ({ params, user_id, session }) => {
+// Removing a follower
+export const DELETE = deleteHandler(async ({ params, user_id, session }) => {
   const { id } = params;
-  const doc = await Follow.findOneAndDelete(
+
+  const doc = await Connection.findOneAndDelete(
     {
-      follower: user_id,
-      followee: id,
+      follower: id,
+      followee: user_id,
+      blocked: false,
     },
     { session }
   );

@@ -1,15 +1,16 @@
+import { BottomSheet } from "@components";
+import FancyImage from "@components/FancyImage";
+import ShelfForm from "@components/form/ShelfForm";
+import ObserverHeader from "@components/ObserverHeader";
 import { NotFound, VerticleMovieCard } from "@components/ui";
 import { fetchCollection } from "@lib/contentFetcher";
-import { refineString } from "@lib/utils";
-import SaveAsList from "./SaveAsList";
-import ObserverHeader from "@components/ObserverHeader";
-import FancyImage from "@components/FancyImage";
-import { getPoster } from "@lib/utils";
+import { getPoster, makeUrlSafe } from "@lib/utils";
+import { CinementSchemaType } from "@type/schemas";
 import { Metadata } from "next";
 
 const fetchData = async (params: { id: string }) => {
     const collection_id = params.id.split('-')[0];
-    return await fetchCollection(collection_id)
+    return await fetchCollection(collection_id);
 }
 
 type Props = { params: { id: string } };
@@ -17,14 +18,12 @@ type Props = { params: { id: string } };
 export const generateMetadata = async ({ params }: Props): Promise<Metadata> => {
     const data = await fetchData(params);
 
-    if (!data) return { title: "Popcorn Paragon" };
+    if (!data) return { title: "Parlocula" };
     return {
-        title: `${data.title} - Popcorn Paragon`,
+        title: `${data.title} - Parlocula`,
         description: data.overview,
     };
 };
-
-
 
 const Page = async ({ params }: Props) => {
 
@@ -32,18 +31,18 @@ const Page = async ({ params }: Props) => {
 
     if (!content) return (
         <NotFound
-            title="Oops! Looks like we could'nt find anything"
+            title="Oops! Looks like The Parlocula Explorers came empty handed."
             paras={["Possible Reason: The collection id is incorrect.", "Please try to search the collection in the explore page"]} />
     )
 
-    const medias = content.parts.map(el => ({
+    const cinements = content.parts.map(el => ({
         title: el.title,
         poster: el.poster,
         year: new Date(el.release_date).getFullYear(),
-        tmdb_id: el.tmdb_id,
-        media_type: el.media_type,
+        ext_id: el.tmdb_id,
+        cinement_type: el.media_type,
         isConfirm: false,
-    }));
+    }) as CinementSchemaType);
 
     const metadata = [
         { label: "Rating", val: content.rating },
@@ -53,7 +52,7 @@ const Page = async ({ params }: Props) => {
     return (
         <>
             <ObserverHeader
-                titleToShare={`Check out ${content.title} on Popcorn Paragon`}
+                titleToShare={`Check out ${content.title} on Parlocula`}
                 navTitle={content.title}>
 
                 <div className="w-full mt-2">
@@ -63,21 +62,21 @@ const Page = async ({ params }: Props) => {
                         height={300}
                         className="w-full rounded-md h-[300px] object-cover object-top"
                         alt="Backdrop"
-                        id="backdrop-popover"
+                        id="collection-backdrop"
                         thumbnail={getPoster({ external: true, type: "backdrop", path: content.backdrop, size: "w780" })}
                         src={getPoster({ external: true, type: "backdrop", path: content.backdrop, size: "original" })}
-                        download={`${content.title} - Popcorn Paragon`}
+                        download={`${content.title} - Parlocula`}
                     />
                 </div>
 
                 <div className="flex gap-4">
                     <FancyImage
-                        id="poster"
+                        id="collection-poster"
                         thumbnail={getPoster({ external: true, type: "poster", path: content.poster, size: "w154" })}
                         src={getPoster({ external: true, type: "poster", path: content.poster, size: "original" })}
                         height={160}
                         width={160}
-                        download={`Poster of ${content.title} - Popcorn Paragon`}
+                        download={`Poster of ${content.title} - Parlocula`}
                         className="border-4 border-primary object-cover size-24 sm:size-40 ml-4 translate-y-[-50%] rounded-full"
                         alt={`Poster of ${content.title}`}
                     />
@@ -99,7 +98,9 @@ const Page = async ({ params }: Props) => {
                 <p className="text-sm text-gray-500 mt-6 line-clamp-4">{content.overview}</p>
 
                 <div className="mt-4 text-sm flex gap-2">
-                    <SaveAsList title={content.title} medias={medias} />
+                    <BottomSheet button="Copy As Shelf" className="primary" >
+                        <ShelfForm defaultVals={{ name: content.title }} cinements={cinements} />
+                    </BottomSheet>
                 </div>
             </ObserverHeader>
             <section className="mt-4">
@@ -107,12 +108,12 @@ const Page = async ({ params }: Props) => {
                 <div className="mt-4 flex-wrap flex gap-4">
                     {content.parts.map(el => (
                         <VerticleMovieCard
+                            {...el}
                             key={el.tmdb_id}
-                            link={`/explore/movie/${el.tmdb_id}-${refineString(el.title)}`}
-                            poster={el.poster}
-                            title={el.title}
-                            rating={el.rating}
-                            year={new Date(el.release_date).getFullYear().toString()}
+                            id={el.tmdb_id}
+                            type={el.media_type}
+                            rating={el.rating.toString()}
+                            year={new Date(el.release_date).getFullYear()}
                         />
                     ))}
                 </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { getQueryClient } from "@lib/queryClient";
+import { getQueryClient } from "@lib/providers/queryClient";
 import { getQueryKeys } from "@lib/utils";
 import useNotification from "@store/notification";
 import useCurrentUser from "@store/user";

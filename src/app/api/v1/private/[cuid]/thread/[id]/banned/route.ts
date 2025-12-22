@@ -1,66 +1,58 @@
 import { blockOrBanLimit } from "@lib/constants";
-import { getRequest, postRequest, updateRequest } from "@lib/helpers/common";
-import { membersAggregationPipeline } from "@lib/pipelines";
-import { getPageParams, isValidObjectId, ObjectId } from "@lib/utils";
+import { getHandler, postHandler, updateHandler } from "@lib/helpers/handlers";
+import { usersAggregationPipeline } from "@lib/pipelines";
+import { createArrayOfUidsSchema } from "@lib/schemas";
+import { getPageParams } from "@lib/utils";
 import { Member, Thread } from "@model";
-import { z } from "zod";
 
-const schema = z.object({
-  users: z
-    .array(z.string())
-    .refine(
-      (a) => a.length > 0 && a.length < blockOrBanLimit,
-      `Select atleast 1 and upto ${blockOrBanLimit} members.`
-    )
-    .refine((a) => a.every((m) => isValidObjectId(m)), {
-      path: ["custom"],
-      message: "Member id is invalid! Please try again.",
-    }),
-});
+const schema = createArrayOfUidsSchema(blockOrBanLimit);
+type SchemaType = { users: string[] }
 
 // Check if the current user is a Moderator (managers and creator) or not
 const validateUser = async (tid: string, uid: string) => {
   const isMod = await Member.exists({
     thread_id: tid,
     user_id: uid,
-    role: "moderator",
+    role: { $in: ["moderator", "creator"] },
     banned: false,
   });
-  if (isMod) return true;
-  return false;
+  return Boolean(isMod);
 };
 
 // Get all the banned members of a thread
-export const GET = getRequest(async (r: any, params: { id: string }) => {
+export const GET = getHandler(async (r, params) => {
   const { id } = params;
-  const page = getPageParams(r, 1) - 1;
+
+  const page = getPageParams(r) - 1;
+
   const result = await Member.aggregate(
-    membersAggregationPipeline({
+    usersAggregationPipeline({
       filters: [
         {
-          $match: { thread_id: ObjectId(id), banned: true },
+          $match: { thread_id: id, banned: true },
         },
       ],
+      localFieldForLookup: "user_id",
       page,
       sort: { updateAt: -1 },
     })
   );
 
-  const members = result[0];
-  if (!members) return { success: false, errCode: "resource_not_found" };
-
-  return { result: members, success: true };
+  return {
+    result: result[0] ?? { data: [], total: 0 },
+    success: true
+  };
 });
 
-// Ban users from a thread. Make sure only moderators (managers and creator) can ban a user.
-export const PATCH = updateRequest<z.infer<typeof schema>>({
+// Ban users from a thread. Make sure only managers (moderators and creator) can ban a user.
+export const PATCH = updateHandler<SchemaType>({
   handler: async ({ data, params, session }) => {
     const { id } = params;
 
-    await Member.updateMany(
+    const updated = await Member.updateMany(
       {
-        thread_id: ObjectId(id),
-        user_id: data.users.map((u) => ObjectId(u)),
+        thread_id: id,
+        user_id: { $in: data.users },
         role: "member",
       },
       {
@@ -72,7 +64,7 @@ export const PATCH = updateRequest<z.infer<typeof schema>>({
     await Thread.findByIdAndUpdate(
       id,
       {
-        $set: { member_count: -data.users.length },
+        $set: { member_count: -(updated.modifiedCount) },
       },
       { session }
     );
@@ -91,17 +83,18 @@ export const PATCH = updateRequest<z.infer<typeof schema>>({
   schema,
 });
 
-// Un-ban users from a thread. Make sure only moderators (managers and creator) can un-ban a user.
-// POST method because moderators can unban multiple users at the same time which is not supported by DELETE method
+// Un-ban users from a thread. Make sure only managers (moderators and creator) can un-ban a user.
+// POST method because managers can unban multiple users at the same time which is not supported by DELETE method
 
-export const POST = postRequest<z.infer<typeof schema>>({
+export const POST = postHandler<SchemaType>({
   handler: async ({ data, params, session }) => {
     const { id } = params;
+    const { users } = data;
 
     await Member.deleteMany(
       {
-        thread_id: ObjectId(id),
-        user_id: data.users.map((u) => ObjectId(u)),
+        thread_id: id,
+        user_id: { $in: users },
       },
       { session }
     );
@@ -109,7 +102,7 @@ export const POST = postRequest<z.infer<typeof schema>>({
     return {
       success: true,
       result: null,
-      revalidateQueue: data.users.map((m) => `member-thread-${id}-user-${m}`),
+      revalidateQueue: users.map((m) => `member-thread-${id}-user-${m}`),
     };
   },
   preCheck: async ({ params, user_id }) => {

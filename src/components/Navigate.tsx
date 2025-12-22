@@ -1,8 +1,8 @@
 "use client";
 
-import { useHistoryStack } from "@store/historystack";
+import { useNavigation } from "@store/historystack";
 import Link from "next/link";
-import { useRouter, usePathname } from "next/navigation";
+import { usePathname } from "next/navigation";
 
 type NavigateType = {
     children: React.ReactNode;
@@ -13,45 +13,32 @@ type NavigateType = {
 
 const Navigate = ({ children, comp, goto, type, className, ...args }: NavigateType) => {
 
-    const { historyStack, lastPage, popHistory, pushHistory } = useHistoryStack();
-    const router = useRouter();
+    const navigator = useNavigation();
     const pathname = usePathname();
 
-    const handleNavigation = () => {
-        if (goto === "back") {
-            historyStack.length && popHistory();
-            router.replace(lastPage && lastPage !== pathname ? lastPage : '/home');
-        } else {
-            if (!historyStack.length)
-                pushHistory(pathname);
-            pushHistory(goto);
-            comp === "button" && router.push(goto);
-        }
+    const handleNavigation = (e: any) => {
+        e.preventDefault();
+
+        if (goto === pathname) return;
+
+        else if (goto === "back") navigator.back();
+
+        else navigator.goto(goto);
     }
 
-    return (
-        <>
-            {comp === "button" ? (
-                <button
-                    {...args}
-                    type="button"
-                    className={className}
-                    onClick={handleNavigation}
-                >
-                    {children}
-                </button>
-            ) : (
-                <Link {...args}
-                    href={goto}
-                    onClick={handleNavigation}
-                    className={(className || '') + (type === "button" ? " no-underline btn" : '')}
-                >
-                    {children}
-                </Link >
-            )
-            }
-        </>
+    if (comp === "button") return (
+        <button {...args} type="button" className={className} onClick={handleNavigation}>
+            {children}
+        </button>
     )
+
+    else return (
+        <Link {...args} href={goto} onClick={handleNavigation}
+            className={(className || '') + (type === "button" ? " no-underline" : '')}
+        >
+            {children}
+        </Link>
+    );
 }
 
 export default Navigate;

@@ -1,88 +1,82 @@
 import {
-  deleteRequest,
-  getRequest,
-  postRequest,
-  updateRequest,
-} from "@lib/helpers/common";
+  deleteHandler,
+  getHandler,
+  postHandler,
+  PrecheckFunction,
+  updateHandler,
+} from "@lib/helpers/handlers";
 import { sendNotification } from "@lib/helpers/server";
-import { ObjectId } from "@lib/utils";
-import { Follow, User } from "@model";
-import { User as UserType } from "@type/internal";
+import { Connection, User } from "@model";
+import { CurrentUser } from "@type/internal";
 
 // Check the user-user connection.
-export const GET = getRequest(
-  async (_, params: { id: string; cuid: string }) => {
-    const requestedUser = params.id;
-    const currentUser = params.cuid;
+export const GET = getHandler(async (_, params) => {
+  const requestedUser = params.id;
+  const currentUser = params.cuid;
 
-    const result = await Follow.aggregate([
-      {
-        $facet: {
-          isFollower: [
-            {
-              $match: {
-                follower: ObjectId(currentUser),
-                followee: ObjectId(requestedUser),
-              },
+  const result = await Connection.aggregate([
+    {
+      $facet: {
+        isFollower: [
+          {
+            $match: {
+              follower: currentUser,
+              followee: requestedUser,
             },
-          ],
-          isFollowing: [
-            {
-              $match: {
-                followee: ObjectId(requestedUser),
-                follower: ObjectId(currentUser),
-              },
+          },
+        ],
+        isFollowing: [
+          {
+            $match: {
+              followee: requestedUser,
+              follower: currentUser,
             },
-          ],
-        },
+          },
+        ],
       },
-    ]);
+    },
+  ]);
 
-    const follow: { isFollower: any[]; isFollowing: any[] } = result[0];
-    const { isFollower, isFollowing } = follow;
+  const follow: { isFollower: any[]; isFollowing: any[] } = result[0];
+  const { isFollower, isFollowing } = follow;
 
-    const follows = isFollower[0];
-    const followBack = isFollowing[0];
+  const follows = isFollower[0];
+  const followBack = isFollowing[0];
 
-    const connection = {
-      follows: Boolean(follows),
-      followBack: Boolean(followBack),
-      isBlocked: Boolean(follows && follows.blocked),
-      haveBlocked: Boolean(followBack && followBack.blocked),
-      notification: Boolean(follows && follows.notification),
-    };
+  const connection = {
+    follows: Boolean(follows),
+    followBack: Boolean(followBack),
+    isBlocked: Boolean(follows && follows.blocked),
+    haveBlocked: Boolean(followBack && followBack.blocked),
+    notification: Boolean(follows && follows.notification),
+  };
 
-    return { result: connection, success: true };
-  }
+  return { result: connection, success: true };
+}
 );
 
 // Check if the current user is blocked by the requested user;
-const preCheck = async ({
-  params,
-  user_id,
-}: {
-  params: { id: string };
-  user_id: string;
-}) => {
+const preCheck: PrecheckFunction = async ({ params, user_id }) => {
   const { id } = params;
 
-  const isBlocked = await Follow.exists({
+  const isBlocked = await Connection.exists({
     follower: user_id,
     followee: id,
     blocked: true,
   });
 
-  if (isBlocked) return { success: false, errCode: "temporary_banned" };
+  if (isBlocked) return { success: false, errCode: "blocked_by_author" };
   return { success: true };
 };
 
 // Following a user.
-export const POST = postRequest({
-  handler: async ({ data, user_id, session, username, params }) => {
-    const requestedUser = params.id;
-    const notification = data.notification;
+export const POST = postHandler<{ notification: boolean }>({
+  handler: async ({ data, user_id, session, username, params, profile }) => {
 
-    await Follow.create(
+    const requestedUser = params.id;
+    const { notification } = data;
+
+    await Connection.create(
       [
         {
           follower: user_id,
@@ -97,31 +91,32 @@ export const POST = postRequest({
     await User.findByIdAndUpdate(
       user_id,
       {
-        $inc: { following_count: 1 },
+        $inc: { following: 1 },
       },
       { session }
     );
 
-    const req_user = await User.findByIdAndUpdate<UserType>(
+    const user = await User.findByIdAndUpdate<{ _id: string }>(
       requestedUser,
       {
-        $inc: { follower_count: 1 },
+        $inc: { followers: 1 },
       },
       { session }
     );
 
-    if (!req_user) return { success: false, errCode: "invalid_object_id" };
+    if (!user) return { success: false, errCode: "invalid_object_id" };
 
     await sendNotification(
       [
         {
           title: `${username} started following you`,
-          path: `/u/${username}`,
+          path: `/user/${username}`,
+          poster: profile,
           message: [
-            { type: "link", label: username, path: `/u/${username}` },
+            { type: "link", label: username, path: `/user/${username}` },
             { type: "text", text: "started following you." },
           ],
-          user_id: req_user._id,
+          user_id: user._id,
         },
       ],
       session
@@ -138,23 +133,25 @@ export const POST = postRequest({
 });
 
 // Unfollowing a user.
-export const DELETE = deleteRequest(async ({ user_id, session, params }) => {
+export const DELETE = deleteHandler(async ({ user_id, session, params }) => {
   const requestedUser = params.id;
 
-  const doc = await Follow.findOneAndDelete(
+  const doc = await Connection.findOneAndDelete(
     {
       follower: user_id,
       followee: requestedUser,
+      blocked: false,
     },
     { session }
   );
 
-  if (!doc) return { success: true };
+  if (!doc)
+    return { success: false, errCode: "resource_not_found" };
 
   await User.findByIdAndUpdate(
     user_id,
     {
-      $inc: { following_count: -1 },
+      $inc: { following: -1 },
     },
     { session }
   );
@@ -162,7 +159,7 @@ export const DELETE = deleteRequest(async ({ user_id, session, params }) => {
   await User.findByIdAndUpdate(
     requestedUser,
     {
-      $inc: { follower_count: -1 },
+      $inc: { followers: -1 },
     },
     { session }
   );
@@ -178,18 +175,20 @@ export const DELETE = deleteRequest(async ({ user_id, session, params }) => {
 });
 
 // Modifying user notification
-export const PATCH = updateRequest({
+export const PATCH = updateHandler<{ notification: boolean }>({
   handler: async ({ params, data, session, user_id }) => {
     const { id } = params;
 
-    await Follow.findOneAndUpdate(
+    await Connection.findOneAndUpdate(
       {
         follower: id,
         followee: user_id,
+        blocked: false,
       },
       { $set: data },
       { session }
     );
+
     return {
       success: true,
       result: null,

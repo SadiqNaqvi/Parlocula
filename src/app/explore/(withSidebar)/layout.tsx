@@ -1,5 +1,5 @@
 import { Sidebar } from "@components";
-import { LoadingSpinner } from "@components/ui";
+import { FullPageLoadingSpinner } from "@components/ui/loading/LoadingSpinner";
 import { Suspense } from "react";
 
 export default function ExploreLayout({ children }: Readonly<{ children: React.ReactNode; }>) {
@@ -7,7 +7,7 @@ export default function ExploreLayout({ children }: Readonly<{ children: React.R
         <>
             <Sidebar />
             <main>
-                <Suspense fallback={<LoadingSpinner />}>
+                <Suspense fallback={<FullPageLoadingSpinner />}>
                     {children}
                 </Suspense>
             </main>

@@ -1,13 +1,13 @@
-import { HydratedDocument } from "mongoose";
-import { CreateOptions, Model } from "mongoose";
-import { Types } from "mongoose";
-import { GenericDate } from "./internal";
+import { CreateOptions, HydratedDocument, Model } from "mongoose";
+import { Frame, GenericDate } from "./internal";
 
-type ObjectId = Types.ObjectId | string;
-
-export type StringifyObjecId = ObjectId
+type Nanoid = string;
 
 export type MongooseModel<T = any> = Model<T, T, T, T, T, T>;
+
+type DocumentExpiration = {
+  expiresAt?: Date;
+}
 
 export interface StrictModel<T> extends Model<T> {
   create(
@@ -23,231 +23,269 @@ export interface StrictModel<T> extends Model<T> {
 }
 
 export type ReportModelType = {
-  user_id: ObjectId;
-  ext_id?: ObjectId;
+  _id?: Nanoid;
+  user_id: Nanoid;
+  ext_id?: Nanoid;
   reason: string;
   details?: string;
-  content_id: ObjectId;
+  content_id: Nanoid;
   content_type: string;
 };
 
 export type LinkModelType = {
+  _id?: Nanoid;
   label: string;
   path: string;
 };
 
-export type ConnectionModelType = {
+export type BasedOnModelType = {
+  _id?: Nanoid;
   type: string;
   path: string;
   name: string;
 };
 
-export type FrameModelType = {
-  path: string;
-  type: "image" | "video";
-  isExternal: boolean;
+export type FrameModelType = Frame & {
+  _id?: Nanoid;
 };
 
 export type UserModelType = {
+  _id?: Nanoid;
   name: string;
   username: string;
   email: string;
   dob: GenericDate;
   bio: string;
   bioLinks: LinkModelType[];
-  profile: string;
-
-  edited_at?: GenericDate | null;
-  isActive?: boolean;
+  profile: Frame | undefined;
   passkey: string;
-  usernameUpdatedAt?: GenericDate | null;
-  emailUpdatedAt?: GenericDate | null;
 
   session_id: string;
+  edited_at?: GenericDate | undefined;
+  isActive?: boolean;
+  usernameUpdatedAt?: GenericDate | undefined;
+  emailUpdatedAt?: GenericDate | undefined;
+  lastPostedAt?: GenericDate | undefined;
+  lastCommentedAt?: GenericDate | undefined;
   lastLoginAt?: GenericDate;
+
+  filterContent?: boolean;
   isBanned?: boolean;
-  banEndsAt?: GenericDate | null;
+  banEndsAt?: GenericDate | undefined;
+  deletionId?: string;
   tempBanned?: number;
+
   followers?: number;
   following?: number;
   posts?: number;
   comments?: number;
-  public_lists?: number;
-};
-
-export type UserRecommendationModelType = {
-  user_id: ObjectId;
-  genres: string[];
-  favourite: string[];
-  recommended: string[];
-  watched: string[];
+  publicShelves?: number;
+  joinedThreads?: number;
+  createdThreads?: number;
+  reactions?: number;
+  likes?: number;
+  savedContents?: number;
+  rooms?: number;
 };
 
 export type ThreadModelType = {
-  connection: ConnectionModelType[];
+  _id?: Nanoid;
   description: string;
   links: LinkModelType[];
   name: string;
   nsfw: boolean;
-  poster: string;
-  created_by: ObjectId;
-  edited_at: GenericDate;
-  edited_by: ObjectId | null;
-  post_count: number;
-  member_count: number;
+  poster: FrameModelType;
+  created_by: Nanoid;
+  connections: BasedOnModelType[];
+  edited_at?: GenericDate | undefined;
+  edited_by?: Nanoid | undefined;
+  lastPostedAt?: GenericDate | undefined;
+  lastCommentedAt?: GenericDate | undefined;
+  post_count?: number;
+  comment_count?: number;
+  member_count?: number;
 };
 
 export type PostModelType = {
+  _id?: Nanoid;
   title: string;
   body: string;
-  tag: string;
+  category: string;
   links: LinkModelType[];
+  links_count: number;
   frames: FrameModelType[];
+  frames_count: number;
   nsfw: boolean;
   spoiler: boolean;
-  thread_id: ObjectId;
-  user_id: ObjectId;
-  repost_id: ObjectId;
-  edited_at: GenericDate;
-  reaction_count: number;
-  comment_count: number;
-  saved_count: number;
-  createdAt: GenericDate;
+  thread_id: Nanoid;
+  user_id: Nanoid;
+  quoted_post_id: Nanoid | undefined;
+  edited_at?: GenericDate;
+  reaction_count?: number;
+  comment_count?: number;
+  saved_count?: number;
 };
 
 export type CommentModelType = {
-  content?: string;
-  attachment?: string;
-  replied_to?: ObjectId | null;
-  post_id: ObjectId;
-  user_id: ObjectId;
+  _id?: Nanoid;
+  content: string;
+  attachment: string;
+  replied_to?: Nanoid | undefined;
+  post_id: Nanoid;
+  user_id: Nanoid;
   spoiler: boolean;
   nsfw: boolean;
-  upvote_count?: number;
-  edited_at?: GenericDate | null;
+  likes_count?: number;
+  replies_count?: number;
+  edited_at?: GenericDate | undefined;
   saved_count?: number;
-  createdAt?: GenericDate;
 };
 
-export type MemberModelType = {
-  thread_id: ObjectId;
-  user_id: ObjectId;
-  notification: boolean;
-  banned: boolean;
-  role: "moderator" | "member" | "moderator_invitee";
-  actionsTaken: number,
-};
+export type MembershipModelType = {
+  _id?: Nanoid;
+  thread_id: Nanoid;
+  user_id: Nanoid;
+  role: "creator" | "moderator" | "member" | "moderator_invitee";
+  actionsTaken?: number,
+  notification?: boolean;
+  banned?: boolean;
+} & DocumentExpiration;
 
 export type ReactionModelType = {
+  _id?: Nanoid;
   reaction: string;
-  user_id: ObjectId;
-  post_id: ObjectId;
+  user_id: Nanoid;
+  post_id: Nanoid;
 };
 
-export type VoteModelType = {
-  type: "up" | "down";
-  user_id: ObjectId;
-  comment_id: ObjectId;
+export type LikesModelType = {
+  _id?: Nanoid;
+  user_id: Nanoid;
+  comment_id: Nanoid;
 };
 
-export type UserConnectionModelType = {
-  follower: ObjectId;
-  followee: ObjectId;
+export type ConnectionModelType = {
+  _id?: Nanoid;
+  follower: Nanoid;
+  followee: Nanoid;
   blocked: boolean;
   notification: boolean;
 };
 
 export type CinementModelType = {
+  _id?: Nanoid;
   title: string;
   poster: string;
   year: number;
-  media_type: "movie" | "show";
-  tmdb_id: string;
+  cinement_type: "movie" | "show";
+  ext_id: string;
   favourite?: number;
   watched?: number;
   recommended?: number;
 };
 
-export type PreDefinedListType = "favourite" | "recommended" | "watched";
-export type AllListType = PreDefinedListType | "custom";
+export type PredefinedShelves = "favourite" | "recommended" | "watched";
+export type AllShelves = PredefinedShelves | "custom";
 
-export type ListModelType = {
+export type ShelfModelType = {
+  _id?: Nanoid;
   name: string;
   poster?: string;
-  user_id: ObjectId;
-  invitees?: ObjectId[];
-  collaborators?: ObjectId[];
+  user_id: Nanoid;
   isPrivate: boolean;
-  listKey?: string;
+  shelfKey: string | undefined;
   last_added?: GenericDate;
-  item_count?: Number;
-  list_type: AllListType;
+  item_count?: number;
+  shelf_type: AllShelves;
   saved_count?: number;
-  createdAt?: GenericDate;
 };
 
-export type ListItemModelType = {
-  media_id: ObjectId;
-  list_id: ObjectId;
-  user_id: ObjectId;
-  tmdb_id: string;
+export type ShelfItemModelType = {
+  _id?: Nanoid;
+  cinement_id: Nanoid;
+  shelf_id: Nanoid;
+  user_id: Nanoid;
+  ext_id: string;
   year: number;
   createdAt?: GenericDate;
 };
 
+export type CollaboratorModelType = {
+  _id?: Nanoid;
+  user_id: Nanoid,
+  shelf_id: Nanoid,
+  type: "invitee" | "collaborator"
+} & DocumentExpiration;
+
 export type BookmarkModelType = {
-  user_id: ObjectId;
-  content_id: ObjectId;
-  content_type: "Post" | "Comment" | "List";
+  _id?: Nanoid;
+  user_id: Nanoid;
+  content_id: Nanoid;
+  content_type: "Post" | "Comment" | "Shelf";
   createdAt: GenericDate;
 };
 
 export type NotificationModelType = {
+  _id?: Nanoid;
   title: string;
   message: (
     | { type: "text"; text: string }
     | { type: "link"; label: string; path: string }
   )[];
+  poster: string | undefined;
   path?: string;
-  user_id: ObjectId;
+  user_id: Nanoid;
   metadata?: Record<string, any>;
   type?: "request" | "informative";
   status?: "pending" | "accepted" | "denied";
   request_type?: "manager_invitation" | "collaborator_invitation";
   createdAt?: GenericDate;
-};
+} & DocumentExpiration;
+
+export type SanctionModelType = {
+  _id: Nanoid,
+  userId: Nanoid,
+  type: "warning" | "temp_ban" | "perm_ban",
+  reason: string,
+  createdAt: GenericDate,
+  metadata: Record<string, any>, // evidence or links
+  active: boolean,
+} & DocumentExpiration
 
 export type RoomModelType = {
-  _id: ObjectId;
-  participants?: ObjectId[]; // Only filled if room type is private
+  _id?: Nanoid;
+  participants: Nanoid[]; // Only filled if room type is private
+  participant_count?: number;
   type: "private" | "group";
   name: string | undefined;
-  poster: string | undefined;
+  poster: Frame | undefined;
   lastMessage: string;
   lastMessageAt: GenericDate;
-  lastMessageBy: ObjectId;
+  lastMessageBy: Nanoid;
   invitationMessage: {
     content: string;
-    user_id: ObjectId;
+    user_id: Nanoid;
     username: string;
     createdAt: GenericDate;
   };
-};
+  createdAt?: GenericDate;
+} & DocumentExpiration;
 
 export type ParticipantModelType = {
-  user_id: ObjectId;
-  room_id: ObjectId;
-  seenAt: GenericDate;
-  hideAt: GenericDate;
-  mute: boolean;
+  _id?: Nanoid;
+  user_id: Nanoid;
+  room_id: Nanoid;
+  seenAt?: GenericDate | undefined;
+  hideAt?: GenericDate | undefined;
+  mute?: boolean;
   type: "participant" | "invitee" | "creator";
-};
+} & DocumentExpiration;
 
 export type MessageModelType = {
-  _id: ObjectId;
+  _id?: Nanoid;
   username: string;
-  user_id: ObjectId;
-  room_id: ObjectId;
+  user_id: Nanoid;
+  room_id: Nanoid;
   content: string;
   createdAt: GenericDate;
   replied_to?: string;

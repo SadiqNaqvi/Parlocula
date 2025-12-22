@@ -32,7 +32,7 @@ const VerifyEmail = ({ code }: { code: number }) => (
                     <Section style={upperSection}>
                         <Heading style={h1}>Verify your email address</Heading>
                         <Text style={mainText}>
-                            Hello It{"'"}s your Popcorn Paragon 👋. We want to make sure it{"'"}s really you. Please enter the following
+                            Hello It{"'"}s your Parlocula 👋. We want to make sure it{"'"}s really you. Please enter the following
                             verification code when prompted. If you haven{"'"}t requested for this, you can safely ignore this email.
                         </Text>
                         <Section style={verificationSection}>
@@ -47,12 +47,12 @@ const VerifyEmail = ({ code }: { code: number }) => (
                     <Hr />
                     <Section style={lowerSection}>
                         <Text style={cautionText}>
-                            Popcorn Paragon will never email you and ask you to disclose or verify your password, credit card, or banking account number.
+                            Parlocula will never email you and ask you to disclose or verify your password, credit card, or banking account number.
                         </Text>
                     </Section>
                 </Section>
                 <Text style={footerText}>
-                    This message was produced and distributed by Popcorn Paragon, a software application of Q-Core Technologies Pvt. Ltd. | All rights reserved.
+                    This message was produced and distributed by Parlocula, a software application of Q-Core Technologies Pvt. Ltd. | All rights reserved.
                 </Text>
             </Container>
         </Body>

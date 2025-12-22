@@ -1,4 +1,4 @@
-import { UserMetaData } from "@store/user";
+import { TokenPayload } from "@type/internal";
 import { JWTPayload, SignJWT, jwtVerify } from "jose";
 
 export function getEncryptionKey(): Uint8Array {
@@ -6,7 +6,7 @@ export function getEncryptionKey(): Uint8Array {
   return new Uint8Array(Buffer.from(secret, "hex"));
 }
 
-export const generateToken = async (details: UserMetaData) => {
+export const generateToken = async (details: TokenPayload) => {
   const secret = getEncryptionKey();
   return await new SignJWT(details)
     .setProtectedHeader({ alg: "HS256" })
@@ -15,7 +15,7 @@ export const generateToken = async (details: UserMetaData) => {
     .sign(secret);
 };
 
-type VerifyReturnType<T> = T extends undefined ? UserMetaData : T;
+type VerifyReturnType<T> = T extends undefined ? TokenPayload : T;
 
 export const verifyToken = async <T = undefined>(
   token: string

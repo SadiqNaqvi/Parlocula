@@ -1,0 +1,1710 @@
+
+import LinkToast from "@components/toasts/LinkToast"
+import { generateFingerprint } from "@lib/auth"
+import { oneHour } from "@lib/constants"
+import appToast from "@lib/providers/toast"
+import { getQueryClient } from "@lib/providers/queryClient"
+import { codetoError, getLocalUrl, getQueryKeys, objectToFormData, parloId, trycatch } from "@lib/utils"
+import { AppNavigationInstance } from "@store/historystack"
+import { offlineStore } from "@store/offlineStore"
+import useRoomStore from "@store/roomStore"
+import useCurrentUser from "@store/user"
+import { CommentReplyType, CurrentUser, FullComment, FullPost, FullRoomType, FullShelf, GeneralGetReturn, GeneralPostReturn, MereComment, MereMessage, MereRoomType, MereUser, ModeratorType, ShelfCollaborator, ShelfCollaborators, ShelfItemType, ShelvesForCinement, ThreadModType, UserConnectionType } from "@type/internal"
+import { NotificationModelType } from "@type/models"
+import { ErrorCodes, InfiniteScrollerDataType } from "@type/other"
+import { BookmarkSchemaType, CinementSchemaType, CinementToAddAndRemoveType, CommentSchemaType, CommentSchemaUpdateType, EmailUpdateSchemaType, LikeSchemaType, MessageSchemaType, PostSchemaType, PostUpdateSchemaType, ReportActionSchemaType, ReportSchemaType, ReportTypeEnum, RoomSchemaType, SessionInvalidationServerSchemaType, ShelfEditSchemaType, ShelfSchemaType, ThreadSchemaServer, ThreadUpdateSchema, UsernameUpdateSchemaType, UserSchemaType, UserUpdateSchemaType } from "@type/schemas"
+import axios from "axios"
+import { nanoid } from "nanoid"
+import { setUserOnRefreshOrLogin } from "./user"
+import { toast } from "sonner"
+
+type MutationFunction<R> = () => Promise<GeneralPostReturn<R>>
+
+type PerformMutationProps<R, M = undefined> = {
+    mutationFn: MutationFunction<R>,
+    onMutate?: () => Promise<M> | M | undefined,
+    beforeMutation?: () => void,
+    onSuccess?: (options: { context: M | undefined, data: R }) => void,
+    onError?: (options: { error: string, context: M | undefined }) => void,
+    onSettle?: () => void;
+    codeToReturn?: ErrorCodes;
+}
+
+export const ppPostData = async <T,>({
+    url,
+    data,
+    uid,
+}: {
+    url: string;
+    data?: any;
+    uid: string;
+}): Promise<GeneralPostReturn<T>> => {
+    if (!uid) return { success: false, errCode: "unauthenticated_access" };
+    return await trycatch(() =>
+        axios
+            .post(
+                `${getLocalUrl()}/api/v1/private/${uid}/${url}`,
+                data ? objectToFormData(data) : new FormData(),
+            )
+            .then((r) => r.data)
+    );
+};
+
+export const ppUpdateData = async ({
+    url,
+    data,
+    uid,
+}: {
+    url: string;
+    data?: any;
+    uid: string;
+}): Promise<GeneralPostReturn> => {
+    return await trycatch(() =>
+        axios
+            .patch(
+                `${getLocalUrl()}/api/v1/private/${uid}/${url}`,
+                objectToFormData(data)
+            )
+            .then((r) => r.data)
+    );
+};
+
+export const ppDeleteData = async (
+    url: string,
+    uid: string
+): Promise<GeneralGetReturn> => {
+    return await trycatch(() =>
+        axios
+            .delete(`${getLocalUrl()}/api/v1/private/${uid}/${url}`)
+            .then((res) => res.data)
+    );
+};
+
+export const handleErrorFromMutation = (data: GeneralPostReturn) => {
+    const { customError, errCode, formError } = data;
+    if (data.success || !errCode) return;
+    else if (formError) return formError;
+    else if (customError) appToast.error(customError);
+    else appToast.error(codetoError(errCode));
+}
+
+const unstableInternetError = () => {
+    const errMsg = "Unstable Internet connection! Please check your connection and try again."
+    appToast.error(errMsg);
+    return errMsg;
+}
+
+const performMutation = async <T, M = undefined>({ mutationFn, onError, beforeMutation, onSettle, onMutate, onSuccess, codeToReturn }: PerformMutationProps<T, M>) => {
+    if (navigator && !navigator.onLine) return unstableInternetError();
+
+    const context = await onMutate?.();
+    try {
+        beforeMutation?.();
+        const response = await mutationFn();
+
+        if (response.success)
+            onSuccess?.({ context, data: response.result });
+
+        else {
+            onError?.({ error: response.errCode, context });
+            if (codeToReturn && response.errCode === codeToReturn)
+                return response.errCode;
+
+            return handleErrorFromMutation(response);
+        }
+    } catch (err: any) {
+        console.error("Error occured while performing mutation:", err.message);
+        return unstableInternetError();
+    } finally {
+        onSettle?.();
+    }
+}
+
+
+// Optimistic Mutation Helper
+type Matcher<T> = (result: T) => boolean;
+
+export const addDocsInInfiniteQueryResult = <T = unknown>(queryKeys: string[], data: T) => {
+
+    const queryClient = getQueryClient();
+
+    const arrToAdd = Array.isArray(data) ? data : [data];
+
+    const previousState = queryClient.getQueryData<InfiniteScrollerDataType<T>>(queryKeys);
+
+    queryClient.setQueryData(queryKeys, (old: InfiniteScrollerDataType<T>) => {
+        const oldData = old ?? {
+            pageParams: [1],
+            pages: [{ results: [], page: 1, total_pages: 1, total_results: 0 }],
+        };
+
+        const { pages } = oldData;
+        const [firstPage, ...restPages] = pages;
+
+        const { total_results, results, ...rest } = firstPage;
+
+        const newPages = [
+            {
+                results: [...arrToAdd, ...results],
+                total_results: total_results + 1,
+                ...rest,
+            },
+            ...restPages,
+        ];
+
+        return { ...oldData, pages: newPages };
+    });
+
+    return previousState;
+};
+
+export const updateDocInInfiniteQueryResult = <T>(queryKeys: string[], matcher: Matcher<T>, data: Partial<T>) => {
+
+    const queryClient = getQueryClient();
+
+    const previousState = queryClient.getQueryData(queryKeys);
+
+    queryClient.setQueryData<InfiniteScrollerDataType<T>>(queryKeys, (old) => {
+
+        if (!old) return old;
+
+        const { pages } = old;
+
+        for (let pageIndex = 0; pageIndex < pages.length; pageIndex++) {
+            const page = pages[pageIndex];
+            const docIndex = page.results.findIndex(matcher);
+
+            if (docIndex !== -1) {
+                // ✅ Rebuild only the affected page & document
+                const newPage = {
+                    ...page,
+                    results: [
+                        ...page.results.slice(0, docIndex),
+                        { ...page.results[docIndex], ...data },
+                        ...page.results.slice(docIndex + 1),
+                    ],
+                };
+
+                const newPages = [
+                    ...pages.slice(0, pageIndex),
+                    newPage,
+                    ...pages.slice(pageIndex + 1),
+                ];
+
+                return { ...old, pages: newPages };
+            }
+        }
+
+        return old;
+    });
+
+    return previousState;
+}
+
+export const updateDoc = async <T extends Record<string, any>>(
+    qkey: (string | number)[],
+    update: Partial<T> | ((prev: T | undefined) => T | undefined),
+) => {
+
+    const queryClient = getQueryClient();
+
+    const prev = queryClient.getQueryData<T>(qkey);
+
+    if (typeof update === "function") {
+        queryClient.setQueryData(qkey, update);
+    } else {
+        queryClient.setQueryData(qkey, (prev: Record<string, unknown>) => {
+            if (!prev) return prev;
+            return { ...prev, ...update };
+        });
+    }
+
+    return prev;
+};
+
+export const setDoc = <T = unknown>(qkey: string[], data: T) => {
+    const queryClient = getQueryClient();
+
+    const prev = queryClient.getQueryData<T>(qkey);
+
+    queryClient.setQueryData(qkey, data);
+
+    return prev;
+}
+
+export const filterDocsInInfiniteQueryResult = <T extends Record<string, any>>(qkeys: string[], ids: string[], matcher?: Matcher<T>) => {
+
+    const queryClient = getQueryClient();
+
+    const previousState = queryClient.getQueryData(qkeys);
+    const idMap = new Map<string, boolean>(ids.map((id) => [id, true]));
+
+    const filterFunction: Matcher<T> = matcher ?? ((result: T) => !idMap.get(result._id));
+
+    updateDoc<InfiniteScrollerDataType<T>>(qkeys, (oldData) => {
+        if (!oldData) return;
+
+        return {
+            ...oldData,
+            pages: oldData.pages.map((page) => ({
+                ...page,
+                results: page.results.filter(filterFunction),
+            })),
+        };
+    });
+
+    return previousState;
+};
+
+export const refetchQueries = (queryKeys: string[] | string[][]) => {
+    const queryClient = getQueryClient();
+
+    const queriesToRefetch = Array.isArray(queryKeys[0]) ?
+        queryKeys as string[][]
+        : [queryKeys as string[]];
+
+    queriesToRefetch.forEach(query => {
+        queryClient.refetchQueries({ queryKey: query });
+    })
+}
+
+export const deleteQueires = (queryKeys: string[] | string[][]) => {
+    const queryClient = getQueryClient();
+
+    const queriesToRefetch = Array.isArray(queryKeys[0]) ?
+        queryKeys as string[][]
+        : [queryKeys as string[]];
+
+    queriesToRefetch.forEach(query => {
+        queryClient.removeQueries({ queryKey: query });
+    })
+}
+
+// Mutation Functions
+
+export const registerUserMutation = async (data: UserSchemaType) => {
+    return performMutation({
+        mutationFn: () => axios
+            .post<GeneralPostReturn>(
+                `${getLocalUrl()}/api/v1/user/register`,
+                objectToFormData(data)
+            )
+            .then((r) => r.data),
+        onSuccess: ({ data }: { data: CurrentUser }) => {
+
+            setUserOnRefreshOrLogin(data, Boolean(data.filterContent));
+
+            getQueryClient().setQueryData(
+                getQueryKeys("user_username", { username: data.username }),
+                data
+            );
+        }
+    });
+
+};
+
+export const loginUserMutation = async (data: { email: string, code: number }) => {
+
+    const fingerprint = await generateFingerprint();
+
+    return performMutation({
+        mutationFn: () => axios
+            .post<GeneralPostReturn>(`${getLocalUrl()}/api/v1/user/login`,
+                objectToFormData({ ...data, fingerprint })
+            )
+            .then((r) => r.data),
+        onSuccess: ({ data }: { data: CurrentUser }) => {
+
+            setUserOnRefreshOrLogin(data, Boolean(data.filterContent));
+
+            getQueryClient().setQueryData(
+                getQueryKeys("user_username", { username: data.username }),
+                data
+            );
+        },
+        codeToReturn: "unregistered_user",
+    });
+
+};
+
+export const createCommentMutation = async (comment: CommentSchemaType & { parent: CommentReplyType | undefined }, uid: string, section: "replies" | "comments") => {
+
+    if (section === "replies" && !comment.replied_to) return;
+
+    const { parent, ...restOfComment } = comment;
+
+    const queryClient = getQueryClient();
+
+    const commentsKey = getQueryKeys("commentsOfPost_pid_filter", { pid: comment.post_id, filter: "latest" });
+    const repliesKey = getQueryKeys("replies_cid_filter", { cid: comment.replied_to || "", filter: "latest" })
+
+    const keyToOptimisticallyUpdate = section === "replies" ? repliesKey : commentsKey;
+
+    const queryKeysToRefetch = [
+        getQueryKeys("commentsOfUser_uid_filter", { uid, filter: "latest" }),
+        (section === "replies" ? commentsKey : repliesKey)
+    ]
+
+    return performMutation({
+        mutationFn: () => ppPostData<FullComment>({ url: "comment", data: restOfComment, uid }),
+        onMutate: () => {
+            return addDocsInInfiniteQueryResult<MereComment>(
+                keyToOptimisticallyUpdate,
+                {
+                    ...restOfComment,
+                    status: "sending",
+                    createdAt: Date.now(),
+                    updatedAt: Date.now(),
+                    likes_count: 0,
+                    user_id: uid,
+                    saved_count: 0,
+                    edited_at: undefined,
+                    parentComment: parent,
+                    replied_to: comment.replied_to
+                });
+        },
+        onSuccess: ({ data }) => {
+            updateDocInInfiniteQueryResult<{ status: string, _id: string }>(
+                keyToOptimisticallyUpdate,
+                (r) => r._id === comment._id,
+                { status: "sent" }
+            );
+
+            queryClient.setQueryData(
+                getQueryKeys("comment_cid", { cid: data._id }),
+                data
+            )
+
+            queryKeysToRefetch.forEach(key => queryClient.refetchQueries({ queryKey: key }))
+        },
+        onError: ({ context }) => {
+            const href = section === "replies" && comment.replied_to ? `comment/${comment.replied_to}` : `post/${comment.post_id}`;
+
+            appToast.error(
+                () => LinkToast({ title: `Failed to create comment!`, href })
+            )
+
+            if (!context) return;
+            queryClient.setQueryData(keyToOptimisticallyUpdate, context);
+        }
+    })
+}
+
+export const updateCommentMutation = async (cid: string, uid: string, data: CommentSchemaUpdateType, pid: string) => {
+    const queryClient = getQueryClient();
+
+    const commentKey = getQueryKeys("comment_cid", { cid });
+    const commentsKey = getQueryKeys("commentsOfPost_pid_filter", { pid, filter: "latest" });
+    const commentsOfUserKey = getQueryKeys("commentsOfUser_uid_filter", { uid, filter: "latest" });
+
+    return performMutation({
+        mutationFn: () => ppUpdateData({ url: `comment/${cid}`, data, uid }),
+        onMutate: () => updateDoc(commentKey, data),
+        onSuccess: () => {
+            queryClient.refetchQueries({ queryKey: commentsKey });
+            queryClient.refetchQueries({ queryKey: commentsOfUserKey });
+        },
+        onError: ({ context }) => {
+            appToast.error(
+                () => LinkToast({ title: `Failed to update your comment`, href: `/comment/${cid}` })
+            )
+            if (!context) return;
+
+            queryClient.setQueryData(commentKey, context);
+        }
+    })
+}
+
+export const deleteCommentMutation = async (cid: string, uid: string, pid: string, parent_id?: string) => {
+    const queryClient = getQueryClient();
+
+    const commentKey = getQueryKeys("comment_cid", { cid });
+    const commentsKey = getQueryKeys("commentsOfPost_pid_filter", { pid, filter: "latest" });
+    const commentsOfUserKey = getQueryKeys("commentsOfUser_uid_filter", { uid, filter: "latest" });
+    const repliesKey = parent_id ? getQueryKeys("replies_cid_filter", { cid: parent_id, filter: "latest" }) : undefined;
+
+    await performMutation({
+        mutationFn: () => ppDeleteData(`comment/${cid}`, uid),
+        onMutate: () => {
+            const comment = queryClient.getQueryData(commentKey);
+            queryClient.removeQueries({ queryKey: commentKey });
+
+            return comment;
+        },
+        onSuccess: () => {
+            queryClient.refetchQueries({ queryKey: commentsKey });
+            queryClient.refetchQueries({ queryKey: commentsOfUserKey });
+
+            if (repliesKey)
+                queryClient.refetchQueries({ queryKey: repliesKey });
+
+        },
+        onError: ({ context }) => {
+            if (!context) return;
+            appToast.error(
+                () => LinkToast({ title: `Failed to delete your comment`, href: `/comment/${cid}` })
+            )
+            queryClient.setQueryData(commentKey, context);
+        }
+
+    })
+}
+
+export const submitReportMutation = async (uid: string, cnid: string, type: ReportTypeEnum, data: ReportSchemaType) => {
+    const queryClient = getQueryClient();
+    const reportKey = getQueryKeys("ifReportExists_cnid_type", { cnid, type });
+    await performMutation({
+        mutationFn: () => ppPostData({ url: `report/${cnid}`, uid, data }),
+        onMutate: () => {
+            queryClient.setQueryData(reportKey, data)
+        },
+        onError: () => {
+            appToast.error(
+                () => LinkToast({ title: `Failed to report the ${type}`, href: `/${type}/${cnid}` })
+            )
+            queryClient.setQueryData(reportKey, null);
+        }
+    })
+}
+
+export const createPostMutation = async (uid: string, data: PostSchemaType, navigation: AppNavigationInstance) => {
+
+    return await performMutation({
+        mutationFn: () => ppPostData<FullPost>({ url: "post", data, uid }),
+        onSuccess: ({ data }) => {
+            const postKey = getQueryKeys("post_id", { id: data._id });
+            const postsOfUserKey = getQueryKeys("postsOfUser_uid_filter", { uid, filter: "latest" });
+            const postsFoThreadKey = getQueryKeys(
+                "postsOfThread_tid_filter_category",
+                { tid: data.thread_id, filter: "latest", category: data.category }
+            )
+
+            const queryClient = getQueryClient();
+
+            queryClient.setQueryData(postKey, data);
+            queryClient.refetchQueries({ queryKey: postsOfUserKey });
+            queryClient.refetchQueries({ queryKey: postsFoThreadKey });
+
+            navigation.replace(`/post/${data._id}`)
+        }
+    })
+
+}
+
+export const updatePostMutation = async (pid: string, uid: string, data: PostUpdateSchemaType, tid: string) => {
+
+    const queryClient = getQueryClient();
+    const postKey = getQueryKeys("post_id", { id: pid });
+    const postsOfUserKey = getQueryKeys("postsOfUser_uid_filter", { uid, filter: "latest" });
+    const postsOfThreadKey = getQueryKeys("postsOfThread_tid_filter_category", { tid, filter: "latest", category: data.category || "none" });
+
+    return await performMutation({
+        mutationFn: () => ppUpdateData({ url: `post/${pid}`, data, uid }),
+        onMutate: () => updateDoc(postKey, data),
+        onSuccess: () => {
+            queryClient.refetchQueries({ queryKey: postsOfUserKey });
+            queryClient.refetchQueries({ queryKey: postsOfThreadKey });
+        },
+        onError: ({ context }) => {
+            appToast.error(
+                () => LinkToast({ title: `Failed to update your post`, href: `/post/${pid}` })
+            )
+            if (!context) return;
+
+            queryClient.setQueryData(postKey, context);
+        }
+    })
+}
+
+export const deletePostMutation = async (uid: string, pid: string, post: FullPost) => {
+    const queryClient = getQueryClient();
+
+    const postKey = getQueryKeys("post_id", { id: pid });
+    const postOfThreadKey = getQueryKeys("postsOfThread_tid_filter_category", { tid: post.thread_id, category: post.category, filter: "latest" })
+    const postsOfUserKey = getQueryKeys("postsOfUser_uid_filter", { uid: post.user_id, filter: "latest" });
+
+    await performMutation({
+        mutationFn: () => ppDeleteData(`post/${pid}`, uid),
+        onMutate: () => {
+            const post = queryClient.getQueryData(postKey);
+            queryClient.removeQueries({ queryKey: postKey });
+
+            return post;
+        },
+        onSuccess: () => {
+            queryClient.refetchQueries({ queryKey: postOfThreadKey });
+            queryClient.refetchQueries({ queryKey: postsOfUserKey });
+        },
+        onError: ({ context }) => {
+            appToast.error(
+                () => LinkToast({ title: `Failed to delete your post`, href: `/post/${pid}` })
+            )
+            if (!context) return;
+            queryClient.setQueryData(postKey, context);
+        }
+    })
+}
+
+export const blockUserMutation = async (uid: string, ruid: string) => {
+    const queryClient = getQueryClient();
+    const connectionKey = getQueryKeys("connection_ruid", { ruid });
+
+    await performMutation({
+        mutationFn: () => ppPostData({ url: `user/${ruid}/block`, uid }),
+        onMutate: () => {
+
+            const prevConnection = queryClient.getQueryData(connectionKey);
+
+            queryClient.setQueryData(connectionKey, {
+                followBack: false,
+                follows: false,
+                haveBlocked: true,
+                isBlocked: false,
+                notification: false
+            } as UserConnectionType);
+
+            return prevConnection;
+        },
+        onError: ({ context }) => {
+            appToast.error("Unable to block the user! Please try again");
+            if (context) {
+                queryClient.setQueryData(connectionKey, context);
+            }
+        }
+    })
+}
+
+export const acceptCollaboratorInvitation = async (sid: string) => {
+    const user = useCurrentUser.getState().meta;
+    if (!user) return;
+
+    const uid = user.user_id;
+    const queryClient = getQueryClient();
+
+    const collaboratorsKey = getQueryKeys("shelfCollaborators_sid", { sid });
+    const collaborativeShelvesKey = getQueryKeys("collaboratedShelvesOfUser_uid", { uid });
+    const notificationKeys = getQueryKeys("notifications_uid", { uid });
+
+    await performMutation({
+        mutationFn: () => ppUpdateData({ url: `shelf/${sid}/collaborators/action`, uid }),
+        onMutate: () => {
+
+            const notifications = updateDocInInfiniteQueryResult<NotificationModelType>(
+                notificationKeys,
+                ({ metadata, request_type }) => {
+                    return Boolean(metadata && request_type && "shelf_id" in metadata && metadata.shelf_id === sid && request_type === "collaborator_invitation")
+                },
+                { status: "accepted" }
+            );
+
+            const collaborators = updateDoc<ShelfCollaborators>(collaboratorsKey, (prev) => {
+                if (!prev) return;
+
+                return {
+                    ...prev,
+                    collaborators: [...prev.collaborators, { ...user, type: "collaborator" }]
+                }
+            });
+
+            return { collaborators, notifications }
+        },
+        onSuccess: () => {
+            queryClient.refetchQueries({ queryKey: collaborativeShelvesKey });
+        },
+        onError: ({ context }) => {
+            appToast.error(
+                () => LinkToast({ title: `Failed to accept collaborate invitation`, href: `/shelf/${sid}` })
+            );
+            if (!context) return;
+            queryClient.setQueryData(collaboratorsKey, context.collaborators);
+            queryClient.setQueryData(notificationKeys, context.notifications);
+        }
+    })
+}
+
+export const rejectCollaboratorInvitation = async (sid: string) => {
+    const user = useCurrentUser.getState().meta;
+    if (!user) return;
+
+    const uid = user.user_id;
+
+    const queryClient = getQueryClient();
+
+    const collaboratorsKey = getQueryKeys("shelfCollaborators_sid", { sid });
+    const notificationKeys = getQueryKeys("notifications_uid", { uid });
+
+    await performMutation({
+        mutationFn: () => ppDeleteData(`shelf/${sid}/collaborators/action`, uid),
+        onMutate: () => {
+            const notifications = updateDocInInfiniteQueryResult<NotificationModelType>(
+                notificationKeys,
+                ({ metadata, request_type }) => {
+                    return Boolean(metadata && request_type && "shelf_id" in metadata && metadata.shelf_id === sid && request_type === "collaborator_invitation")
+                },
+                { status: "denied" }
+            );
+
+            const collaborators = updateDoc<ShelfCollaborators>(collaboratorsKey, (prev) => {
+                if (!prev) return;
+
+                return {
+                    ...prev,
+                    collaborators: prev.collaborators.filter(({ user_id }) => user_id !== uid)
+                }
+            });
+
+            return { collaborators, notifications }
+        },
+        onError: ({ context }) => {
+            appToast.error(
+                () => LinkToast({ title: `Failed to reject collaborate invitation`, href: `/shelf/${sid}` })
+            )
+            if (!context) return;
+            queryClient.setQueryData(collaboratorsKey, context.collaborators);
+            queryClient.setQueryData(notificationKeys, context.notifications);
+        }
+    })
+}
+
+export const acceptManagerInvitation = async (tid: string) => {
+
+    const user = useCurrentUser.getState().meta;
+    if (!user) return;
+
+    const uid = user.user_id;
+    const queryClient = getQueryClient();
+
+    const managersKey = getQueryKeys("threadManagers_tid", { tid });
+    const notificationsKey = getQueryKeys("notifications_uid", { uid });
+    const createdThreadsKey = getQueryKeys("createdThreadsOfUser_uid", { uid });
+
+    await performMutation({
+        mutationFn: () => ppUpdateData({ url: `thread/${tid}/managers/action`, uid }),
+        onMutate: () => {
+
+            const notifications = updateDocInInfiniteQueryResult<NotificationModelType>(
+                notificationsKey,
+                ({ metadata, request_type }) => {
+                    return Boolean(metadata && request_type && "thread_id" in metadata && metadata.thread_id === tid && request_type === "manager_invitation")
+                },
+                { status: "accepted" }
+            );
+
+            const managers = updateDoc<ThreadModType>(managersKey, (prev) => {
+                if (!prev) return;
+                return {
+                    ...prev,
+                    managers: [{ ...user, role: "moderator" }, ...prev.managers]
+                }
+            });
+
+            return { managers, notifications }
+        },
+        onSuccess: () => {
+            queryClient.refetchQueries({ queryKey: createdThreadsKey });
+        },
+        onError: ({ context }) => {
+            appToast.error(
+                () => LinkToast({ title: `Failed to accept manager invitation`, href: `/thread/${tid}` })
+            )
+            if (!context) return;
+            queryClient.setQueryData(managersKey, context.managers);
+            queryClient.setQueryData(notificationsKey, context.notifications);
+        }
+    })
+}
+
+export const rejectManagerInvitation = async (tid: string) => {
+    const user = useCurrentUser.getState().meta;
+    if (!user) return;
+
+    const uid = user.user_id;
+
+    const queryClient = getQueryClient();
+
+    const managersKey = getQueryKeys("threadManagers_tid", { tid });
+    const notificationsKey = getQueryKeys("notifications_uid", { uid });
+
+    await performMutation({
+        mutationFn: () => ppDeleteData(`thread/${tid}/managers/action`, uid),
+        onMutate: () => {
+
+            const notifications = updateDocInInfiniteQueryResult<NotificationModelType>(
+                notificationsKey,
+                ({ metadata, request_type }) => {
+                    return Boolean(metadata && request_type && "thread_id" in metadata && metadata.thread_id === tid && request_type === "manager_invitation")
+                },
+                { status: "denied" }
+            );
+
+            const managers = updateDoc<ThreadModType>(managersKey, (prev) => {
+                if (!prev) return;
+
+                return {
+                    ...prev,
+                    managers: prev.managers.filter(({ user_id }) => user_id !== uid)
+                }
+            });
+
+            return { managers, notifications }
+        },
+        onError: ({ context }) => {
+            appToast.error(
+                () => LinkToast({ title: `Failed to reject manager invitation`, href: `/thread/${tid}` })
+            )
+            if (!context) return;
+            queryClient.setQueryData(managersKey, context.managers);
+            queryClient.setQueryData(notificationsKey, context.notifications);
+        }
+    })
+}
+
+export const inviteCollaboratorsMutation = async (sid: string, users: ShelfCollaborator[]) => {
+    const meta = useCurrentUser.getState().meta;
+    if (!meta) return;
+
+    const queryClient = getQueryClient();
+    const qkeys = getQueryKeys("shelfCollaborators_sid", { sid });
+
+    const ids = users.map(u => u.user_id);
+
+    await performMutation({
+        mutationFn: () => ppPostData({ url: `/shelf/${sid}/collaborators`, data: { users: ids }, uid: meta.user_id }),
+        onMutate: () => updateDoc<ShelfCollaborators>(qkeys, (old) => {
+            if (!old) return;
+            return {
+                ...old,
+                collaborators: [...old.collaborators, ...users],
+            }
+        }),
+        onError: ({ context }) => {
+            appToast.error(
+                () => LinkToast({ title: `Failed to invite collaborators`, href: `/shelf/${sid}/collaborators` })
+            )
+            if (!context) return;
+            queryClient.setQueryData(qkeys, context);
+        }
+
+    })
+}
+
+export const removeCollaboratorsMutation = async (sid: string, uid: string, data: { users: string[] }) => {
+    const qkey = getQueryKeys("shelfCollaborators_sid", { sid });
+    const queryClient = getQueryClient();
+    const usersMap = new Map(data.users.map(el => [el, true]));
+
+    await performMutation({
+        mutationFn: () => ppUpdateData({ url: `/shelf/${sid}/collaborators`, data, uid }),
+        onMutate: () => updateDoc<ShelfCollaborators>(qkey, (old) => {
+            if (!old) return;
+            return {
+                ...old,
+                collaborators: old.collaborators.filter(u => !usersMap.get(u.user_id)),
+            }
+        }),
+        onError: ({ context }) => {
+            appToast.error(
+                () => LinkToast({ title: `Failed to remove collaborators`, href: `/shelf/${sid}/collaborators` })
+            )
+            if (!context) return;
+            queryClient.setQueryData(qkey, context);
+        }
+    });
+}
+
+export const updateShelvesWithItem = async (
+    cinement_id: string,
+    cinement_type: "movie" | "show",
+    uid: string,
+    data: CinementToAddAndRemoveType,
+) => {
+
+    const removedShelvesMap = new Map<string, boolean>();
+
+    data.remove.forEach(shelf_id => {
+        removedShelvesMap.set(shelf_id, false);
+    });
+
+    const queryClient = getQueryClient();
+    const key = getQueryKeys("shelfsForCinement_cnid", { cnid: cinement_id });
+
+    await performMutation({
+        mutationFn: () => ppPostData({ url: `item/${cinement_id}`, data, uid }),
+        onMutate: () => {
+            const prevData = queryClient.getQueryData(key);
+
+            queryClient.setQueryData<ShelvesForCinement>(key, (old) => {
+                if (!old) return old;
+
+                return {
+                    shelves: [
+                        ...old.shelves,
+                        ...data.add
+                    ].filter(id => !removedShelvesMap.has(id)),
+                }
+
+            });
+
+            return prevData;
+        },
+        onError: ({ context }) => {
+
+            appToast.error(
+                () => LinkToast({ title: `Failed to add cinement in shelves`, href: `/explore/${cinement_type}/${cinement_id}` })
+            )
+
+            if (!context) return;
+            queryClient.setQueryData(key, context);
+        }
+    });
+}
+
+export const addItemsInShelf = async (sid: string, uid: string, items: CinementSchemaType[]) => {
+
+    const { meta } = useCurrentUser.getState();
+    if (!meta) throw new Error("Guest is trying to add items in a shelf");
+
+    const shelfItems: ShelfItemType[] = items.map(item => {
+        const { isConfirm, ...rest } = item;
+        return {
+            ...rest,
+            _id: item.cinement_id,
+            shelf_id: sid,
+            user_id: uid,
+            createdAt: Date.now(),
+            added_by: meta.username,
+        }
+    });
+
+    const shelfItemsKey = getQueryKeys("itemsOfShelf_sid_filter", { sid, filter: "latest" })
+
+    await performMutation({
+        mutationFn: () => ppPostData({ url: `shelf/${sid}`, data: { items }, uid }),
+        onMutate: () => addDocsInInfiniteQueryResult<ShelfItemType[]>(shelfItemsKey, shelfItems),
+        onError: ({ context }) => {
+            appToast.error(
+                () => LinkToast({ title: `Failed to add cinements in Shelf`, href: `/shelf/${sid}` })
+            )
+
+            if (context) setDoc(shelfItemsKey, context);
+        }
+    })
+}
+
+export const addItemInCollaborativeShelf = async (sid: string, uid: string, cinement: { id: string, type: "movie" | "show", ext_id: string }, isPrivate: boolean, shelfKey: string | undefined) => {
+    await performMutation({
+        mutationFn: () => ppPostData({ url: `shelf/${sid}/collaborate`, data: { cinement_id: cinement.id }, uid }),
+        onSuccess: () => {
+            if (isPrivate) refetchQueries(getQueryKeys("itemsOfPrivateShelf_sid_key_filter", { sid, key: shelfKey || "none", filter: "latest" }))
+            else refetchQueries(getQueryKeys("itemsOfShelf_sid_filter", { sid, filter: "latest" }))
+            appToast.success("Cinement added in shelf successfully.")
+        },
+        onError: ({ context }) => {
+            appToast.error(
+                () => LinkToast({ title: `Failed to add cinements in Shelf`, href: `/explore/${cinement.type}/${cinement.ext_id}` })
+            );
+        }
+    })
+}
+
+export const createShelfMutation = async (uid: string, shelf: ShelfSchemaType) => {
+    return await performMutation({
+        mutationFn: () => ppPostData<FullShelf>({ url: "shelf", data: shelf, uid }),
+        onSuccess: ({ data }) => {
+            const shelfKey = getQueryKeys("shelf_sid", { sid: data._id });
+            const cinements = shelf.items.map(item => item.ext_id);
+            const queryClient = getQueryClient();
+
+            queryClient.setQueryData(shelfKey, data);
+
+            cinements.forEach(cinement_id => {
+                const cinementKey = getQueryKeys("shelfsForCinement_cnid", { cnid: cinement_id })
+
+                queryClient.setQueryData<ShelvesForCinement>(cinementKey, (old) => {
+                    if (!old) return old;
+
+                    return {
+                        shelves: [...data._id, ...old.shelves]
+                    }
+
+                })
+
+            });
+        }
+    })
+}
+
+export const editShelfMutation = async (sid: string, uid: string, data: ShelfEditSchemaType) => {
+    const shelfKey = getQueryKeys("shelf_sid", { sid });
+    const itemsKey = getQueryKeys("itemsOfShelf_sid_filter", { sid, filter: "latest" });
+
+    return await performMutation({
+        mutationFn: () => ppUpdateData({ url: `shelf/${sid}`, data, uid }),
+        onSuccess: () => {
+            updateDoc<FullShelf>(shelfKey, (old) => {
+                if (!old) return;
+                return {
+                    ...old,
+                    name: data.name || old.name,
+                    isPrivate: data.isPrivate || old.isPrivate,
+                }
+            });
+
+            if (data.itemsToDelete) {
+                filterDocsInInfiniteQueryResult<ShelfItemType>(itemsKey, data.itemsToDelete);
+            }
+        }
+    })
+
+}
+
+export const updateShelfKeyMutation = async (sid: string, uid: string) => {
+
+    return await performMutation({
+        mutationFn: () => ppUpdateData({ url: `/shelf/${sid}/shelfkey`, uid }),
+        onSuccess: () => refetchQueries(getQueryKeys("shelf_sid", { sid })),
+    });
+}
+
+export const deleteShelfMutation = async (sid: string, uid: string) => {
+
+    const queryClient = getQueryClient();
+    const shelfKey = getQueryKeys("shelf_sid", { sid });
+    const createdShelvesKey = getQueryKeys("shelvesOfUser_uid_filter", { uid, filter: "latest" });
+
+    await performMutation({
+        mutationFn: () => ppDeleteData(`shelf/${sid}`, uid),
+        onMutate: () => {
+            const shelf = queryClient.getQueryData(shelfKey);
+            queryClient.removeQueries({ queryKey: shelfKey });
+            return shelf;
+        },
+        onSuccess: () => {
+            queryClient.refetchQueries({ queryKey: createdShelvesKey });
+        },
+        onError: ({ context }) => {
+            appToast.error(
+                () => LinkToast({ title: `Failed to delete shelf`, href: `/shelf/${sid}` })
+            )
+
+            if (!context) return;
+            queryClient.setQueryData(shelfKey, context);
+        }
+    })
+}
+
+export const banMembersMutation = async (tid: string, uid: string, users: MereUser[]) => {
+    const queryClient = getQueryClient();
+
+    const qkey = getQueryKeys("bannedMembers_tid", { tid });
+    const uids = users.map(u => u._id);
+
+    await performMutation({
+        mutationFn: () => ppUpdateData({ url: `thread/${tid}/banned`, uid, data: { users: uids } }),
+        onMutate: () => addDocsInInfiniteQueryResult(qkey, users),
+        onSuccess: () => {
+            queryClient.refetchQueries({ queryKey: qkey });
+        },
+        onError: ({ context }) => {
+            appToast.error(
+                () => LinkToast({ title: `Failed to ban members`, href: `/thread/${tid}/settings/banned` })
+            )
+            if (!context) return;
+            queryClient.setQueryData(qkey, context);
+        }
+    });
+}
+
+export const unbanMembersMutation = async (tid: string, uid: string, data: { users: string[] }) => {
+    const queryClient = getQueryClient();
+
+    const qkey = getQueryKeys("bannedMembers_tid", { tid });
+
+    await performMutation({
+        mutationFn: () => ppPostData({ url: `thread/${tid}/banned`, uid, data }),
+        onMutate: () => filterDocsInInfiniteQueryResult(qkey, data.users),
+        onError: ({ context }) => {
+            appToast.error(
+                () => LinkToast({ title: `Failed to unban members`, href: `/thread/${tid}/settings/banned` })
+            )
+            if (!context) return;
+            queryClient.setQueryData(qkey, context);
+        }
+    });
+}
+
+export const createThreadMutation = async (tid: string, uid: string, thread: ThreadSchemaServer) => {
+
+    const threadKey = getQueryKeys("thread_id", { id: tid });
+
+    return await performMutation({
+        mutationFn: () => ppPostData({ url: "thread", data: thread, uid }),
+        onSuccess: ({ data }) => setDoc(threadKey, data),
+    });
+}
+
+export const editThreadMutation = async (tid: string, uid: string, updatedData: ThreadUpdateSchema) => {
+
+    const threadKey = getQueryKeys("thread_id", { id: tid });
+
+    return await performMutation({
+        mutationFn: () => ppUpdateData({ url: `thread/${tid}`, data: updatedData, uid }),
+        onSuccess: ({ data }) => setDoc(threadKey, data)
+    })
+
+}
+
+export const inviteManagersMutation = async (tid: string, uid: string, users: ModeratorType[]) => {
+    const queryClient = getQueryClient();
+
+    const qkey = getQueryKeys("threadManagers_tid", { tid });
+    const uids = users.map(u => u.user_id);
+
+    await performMutation({
+        mutationFn: () => ppPostData({ url: `thread/${tid}/managers`, uid, data: { users: uids } }),
+        onMutate: () => updateDoc<ThreadModType>(qkey, (prev) => {
+            if (!prev) return;
+
+            return {
+                ...prev,
+                managers: [...users, ...prev.managers]
+            }
+        }),
+        onError: ({ context }) => {
+            appToast.error(
+                () => LinkToast({ title: `Failed to invite managers`, href: `/thread/${tid}/settings/managers` })
+            )
+            if (!context) return;
+            queryClient.setQueryData(qkey, context);
+        }
+    });
+}
+
+export const removeManagersMutation = async (tid: string, uid: string, data: { users: string[] }) => {
+    const queryClient = getQueryClient();
+
+    const qkey = getQueryKeys("bannedMembers_tid", { tid });
+    const idMap = new Map(data.users.map(u => ([u, true])));
+
+    await performMutation({
+        mutationFn: () => ppUpdateData({ url: `thread/${tid}/managers`, uid, data }),
+        onMutate: () => updateDoc<ThreadModType>(qkey, (prev) => {
+            if (!prev) return;
+
+            return {
+                ...prev,
+                manager: prev.managers.filter(manager => !idMap.has(manager.user_id))
+            }
+        }),
+        onError: ({ context }) => {
+            appToast.error(
+                () => LinkToast({ title: `Failed to remove managers`, href: `/thread/${tid}/settings/managers` })
+            )
+            if (!context) return;
+            queryClient.setQueryData(qkey, context);
+        }
+    });
+}
+
+export const createRoomMutation = async (rmid: string, room: RoomSchemaType & { display_name: string, poster: string | undefined }, ruid: string | undefined) => {
+
+    const { meta } = useCurrentUser.getState();
+    const { updateRoom } = useRoomStore.getState();
+
+    if (!meta) throw new Error("Guest is trying to create a room");
+
+    const { display_name, poster, ...dataToPost } = room;
+
+    const { user_id, username } = meta;
+    const uid = user_id;
+    const now = Date.now();
+
+    const invitationMessage = {
+        content: room.inviteMessage,
+        createdAt: now,
+        user_id,
+        username,
+    }
+
+    const roomForRoomList: Omit<MereRoomType, "type"> = {
+        display_name,
+        lastMessage: room.inviteMessage,
+        lastMessageAt: now,
+        lastMessageBy: user_id,
+        mute: false,
+        otherParticipant_id: ruid,
+        otherParticipant_seenAt: undefined,
+        seenAt: now,
+        poster,
+        room_id: rmid,
+        createdAt: now,
+    }
+
+    const roomToSet: FullRoomType = {
+        ...roomForRoomList,
+        display_name,
+        participant_count: 1,
+        poster,
+        _id: rmid,
+        type: room.type,
+        invitationMessage,
+        participantType: "creator",
+        createdAt: now,
+    }
+
+    const messageToSet: MereMessage = {
+        ...invitationMessage,
+        _id: parloId(),
+        room_id: rmid,
+        status: "sending",
+    }
+
+    const roomKey = getQueryKeys("room_rmid_uid", { rmid, uid });
+    const roomListKey = getQueryKeys("rooms_uid", { uid });
+    const messagesKey = getQueryKeys("messages_rmid", { rmid });
+
+    await performMutation({
+        mutationFn: () => ppPostData({ url: `room/${rmid}`, uid, data: dataToPost }),
+        onMutate: () => {
+            const roomList = addDocsInInfiniteQueryResult(roomListKey, rmid);
+
+            updateRoom({ ...roomForRoomList, type: "creator" }, rmid);
+
+            setDoc(roomKey, roomToSet);
+            addDocsInInfiniteQueryResult(messagesKey, messageToSet);
+
+            return roomList;
+        },
+        onSuccess: () => {
+            refetchQueries(roomListKey);
+            updateDocInInfiniteQueryResult<MereMessage>(
+                messagesKey,
+                (m) => m._id === messageToSet._id,
+                { status: "sent" }
+            );
+        },
+        onError: ({ context }) => {
+            if (ruid) {
+                appToast.error(
+                    () => LinkToast({ title: `Unable to create room with ${display_name}`, href: `/user/${display_name}` })
+                )
+            } else {
+                appToast.error(
+                    () => LinkToast({ title: `Unable to create group "${display_name}"`, href: `/inbox` })
+                )
+            }
+
+            if (!context) return;
+            setDoc(roomListKey, context);
+            deleteQueires([roomKey, messagesKey]);
+        }
+    });
+}
+
+export const acceptRoomInvitation = async (rmid: string, uid: string, room: FullRoomType) => {
+
+    const invitationListKey = getQueryKeys("roomInvitations_uid", { uid });
+    const roomListKey = getQueryKeys("rooms_uid", { uid });
+    const roomKey = getQueryKeys("room_rmid_uid", { rmid, uid });
+
+    const { updateRoom } = useRoomStore.getState();
+
+    await performMutation({
+        mutationFn: () => ppUpdateData({ url: `room/${rmid}/invitation`, uid }),
+        onMutate: () => {
+            const invitations = filterDocsInInfiniteQueryResult<MereRoomType>(invitationListKey, [], (room) => room.room_id !== rmid);
+            const roomList = addDocsInInfiniteQueryResult(roomListKey, rmid);
+            const roomData = updateDoc<FullRoomType>(roomKey, { participantType: "participant" });
+
+            const { type, ...rest } = room;
+
+            updateRoom({ ...rest, room_id: rmid, type: room.participantType }, rmid);
+
+            return { invitations, roomList, roomData }
+        },
+        onError: ({ context }) => {
+            if (!context) return;
+            appToast.error(
+                () => LinkToast({ title: `Failed to accept room invitation`, href: `/inbox/${rmid}` })
+            );
+            setDoc(invitationListKey, context.invitations);
+            setDoc(roomListKey, context.roomList);
+            setDoc(roomKey, context.roomData);
+        }
+    })
+
+}
+
+export const rejectRoomInvitation = async (rmid: string, uid: string) => {
+
+    const invitationListKey = getQueryKeys("roomInvitations_uid", { uid });
+
+    await performMutation({
+        mutationFn: () => ppDeleteData(`room/${rmid}/participant`, uid),
+        onMutate: () => filterDocsInInfiniteQueryResult(invitationListKey, [rmid]),
+        onError: ({ context }) => {
+            if (!context) return;
+            appToast.error(
+                () => LinkToast({ title: `Failed to reject room invitation`, href: `/inbox/${rmid}` })
+            );
+            setDoc(invitationListKey, context);
+        }
+    })
+}
+
+export const showMessageOptimistically = ({ message, room, uid }: {
+    message: MereMessage,
+    room: {
+        display_name: string;
+        poster?: string | undefined;
+        mute: boolean;
+    },
+    uid: string,
+}) => {
+
+    const roomKey = getQueryKeys("rooms_uid", { uid: uid });
+    const { room_id } = message;
+
+    const roomToUpdate = useRoomStore.getState().room[room_id];
+    const { updateRoom } = useRoomStore.getState();
+
+    if (roomToUpdate) {
+        updateRoom({
+            lastMessage: message.content,
+            lastMessageAt: message.createdAt,
+            lastMessageBy: message.user_id,
+        }, room_id);
+    } else {
+        updateRoom({
+            display_name: room.display_name,
+            poster: room.poster,
+            lastMessage: message.content,
+            lastMessageAt: message.createdAt,
+            lastMessageBy: message.user_id,
+            otherParticipant_id: message.user_id,
+            otherParticipant_seenAt: message.createdAt,
+            room_id,
+            type: "participant",
+            seenAt: Date.now() - oneHour,
+            mute: room.mute,
+        }, room_id)
+    }
+
+    addDocsInInfiniteQueryResult<MereMessage>(
+        getQueryKeys("messages_rmid", { rmid: message.room_id }),
+        message,
+    );
+
+    addDocsInInfiniteQueryResult(roomKey, room_id);
+
+}
+
+export const sendMessage = async (rmid: string, uid: string, message: MessageSchemaType) => {
+    const messageListKey = getQueryKeys("messages_rmid", { rmid });
+
+    await performMutation({
+        mutationFn: () => ppPostData({ url: `room/${rmid}/message`, uid, data: message }),
+        onMutate: () => addDocsInInfiniteQueryResult<MereMessage>(messageListKey, {
+            ...message,
+            status: "sending",
+            room_id: rmid,
+            user_id: uid
+        }),
+        onSuccess: () => updateDocInInfiniteQueryResult<MereMessage>(
+            messageListKey,
+            (m) => m._id === message._id,
+            { status: "sent" }
+        ),
+        onError: () => updateDocInInfiniteQueryResult<MereMessage>(
+            messageListKey,
+            (m) => m._id === message._id,
+            { status: "error" }
+        ),
+    })
+}
+
+export const updateParticipantSeenAt = async (rmid: string, uid: string) => {
+
+    const roomKey = getQueryKeys("room_rmid_uid", { rmid, uid });
+
+    const { updateRoom } = useRoomStore.getState();
+
+    await performMutation({
+        mutationFn: () => ppUpdateData({ url: `room/${rmid}/participant`, uid }),
+        onMutate: () => {
+            updateDoc<FullRoomType>(roomKey, { seenAt: Date.now() });
+
+            updateRoom({ seenAt: Date.now() }, rmid);
+
+        }
+    })
+}
+
+export const unsendMessage = async (rmid: string, msgid: string, uid: string) => {
+
+    const messagesKey = getQueryKeys("messages_rmid", { rmid });
+
+    await performMutation({
+        mutationFn: () => ppDeleteData(`room/${rmid}/message/${msgid}`, uid),
+        onMutate: () => filterDocsInInfiniteQueryResult<MereMessage>(messagesKey, [msgid]),
+        onError: ({ context }) => {
+            appToast.error(
+                () => LinkToast({ title: `Failed to unsend message`, href: `/inbox/${rmid}` })
+            );
+
+            if (context) setDoc(messagesKey, context);
+        }
+    })
+
+}
+
+export const updateNotificationOfRoom = async (rmid: string, uid: string, newState: boolean) => {
+    const roomKey = getQueryKeys("room_rmid_uid", { rmid, uid })
+
+    await performMutation({
+        mutationFn: () => ppUpdateData({ url: `room/${rmid}/notification`, data: { notification: newState }, uid }),
+        onMutate: () => updateDoc<FullRoomType>(roomKey, { mute: newState }),
+        onError: ({ context }) => {
+            appToast.error(
+                () => LinkToast({ title: `Failed to update notification of room`, href: `/inbox/${rmid}` })
+            );
+            setDoc(roomKey, context);
+        }
+    })
+}
+
+export const leaveRoom = async (rmid: string, uid: string) => {
+    const roomListKey = getQueryKeys("rooms_uid", { uid });
+    const roomKey = getQueryKeys("room_rmid_uid", { rmid, uid });
+    const messagesKey = getQueryKeys("messages_rmid", { rmid });
+
+    await performMutation({
+        mutationFn: () => ppDeleteData(`room/${rmid}/participant`, uid),
+        onMutate: () => filterDocsInInfiniteQueryResult(roomListKey, [rmid]),
+        onSuccess: () => {
+            deleteQueires([roomKey, messagesKey])
+        },
+        onError: ({ context }) => {
+            appToast.error(
+                () => LinkToast({ title: `Failed to leave room`, href: `/inbox/${rmid}` })
+            );
+            setDoc(roomListKey, context);
+        }
+    })
+}
+
+export const hideRoom = async (rmid: string, uid: string) => {
+    const roomListKey = getQueryKeys("rooms_uid", { uid });
+    const roomKey = getQueryKeys("room_rmid_uid", { rmid, uid });
+    const messagesKey = getQueryKeys("messages_rmid", { rmid });
+
+    await performMutation({
+        mutationFn: () => ppUpdateData({ url: `room/${rmid}/hide`, uid }),
+        onMutate: () => filterDocsInInfiniteQueryResult(roomListKey, [rmid]),
+        onSuccess: () => {
+            deleteQueires([roomKey, messagesKey])
+        },
+        onError: ({ context }) => {
+            appToast.error(
+                () => LinkToast({ title: `Failed to leave room`, href: `/inbox/${rmid}` })
+            );
+            setDoc(roomListKey, context);
+        }
+    })
+}
+
+export const inviteParticipants = async (rmid: string, uid: string, participants: string[]) => {
+    await performMutation({
+        mutationFn: () => ppPostData({ url: `room/${rmid}/participant/invite`, uid, data: { users: participants } }),
+        onError: () => {
+            appToast.error(
+                () => LinkToast({ title: `Failed to invite participants`, href: `/inbox/${rmid}/participants` })
+            );
+        }
+    })
+}
+
+export const removeParticipants = async (rmid: string, uid: string, participants: string[]) => {
+
+    const participantsKey = getQueryKeys("participantsOfRoom_rmid_uid", { rmid, uid });
+    await performMutation({
+        mutationFn: () => ppPostData({ url: `room/${rmid}/participant/remove`, uid, data: { users: participants } }),
+        onMutate: () => filterDocsInInfiniteQueryResult(participantsKey, participants),
+        onError: ({ context }) => {
+            appToast.error(
+                () => LinkToast({ title: `Failed to remove participants`, href: `/inbox/${rmid}/participants` })
+            );
+
+            if (context) setDoc(participantsKey, context);
+        }
+    })
+}
+
+export const updateUser = async (update: UserUpdateSchemaType) => {
+
+    const { meta, setUserMeta, user, setUser } = useCurrentUser.getState();
+    if (!meta || !user) throw new Error("Guest is trying to update their profile");
+
+    const uid = meta.user_id;
+    const { username } = meta;
+
+    return await performMutation({
+        mutationFn: () => ppUpdateData({ url: "user", data: update, uid }),
+        onSuccess: ({ data }: { data: CurrentUser }) => {
+
+            setUser({ ...user, ...data })
+
+            updateDoc(getQueryKeys("user_username", { username }), data);
+
+            if ("dob" in data || "profile" in data || "filterContent" in data) {
+
+                const { dob, profile, filterContent } = data;
+                setUserMeta({
+                    ...meta,
+                    ...(dob && { dob }),
+                    ...(profile && { profile }),
+                    ...(filterContent && { filterContent })
+                })
+            }
+
+            appToast.success("Profile updated successfully");
+
+        }
+    })
+
+}
+
+export const updateUsername = async (update: Omit<UsernameUpdateSchemaType, | "fingerprint">) => {
+    const { meta, setUserMeta, user, setUser } = useCurrentUser.getState();
+    if (!meta || !user) throw new Error("Guest is trying to update their profile");
+
+    const uid = meta.user_id;
+
+    const fingerprint = await generateFingerprint();
+
+    return await performMutation({
+        mutationFn: () => ppUpdateData({ url: "user/creds/username", data: { ...update, fingerprint }, uid }),
+        onSuccess: () => {
+            const { username } = update;
+
+            setDoc(getQueryKeys("user_username", { username }), { ...user, username });
+
+            setUser({ ...user, username })
+
+            deleteQueires(getQueryKeys("user_username", { username: meta.username }));
+
+            setUserMeta({ ...meta, username });
+
+            appToast.success("Username updated successfully");
+        }
+    })
+}
+
+export const updateEmail = async (update: Omit<EmailUpdateSchemaType, "fingerprint">) => {
+    const { meta, user, setUser } = useCurrentUser.getState();
+    if (!meta || !user) throw new Error("Guest is trying to update their profile");
+
+    const uid = meta.user_id;
+
+    const fingerprint = await generateFingerprint();
+
+    return await performMutation({
+        mutationFn: () => ppUpdateData({ url: "user/creds/email", data: { ...update, fingerprint }, uid }),
+        onSuccess: () => {
+            setUser({ ...user, email: update.email });
+        }
+    })
+}
+
+export const toggleContentFiltering = async () => {
+    const { meta, user, setContentFiltering } = useCurrentUser.getState();
+    if (!meta || !user) throw new Error("Guest is trying to update content filtering");
+
+    const uid = meta.user_id;
+    await performMutation({
+        mutationFn: () => ppUpdateData({ url: "user/content_filtering", uid }),
+        onSuccess: () => setContentFiltering(!user.filterContent),
+        onError: () => {
+            appToast.error(
+                () => LinkToast({ title: `Failed to toggle content filtering`, href: `/settings/filter_content` })
+            );
+        }
+    })
+
+}
+
+const removeUser = () => {
+    useCurrentUser.getState().clearUser();
+    getQueryClient().clear();
+    offlineStore.getState().clear();
+}
+
+export const logoutUser = async () => {
+    await performMutation({
+        mutationFn: () => axios.delete(`${getLocalUrl()}/api/v1/user/logout`),
+        onMutate: removeUser
+    });
+}
+
+export const deactivateAccount = async (uid: string, passkey: string) => {
+    return await performMutation({
+        mutationFn: () => ppUpdateData({ url: "user/deactivate", uid, data: { passkey } }),
+        onSuccess: removeUser
+    });
+}
+
+export const deleteAccount = async (uid: string, reason: string, passkey: string) => {
+    return await performMutation({
+        mutationFn: () => ppUpdateData({ url: "user/delete_account", uid, data: { passkey, reason } }),
+        onSuccess: removeUser
+    });
+}
+
+export const updateFeedViewed = async (uid: string, posts: string[]) => {
+    await ppPostData({ url: `user/feed/viewed`, uid, data: { posts } })
+}
+
+export const invalidateSession = async (data: SessionInvalidationServerSchemaType) =>
+    await trycatch<GeneralPostReturn>(() =>
+        axios.patch(
+            `${getLocalUrl()}/api/v1/user/login`,
+            objectToFormData(data)
+        )
+            .then((r) => r.data)
+    );
+
+export const joinThread = async (tid: string, uid: string) => {
+    const resp = await ppPostData({
+        url: `thread/${tid}/member`,
+        data: null,
+        uid,
+    });
+
+    return handleErrorFromMutation(resp);
+}
+
+export const leaveThread = async (tid: string, uid: string) => {
+    const resp = await ppDeleteData(`thread/${tid}/member`, uid);
+
+    return handleErrorFromMutation(resp);
+}
+
+export const changeThreadNotification = async (tid: string, uid: string, newState: boolean) => {
+    const resp = await ppUpdateData({
+        url: `thread/${tid}/member`,
+        uid,
+        data: { notification: newState },
+    });
+
+    return handleErrorFromMutation(resp);
+}
+
+export const addReactionOnPost = async (uid: string, pid: string, reaction: string) => {
+    const resp = await ppPostData({
+        url: `post/${pid}/reaction`,
+        data: { reaction },
+        uid,
+    });
+
+    return handleErrorFromMutation(resp);
+}
+
+export const removeReactionOnPost = async (pid: string, uid: string) => {
+    const resp = await ppDeleteData(`post/${pid}/reaction`, uid);
+
+    return handleErrorFromMutation(resp);
+}
+
+export const likeComment = async (cid: string, uid: string, data: LikeSchemaType) => {
+    const resp = await ppPostData({
+        url: `comment/${cid}/like`,
+        data,
+        uid,
+    });
+
+    return handleErrorFromMutation(resp);
+}
+
+export const dislikeComment = async (cid: string, uid: string) => {
+    const resp = await ppDeleteData(`comment/${cid}/like`, uid);
+
+    return handleErrorFromMutation(resp);
+}
+
+export const saveItem = async (data: BookmarkSchemaType, uid: string) => {
+    const resp = await ppPostData({
+        url: "bookmark",
+        data,
+        uid,
+    });
+
+    return handleErrorFromMutation(resp);
+}
+
+export const unsaveItem = async (id: string, uid: string) => {
+    const resp = await ppDeleteData(`bookmark/${id}`, uid);
+
+    return handleErrorFromMutation(resp);
+}
+
+export const follow = async (uid: string, rid: string) => {
+    const resp = await ppPostData({
+        url: `user/${rid}/follow`,
+        data: null,
+        uid,
+    });
+
+    return handleErrorFromMutation(resp);
+}
+
+export const blockUser = async (uid: string, rid: string) => {
+    const resp = await ppPostData({
+        url: `user/${rid}/block`,
+        data: null,
+        uid,
+    });
+
+    return handleErrorFromMutation(resp);
+}
+
+export const unfollow = async (uid: string, rid: string) => {
+    const resp = await ppDeleteData(`user/${rid}/follow`, uid);
+
+    return handleErrorFromMutation(resp);
+}
+
+export const unblock = async (uid: string, rid: string) => {
+    const resp = await ppDeleteData(`user/${rid}/block`, uid);
+
+    return handleErrorFromMutation(resp);
+}
+
+export const modifyUserNotification = async (
+    uid: string,
+    rid: string,
+    data: { notification: boolean }
+) => {
+    const resp = await ppUpdateData({
+        url: `user/${rid}/follow`,
+        data,
+        uid,
+    });
+
+    return handleErrorFromMutation(resp);
+}
+
+export const removeFollower = async (uid: string, rid: string) => {
+    const resp = await ppDeleteData(`user/${rid}/follower`, uid);
+
+    return handleErrorFromMutation(resp);
+}
+
+export const actionOnReportedContents = async (tid: string, uid: string, data: ReportActionSchemaType) => {
+    const resp = await ppUpdateData({
+        url: `report/${tid}`,
+        uid,
+        data,
+    });
+
+    return handleErrorFromMutation(resp);
+}

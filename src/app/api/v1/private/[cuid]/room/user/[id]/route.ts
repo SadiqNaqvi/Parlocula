@@ -1,11 +1,11 @@
-import { getRequest } from "@lib/helpers/common";
+import { getHandler } from "@lib/helpers/handlers";
 import Room from "@model/rooms";
 
-export const GET = getRequest(async (_, params) => {
+// Check if there is a room with the requested user and the current user.
+export const GET = getHandler(async (_, params) => {
   const { cuid, id } = params;
 
   const room = await Room.findOne({
-    type: "private",
     participants: [id, cuid].sort(),
   });
 

@@ -1,9 +1,12 @@
 import { CheckBoxIcon, EmptyBoxIcon } from "@assets/Icons";
+import { getPoster } from "@lib/utils";
+import { Frame } from "@type/internal";
 import Image from "next/image";
+import { ParloImage } from "./ui";
 
 type Props = {
     title: string,
-    poster?: string,
+    poster?: string | Frame,
     className?: string,
     onClick?: (...arg: any) => any,
     showCheckBox?: boolean,
@@ -14,7 +17,14 @@ const GeneralTile = ({ title, className = "", poster, onClick, checked, showChec
     return (
         <div className={className + " flex gap-2 items-center"} onClick={onClick}>
             <div className="flex items-center gap-3">
-                {poster && <Image className="size-12 object-cover rounded-md " width={50} height={50} alt={`Poster of ${title}`} src={poster} />}
+                {poster && (
+                    <ParloImage
+                        className="object-cover rounded-md"
+                        size={50}
+                        alt={`Poster of ${title}`}
+                        frame={poster}
+                    />
+                )}
                 <h3>{title}</h3>
             </div>
             {showCheckBox && (

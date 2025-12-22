@@ -1,4 +1,6 @@
-import { getRequest } from "@lib/helpers/common";
+import { getHandler } from "@lib/helpers/handlers";
 import { searchHandler } from "@lib/pipelines";
 
-export const GET = getRequest(async (r) => await searchHandler({ r, collection: "threads" }));
+export const GET = getHandler(async (r) =>
+    await searchHandler({ r, filters: [], applyNsfwCheck: true, type: "threads" })
+);

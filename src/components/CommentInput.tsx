@@ -4,19 +4,17 @@ import { SendIcon, XmarkIcon } from "@assets/Icons";
 import BottomSheet, { BottomSheetRef } from "@components/BottomSheet";
 import { Form, Input, ToggleButton } from "@components/form";
 import GiphyComponent from "@components/GiphyComponent";
-import { createCommentOnPost, updateComment } from "@lib/helpers/client";
-import { addingItemsMutation, setDataMutation } from "@lib/mutation";
-import { getQueryClient } from "@lib/queryClient";
-import { checkEditedFields, getQueryKeys } from "@lib/utils";
-import useGlobalState from "@store/globalStore";
+import { createCommentMutation, updateCommentMutation } from "@lib/helpers/mutations";
+import { checkEditedFields, parloId } from "@lib/utils";
+import useGlobalStore from "@store/globalStore";
 import useCurrentUser from "@store/user";
-import { useMutation } from "@tanstack/react-query";
-import { FullComment, MessageReplyType } from "@type/internal";
-import { CommentSchemaType, CommentSchemaUpdateType } from "@type/schemas";
+import { CommentReplyType, FullComment, MessageReplyType } from "@type/internal";
+import { nanoid } from "nanoid";
+import Image from "next/image";
 import { useRef, useState } from "react";
 
 type Props = {
-    qkeys: (string | number)[]
+    section: "replies" | "comments",
     post_id: string,
     post_author: string,
 } & ({
@@ -29,46 +27,46 @@ type Props = {
     cid: string,
 });
 
-type UpdateCommentMutationProp = {
-    cid: string,
-    uid: string,
-    comment: CommentSchemaUpdateType
+type CommentFormData = {
+    content: string,
+    nsfw: boolean,
+    spoiler: boolean
 }
 
-const CommentInput = ({ post_author, post_id, qkeys, editing, defaultValue, cid }: Props) => {
+type ParentCommentType = (CommentReplyType & { replied_to: string });
 
-    const { meta, user } = useCurrentUser();
+const ReplyBar = ({ reply }: { reply: ParentCommentType | undefined }) => {
+
+    if (!reply || !reply.replied_to || !(reply.attachment || reply.content)) return null;
+
+    const { attachment, content } = reply;
+
+    if (!content && attachment) return (
+        <div className="space-y-3 p-2 border border-gray20 rounded-md w-full">
+            <Image
+                height={48}
+                width={48}
+                alt="GIF attached with the comment"
+                src={attachment}
+                className="object-contain size-12 rounded-md"
+            />
+        </div>
+    )
+
+    else if (content) return (
+        <div className="space-y-3 p-2 border border-gray20 rounded-md w-full">
+            <p className="text-sm line-clamp-2">{content}</p>
+        </div>
+    )
+
+}
+
+const CommentInput = ({ post_author, post_id, section, editing, defaultValue, cid }: Props) => {
+
+    const { meta } = useCurrentUser();
     const [gif, toggleGif] = useState(defaultValue?.attachment || "");
-    const queryClient = getQueryClient();
-    const [reply, setReply] = useGlobalState<MessageReplyType | undefined>(`reply:post:${post_id}`, undefined);
-    const gifRef = useRef<BottomSheetRef>();
-
-    const postCommentMutation = useMutation({
-        mutationFn: ({ comment, user_id }: { comment: CommentSchemaType, user_id: string }) =>
-            createCommentOnPost(comment, user_id),
-        onMutate: ({ comment }) => addingItemsMutation(
-            {
-                ...comment, profile: user?.profile,
-                createdAt: Date.now(),
-                updatedAt: Date.now()
-            },
-            qkeys,
-            queryClient,
-        ),
-        onError: (e, v, c) => {
-            queryClient.setQueryData(qkeys, c?.previousState);
-        }
-    });
-
-    const updateCommentMutation = useMutation({
-        mutationFn: ({ cid, uid, comment }: UpdateCommentMutationProp) => updateComment(cid, uid, comment),
-        onMutate: ({ cid, comment }) => setDataMutation(
-            comment,
-            getQueryKeys("comment_cid", { cid }),
-            queryClient
-        ),
-        onError: (e, v, c) => setDataMutation(c?.previousState, getQueryKeys("comment_cid", { cid: v.cid }), queryClient),
-    });
+    const [reply, setReply] = useGlobalStore<ParentCommentType | undefined>(`reply:post:${post_id}`, undefined);
+    const gifSheetRef = useRef<BottomSheetRef>();
 
     if (!meta) return (
         <footer style={{ maxWidth: "100%" }} className="py-2 bg-primary fixed bottom-0 w-full">
@@ -80,43 +78,44 @@ const CommentInput = ({ post_author, post_id, qkeys, editing, defaultValue, cid 
 
     const setGif = (data: any) => {
         toggleGif(data.images.fixed_height.webp);
-        gifRef.current?.close();
+        gifSheetRef.current?.close();
     }
 
     const removeReply = () => setReply(undefined)
 
-    const handleCommentEdit = (newData: any) => {
+    const handleCommentEdit = (newData: Partial<CommentFormData>) => {
         if (!defaultValue || !editing || !cid) return;
+
         const updatedValues = checkEditedFields(defaultValue, newData);
-        updateCommentMutation.mutate({
-            cid,
-            uid: meta.user_id,
-            comment: updatedValues,
-        });
+
+        updateCommentMutation(cid, meta.user_id, updatedValues, post_id);
     }
 
-    const postComment = async (formData: any) => {
+    const postComment = async (formData: CommentFormData) => {
 
         const { content, nsfw, spoiler } = formData;
         if (content.length < 2 && !gif) return;
 
         if (editing) return handleCommentEdit(formData);
 
+        const parent = reply ? { content: reply.content, attachment: reply.attachment } : undefined;
         const date = new Date();
         const comment = {
+            _id: parloId(),
             post_author,
             post_id,
             content,
-            upvote_count: 0,
+            likes_count: 0,
             createdAt: date,
             updatedAt: date,
             attachment: gif,
             nsfw, spoiler,
             username: meta.username,
-            ...(reply ?? {})
+            replied_to: reply?.replied_to,
+            parent
         };
 
-        postCommentMutation.mutate({ comment, user_id: meta.user_id });
+        createCommentMutation(comment, meta.user_id, section);
 
         removeReply();
     }
@@ -125,19 +124,8 @@ const CommentInput = ({ post_author, post_id, qkeys, editing, defaultValue, cid 
         <footer style={{ maxWidth: "100%" }} className="py-2 bg-primary fixed bottom-0 w-full">
 
             <div className="w-full max-w-screen-md mx-auto">
-                {reply &&
-                    <div className="flex gap-3 text-sm flex-cntr-between px-4 py-2 rounded-t-md border border-b-0 border-gray30">
-                        <p className="line-clamp-1">
-                            {reply.replied_content}
-                        </p>
-                        <button
-                            onClick={removeReply}
-                            className="smallBtn p-2 rounded-full bg-gray10"
-                        >
-                            <XmarkIcon className="size-2" />
-                        </button>
-                    </div>
-                }
+
+                <ReplyBar reply={reply} />
 
                 <div className="border-t space-y-3 pt-2 border-gray30">
 
@@ -148,7 +136,13 @@ const CommentInput = ({ post_author, post_id, qkeys, editing, defaultValue, cid 
                                 className="smallBtn size-6 flex flex-cntr-all border border-gray30 bg-primary rounded-full absolute top-0 right-0 mt-1 mr-1">
                                 <XmarkIcon className="size-3" />
                             </button>
-                            <img src={gif} alt="Chosen GIF" className="size-24 rounded-md border border-gray30" />
+                            <Image
+                                src={gif}
+                                alt="Chosen GIF"
+                                className="size-24 rounded-md border border-gray30"
+                                height={96}
+                                width={96}
+                            />
                         </div>
                     )}
 
@@ -170,7 +164,7 @@ const CommentInput = ({ post_author, post_id, qkeys, editing, defaultValue, cid 
 
                                 <div className="flex gap-4 py-2 items-center">
 
-                                    <BottomSheet ref={gifRef} button="GIF" className="text-sm py-1 px-2 rounded-md border border-gray40">
+                                    <BottomSheet ref={gifSheetRef} button="GIF" className="text-sm py-1 px-2 rounded-md border border-gray40">
                                         <GiphyComponent callback={setGif} />
                                     </BottomSheet>
 

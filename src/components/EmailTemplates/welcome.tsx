@@ -29,9 +29,9 @@ const WelcomeEmail = ({ passkey }: { passkey: string }) => (
                         />
                     </Section>
                     <Section style={upperSection}>
-                        <Heading style={h1}>Welcome To Popcorn Paragon</Heading>
+                        <Heading style={h1}>Welcome To Parlocula</Heading>
                         <Text style={mainText}>
-                            Thanks for joining Popcorn Paragon. Take all the benefits of being a user over guests, like creating a thread, making posts, interacting with others using comment or direct message.
+                            Thanks for joining Parlocula. Take all the benefits of being a user over guests, like creating a thread, making posts, interacting with others using comment or direct message.
                         </Text>
                         <Section style={verificationSection}>
                             <Text style={verifyText}>Your Passkey</Text>
@@ -48,7 +48,7 @@ const WelcomeEmail = ({ passkey }: { passkey: string }) => (
                     </Section>
                 </Section>
                 <Text style={footerText}>
-                    This message was produced and distributed by Popcorn Paragon, an application of QCore Technologies Pvt. Ltd. | All rights reserved.
+                    This message was produced and distributed by Parlocula, an application of QCore Technologies Pvt. Ltd. | All rights reserved.
                 </Text>
             </Container>
         </Body>

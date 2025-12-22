@@ -1,23 +1,28 @@
 "use client";
 
-import { InfiniteData, PlaceholderDataFunction, useInfiniteQuery, useQuery } from "@tanstack/react-query";
-import { GeneralGetReturn, GeneralMultipleReturn, InfiniteQueryResponse, InfiniteQueryResponseDB } from "@type/internal";
-import Ably, { PresenceMessage, Realtime } from "ably";
+import { InfiniteData, useInfiniteQuery, useQuery } from "@tanstack/react-query";
+import { PaginatedData, RefinedGeneralData } from "@type/external";
+import { AggregatedResponse, GeneralGetReturn, GeneralMultipleReturn, InfiniteQueryResponse, MerePost } from "@type/internal";
+import { PresenceMessage } from "ably";
 import axios from "axios";
 import { useEffect, useReducer, useRef, useState } from "react";
-import { oneHour } from "./constants";
-import { infiniteScrollerResponse, queryFunction } from "./utils";
-import { GeneralReturnType } from "@type/external";
+import { oneDay, oneHour } from "./constants";
 import { getAblyOnClient } from "./providers/ably";
+import { createArray, infiniteScrollerResponse, refineResponseForInfiniteQuery, refineResponseForQuery } from "./utils";
+import useCurrentUser from "@store/user";
+import useOfflineStore from "@store/offlineStore";
+import { ppGetData } from "./helpers/common";
+import { DataFetcher } from "@components";
+import { fetchMoviesWithGenres, fetchMoviesWithYear, fetchShowsWithGenres, fetchTrendingContent, fetchTrendingMovies, fetchTrendingPerson, fetchTrendingShows } from "./contentFetcher";
 
 type InfiniteQueryProps<T> = {
-    queryFn: (pageParams: number) => Promise<GeneralMultipleReturn<T>>,
+    queryFn: (pageParams: number) => Promise<GeneralMultipleReturn<T> | GeneralGetReturn<PaginatedData>>,
     queryKeys: (string | number)[],
     initialPage?: number,
     initialData?: { data: T[], total: number } | null,
     staleTimeInSec?: number,
     enable?: boolean,
-    placeholderData?: GeneralReturnType<T> | InfiniteQueryResponseDB<T>,
+    placeholderData?: PaginatedData<T> | AggregatedResponse<T>,
     onSuccess?: (data: InfiniteData<InfiniteQueryResponse<T>, number>) => void,
 }
 
@@ -30,7 +35,10 @@ export const useInfiniteQueryHook = <T,>({ queryKeys, queryFn, onSuccess, placeh
         staleTime: staleTimeInSec * 1000,
         gcTime: staleTimeInSec * 1000 * 2,
         placeholderData: placeholderData ? { pageParams: [1], pages: [infiniteScrollerResponse(placeholderData, initialPage)] } : undefined,
-        queryFn: async ({ pageParam = 1 }) => queryFunction(queryFn, [pageParam], pageParam),
+        queryFn: async ({ pageParam = 1 }) =>
+            refineResponseForInfiniteQuery(
+                () => queryFn(pageParam), pageParam
+            ),
         initialData: initialData ? { pageParams: [1], pages: [infiniteScrollerResponse(initialData, initialPage)] } : undefined,
         getNextPageParam: (lp: any): number | undefined => {
             return lp && lp.page < lp.total_pages ? lp.page + 1 : undefined;
@@ -46,15 +54,17 @@ export const useInfiniteQueryHook = <T,>({ queryKeys, queryFn, onSuccess, placeh
 
         if (data && !isError) onSuccess?.(data)
 
-    }, [data, isError])
+    }, [data, isError, onSuccess])
 
     return response;
 
 }
 type NonFunctionGuard<T> = T extends Function ? never : T
+
+type QueryFn<T> = () => Promise<GeneralGetReturn<T>>
 type UseQueryProps<T,> = {
     queryKeys: (string | number)[],
-    queryFn: () => Promise<GeneralGetReturn>,
+    queryFn: QueryFn<T>,
     enabled?: boolean,
     initialData?: T,
     staleTime?: number,
@@ -62,10 +72,12 @@ type UseQueryProps<T,> = {
     placeholderData?: T,
 }
 
+type QueryData<T> = NonNullable<Awaited<ReturnType<QueryFn<T>>>["result"]>
+
 export const useQueryHook = <T,>({ queryKeys, onSuccess, queryFn, initialData, placeholderData, staleTime = oneHour * 1000, enabled = true }: UseQueryProps<T>) => {
     const response = useQuery<T | null>({
         queryKey: queryKeys,
-        queryFn: () => queryFunction(queryFn, []) as T | null,
+        queryFn: () => refineResponseForQuery(queryFn),
         enabled,
         staleTime,
         gcTime: oneHour * 1000,
@@ -85,7 +97,7 @@ export const useQueryHook = <T,>({ queryKeys, onSuccess, queryFn, initialData, p
 
         if (data && !isError) onSuccess?.(data)
 
-    }, [data, isError])
+    }, [data, isError, onSuccess])
 
     return response;
 }
@@ -105,9 +117,9 @@ export function useCustomReducer<T>(initialValue: T) {
 
 export const useAblyPresence = (client_id: string, id?: string, room_id?: string) => {
     const [presence, setPresence] = useState("offline");
-    if (!id) return "";
 
     useEffect(() => {
+        if (!id) return;
         const ably = getAblyOnClient(client_id);
         const channel = ably.channels.get(id);
 
@@ -143,6 +155,9 @@ export const useAblyPresence = (client_id: string, id?: string, room_id?: string
         }
 
     }, [client_id, id, room_id]);
+
+    if (!id) return "";
+
 
     return presence;
 
@@ -271,4 +286,78 @@ export const useMutationStore = <T = unknown>(): MutationStoreReturn<T> => {
         flush,
     }
 
+}
+
+type AggregatedPost = MerePost & { score: number }
+type TmdbSlide = { _id: string, isSlide: true, title: string, data: RefinedGeneralData[] };
+export type FeedPost = AggregatedPost | TmdbSlide;
+
+const refineResponse = (resp: GeneralGetReturn<AggregatedResponse<AggregatedPost>>): AggregatedResponse<AggregatedPost> => {
+    const { success, errCode, result } = resp;
+    if (success) return result;
+    else {
+        console.log("Error occured:", errCode);
+        return { data: [], total: 0 }
+    }
+}
+
+const getTmdbSlides = async (p: number): Promise<Omit<TmdbSlide, "isSlide">[]> => {
+    const [firstSlide, secondSlide] = await Promise.all([
+        fetchTrendingMovies(p),
+        fetchTrendingShows(p)
+    ]);
+
+    return [
+        { data: firstSlide?.results || [], title: "Trending Movies of ths week", _id: `trending_movies_page_${p}` },
+        { data: secondSlide?.results || [], title: "Trending Shows of ths week", _id: `trending_shows_page_${p}` }
+    ]
+}
+
+export const useFeedHook = () => {
+    const { meta } = useCurrentUser();
+    const uid = meta?.user_id;
+    const [placeholder, setPlaceholder] = useOfflineStore<AggregatedResponse | undefined>(`usersFeed:${uid ?? "guest"}`, undefined);
+
+    const queryFn = async (p: number): Promise<GeneralMultipleReturn<FeedPost>> => {
+        const [slides, trending, curated] = await Promise.all([
+            getTmdbSlides(p),
+            ppGetData<AggregatedResponse<AggregatedPost>>({ url: "post/trending", revalidate: oneDay }),
+            ...(uid ? [
+                ppGetData<AggregatedResponse<AggregatedPost>>({ url: `private/${uid}` })
+            ] : []),
+        ]);
+
+        const trendingPosts = refineResponse(trending);
+        const curatedPosts = refineResponse(curated);
+
+        let finalFeed: FeedPost[] = [];
+        const interval = Math.floor((trendingPosts.data.length + curatedPosts.data.length) / 2);
+
+        trendingPosts.data.concat(curatedPosts.data)
+            .sort((a, b) => b.score - a.score)
+            .forEach((post, i) => {
+                finalFeed.push(post);
+
+                if ((i + 1) % interval === 0) {
+                    const slide = slides[(i + 1) / interval];
+                    if (slide.data.length) {
+                        finalFeed.push({ ...slide, isSlide: true })
+                    }
+                }
+            });
+        const queryPage = {
+            data: finalFeed,
+            total: Math.max(trendingPosts.total, curatedPosts.total)
+        }
+
+        if (p === 1) setPlaceholder(queryPage);
+
+        return { success: true, result: queryPage };
+    }
+
+    return useInfiniteQueryHook<FeedPost>({
+        queryFn,
+        queryKeys: ["usersFeed", uid || "guest"],
+        placeholderData: placeholder,
+    });
 }

@@ -17,14 +17,12 @@ type Props = { params: { id: string } };
 export const generateMetadata = async ({ params }: Props): Promise<Metadata> => {
     const data = await fetchData(params);
 
-    if (!data) return { title: "Popcorn Paragon" };
+    if (!data) return { title: "Parlocula" };
     return {
-        title: `${data.name} - Popcorn Paragon`,
+        title: `${data.name} - Parlocula`,
         description: data.biography,
     };
 };
-
-
 
 const Page = async ({ params }: Props) => {
 
@@ -32,10 +30,10 @@ const Page = async ({ params }: Props) => {
 
     if (!content) return (
         <NotFound
-            title="Oops! Looks like the popcorn is missing"
+            title="Oops! Looks like The Parlocula Explorers couldn't find anything"
             paras={[
                 `Possible reasons: person id is incorrect`,
-                `Please search the person with its name in the Explore Page`
+                `Please search the person in the Explore Page`
             ]}
         />
     )
@@ -43,7 +41,7 @@ const Page = async ({ params }: Props) => {
     return (
         <>
             <ObserverHeader
-                titleToShare={`Check out ${content.name} on Popcorn Paragon`}
+                titleToShare={`Check out ${content.name} on Parlocula`}
                 navTitle={content.name}>
 
                 <div className="flex gap-4">
@@ -53,7 +51,7 @@ const Page = async ({ params }: Props) => {
                         src={getPoster({ external: true, type: "profile", path: content.profile, size: "original" })}
                         height={160}
                         width={160}
-                        download={`Profile Picture of ${content.name} - Popcorn Paragon`}
+                        download={`Profile Picture of ${content.name} - Parlocula`}
                         className="border-4 border-primary object-cover size-24 sm:size-40 rounded-full"
                         alt={`Profile Picture of ${content.name}`}
                     />

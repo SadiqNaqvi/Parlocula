@@ -1,110 +1,58 @@
-import { GeneralGetReturn } from "@type/internal";
+import { GeneralGetReturn, GeneralMultipleReturn } from "@type/internal";
 import {
-  FullCollectionData,
-  FullCompanyDetails,
-  FullEpisodeDetails,
-  FullPersonDetails,
-  FullSeasonDetails,
-  GeneralCastData,
-  GeneralCrewData,
-  GeneralMovieReturn,
-  GeneralReturnType,
-  GeneralShowReturn,
+  ExtGeneralPaginatedData,
+  ExtPaginatedSearchData,
+  ExtSearchDataCinementOnly,
+  GeneralExtReturn,
+  PaginatedData,
+  RefinedCollectionData,
+  RefinedCompanyData,
   RefinedEpisodeData,
   RefinedMovieData,
+  RefinedPersonData,
   RefinedSearchData,
   RefinedSeasonData,
   RefinedShowData,
-  SearchCollectionReturn,
-  SearchCompanyReturn,
-  SearchPersonReturn,
-  SortOptions,
+  SortOptions
 } from "../type/external";
 import { oneDay } from "./constants";
-import {
-  convertGenresIntoId,
-  refineCollectionData,
-  refineEpisodeData,
-  refineGeneralData,
-  refineMediaItemsFromSearch,
-  refineMovieData,
-  refinePersonData,
-  refineSearchData,
-  refineSeasonData,
-  refineShowData,
-} from "./dataRefiner";
-import { getMediaItem } from "./helpers/common";
+import { getCinement } from "./helpers/common";
 
-type GeneralReturn<T = any> = { status: boolean; response: T };
-type MovieReturnType = GeneralReturn<GeneralMovieReturn>;
-type ShowReturnType = GeneralReturn<GeneralShowReturn>;
+export const fetchExt = async <T = unknown>(url: string, revalidate?: number): Promise<GeneralExtReturn<T>> => {
+  try {
+    return await fetch(
+      `https://testlalaapp.vercel.app/api/${url}`,
+      { next: { revalidate: revalidate || oneDay * 7 } }
+    ).then((r) => r.json());
+  } catch {
+    return { success: false, response: "" }
+  }
+}
 
 export const fetchMovie = async (
   id: string
-): Promise<RefinedMovieData | undefined> => {
+) => {
   if (!id) return;
-  try {
-    const item = await getMediaItem(id, "movie");
-    if (!item) return;
 
-    const { title, year } = item;
+  const [data, cinement] = await Promise.all([
+    fetchExt<RefinedMovieData>(`movie?id=${id}`),
+    getCinement(id, "movie"),
+  ]);
 
-    const dataPromise = fetch(
-      `https://testlalaapp.vercel.app/api/movie?id=${id}`
-    ).then((r) => r.json());
-    const extraDataPromise = fetch(
-      `https://testlalaapp.vercel.app/api/extra?t=${title}&y=${year}`
-    ).then((r) => r.json());
+  if (!data || !data.success || !cinement) return;
 
-    const [data, extraData] = await Promise.all([
-      dataPromise,
-      extraDataPromise,
-    ]);
-
-    if (!extraData.status) {
-      console.log(
-        "Error occured while fetching extra data: " + extraData.response
-      );
-      return;
-    }
-
-    return {
-      ...refineMovieData(
-        data.response,
-        data.response.credits.cast,
-        data.response.credits.crew,
-        data.response.videos.results,
-        extraData.response
-      ),
-      popcorn_rating: Math.round((item.rating / item.rating_count) * 10) / 10,
-      media_id: item._id,
-    };
-  } catch (err: any) {
-    console.error("Error occured while fetching movie  " + err.message);
-    return;
+  return {
+    ...data.response,
+    ...cinement
   }
 };
 
-export const fetchSimilarMovies = async (id: string, page: number = 1) => {
+export const fetchSimilarMovies = async (id: string, page = 1) => {
   if (!id) return;
-  try {
-    const data: MovieReturnType = await (
-      await fetch(
-        `https://testlalaapp.vercel.app/api/movie/similar?id=${id}&p=${page}`
-      )
-    ).json();
-    if (data.status) return data.response;
-    console.error(
-      "Some erorr occoured while fetching movie recommendations: " +
-      data.response
-    );
-    return;
-  } catch (err: any) {
-    console.error(
-      "Error occured while fetching movie recommendations :" + err.message
-    );
-    return;
-  }
+
+  const data = await fetchExt<ExtGeneralPaginatedData>(`movie/similar?id=${id}&p=${page}`);
+
+  if (data.success) return data.response;
 };
 
 export const fetchMoviesWithCast = async (
@@ -113,59 +61,40 @@ export const fetchMoviesWithCast = async (
   sort_by: SortOptions = "popularity"
 ) => {
   if (!id) return;
-  try {
-    const data: MovieReturnType = await (
-      await fetch(
-        `https://testlalaapp.vercel.app/api/movies?c=${id}&sort=${sort_by}&p=${page}`,
-        { next: { revalidate: 3600 * 24 * 7 } }
-      )
-    ).json();
-    if (data.status) return data.response;
-    console.error(
-      "Some erorr occoured while fetching movie with cast: " + data.response
-    );
-    return;
-  } catch (err: any) {
-    console.error(
-      "Error occured while fetching movie with cast :" + err.message
-    );
-    return;
+
+  const data = await fetchExt<ExtGeneralPaginatedData>(`movies?c=${id}&sort=${sort_by}&p=${page}`);
+
+  if (data.success) return {
+    success: true,
+    result: data.response,
   }
+
+  console.error(
+    "Some erorr occoured while fetching movies with cast: " + data.response
+  );
+  return { success: false, errCode: "uncaught_error" };
 };
 
 export const fetchMoviesWithGenres = async ({
-  genres,
+  genre,
   page = 1,
   sort_by = "popularity",
 }: {
-  genres: string;
+  genre: string;
   page: number;
   sort_by: SortOptions;
 }) => {
-  if (!genres) return;
-  const id = convertGenresIntoId(genres, "movie");
+  const data = await fetchExt<ExtGeneralPaginatedData>(`movies?g=${genre}&sort=${sort_by}&p=${page}`)
 
-  try {
-    const data: MovieReturnType = await (
-      await fetch(
-        `https://testlalaapp.vercel.app/api/movies?g=${id}&sort=${sort_by}&p=${page}`
-      )
-    ).json();
-    if (data.status)
-      return {
-        ...data.response,
-        results: refineGeneralData(data.response.results),
-      };
-    console.error(
-      "Some erorr occoured while fetching movies with genres: " + data.response
-    );
-    return;
-  } catch (err: any) {
-    console.error(
-      "Error occured while fetching movies with genres:" + err.message
-    );
-    return;
+  if (data.success) return {
+    success: true,
+    result: data.response,
   }
+
+  console.error(
+    "Some erorr occoured while fetching movies with genres: " + data.response
+  );
+  return { success: false, errCode: "uncaught_error" };
 };
 
 export const fetchMoviesWithYear = async (
@@ -176,23 +105,17 @@ export const fetchMoviesWithYear = async (
   const time = new Date(year).getTime();
   if (isNaN(time) || time > Date.now()) return;
 
-  try {
-    const data: MovieReturnType = await (
-      await fetch(
-        `https://testlalaapp.vercel.app/api/movies?y=${year}&sort=${sort_by}&p=${page}`
-      )
-    ).json();
-    if (data.status) return data.response;
-    console.error(
-      "Some erorr occoured while fetching movies with year: " + data.response
-    );
-    return;
-  } catch (err: any) {
-    console.error(
-      "Error occured while fetching movies with year :" + err.message
-    );
-    return;
+  const data = await fetchExt<ExtGeneralPaginatedData>(`movies?y=${year}&sort=${sort_by}&p=${page}`);
+
+  if (data.success) return {
+    success: true,
+    result: data.response,
   }
+
+  console.error(
+    "Some erorr occoured while fetching movies with year: " + data.response
+  );
+  return { success: false, errCode: "uncaught_error" };
 };
 
 export const fetchMoviesWithCompany = async (
@@ -202,20 +125,10 @@ export const fetchMoviesWithCompany = async (
 ) => {
   if (!id) return;
 
-  try {
-    const data: MovieReturnType = await (
-      await fetch(
-        `https://testlalaapp.vercel.app/api/company/movies?id=${id}&sort=${sort_by}&p=${page}`
-      )
-    ).json();
-    if (!data.status) return;
-    return {
-      ...data.response,
-      results: refineGeneralData(data.response.results),
-    };
-  } catch (err: any) {
-    console.error("Error fetching at FetchMovieWithCompany :" + err.message);
-  }
+  const data = await fetchExt<ExtGeneralPaginatedData>(`company/movies?id=${id}&sort=${sort_by}&p=${page}`)
+
+  if (data.success) return data.response;
+
 };
 
 export const fetchMoviesWithNetwork = async (
@@ -225,143 +138,102 @@ export const fetchMoviesWithNetwork = async (
 ) => {
   if (!id) return;
 
-  try {
-    const data: MovieReturnType = await (
-      await fetch(
-        `https://testlalaapp.vercel.app/api/network/movies?id=${id}&sort=${sort_by}&p=${page}`
-      )
-    ).json();
-    if (!data.status) return;
-    return {
-      ...data.response,
-      results: refineGeneralData(data.response.results),
-    };
-  } catch (err: any) {
-    console.error("Error fetching at FetchMovieWithCompany :" + err.message);
-  }
+  const data = await fetchExt<ExtGeneralPaginatedData>(`network/movies?id=${id}&sort=${sort_by}&p=${page}`)
+
+  if (data.success) return data.response
 };
 
 export const fetchCollection = async (id: string) => {
   if (!id) return;
-  try {
-    const data: { status: boolean; response: FullCollectionData } = await (
-      await fetch(`https://testlalaapp.vercel.app/api/collection?id=${id}`)
-    ).json();
-    if (data.status) return refineCollectionData(data.response);
-    console.error(
-      "Some erorr occoured while fetching collection: " + data.response
-    );
-    return;
-  } catch (err: any) {
-    console.error("Error occured while fetching collection: " + err.message);
-    return;
-  }
-};
+
+  const data = await fetchExt<RefinedCollectionData>(`collection?id=${id}`)
+
+  if (data.success) return data.response;
+  console.error(
+    "Some erorr occoured while fetching collection: " + data.response
+  );
+  return;
+}
 
 export const fetchCompany = async (id: string) => {
   if (!id) return;
-  try {
-    const data: { status: boolean; response: FullCompanyDetails } = await (
-      await fetch(`https://testlalaapp.vercel.app/api/company?id=${id}`)
-    ).json();
-    if (data.status) return data.response;
-    console.error(
-      "Some erorr occoured while fetching company: " + data.response
-    );
-    return;
-  } catch (err: any) {
-    console.error("Error occured while fetching company:" + err.message);
-    return;
+
+  const data = await fetchExt<RefinedCompanyData>(`company?id=${id}`)
+
+  if (data.success) return {
+    success: true,
+    result: data.response,
   }
+
+  console.error(
+    "Some erorr occoured while fetching company: " + data.response
+  );
+  return { success: false, errCode: "uncaught_error" };
 };
 
 export const findWithIMDB = async (id: string) => {
   if (!id) return;
-  try {
-    const data: { status: boolean; response: any } = await (
-      await fetch(`https://testlalaapp.vercel.app/api/find?id=${id}`)
-    ).json();
-    if (data.status) return data.response;
-    console.error("Some erorr occoured while finding movie: " + data.response);
-    return;
-  } catch (err: any) {
-    console.error("Error occured while finding movies:" + err.message);
-    return;
+
+  const data = await fetchExt(`find?id=${id}`)
+
+  if (data.success) return {
+    success: true,
+    result: data.response,
   }
-};
+
+  console.error("Some erorr occoured while finding movie: " + data.response);
+  return { success: false, errCode: "uncaught_error" };
+}
 
 export const fetchNetwork = async (id: string) => {
   if (!id) return;
-  try {
-    const data: { status: boolean; response: FullCompanyDetails } = await (
-      await fetch(`https://testlalaapp.vercel.app/api/network?id=${id}`)
-    ).json();
-    if (data.status) return data.response;
-    console.error(
-      "Some erorr occoured while fetching network: " + data.response
-    );
-    return;
-  } catch (err: any) {
-    console.error("Error occured while fetching network:" + err.message);
-    return;
+
+  const data = await fetchExt<RefinedCompanyData>(`network?id=${id}`)
+
+  if (data.success) return {
+    success: true,
+    result: data.response,
   }
+
+  console.error(
+    "Some erorr occoured while fetching network: " + data.response
+  );
+  return { success: false, errCode: "uncaught_error" };
+
 };
 
 export const fetchPerson = async (id: string) => {
   if (!id) return;
-  try {
-    const data: { status: boolean; response: FullPersonDetails } = await (
-      await fetch(`https://testlalaapp.vercel.app/api/person?id=${id}`)
-    ).json();
-    if (data.status) return refinePersonData(data.response);
-    console.error(
-      "Some erorr occoured while fetching person: " + data.response
-    );
-    return;
-  } catch (err: any) {
-    console.error("Error occured while fetching person:" + err.message);
-    return;
+
+  const data = await fetchExt<RefinedPersonData>(`person?id=${id}`)
+
+  if (data.success) return {
+    success: true,
+    result: data.response,
   }
+
+  console.error(
+    "Some erorr occoured while fetching person: " + data.response
+  );
+  return { success: false, errCode: "uncaught_error" };
+
 };
 
-export const fetchShow = async (
-  id: string
-): Promise<RefinedShowData | undefined> => {
+export const fetchShow = async (id: string) => {
   if (!id) return;
-  try {
-    const item = await getMediaItem(id, "show");
-    if (!item) return;
 
-    const { title, year } = item;
+  const [data, cinement] = await Promise.all([
+    fetchExt<RefinedShowData>(`show?id=${id}`),
+    getCinement(id, "show"),
+  ]);
 
-    const dataPromise = fetch(
-      `https://testlalaapp.vercel.app/api/show?id=${id}`
-    ).then((r) => r.json());
-    const extraDataPromise = fetch(
-      `https://testlalaapp.vercel.app/api/extra?t=${title}&y=${year}`
-    ).then((r) => r.json());
+  if (!data || !data.success || !cinement) return;
 
-    const [data, extraData] = await Promise.all([
-      dataPromise,
-      extraDataPromise,
-    ]);
-
-    if (!extraData.status) {
-      console.log(
-        "Error occured while fetching extra data: " + extraData.response
-      );
-      return;
-    }
-
-    return {
-      ...refineShowData(data.response, extraData.response),
-      popcorn_rating: Math.round((item.rating / item.rating_count) * 10) / 10,
-      media_id: item._id,
-    };
-  } catch (err: any) {
-    console.error("Error occured while fetching movie  " + err.message);
-    return;
+  return {
+    ...data.response,
+    ...cinement
   }
+
 };
 
 export const fetchSeasonForShow = async (
@@ -369,16 +241,12 @@ export const fetchSeasonForShow = async (
   season = 1
 ): Promise<RefinedSeasonData | undefined> => {
   if (!show_id) return;
-  try {
-    const data: GeneralReturn<FullSeasonDetails> = await fetch(
-      `https://testlalaapp.vercel.app/api/show/seasons?id=${show_id}&s=${season}`
-    ).then((r) => r.json());
 
-    return refineSeasonData(data.response);
-  } catch (err: any) {
-    console.error("Error occured while fetching movie  " + err.message);
-    return;
-  }
+  const data = await fetchExt<RefinedSeasonData>(`show/seasons?id=${show_id}&s=${season}`)
+
+  if (data.success)
+    return data.response;
+
 };
 
 export const fetchEpisodeForSeason = async (
@@ -387,73 +255,50 @@ export const fetchEpisodeForSeason = async (
   episode = 1
 ): Promise<RefinedEpisodeData | undefined> => {
   if (!show_id) return;
-  try {
-    const data: GeneralReturn<FullEpisodeDetails> = await fetch(
-      `https://testlalaapp.vercel.app/api/show/episode?id=${show_id}&s=${season}&e=${episode}`
-    ).then((r) => r.json());
 
-    return refineEpisodeData(data.response);
-  } catch (err: any) {
-    console.error("Error occured while fetching movie  " + err.message);
-    return;
-  }
+  const data = await fetchExt<RefinedEpisodeData>(`show/episode?id=${show_id}&s=${season}&e=${episode}`)
+
+  if (data.success)
+    return data.response;
+
 };
 
 export const fetchSimilarShows = async (id: string, page: number = 1) => {
   if (!id) return;
-  try {
-    const data: MovieReturnType = await (
-      await fetch(
-        `https://testlalaapp.vercel.app/api/show/similar?id=${id}&p=${page}`
-      )
-    ).json();
-    if (data.status) return data.response;
-    console.error(
-      "Some erorr occoured while fetching movie recommendations: " +
-      data.response
-    );
-    return;
-  } catch (err: any) {
-    console.error(
-      "Error occured while fetching movie recommendations :" + err.message
-    );
-    return;
-  }
+
+  const data = await fetchExt<ExtGeneralPaginatedData>(`show/similar?id=${id}&p=${page}`)
+
+  if (data.success) return data.response;
+  console.error(
+    "Some erorr occoured while fetching movie recommendations: " +
+    data.response
+  );
+  return;
 };
 
 export const fetchShowsWithGenres = async ({
-  genres,
+  genre,
   page = 1,
   sort_by = "popularity",
 }: {
-  genres: string;
+  genre: string;
   page: number;
   sort_by: SortOptions;
 }) => {
-  if (!genres) return;
-  const ids = convertGenresIntoId(genres, "show");
+  if (!genre) return;
 
-  try {
-    const data: ShowReturnType = await (
-      await fetch(
-        `https://testlalaapp.vercel.app/api/shows?g=${ids}&sort=${sort_by}&p=${page}`
-      )
-    ).json();
-    if (data.status)
-      return {
-        ...data.response,
-        results: refineGeneralData(data.response.results),
-      };
-    console.error(
-      "Some erorr occoured while fetching shows with genres: " + data.response
-    );
-    return;
-  } catch (err: any) {
-    console.error(
-      "Error occured while fetching shows with genres:" + err.message
-    );
-    return;
+  const data = await fetchExt<ExtGeneralPaginatedData>(`shows?g=${genre}&sort=${sort_by}&p=${page}`)
+
+  if (data.success) return {
+    success: true,
+    result: data.response,
   }
+
+  console.error(
+    "Some erorr occoured while fetching shows with genres: " + data.response
+  );
+  return { success: false, errCode: "uncaught_error" };
+
 };
 
 export const fetchShowsWithCompany = async (
@@ -463,21 +308,11 @@ export const fetchShowsWithCompany = async (
 ) => {
   if (!id) return;
 
-  try {
-    const data: ShowReturnType = await (
-      await fetch(
-        `https://testlalaapp.vercel.app/api/company/shows?id=${id}&sort=${sort_by}&p=${page}`
-      )
-    ).json();
-    if (!data.status) return;
-    return {
-      ...data.response,
-      results: refineGeneralData(data.response.results),
-    };
-  } catch (err: any) {
-    console.error("Error fetching at FetchMovieWithCompany :" + err.message);
-  }
-};
+  const data = await fetchExt<ExtGeneralPaginatedData>(`company/shows?id=${id}&sort=${sort_by}&p=${page}`)
+
+  if (data.success) return data.response;
+
+}
 
 export const fetchShowsWithNetwork = async (
   id: string,
@@ -486,299 +321,163 @@ export const fetchShowsWithNetwork = async (
 ) => {
   if (!id) return;
 
-  try {
-    const data: ShowReturnType = await (
-      await fetch(
-        `https://testlalaapp.vercel.app/api/network/shows?id=${id}&sort=${sort_by}&p=${page}`
-      )
-    ).json();
-    if (!data.status) return;
-    return {
-      ...data.response,
-      results: refineGeneralData(data.response.results),
-    };
-  } catch (err: any) {
-    console.error("Error fetching at FetchMovieWithCompany :" + err.message);
+  const data = await fetchExt<ExtGeneralPaginatedData>(`network/shows?id=${id}&sort=${sort_by}&p=${page}`)
+
+  if (data.success) return data.response;
+
+}
+
+export const searchCompany = async (query: string, page: number = 1): Promise<GeneralGetReturn<ExtPaginatedSearchData>> => {
+
+  const data = await fetchExt<ExtPaginatedSearchData>(`search?q=${query}&t=company&p=${page}`)
+
+  if (data.success) return {
+    success: true,
+    result: data.response,
   }
+
+  console.error(
+    "Some erorr occoured while searching company: " + data.response
+  );
+  return { success: false, errCode: "uncaught_error" };
+
 };
 
-export const searchCompany = async (
-  query: string,
-  page: number = 1
-): Promise<
-  (GeneralReturnType & { results: RefinedSearchData[] }) | undefined
-> => {
-  if (!query) return;
-  try {
-    const data: { status: boolean; response: SearchCompanyReturn } = await (
-      await fetch(
-        `https://testlalaapp.vercel.app/api/search?q=${query}&t=company&p=${page}`
-      )
-    ).json();
-    if (data.status)
-      return {
-        ...data.response,
-        results: refineSearchData(data.response.results, "company"),
-      };
-    console.error(
-      "Some erorr occoured while searching company: " + data.response
-    );
-    return;
-  } catch (err: any) {
-    console.error("Error occured while searching company:" + err.message);
-    return;
+export const searchCollection = async (query: string, page: number = 1): Promise<GeneralGetReturn<ExtPaginatedSearchData>> => {
+
+  const data = await fetchExt<ExtPaginatedSearchData>(`search?q=${query}&t=collection&p=${page}`)
+
+  if (data.success) return {
+    success: true,
+    result: data.response,
   }
+
+  console.error(
+    "Some erorr occoured while searching collection: " + data.response
+  );
+  return { success: false, errCode: "uncaught_error" };
+
 };
 
-export const searchCollection = async (
-  query: string,
-  page: number = 1
-): Promise<
-  (GeneralReturnType & { results: RefinedSearchData[] }) | undefined
-> => {
-  if (!query) return;
-  try {
-    const data: { status: boolean; response: SearchCollectionReturn } = await (
-      await fetch(
-        `https://testlalaapp.vercel.app/api/search?q=${query}&t=collection&p=${page}`
-      )
-    ).json();
-    if (data.status)
-      return {
-        ...data.response,
-        results: refineSearchData(data.response.results, "collection"),
-      };
-    console.error(
-      "Some erorr occoured while searching collection: " + data.response
-    );
-    return;
-  } catch (err: any) {
-    console.error("Error occured while searching collection:" + err.message);
-    return;
+export const searchMovie = async (query: string, page: number = 1): Promise<GeneralGetReturn<ExtPaginatedSearchData>> => {
+
+  const data = await fetchExt<ExtPaginatedSearchData>(`search?q=${query}&t=movie&p=${page}`)
+
+  if (data.success) return {
+    success: true,
+    result: data.response,
   }
+
+  console.error(
+    "Some erorr occoured while searching movies: " + data.response
+  );
+  return { success: false, errCode: "uncaught_error" };
+
 };
 
-export const searchMovie = async (
-  query: string,
-  page: number = 1
-): Promise<
-  (GeneralReturnType & { results: RefinedSearchData[] }) | undefined
-> => {
-  if (!query) return;
-  try {
-    const data: MovieReturnType = await (
-      await fetch(
-        `https://testlalaapp.vercel.app/api/search?q=${query}&t=movie&p=${page}`
-      )
-    ).json();
-    if (data.status)
-      return {
-        ...data.response,
-        results: refineSearchData(data.response.results, "movie"),
-      };
-    console.error(
-      "Some erorr occoured while searching movies: " + data.response
-    );
-    return;
-  } catch (err: any) {
-    console.error("Error occured while searching movies:" + err.message);
-    return;
+export const searchShow = async (query: string, page: number = 1): Promise<GeneralGetReturn<ExtPaginatedSearchData>> => {
+
+  const data = await fetchExt<ExtPaginatedSearchData>(`search?q=${query}&t=tv&p=${page}`)
+
+  if (data.success) return {
+    success: true,
+    result: data.response,
   }
+
+  console.error(
+    "Some erorr occoured while searching shows: " + data.response
+  );
+  return { success: false, errCode: "uncaught_error" };
+
 };
 
-export const searchShow = async (
-  query: string,
-  page: number = 1
-): Promise<
-  (GeneralReturnType & { results: RefinedSearchData[] }) | undefined
-> => {
-  if (!query) return;
-  try {
-    const data: ShowReturnType = await (
-      await fetch(
-        `https://testlalaapp.vercel.app/api/search?q=${query}&t=tv&p=${page}`
-      )
-    ).json();
-    if (data.status)
-      return {
-        ...data.response,
-        results: refineSearchData(data.response.results, "show"),
-      };
-    console.error(
-      "Some erorr occoured while searching shows: " + data.response
-    );
-    return;
-  } catch (err: any) {
-    console.error("Error occured while searching shows:" + err.message);
-    return;
+export const searchPerson = async (query: string, page: number = 1): Promise<GeneralGetReturn<ExtPaginatedSearchData>> => {
+
+  const data = await fetchExt<ExtPaginatedSearchData>(`search?q=${query}&t=person&p=${page}`)
+
+  if (data.success) return {
+    success: true,
+    result: data.response,
   }
+
+  console.error(
+    "Some erorr occoured while searching person: " + data.response
+  );
+  return { success: false, errCode: "uncaught_error" };
+
 };
 
-export const searchPerson = async (
-  query: string,
-  page: number = 1
-): Promise<
-  (GeneralReturnType & { results: RefinedSearchData[] }) | undefined
-> => {
-  if (!query) return;
-  try {
-    const data: { status: boolean; response: SearchPersonReturn } = await (
-      await fetch(
-        `https://testlalaapp.vercel.app/api/search?q=${query}&t=person&p=${page}`
-      )
-    ).json();
-    if (data.status)
-      return {
-        ...data.response,
-        results: refineSearchData(data.response.results, "person"),
-      };
-    console.error(
-      "Some erorr occoured while searching person: " + data.response
-    );
-    return;
-  } catch (err: any) {
-    console.error("Error occured while searching person:" + err.message);
-    return;
-  }
+export const searchAllContent = async (query: string, page: number = 1): Promise<GeneralGetReturn<ExtPaginatedSearchData>> => {
+  if (!query) throw new Error("Query is required to search");
+
+  const data = await fetchExt<ExtPaginatedSearchData>(`search?q=${query}&t=multi&p=${page}`)
+
+  if (data.success) return {
+    success: true,
+    result: data.response
+  };
+
+  console.error(
+    "Some erorr occoured while searching content: " + data.response
+  );
+
+  return { success: false, errCode: "uncaught_error" }
+
 };
 
-export const searchAllContent = async (
-  query: string,
-  page: number = 1
-): Promise<
-  (GeneralReturnType & { results: RefinedSearchData[] }) | undefined
-> => {
-  if (!query) return;
-  try {
-    const data: {
-      status: boolean;
-      response: GeneralReturnType & { results: any[] };
-    } = await (
-      await fetch(
-        `https://testlalaapp.vercel.app/api/search?q=${query}&t=multi&p=${page}`,
-        { next: { revalidate: oneDay } }
-      )
-    ).json();
-    if (data.status)
-      return {
-        ...data.response,
-        results: refineSearchData(data.response.results),
-      };
-    console.error(
-      "Some erorr occoured while searching content: " + data.response
-    );
-    return;
-  } catch (err: any) {
-    console.error("Error occured while searching content:" + err.message);
-    return;
-  }
-};
+export const searchOnlyMediaItems = async (query: string, page = 1): Promise<GeneralGetReturn<PaginatedData<ExtSearchDataCinementOnly>>> => {
+  const data = await fetchExt<PaginatedData<ExtSearchDataCinementOnly>>(`search?q=${query}&t=cinements&p=${page}`)
 
-export const searchOnlyMediaItems = async (
-  query: string,
-  page = 1
-): Promise<GeneralGetReturn | undefined> => {
-  try {
-    const data: {
-      status: boolean;
-      response: GeneralReturnType;
-    } = await fetch(
-      `https://testlalaapp.vercel.app/api/search?q=${query}&t=cinements&p=${page}`,
-      { next: { revalidate: oneDay } }
-    ).then((r) => r.json());
+  if (data.success) return {
+    success: true, result: data.response
+  };
 
-    if (data.status)
-      return {
-        success: true,
-        result: {
-          ...data.response,
-          results: refineMediaItemsFromSearch(data.response.results),
-        },
-      };
-
-    console.error(
-      "Some erorr occoured while searching media items: " + data.response
-    );
-  } catch (err: any) {
-    console.error(
-      "Something went wrong while searching media items",
-      err.message
-    );
-    return {
-      success: false,
-      errCode: "unstable_internet",
-    };
-  }
+  console.error(
+    "Some erorr occoured while searching media items: " + data.response
+  );
+  return { success: false, errCode: "uncaught_error" };
 };
 
 export const fetchTrendingMovies = async (page: number = 1) => {
-  try {
-    const data: MovieReturnType = await (
-      await fetch(
-        `https://testlalaapp.vercel.app/api/trending?t=movie&p=${page}`
-      )
-    ).json();
-    if (data.status) return data.response;
-    console.error(
-      "Some erorr occoured while fetching trending movies: " + data.response
-    );
-  } catch (err: any) {
-    console.error(
-      "Error occured while fetching trending movies:" + err.message
-    );
-    return;
-  }
+
+  const data = await fetchExt<ExtGeneralPaginatedData>(`trending?t=movie&p=${page}`)
+
+  if (data.success) return data.response;
+  console.error(
+    "Some erorr occoured while fetching trending movies: " + data.response
+  );
+
 };
 
 export const fetchTrendingShows = async (page: number = 1) => {
-  try {
-    const data: ShowReturnType = await (
-      await fetch(`https://testlalaapp.vercel.app/api/trending?t=tv&p=${page}`)
-    ).json();
-    if (data.status) return data.response;
-    console.error(
-      "Some erorr occoured while fetching trending shows: " + data.response
-    );
-  } catch (err: any) {
-    console.error("Error occured while fetching trending shows:" + err.message);
-    return;
-  }
+
+  const data = await fetchExt<ExtGeneralPaginatedData>(`trending?t=tv&p=${page}`)
+  if (data.success) return data.response;
+  console.error(
+    "Some erorr occoured while fetching trending shows: " + data.response
+  );
+
 };
 
 export const fetchTrendingPerson = async (page: number = 1) => {
-  try {
-    const data: { status: boolean; response: SearchPersonReturn } = await (
-      await fetch(
-        `https://testlalaapp.vercel.app/api/trending?t=person&p=${page}`
-      )
-    ).json();
-    if (data.status) return data.response;
-    console.error(
-      "Some erorr occoured while fetching trending people: " + data.response
-    );
-    return;
-  } catch (err: any) {
-    console.error(
-      "Error occured while fetching trending people:" + err.message
-    );
-    return;
-  }
+
+  const data = await fetchExt<ExtGeneralPaginatedData>(`trending?t=person&p=${page}`)
+
+  if (data.success) return data.response;
+  console.error(
+    "Some erorr occoured while fetching trending people: " + data.response
+  );
+  return;
+
 };
 
 export const fetchTrendingContent = async (page: number = 1) => {
-  try {
-    const data: MovieReturnType | ShowReturnType = await (
-      await fetch(`https://testlalaapp.vercel.app/api/trending?t=all&p=${page}`)
-    ).json();
-    if (data.status) return data.response;
-    console.error(
-      "Some erorr occoured while fetching trending content: " + data.response
-    );
-    return;
-  } catch (err: any) {
-    console.error(
-      "Error occured while fetching trending content:" + err.message
-    );
-    return;
-  }
+
+  const data = await fetchExt<ExtGeneralPaginatedData>(`trending?t=all&p=${page}`)
+  if (data.success) return data.response;
+  console.error(
+    "Some erorr occoured while fetching trending content: " + data.response
+  );
+  return;
+
 };

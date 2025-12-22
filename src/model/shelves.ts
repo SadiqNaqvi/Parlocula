@@ -1,0 +1,38 @@
+import { ShelfModelType, StrictModel } from "@type/models";
+import { Schema, model, models } from "mongoose";
+import { numberSchema } from "./general";
+import { parloId } from "@lib/utils";
+
+const shelfModel = new Schema<ShelfModelType>({
+  _id: { type: String, default: parloId },
+  name: {
+    type: String,
+    required: true,
+  },
+  poster: String,
+  user_id: {
+    type: String,
+    ref: "User",
+    required: true,
+  },
+  isPrivate: {
+    type: Boolean,
+    default: false,
+  },
+  shelfKey: String,
+  last_added: Date,
+  item_count: numberSchema,
+  shelf_type: {
+    type: String,
+    enum: ["custom", "favourite", "recommended", "watched"],
+    default: "custom",
+  },
+  saved_count: numberSchema,
+}, { timestamps: true, _id: false });
+
+shelfModel.index({ user_id: 1, isPrivate: 1, shelf_type: 1 });
+
+const Shelf: StrictModel<ShelfModelType> =
+  (models.Shelf as any) || model("Shelf", shelfModel);
+
+export default Shelf;

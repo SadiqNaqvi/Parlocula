@@ -1,38 +1,19 @@
 import WelcomeEmail from "@components/EmailTemplates/welcome";
 import { generateToken, storeSession } from "@lib/auth";
-import { predefinedLists } from "@lib/constants";
-import { postRequest } from "@lib/helpers/common";
+import { parloculaAppURL, predefinedShelves } from "@lib/constants";
+import { postHandler } from "@lib/helpers/handlers";
+import { sendEmail } from "@lib/helpers/server";
 import { registerUserSchemaServer } from "@lib/schemas";
-import { List, User } from "@model";
+import { Shelf, User } from "@model";
 import { render } from "@react-email/components";
-import { User as UserType } from "@type/internal";
-import { PreDefinedListType, UserModelType } from "@type/models";
+import { TokenPayload, CurrentUser } from "@type/internal";
+import { PredefinedShelves } from "@type/models";
 import { UserSchemaType } from "@type/schemas";
 import bcrypt from "bcrypt";
 import { cookies } from "next/headers";
-import { createTransport } from "nodemailer";
 
-type id = { _id: string };
-
-const sendWelcomeEmail = async (passkey: string, email: string) => {
-  const transportor = createTransport({
-    service: "gmail",
-    auth: {
-      user: process.env.GOOGLE_EMAIL,
-      pass: process.env.APP_PASSWORD,
-    },
-  });
-  const emailHtml = await render(WelcomeEmail({ passkey }));
-  await transportor.sendMail({
-    from: process.env.GOOGLE_EMAIL,
-    to: email,
-    subject: "Welcome to Popcorn Paragon",
-    html: emailHtml,
-  });
-};
-
-export const POST = postRequest<UserSchemaType>({
-  handler: async ({ data, frames, session }) => {
+export const POST = postHandler<UserSchemaType>({
+  handler: async ({ data, frames, session, isNsfw }) => {
     const { name, dob, email, bio, username, bioLinks } = data;
 
     const passkey = crypto.randomUUID().split("-").join("");
@@ -43,7 +24,7 @@ export const POST = postRequest<UserSchemaType>({
 
     const session_id = crypto.randomUUID();
 
-    const dataToStore: UserModelType = {
+    const response = await User.create([{
       name,
       bio,
       bioLinks,
@@ -51,43 +32,51 @@ export const POST = postRequest<UserSchemaType>({
       email,
       dob,
       passkey: encryptedPasskey,
-      profile: frames.pop()?.path ?? "",
+      profile: frames[0],
       session_id,
-    };
+      filterContent: true,
 
-    const response = await User.create([dataToStore], {
+    }], {
       session,
       ordered: true,
     });
 
     const user = response[0].toObject();
-    if (!user) return { success: false, errCode: "pp105" };
+    if (!user) return { success: false, errCode: "data_storing_fail" };
 
-    const listsToCreate = predefinedLists.map((l) => ({
-      name: l,
+    const shelvesToCreate = predefinedShelves.map((s) => ({
+      name: s,
       user_id: user._id,
-      isPrivate: l !== "recommended",
-      listKey:
-        l === "recommended" ? undefined : crypto.randomUUID().split("-").join(""),
+      isPrivate: s !== "recommended",
+      shelfKey:
+        s === "recommended" ? undefined : crypto.randomUUID().split("-").join(""),
       item_count: 0,
-      list_type: l,
+      shelf_type: s,
     }));
 
-    const lists = await List.create(listsToCreate, {
+    const shelves = await Shelf.create(shelvesToCreate, {
       session,
       ordered: true,
     });
 
-    const sessionStored = await storeSession(session_id, {
-      user_id: user._id,
+    const user_id = user._id;
+
+    const tokenPayload: TokenPayload & { email: string } = {
+      user_id,
       username,
       email,
       isBanned: false,
-    });
+      banEndsAt: undefined,
+      profile: user.profile,
+      filterContent: true,
+      dob,
+    }
+
+    const sessionStored = await storeSession(session_id, tokenPayload);
 
     if (!sessionStored) return { success: false, errCode: "session_store_fail" };
 
-    const token = await generateToken({ user_id: user._id, username });
+    const token = await generateToken(tokenPayload);
 
     cookies().set("token", token, {
       httpOnly: true,
@@ -103,10 +92,12 @@ export const POST = postRequest<UserSchemaType>({
       path: "/",
     });
 
-    sendWelcomeEmail(passkey, email);
+    const template = await render(WelcomeEmail({ passkey }));
 
-    const result: UserType = {
-      _id: user._id.toString(),
+    await sendEmail({ email, template, subject: "Welcome to Parlocula" });
+
+    const result: CurrentUser = {
+      _id: user._id,
       name: user.name,
       username: user.username,
       email: user.email,
@@ -114,21 +105,37 @@ export const POST = postRequest<UserSchemaType>({
       bio: user.bio,
       dob: user.dob,
       bioLinks: user.bioLinks,
-      edited_at: null,
+      edited_at: undefined,
       followers: 0,
       following: 0,
       posts: 0,
       comments: 0,
-      public_lists: 0,
-      predefine_lists: lists.map(({ name, _id }) => ({ name: name as PreDefinedListType, _id: _id.toString() })),
+      publicShelves: 0,
+      predefinedShelves: shelves.map(({ name, _id, poster, shelf_type, isPrivate, last_added, shelfKey }) => ({
+        name: name as PredefinedShelves,
+        _id: _id.toString(),
+        poster,
+        shelf_type,
+        isPrivate,
+        last_added,
+        shelfKey,
+      })),
+      filterContent: true,
+      tempBanned: 0,
     };
 
     return {
       result,
       success: true,
       available: "registration_email_username",
-      options: { email, username }
+      options: { email, username },
+      warnTeamParlocula: isNsfw ? {
+        title: "The Profile Picture of this user may be NSFW",
+        desc: "",
+        path: `${parloculaAppURL}/u/${user.username}`
+      } : undefined,
     };
   },
   schema: registerUserSchemaServer,
+  skipUserCheck: true,
 });

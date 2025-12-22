@@ -1,24 +1,25 @@
-import { getRequest } from "@lib/helpers/common";
+import { getHandler } from "@lib/helpers/handlers";
 import { bookmarkAggregationPipeline } from "@lib/pipelines";
-import { getPageParams, ObjectId } from "@lib/utils";
+import { getPageParams } from "@lib/utils";
 import { Bookmark } from "@model";
 
 // Get all the saved posts of the current user
-export const GET = getRequest(async (r: any, params: { cuid: string }) => {
+export const GET = getHandler(async (r, params) => {
   const page = getPageParams(r) - 1;
   const { cuid } = params;
 
-  const result = (
-    await Bookmark.aggregate(
-      bookmarkAggregationPipeline({
-        filters: [
-          { $match: { user_id: ObjectId(cuid), content_type: "Post" } },
-        ],
-        type: "post",
-        page,
-      })
-    )
-  )[0];
+  const response = await Bookmark.aggregate(
+    bookmarkAggregationPipeline({
+      filters: [
+        { $match: { user_id: cuid, content_type: "Post" } },
+      ],
+      type: "post",
+      page,
+    })
+  );
 
-  return { success: true, result };
+  return {
+    success: true,
+    result: response[0] ?? { data: [], total: 0 }
+  };
 });

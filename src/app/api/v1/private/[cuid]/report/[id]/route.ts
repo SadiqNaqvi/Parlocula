@@ -1,46 +1,57 @@
-import { getRequest, updateRequest } from "@lib/helpers/common";
+import { getHandler, postHandler, updateHandler } from "@lib/helpers/handlers";
 import { sendNotification } from "@lib/helpers/server";
-import { reportAggregationPipeline } from "@lib/pipelines";
 import { reportActionSchema } from "@lib/schemas";
-import { getPageParams, ObjectId } from "@lib/utils";
+import { capitalize } from "@lib/utils";
 import { Comment, Member, Post } from "@model";
 import Report from "@model/reports";
-import { ReportActionSchemaType } from "@type/schemas";
-import { Model, Types } from "mongoose";
+import { ReportActionSchemaType, ReportSchemaType } from "@type/schemas";
 
-// Reports on the Thread. Should only be see my the mods (creator and managers)
-// Here id is thread id.
-export const GET = getRequest(async (r, params) => {
-  const { id, cuid } = params;
-  const page = getPageParams(r);
+// Check if the content is reported by the current user and return report's metadata.
+// Here id is content_id
+export const GET = getHandler(async (r, params) => {
 
-  const isManager = await Member.exists({
-    user_id: ObjectId(cuid),
-    thread_id: ObjectId(id),
-    role: { $or: ["moderator", "creator"] }
-  });
+  const search = r.nextUrl.searchParams;
+  const ctype = search.get("type")?.toLowerCase();
+  const { id } = params;
 
-  if (!isManager) return { success: false, errCode: "unauthorized_access" }
+  if (!ctype || !["comment", "post", "thread", "user"].includes(ctype)) return {
+    success: false,
+    errCode: "invalid_input",
+    customError: "Invalid content type",
+  };
 
-  const response = await Report.aggregate(
-    reportAggregationPipeline({
-      content_id: id,
-      page,
-      isThread: true,
-    })
-  );
+  const result = await Report.findOne({
+    user_id: params.cuid,
+    content_type: capitalize(ctype),
+    content_id: id,
+  }).exec();
 
-  return { success: true, result: response ?? [] };
+  return { success: true, result };
+});
+
+// Creating a new report
+export const POST = postHandler<ReportSchemaType>({
+  handler: async ({ data, user_id }) => {
+
+    await Report.create([{ ...data, user_id }]);
+
+    return {
+      success: true,
+      result: null,
+      revalidateQueue: [],
+    };
+  },
 });
 
 type PipelineProp = {
-  contentsToDelete: Types.ObjectId[],
-  contentsToWarnAuthor: Types.ObjectId[],
+  contentsToDelete: string[],
+  contentsToWarnAuthor: string[],
   type: "post" | "comment",
   key: "title" | "content"
 }
 
 type Content = { _id: string, user_id: string, title: string, content: string };
+
 type PipelineResult = {
   forDeletion: Content[]
   forWarning: Content[]
@@ -79,31 +90,36 @@ const getContents = async ({ contentsToDelete, contentsToWarnAuthor, type, key }
 }
 
 // Actions taken by Managers on reported contents.
-export const PATCH = updateRequest<ReportActionSchemaType>({
+export const PATCH = updateHandler<ReportActionSchemaType>({
   handler: async ({ data, user_id, session }) => {
 
     const { actions, type } = data;
-    let contentsToDelete: Types.ObjectId[] = []
-    let contentsToKeep: Types.ObjectId[] = []
-    let contentsToWarnAuthor: Types.ObjectId[] = []
+    let contentsToDelete: string[] = [];
+    let contentsToKeep: string[] = [];
+    let contentsToWarnAuthor: string[] = [];
 
     actions.forEach(action => {
-      if (action.action === "delete")
-        contentsToDelete.push(ObjectId(action.id));
-      else if (action.action === "keep")
-        contentsToKeep.push(ObjectId(action.id));
-      else contentsToWarnAuthor.push(ObjectId(action.id))
+      if (action.action === "delete") {
+        contentsToDelete.push(action.id);
+      }
+      else if (action.action === "keep") {
+        contentsToKeep.push(action.id);
+      } else contentsToWarnAuthor.push(action.id)
     });
 
     await Report.deleteMany({
       content_id: { $in: contentsToDelete.concat(contentsToKeep) }
     }, { session });
 
-    const ContentModel: Model<any> = type === "post" ? Post : Comment;
-
-    await ContentModel.deleteMany({
+    const payload = {
       _id: { $in: contentsToDelete }
-    }, { session });
+    }
+
+    if (type === "post") {
+      await Post.deleteMany(payload, { session });
+    } else {
+      await Comment.deleteMany(payload, { session });
+    }
 
     const { forDeletion, forWarning } = await getContents({
       type,
@@ -122,11 +138,13 @@ export const PATCH = updateRequest<ReportActionSchemaType>({
       { session }
     )
 
+    // Sending notifications to the author of the content whose post/comment has been deleted
     await sendNotification(
       forDeletion.map(content => {
         const content_title = type === "post" ? content.title : content.content;
         return {
           title: `Your ${type} has been deleted.`,
+          poster: undefined,
           message: [
             {
               type: "text",
@@ -141,12 +159,16 @@ export const PATCH = updateRequest<ReportActionSchemaType>({
       session
     );
 
+    // Sending Wanrning to the author of the post/comment.
     await sendNotification(
       forWarning.map(content => {
+
         const content_title = type === "post" ? content.title : content.content;
-        const path = `/${type.charAt(0)}/${content._id}/reports`
+        const path = `/${type}/${content._id}/reports`;
+
         return {
           title: `Immediate Action Required.`,
+          poster: undefined,
           message: [
             { type: "text", text: `You are being warned because your ${type}` },
             {
@@ -171,9 +193,10 @@ export const PATCH = updateRequest<ReportActionSchemaType>({
       revalidateQueue: forWarning
         .concat(forDeletion)
         .map(el => `notifications-user-${el.user_id}-page-1`)
-        .concat(contentsToKeep.map(el => `reports-${el.toString()}`)),
+        .concat(contentsToKeep.map(el => `reports-${el}`)),
     }
   },
+
   preCheck: async ({ params, user_id }) => {
     const isManager = await Member.exists({
       thread_id: params.id,

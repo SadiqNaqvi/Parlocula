@@ -1,0 +1,118 @@
+"use client";
+
+import { ListSelector, ListSelectorRef, Navbar } from "@components";
+import { RefinedValues } from "@components/ListSelector";
+import { threadManagersLimit } from "@lib/constants";
+import { searchMembers } from "@lib/helpers/common";
+import { inviteManagersMutation, removeManagersMutation } from "@lib/helpers/mutations";
+import { getQueryKeys } from "@lib/utils";
+import { UserMetaData } from "@store/user";
+import { MereUser, ModeratorType } from "@type/internal";
+import { TypedFunction } from "@type/other";
+import { useRef } from "react";
+
+type Props = {
+    back: TypedFunction,
+    uid: string,
+    tid: string,
+}
+
+const refiner = (user: MereUser | UserMetaData): RefinedValues => {
+
+    if ("_id" in user) return {
+        title: user.username,
+        id: user._id,
+        poster: user.profile,
+        returnVal: user
+    }
+    else return {
+        title: user.username,
+        id: user.user_id,
+        poster: user.profile,
+    }
+}
+
+export const RemoveManagers = ({ back, tid, managers, uid }: Props & { managers: ModeratorType[] }) => {
+
+    const callbackRef = useRef<ListSelectorRef>(null);
+
+    const handleRemoval = () => {
+        const users = callbackRef.current?.();
+        if (!users || !users.length) return;
+        removeManagersMutation(tid, uid, { users });
+        back();
+    }
+
+    const refinedData = managers.map(refiner);
+
+    return (
+        <div className="min-h-screen">
+
+            <Navbar
+                navTitle="Remove Managers"
+                onGoBack={back}
+                OptionButton={
+                    <button className="primary" onClick={handleRemoval}>Remove</button>
+                }
+            />
+
+            <section className="space-y-4">
+                <ListSelector
+                    data={refinedData}
+                    callbackRef={callbackRef}
+                    returnIds
+                />
+            </section>
+        </div>
+    )
+}
+
+export const InviteManagers = ({ back, uid, tid, managersCount }: Props & { managersCount: number }) => {
+
+    const callbackRef = useRef<ListSelectorRef<ModeratorType>>(null);
+
+    const handleSubmit = () => {
+        const users = callbackRef.current?.() ?? [];
+        if (!users.length) return;
+
+        inviteManagersMutation(
+            tid,
+            uid,
+            users.map(user => ({
+                username: user.username,
+                user_id: user.user_id,
+                profile: user.profile,
+                role: "moderator_invitees",
+            })),
+        );
+
+        back();
+    }
+
+    return (
+        <div className="min-h-screen space-y-4">
+            <Navbar
+                navTitle="Invite Managers"
+                onGoBack={back}
+            />
+
+            <section className="pb-8 px-4">
+                <ListSelector
+                    queryFn={(q, p) => searchMembers(q, uid, p)}
+                    queryKeys={(query) => getQueryKeys("searchMembers_tid_query", { tid, query })}
+                    callbackRef={callbackRef}
+                    inputPlaceholder="Search Members"
+                    refiner={refiner}
+                    limit={threadManagersLimit - managersCount}
+                />
+            </section>
+
+            <footer className="fixed bottom-0 p-2 bg-primary">
+                <button className="primary w-full sm:w-fit sm:mx-auto" onClick={handleSubmit}>
+                    Invite
+                </button>
+            </footer>
+        </div>
+    )
+
+}

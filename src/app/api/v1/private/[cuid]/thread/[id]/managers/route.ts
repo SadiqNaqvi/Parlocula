@@ -1,127 +1,102 @@
 import { threadManagersLimit } from "@lib/constants";
-import { getRequest, postRequest, updateRequest } from "@lib/helpers/common";
+import { getHandler, postHandler, PrecheckResponse, updateHandler } from "@lib/helpers/handlers";
 import { sendNotification } from "@lib/helpers/server";
-import { isValidObjectId, ObjectId } from "@lib/utils";
+import { createArrayOfUidsSchema } from "@lib/schemas";
 import { Member, Thread } from "@model";
-import { ThreadModType } from "@type/internal";
-import { z } from "zod";
+import { ModeratorType } from "@type/internal";
 
-const postSchema = z.object({
-  users: z
-    .array(z.string())
-    .refine(
-      (a) => a.length > 1 && a.length < threadManagersLimit,
-      `At least one and upto ${threadManagersLimit} users should be selected.`
-    )
-    .refine((a) => a.every((u) => isValidObjectId(u))),
-  thread_name: z.string(),
-});
+const schema = createArrayOfUidsSchema(threadManagersLimit);
+type SchemaType = { users: string[] }
 
-const patchSchema = z.object({
-  users: z
-    .array(z.string())
-    .refine(
-      (a) => a.length > 1 && a.length < threadManagersLimit,
-      `At least one and upto ${threadManagersLimit} users should be selected.`
-    )
-    .refine((a) => a.every((u) => isValidObjectId(u))),
-});
+// Get Moderators and Invitees of the thread. Only Managers can see it (not even invitees)
+type AggregatedResponse = Omit<ModeratorType, "role"> & { role: ModeratorType["role"] | "creator" }
 
-// Get Managers and Invitees of the thread. Can only get by Moderators.
-export const GET = getRequest(
-  async (_, params: { id: string; cuid: string }) => {
-    const { id, cuid } = params;
-    const modsAndInvitees = await Member.aggregate<ThreadModType>([
-      {
-        $match: {
-          thread_id: ObjectId(id),
-          role: { $or: ["moderator", "moderator_invitee"] },
-        },
-      },
-      { $limit: threadManagersLimit },
-      {
-        $lookup: {
-          from: "users",
-          as: "user",
-          localField: "user_id",
-          foreignField: "_id",
-        },
-      },
-      {
-        $addFields: {
-          username: { $arrayElemAt: ["$user.username", 0] },
-          profile: { $arrayElemAt: ["$user.profile", 0] },
-          followers: { $arrayElemAt: ["$user.followers", 0] },
-          posts: { $arrayElemAt: ["$user.posts", 0] },
-        },
-      },
-      { $project: { user: 0 } },
-    ]);
+export const GET = getHandler(async (_, params) => {
 
-    if (
-      !modsAndInvitees.find((m) => m.user_id === cuid && m.role === "moderator")
-    )
-      return { success: false, errCode: "unauthorized_access" };
+  const { id, cuid } = params;
 
-    return {
-      success: true,
-      result: modsAndInvitees,
-    };
-  }
-);
-
-// Apply pre-checks to check if the current user is a moderator. Make sure all the invitees are members of the thread.
-const precheck = async (tid: string, uid: string, users: string[]) => {
-  const response = await Member.aggregate([
+  const modsAndInvitees = await Member.aggregate<AggregatedResponse>([
     {
       $match: {
-        thread_id: ObjectId(tid),
-        banned: false,
-        user_id: ObjectId(uid),
-        role: "moderator",
+        thread_id: id,
+        role: { $or: ["moderator", "moderator_invitee", "creator"] },
+      },
+    },
+    { $limit: threadManagersLimit + 1 },
+    {
+      $lookup: {
+        from: "users",
+        localField: "user_id",
+        foreignField: "_id",
+        pipeline: [{ $project: { username: 1, profile: 1 } }],
+        as: "user",
       },
     },
     {
-      $facet: {
-        // Count total current moderators and invitees
-        totalModsAndInvitees: [
-          {
-            $match: {
-              role: { $in: ["moderator", "moderator_invitee"] },
-            },
-          },
-          {
-            $count: "count",
-          },
-        ],
+      $addFields: {
+        username: { $arrayElemAt: ["$user.username", 0] },
+        profile: { $arrayElemAt: ["$user.profile", 0] },
       },
     },
+    { $project: { user: 0 } },
   ]);
 
-  const result = response[0];
+  const creator = modsAndInvitees.find(m => m.role === "creator");
+  if (!creator) return { success: false, errCode: "resource_not_found" }
 
-  // If the current user is a member as well as a Moderator of the thread or not.
-  if (!result) return { success: false, errCode: "unauthorized_access" };
+  const managers = modsAndInvitees.filter(m => m.role !== "creator");
 
-  const { totalModsAndInvitees } = result as {
-    totalModsAndInvitees: { count: number }[];
-  };
+  if (creator.user_id === cuid || managers.find((m) => m.user_id === cuid && m.role === "moderator"))
+    return {
+      success: true,
+      result: { creator, managers }
+    };
 
-  // Moderators + Mod Invitees + UsersToInvite should be less than equal to {threadManagersLimit}.
-  if (totalModsAndInvitees[0].count + users.length >= threadManagersLimit + 1)
-    return { success: false, errCode: "unauthorized_access" };
-  else return { success: true };
+  return {
+    success: false,
+    errCode: "unauthenticated_access",
+  }
+
+}
+);
+
+// Apply pre-checks to check if the current user is a Manager. Make sure all the invitees are members of the thread.
+const precheck = async (tid: string, uid: string, users: string[]): Promise<PrecheckResponse> => {
+
+  const isManager = await Member.exists({
+    thread_id: tid,
+    user_id: uid,
+    role: { $in: ["moderator", "creator"] }
+  });
+
+  if (!isManager)
+    return { success: false, errCode: "unauthorized_access" }
+
+  const total = await Member.countDocuments({
+    thread_id: tid,
+    user_id: { $in: users },
+    role: "member"
+  });
+
+  if (total !== users.length) return {
+    success: false,
+    errCode: "custom_error",
+    customError: "One or more invited users are not members of the thread."
+  }
+
+  return { success: true }
 };
 
-// Invite users to become manager in a thread. Only Moderators (creators/managers) can do this.
-export const POST = postRequest<{ users: string[]; thread_name: string }>({
+// Invite members to become moderator in a thread. Only Managers (creators/mods) can do this.
+export const POST = postHandler<SchemaType>({
   handler: async ({ data, username, params, user_id, session }) => {
+
     const { id } = params;
-    const { users, thread_name } = data;
+    const { users } = data;
 
     await Member.updateMany(
       {
-        thread_id: ObjectId(id),
+        thread_id: id,
         user_id: { $in: users },
         banned: false,
         role: "member",
@@ -132,17 +107,23 @@ export const POST = postRequest<{ users: string[]; thread_name: string }>({
       { session }
     );
 
+    const thread = await Thread.findOne({ _id: id }, { name: 1, poster: 1 }).exec();
+
+    if (!thread)
+      return { success: false, errCode: "resource_not_found" }
+
     await sendNotification(
       users.map((u) => ({
         title: `${username} has invited you to become a manager of thread`,
         path: "/notifications",
+        poster: thread.poster.path,
         message: [
-          { type: "link", label: username, path: `/u/${username}` },
+          { type: "link", label: username, path: `/user/${username}` },
           {
             type: "text",
             text: "has invited you to become a manager of thread",
           },
-          { type: "link", label: thread_name, path: `/t/${id}` },
+          { type: "link", label: thread.name, path: `/thread/${id}` },
         ],
         type: "request",
         user_id: u,
@@ -162,19 +143,22 @@ export const POST = postRequest<{ users: string[]; thread_name: string }>({
       revalidateQueue: users.map((u) => `notifications-user-${u}`),
     };
   },
-  schema: postSchema,
+  schema,
   preCheck: async ({ user_id, params, data }) =>
     await precheck(params.id, user_id, data.users),
 });
 
 // Demote Managers or Invitees. Should ONLY done by the Creator.
-export const PATCH = updateRequest<{ users: string[] }>({
+export const PATCH = updateHandler<SchemaType>({
   handler: async ({ data, params, session }) => {
+
     const { id } = params;
+    const { users } = data;
+
     await Member.updateMany(
       {
-        thread_id: ObjectId(id),
-        user_id: { $in: data.users.map((u) => ObjectId(u)) },
+        thread_id: id,
+        user_id: { $in: users },
       },
       {
         $set: { role: "member" },
@@ -184,7 +168,7 @@ export const PATCH = updateRequest<{ users: string[] }>({
     return {
       success: true,
       result: null,
-      revalidateQueue: data.users.map((u) => `member-thread-${id}-user-${u}`),
+      revalidateQueue: users.map((u) => `member-thread-${id}-user-${u}`),
     };
   },
   preCheck: async ({ user_id, params }) => {
@@ -193,5 +177,5 @@ export const PATCH = updateRequest<{ users: string[] }>({
       return { success: false, errCode: "unauthorized_access" };
     return { success: true };
   },
-  schema: patchSchema,
+  schema,
 });

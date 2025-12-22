@@ -1,19 +1,23 @@
 "use client";
 
 import { AddIcon, SearchIcon } from "@assets/Icons";
-import { InfiniteScroller } from "@components";
+import { InfiniteScroller, Navbar } from "@components";
 import RoomBar from "@components/ui/RoomBar";
-import { getRooms } from "@lib/helpers/common";
-import { getQueryClient } from "@lib/queryClient";
-import { getQueryKeys } from "@lib/utils";
+import { getInvitedRooms, getRooms } from "@lib/helpers/common";
+import { useInfiniteQueryHook } from "@lib/hooks";
+import { getQueryKeys, infiniteScrollerResponse } from "@lib/utils";
 import useOfflineStore from "@store/offlineStore";
 import { InfiniteQueryResponse } from "@type/internal";
-import { InfiniteScrollerDataType } from "@type/other";
+import { TypedFunction } from "@type/other";
 import { useParams } from "next/navigation";
-import { Suspense, useState } from "react";
-import InvitationRoomsList from "./InvitationRoomList";
-import RoomSearchList from "./SearchList";
+import React, { PropsWithChildren, useEffect, useRef, useState } from "react";
 import CreateGroup from "./CreateGroup";
+import InvitationRoomsList from "./InvitationRoomList";
+import RoomSearchList from "./RoomSearchList";
+import useRoomStore from "@store/roomStore";
+import useCurrentUser from "@store/user";
+import { LoadingSpinner, ShowError } from "@components/ui";
+import { storeRoomList } from "@lib/helpers/redis/messaging";
 
 type PageType = "rooms" | "invitations" | "search" | "create";
 
@@ -25,55 +29,141 @@ const NoRoomSection = () => (
 )
 
 const InvitationsCount = ({ uid }: { uid: string }) => {
-    const invitationsCount = getQueryClient().getQueryData<InfiniteScrollerDataType>(getQueryKeys("roomInvitations_uid", { uid }))?.pages[0]?.results.length;
-    return `Invitations ${invitationsCount || ''}`
+    const { data } = useInfiniteQueryHook({
+        queryFn: () => getInvitedRooms(uid, 1),
+        queryKeys: getQueryKeys("roomInvitations_uid", { uid }),
+    });
+
+    if (!data || !data.pages[0]?.total_results) return "Invitations"
+
+    return `Invitations ${data.pages[0].total_results || ''}`
 }
 
-const RoomsList = ({ uid, changeRoom }: { uid: string, changeRoom: (args: PageType) => void }) => {
+const RoomListWrapper = ({ id, children }: PropsWithChildren<{ id: string | string[] }>) => (
+    <div className={id ? "hidden sm:block" : ''}>
+        {children}
+    </div>
+)
+
+const RoomsList = ({ uid, changeRoom }: { uid: string, changeRoom: TypedFunction<PageType> }) => {
 
     const qkeys = getQueryKeys("rooms_uid", { uid });
+    const { room, setRooms } = useRoomStore();
+    const { isHydrated, dataSaver } = useCurrentUser();
+    const [roomList, setRoomList] = useOfflineStore<InfiniteQueryResponse<any> | undefined>(qkeys, undefined);
+    const container = useRef<HTMLDivElement>(null);
 
-    const [roomList, setRoomList] = useOfflineStore<InfiniteQueryResponse<any> | undefined>(qkeys, undefined)
+    const { data, isError, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage, refetch } = useInfiniteQueryHook<string>({
+        queryFn: (p) => getRooms(uid, p).then(response => {
+            const { success, errCode, result } = response;
+            if (!success) return { success, errCode }
+
+            else if (p === 1) setRoomList(infiniteScrollerResponse(result, 1));
+
+            const ids = setRooms(result.data);
+            return { success, result: { data: ids, total: result.total } };
+        }),
+        queryKeys: qkeys,
+        placeholderData: roomList && {
+            ...roomList,
+            results: setRooms(roomList?.results || [])
+        },
+        initialPage: 1,
+    });
+
+    useEffect(() => {
+        if (!isHydrated || dataSaver) return;
+
+        const current = container.current;
+
+        const observer = new IntersectionObserver(([entry]) => {
+            if (entry.isIntersecting && !isFetchingNextPage && hasNextPage)
+                fetchNextPage();
+        }, { threshold: 0.1 })
+
+        if (current && hasNextPage) observer.observe(current);
+
+        return () => {
+            if (current) observer.unobserve(current);
+        }
+    }, [dataSaver, isHydrated]);
+
+    const rooms = React.useMemo(() =>
+        data?.pages
+            .flatMap(result => Array.from(new Set(result.results)))
+            .map(room_id => room[room_id])
+            .filter(Boolean)
+            .sort((a, b) => new Date(b.lastMessageAt).getTime() - new Date(a.lastMessageAt).getTime()),
+        [data, room]);
+
+    const manuallyLoadNextPage = () => {
+        fetchNextPage();
+    }
+
+    if (isLoading) return <LoadingSpinner />
+
+    else if (isError) return (
+        <ShowError
+            retry={refetch}
+            heading="Unable to fetch the resource you're looking for"
+        />
+    )
+
+    else if (!rooms.length) return (
+        <div className="forceCenter space-y-2">
+            <h2>No rooms yet</h2>
+            <p>Click on the + icon and start chatting</p>
+        </div>
+    )
 
     return (
         <>
-            <header className="h-16 flex flex-cntr-between px-2 border-b border-gray60">
-                <h1>Inbox</h1>
-                <div className="flex gap-3">
-                    <button
-                        onClick={() => changeRoom("search")}
-                        className="p-2 rounded-full bg-gray40">
-                        <SearchIcon />
-                    </button>
-                    <button
-                        onClick={() => changeRoom("create")}
-                        className="rounded-full p-2 bg-gray40">
-                        <AddIcon />
-                    </button>
-                </div>
-            </header>
+            <Navbar
+                OptionButton={
+                    <div className="flex gap-3">
+                        <button
+                            onClick={() => changeRoom("search")}
+                            className="p-2 rounded-full bg-gray40">
+                            <SearchIcon />
+                        </button>
+                        <button
+                            onClick={() => changeRoom("create")}
+                            className="rounded-full p-2 bg-gray40">
+                            <AddIcon />
+                        </button>
+                    </div>
+                }
+                navTitle="Inbox"
+            />
 
             <section className="h-full mt-2 sm:w-60 md:w-80 px-2">
 
                 <div className="mt-4 flex flex-cntr-between">
                     <h2>Rooms</h2>
                     <button className="text-sm" onClick={() => changeRoom("invitations")}>
-                        <Suspense fallback="Invitations"><InvitationsCount uid={uid} /></Suspense>
+                        <InvitationsCount uid={uid} />
                     </button>
                 </div>
 
-                <InfiniteScroller
-                    Component={RoomBar}
-                    fetchData={(p) => getRooms(uid, p)}
-                    onSuccess={(data) => {
-                        const [first] = data.pages;
-                        if (first.page === 1) setRoomList(first);
-                    }}
-                    placeholderData={roomList}
-                    queryKeys={qkeys}
-                    NotFoundSection={<NoRoomSection />}
+                <ul>
+                    {rooms.map(room => (
+                        <li key={room.room_id}>
+                            <RoomBar {...room} _id={room.room_id} />
+                        </li>
+                    ))}
+                </ul>
+                {hasNextPage &&
+                    ((isHydrated && !dataSaver) || isFetchingNextPage ?
+                        <div ref={container} className="mt-4 py-2">
+                            <LoadingSpinner />
+                        </div>
+                        :
+                        <div className="w-full flex flex-cntr-all">
+                            <button className="primary" onClick={manuallyLoadNextPage}>Load More</button>
+                        </div>
+                    )
+                }
 
-                />
             </section>
         </>
     )
@@ -83,30 +173,32 @@ const RoomList = ({ uid }: { uid: string }) => {
 
     const { id } = useParams();
 
-    const [page, setPage] = useState<PageType>("rooms")
+    const [page, setPage] = useState<PageType>("rooms");
+
+    const handleBack = () => setPage("rooms");
 
     if (page === "invitations") return (
-        <div className={id ? "hidden sm:block" : ''}>
-            <InvitationRoomsList changeRoom={() => setPage("rooms")} uid={uid} />
-        </div>
+        <RoomListWrapper id={id}>
+            <InvitationRoomsList changeRoom={handleBack} uid={uid} />
+        </RoomListWrapper>
     )
 
     else if (page === "search") return (
-        <div className={id ? "hidden sm:block" : ''}>
-            <RoomSearchList goBack={() => setPage("rooms")} />
-        </div>
+        <RoomListWrapper id={id}>
+            <RoomSearchList uid={uid} goBack={handleBack} />
+        </RoomListWrapper>
     )
 
     else if (page === "create") return (
-        <div className={id ? "hidden sm:block" : ''}>
-            <CreateGroup goBack={() => setPage("rooms")} />
-        </div>
+        <RoomListWrapper id={id}>
+            <CreateGroup goBack={handleBack} />
+        </RoomListWrapper>
     )
 
     return (
-        <div className={id ? "hidden sm:block" : ''}>
+        <RoomListWrapper id={id}>
             <RoomsList changeRoom={setPage} uid={uid} />
-        </div>
+        </RoomListWrapper>
     )
 
 }

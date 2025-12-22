@@ -1,23 +1,23 @@
-import { oneHour } from "@lib/constants";
 import { getAblyOnClient } from "@lib/providers/ably";
+import { getQueryKeys } from "@lib/utils";
 import useNotification from "@store/notification";
 import useCurrentUser from "@store/user";
-import { User } from "@type/internal";
+import { MereRoomType, User } from "@type/internal";
 import { AblyEventParams } from "@type/other";
-import toast from "react-hot-toast";
-import { pushMessageIntoList, setOrRemoveRoom } from "./room/client";
 import { ConnectionStateChange } from "ably";
+import { toast } from "sonner";
+import { showMessageOptimistically, updateDoc, updateDocInInfiniteQueryResult } from "./mutations";
 
-const setUser = (user: User) => {
-    const setUserHash = useCurrentUser.getState().setUserHash;
-    const setMeta = useCurrentUser.getState().setUserMeta;
-    setMeta({ user_id: user._id, username: user.username });
-    setUserHash(user);
+const setUser = (user: User, contentFiltering: boolean) => {
+    const { setUser, setUserMeta, setContentFiltering } = useCurrentUser.getState();
+    setContentFiltering(contentFiltering);
+    setUserMeta({ user_id: user._id, username: user.username, profile: user.profile });
+    setUser(user);
 }
 
-export const setUserOnRefreshOrLogin = (user: User) => {
+export const setUserOnRefreshOrLogin = (user: User, contentFiltering: boolean) => {
 
-    setUser(user);
+    setUser(user, contentFiltering);
 
     const ably = getAblyOnClient(user._id)
     const channel = ably.channels.get(user._id);
@@ -42,34 +42,19 @@ export const setUserOnRefreshOrLogin = (user: User) => {
     const handleMessageArrival = ({ data }: { data?: AblyEventParams["message"] }) => {
         if (!data || data.user_id === user._id) return;
 
-        const { room_id, room } = data;
+        const { room_id, room, ...rest } = data;
 
-        pushMessageIntoList({
-            message: data,
-            rmid: room_id.toString(),
-            uid: user._id,
-            room: {
-                display_name: room.display_name,
-                poster: room.poster,
-                lastMessage: data.content,
-                lastMessageAt: data.createdAt,
-                lastMessageBy: data.user_id,
-                otherParticipant_id: data.user_id,
-                otherParticipant_seenAt: data.createdAt,
+        showMessageOptimistically({ message: { ...rest, room_id }, room, uid: user._id })
+
+        if (typeof "window" === undefined) return;
+
+        else if (window.location.pathname.startsWith(`/inbox/${room_id}`)) {
+            ably.channels.get(data.user_id).publish("entered_chat", {
                 room_id,
-                type: "participant",
-                seenAt: Date.now() - oneHour,
-                mute: room.mute,
-            }
-        });
-
-        ably.channels.get(data.user_id).publish("entered_chat", {
-            room_id,
-            time: Date.now(),
-            user_id: user._id,
-        } as AblyEventParams["entered_chat"]);
-
-        if (window && !window.location.href.includes(`inbox/${room_id}`)) {
+                time: Date.now(),
+                user_id: user._id,
+            } as AblyEventParams["entered_chat"]);
+        } else {
             toast.success(`New message arrived from ${room.display_name}`);
         }
     }
@@ -78,12 +63,17 @@ export const setUserOnRefreshOrLogin = (user: User) => {
         console.log("Entered chat", data);
         if (!data || data.user_id === user._id) return;
 
-        setOrRemoveRoom({
-            rmid: data.room_id,
-            uid: user._id,
-            update: true,
-            room: { otherParticipant_seenAt: data.time }
-        });
+        updateDoc(
+            getQueryKeys("room_rmid_uid", { rmid: data.room_id, uid: user._id }),
+            { otherParticipant_seenAt: data.time }
+        )
+
+        updateDocInInfiniteQueryResult<MereRoomType>(
+            getQueryKeys("rooms_uid", { uid: user._id }),
+            (room) => room.room_id === data.room_id,
+            { otherParticipant_seenAt: data.time }
+        )
+
     }
 
     const handleVisibility = () => {
@@ -94,7 +84,7 @@ export const setUserOnRefreshOrLogin = (user: User) => {
         }
     }
 
-    document?.addEventListener("visibilitychange", handleVisibility)
+    document.addEventListener("visibilitychange", handleVisibility)
 
     channel.subscribe("notification", handleNewNotification);
 
@@ -110,11 +100,3 @@ export const setUserOnRefreshOrLogin = (user: User) => {
         ably.connection.off(handleConnectionStateChange);
     }
 }
-
-/*
-
-1. in /new, fix thread choice chooser and use useOfflineStore hook.
-2. Check joined thread and thread memebers aggregation
-3. 
-
-*/

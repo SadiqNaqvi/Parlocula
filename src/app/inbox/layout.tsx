@@ -1,8 +1,9 @@
-import { LoadingSpinner, ShowError } from "@components/ui";
+import LoginModal from "@components/fallbacks/LoginModal";
+import { LoadingSpinner } from "@components/ui";
 import { getUserFromToken } from "@lib/auth/utils";
 import { getInvitedRooms, getRooms } from "@lib/helpers/common";
-import { getQueryClient } from "@lib/queryClient";
-import { getQueryKeys, queryFunction } from "@lib/utils";
+import { getQueryClient, prefetchInfiniteQuery } from "@lib/providers/queryClient";
+import { getQueryKeys } from "@lib/utils";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { cookies } from "next/headers";
 import { PropsWithChildren, Suspense } from "react";
@@ -14,31 +15,28 @@ const InboxLayout = async ({ children }: PropsWithChildren) => {
     const user = await getUserFromToken(jar);
 
     if (!user) return (
-        <ShowError
-            heading="Oops! You've been stopped by the Popcorn Cops"
-            errCode="unauthenticated_access"
-        />
+        <LoginModal redirectTo="/inbox" />
     )
 
     const queryClient = getQueryClient();
 
-    await queryClient.prefetchInfiniteQuery({
-        queryFn: () => queryFunction(getRooms, [user.user_id, 1, jar], 1),
+    await prefetchInfiniteQuery({
+        queryClient,
+        queryFn: () => getRooms(user.user_id, 1, jar),
         queryKey: getQueryKeys("rooms_uid", { uid: user.user_id }),
-        initialPageParam: 1
     });
 
-    queryClient.prefetchInfiniteQuery({
-        queryFn: () => queryFunction(getInvitedRooms, [user.user_id, 1, jar], 1),
+    prefetchInfiniteQuery({
+        queryClient,
+        queryFn: () => getInvitedRooms(user.user_id, 1, jar),
         queryKey: getQueryKeys("roomInvitations_uid", { uid: user.user_id }),
-        initialPageParam: 1,
     });
 
     return (
-        <main style={{ paddingBottom: 0 }} className="flex noControl">
+        <main className="flex noPadding fullScreen">
             <HydrationBoundary state={dehydrate(queryClient)}>
                 <RoomList uid={user.user_id} />
-                <Suspense fallback={<section className="mt-8"><LoadingSpinner /></section>}>
+                <Suspense fallback={<LoadingSpinner className="mt-8" />}>
                     {children}
                 </Suspense>
             </HydrationBoundary>

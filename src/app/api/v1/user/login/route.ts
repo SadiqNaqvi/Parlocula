@@ -1,25 +1,24 @@
 import { generateToken } from "@lib/auth";
 import { deleteSession, storeSession } from "@lib/auth/session";
-import { postRequest } from "@lib/helpers/common";
-import { storeUserMetaInCache } from "@lib/helpers/redis";
+import { postHandler } from "@lib/helpers/handlers";
+import { storeUserMetaInCache } from "@lib/helpers/redis/messaging";
 import { verifyCode } from "@lib/helpers/server";
 import { currentUserPipeline } from "@lib/pipelines";
 import { emailSchema } from "@lib/schemas";
 import User from "@model/users";
-import { User as UserType } from "@type/internal";
+import { MereShelf, TokenPayload } from "@type/internal";
+import { UserModelType } from "@type/models";
 import { ErrorCodes } from "@type/other";
 import { ClientSession } from "mongoose";
 import { cookies } from "next/headers";
 
-type ResponseType = UserType & {
-  isBanned: boolean;
-  banEndsAt: Date | undefined;
-};
+type ResponseType = Omit<Required<UserModelType>, "isActive" | "lastLoginAt" | "password" | "session_id"> & { predefinedShelves: MereShelf }
 
 const sessionManagement = async (
   user: ResponseType,
   session: ClientSession
 ): Promise<ErrorCodes | null | undefined> => {
+
   const session_id = crypto.randomUUID();
 
   const oldDoc = await User.findByIdAndUpdate(
@@ -28,6 +27,7 @@ const sessionManagement = async (
       lastLoginAt: new Date(),
       session_id,
       isActive: true,
+      deletionId: undefined,
     },
     { session }
   );
@@ -36,27 +36,27 @@ const sessionManagement = async (
 
   if (oldDoc.session_id) deleteSession(oldDoc.session_id);
 
-  const { _id, username, isBanned, email, banEndsAt, profile } = user;
+  const { _id, username, isBanned, email, banEndsAt, profile, filterContent, dob } = user;
 
   const id = _id.toString();
 
-  const isStored = await storeSession(session_id, {
+  const tokenPayload: TokenPayload & { email: string } = {
     user_id: id,
     username,
     email,
     isBanned,
     banEndsAt,
     profile,
-  });
+    filterContent,
+    dob,
+  }
+
+  const isStored = await storeSession(session_id, tokenPayload);
 
   if (!isStored)
     return "session_store_fail";
 
-  const token = await generateToken({
-    user_id: id,
-    username,
-    profile,
-  });
+  const token = await generateToken(tokenPayload);
 
   cookies().set("token", token, {
     httpOnly: true,
@@ -74,24 +74,19 @@ const sessionManagement = async (
 
 };
 
-export const POST = postRequest<{ email: string, code: string }>({
+export const POST = postHandler<{ email: string, code: string, fingerprint: string }>({
   handler: async ({ data, session }) => {
 
-    const did = cookies().get("did")?.value;
-    if (!did) return { success: false, errCode: "missing_device_fingerprint" }
-
-    const { email, code } = data;
+    const { email, code, fingerprint } = data;
     const parsedEmail = emailSchema.safeParse(email);
 
     if (parsedEmail.error)
       return { success: false, errCode: "invalid_input" };
 
-    const resp = await verifyCode(code, did);
+    const resp = await verifyCode(code, fingerprint);
     if (!resp.success) return resp;
 
-    const results = await User.aggregate(
-      currentUserPipeline({ email }), { session }
-    );
+    const results = await User.aggregate(currentUserPipeline({ email }));
 
     const user: ResponseType = results[0];
 
@@ -102,7 +97,6 @@ export const POST = postRequest<{ email: string, code: string }>({
     const error = await sessionManagement(user, session);
     if (error) return { success: false, errCode: error };
 
-
     const { isBanned, banEndsAt, ...result } = user;
 
     return {
@@ -112,4 +106,5 @@ export const POST = postRequest<{ email: string, code: string }>({
       options: { uid: user._id },
     };
   },
+  skipUserCheck: true,
 });

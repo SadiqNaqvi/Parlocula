@@ -1,27 +1,22 @@
 import { z } from "zod";
 import {
-  urlPattern,
-  passwordValidator,
-  usernamePattern,
-  emailPattern,
-  genresToChoose,
-  postTags,
   allowedFormats,
   allowedSizes,
+  availablePostCategories,
+  emailPattern,
+  megaFilePattern,
   numberOfFrames,
+  urlPattern,
+  usernamePattern
 } from "./constants";
-import { calculateAge, getTimeInFuture, isValidObjectId } from "./utils";
+import { calculateAge, isValidParloId } from "./utils";
 
-export const tagEnum = z
+export const categoryEnum = z
   .string()
   .trim()
-  .refine((val) => [...postTags, ""].includes(val), {
-    message: "Invalid Tag",
+  .refine((val) => [...availablePostCategories, ""].includes(val), {
+    message: "Invalid Category",
   });
-
-export const tagSchema = z.object({
-  tag: tagEnum,
-});
 
 export const emailSchema = z
   .string()
@@ -33,22 +28,20 @@ export const emailSchema = z
     "Invalid Email! Please provide a valid email."
   );
 
-export const usernameSchema = z.object({
-  username: z
-    .string()
-    .trim()
-    .min(6, "Username must be at least 6 characters long")
-    .max(20, "Username cannot have more than 20 characters")
-    .transform((username) => username.toLowerCase())
-    .refine(
-      (username) => !username.includes(" "),
-      "Username cannot have white spaces"
-    )
-    .refine(
-      (username) => usernamePattern.test(username),
-      "Username can only start with alphabetical characters. Only _ is allowed as special character."
-    ),
-});
+export const usernameSchema = z
+  .string()
+  .trim()
+  .min(6, "Username must be at least 6 characters long")
+  .max(20, "Username cannot have more than 20 characters")
+  .transform((username) => username.toLowerCase())
+  .refine(
+    (username) => !username.includes(" "),
+    "Username cannot have white spaces"
+  )
+  .refine(
+    (username) => usernamePattern.test(username),
+    "Username can only start with alphabetical characters. Only _ is allowed as special character."
+  );
 
 
 const dateSchema = z.string()
@@ -77,15 +70,25 @@ export const linkSchema = z.object({
     }),
 });
 
+export const megaFileSchema =
+  z.string()
+    .trim()
+    .refine(url => megaFilePattern.test(url),
+      "Invalid URL! Please provide a valid Mega url with id and key"
+    )
+
 export const frameDataSchema = z.object({
   type: z.enum(["image", "video"]),
   isExternal: z.boolean(),
   path: z.string(),
   shouldUpload: z.boolean(),
+  size: z.number(),
+  hash: z.string(),
 });
 
 export const fileSchema = z
   .any()
+  .refine((input) => Boolean(input instanceof File))
   .refine((file: File) => {
     const [type, ext] = file.type.split("/");
     const formats = allowedFormats[type];
@@ -131,6 +134,7 @@ const threadConnectionSchema = z.object({
 
 export const threadSchemaServer = z
   .object({
+    _id: z.string(),
     connections: z
       .array(threadConnectionSchema)
       .refine(
@@ -143,36 +147,11 @@ export const threadSchemaServer = z
       .refine((l) => l.length <= 5, "At most 5 links are allowed"),
     filesData: z.array(frameDataSchema).optional().default([]),
     files: z.array(fileSchema).optional().default([]),
-  })
-  .merge(threadSchemaClient);
+  }).merge(threadSchemaClient);
 
 export const threadUpdateSchema = threadSchemaServer
   .merge(extraFieldForUpdateMethod)
   .partial();
-
-const postRefineFunc = (data: any) => {
-  const { filesData, links, tag } = data;
-  if (
-    tag === "frames" &&
-    !(filesData.length > 0 && filesData.length < numberOfFrames.total)
-  )
-    return {
-      path: ["custom"],
-      message: `Frames based post must have at least 1 frame attached and only ${numberOfFrames.total} frames are allowed!`,
-    };
-  else if (tag === "links" && !(links.length > 0 && links.length < 5))
-    return {
-      path: ["custom"],
-      message:
-        "Links based post must have at least 1 link attached and only 5 links are allowed!",
-    };
-  else if (tag !== "frames" && filesData?.length > 1)
-    return {
-      path: ["custom"],
-      message: "Only 1 frame is allowed to attach!",
-    };
-  else return true;
-};
 
 export const postClientSchema = z.object({
   title: z
@@ -189,24 +168,23 @@ export const postClientSchema = z.object({
 });
 
 const postServerBase = z.object({
-  tag: tagEnum.default(""),
+  _id: z.string(),
+  category: categoryEnum.default(""),
   links: z.array(linkSchema),
-  filesData: z.array(frameDataSchema).default([]),
-  files: z.array(fileSchema).default([]),
+  filesData: z.array(frameDataSchema).max(numberOfFrames.total).default([]),
+  files: z.array(fileSchema).max(numberOfFrames.total).default([]),
   thread_id: z.string(),
-  repost_id: z.string().optional(),
-  repost_author: z.string().optional(),
+  quoted_post_id: z.string().optional(),
+  quoted_post_author: z.string().optional(),
 });
 
 export const postSchemaServer = postClientSchema
-  .merge(postServerBase)
-  .refine(postRefineFunc);
+  .merge(postServerBase);
 
 export const postUpdateSchema = postClientSchema
   .merge(postServerBase)
-  .merge(extraFieldForUpdateMethod)
   .partial()
-  .refine(postRefineFunc);
+  .merge(extraFieldForUpdateMethod);
 
 export const registerUserSchemaClient = z.object({
   name: z
@@ -224,6 +202,7 @@ export const registerUserSchemaClient = z.object({
 
 export const registerUserSchemaServer = z
   .object({
+    _id: z.string(),
     username: z
       .string()
       .trim()
@@ -234,47 +213,53 @@ export const registerUserSchemaServer = z
         "Username cannot start with numbers"
       ),
     email: emailSchema,
-    genres: z
-      .array(z.string())
-      .refine(
-        (val) => val.length >= 3,
-        "At least 3 initial genres are required."
-      )
-      .refine((val) => val.length <= 5, "Only 5 genres are allowed.")
-      .refine(
-        (val) => val.every((el) => genresToChoose.includes(el)),
-        "You can only choose between the given genres"
-      ),
+    // genres: z
+    //   .array(z.string())
+    //   .refine(
+    //     (val) => val.length >= 3,
+    //     "At least 3 initial genres are required."
+    //   )
+    //   .refine((val) => val.length <= 5, "Only 5 genres are allowed.")
+    //   .refine(
+    //     (val) => val.every((el) => genresToChoose.includes(el)),
+    //     "You can only choose between the given genres"
+    //   ),
     bioLinks: z.array(linkSchema).default([]),
     files: z.array(fileSchema).optional().default([]),
     filesData: z.array(frameDataSchema).optional().default([]),
   })
   .merge(registerUserSchemaClient);
 
-export const userUpdateSchema = z
-  .object({
-    profile: z.string().optional(),
-  })
-  .merge(registerUserSchemaServer)
+export const userUpdateSchema = z.object({
+  bioLinks: z.array(linkSchema).optional(),
+  files: z.array(fileSchema).optional().default([]),
+  filesData: z.array(frameDataSchema).optional().default([]),
+})
+  .merge(registerUserSchemaClient)
   .merge(extraFieldForUpdateMethod)
   .partial();
+
+export const verificationCodeSchema = z
+  .string()
+  .min(6, "Invalid code! Please enter a 6 digit code")
+  .transform((val) => parseInt(val))
+  .refine((val) => !isNaN(val), "Invalid code! Please enter a valid code");
+
+export const verifyCodeToLoginSchema = z.object({
+  code: verificationCodeSchema
+})
 
 export const usernameUpdateSchema = z.object({
   username: usernameSchema,
   passkey: z.string(),
+  fingerprint: z.string()
 });
 
 export const emailUpdateSchema = z.object({
-  username: emailSchema,
+  email: emailSchema,
   passkey: z.string(),
-});
-
-export const verificationCodeSchema = z.object({
-  code: z
-    .string()
-    .min(6, "Invalid code! Please enter a 6 digit code")
-    .transform((val) => parseInt(val))
-    .refine((val) => !isNaN(val), "Invalid code! Please enter a valid code"),
+  code: verificationCodeSchema,
+  fingerprint: z.string()
 });
 
 export const userPrefrenceSchema = z
@@ -290,14 +275,15 @@ export const userPrefrenceSchema = z
   });
 
 const commentSchemaBase = z.object({
-  content: z.string().min(2).max(1000).optional(),
+  _id: z.string(),
+  content: z.string().min(2).max(1000).default(""),
   post_id: z.string(),
-  replied_to: z.string().optional().nullable(),
   nsfw: z.boolean().default(false),
   spoiler: z.boolean().default(false),
-  attachment: z.string().optional(),
+  attachment: z.string().default(""),
   post_author: z.string(),
   comment_author: z.string().optional(),
+  replied_to: z.string().optional(),
 });
 
 export const commentSchema = commentSchemaBase.refine((data) =>
@@ -306,24 +292,33 @@ export const commentSchema = commentSchemaBase.refine((data) =>
 
 export const commentSchemaUpdate = commentSchemaBase.partial().strict();
 
-export const voteSchema = z.object({
-  type: z.enum(["up", "down"]),
+export const likeSchema = z.object({
   comment_author: z.string(),
 });
 
-const itemsSchema = z.array(
-  z.object({
-    title: z.string(),
-    poster: z.string(),
-    year: z.number(),
-    media_type: z.enum(["movie", "show"]),
-    tmdb_id: z.string(),
-    isConfirm: z.boolean(),
-    media_id: z.string().optional(),
-  })
-);
+const itemBaseSchema = z.object({
+  title: z.string(),
+  poster: z.string(),
+  year: z.number(),
+  cinement_type: z.enum(["movie", "show"]),
+  ext_id: z.string(),
+  cinement_id: z.string(),
+})
 
-export const listClientSchema = z.object({
+const confirmedItemExt = z.object({
+  isConfirm: z.literal(true),
+});
+
+const unconfirmedItemExt = z.object({
+  isConfirm: z.literal(false),
+});
+
+export const itemSchema = z.union([
+  itemBaseSchema.and(confirmedItemExt),
+  itemBaseSchema.and(unconfirmedItemExt)
+]);
+
+export const shelfClientSchema = z.object({
   name: z
     .string()
     .min(3, "Name must contain at least 3 characters")
@@ -331,26 +326,27 @@ export const listClientSchema = z.object({
   isPrivate: z.boolean(),
 });
 
-export const listServerSchema = z.object({
+export const shelfServerSchema = z.object({
+  _id: z.string(),
   name: z.string().min(3).max(40),
   isPrivate: z.boolean(),
-  items: itemsSchema,
+  items: z.array(itemSchema),
 });
 
-export const listEditSchema = z
+export const shelfEditSchema = z
   .object({
     itemsToDelete: z.array(z.string()).default([]),
   })
-  .merge(listClientSchema)
+  .merge(shelfClientSchema)
   .partial();
 
-export const itemsForListSchema = z.object({
-  items: itemsSchema,
-  list_type: z.enum(["custom", "favourite", "recommended", "watched"]),
+export const itemsForShelfSchema = z.object({
+  items: z.array(itemSchema),
+  shelf_type: z.enum(["custom", "favourite", "recommended", "watched"]),
 });
 
 export const cinementToAddAndRemove = z.object({
-  tmdb_id: z.string(),
+  ext_id: z.string(),
   year: z.number(),
   add: z.array(z.string()),
   remove: z.array(z.string()),
@@ -361,7 +357,7 @@ export const cinementToAddAndRemove = z.object({
 
 export const bookmarkSchema = z.object({
   content_id: z.string(),
-  content_type: z.enum(["Post", "Comment", "List"]),
+  content_type: z.enum(["Post", "Comment", "Shelf"]),
   content_author: z.string(),
 });
 
@@ -371,14 +367,14 @@ export const reportSchema = z
     details: z.string().min(100).max(500).optional(),
     ext_id: z.string().optional(),
     content_id: z.string(),
-    content_type: z.enum(["Post", "Comment", "User", "Thread"]),
+    content_type: z.enum(["post", "comment", "user", "thread"]),
   })
   .refine(
     ({ reason, details }) => Boolean(reason === "Others" && details?.length),
     { path: ["details"], message: "Details are required if 'Others' is chosen" }
   )
   .refine(({ ext_id, content_type }) => {
-    if ((content_type === "Post" || content_type === "Comment") && !ext_id)
+    if ((content_type === "post" || content_type === "comment") && !ext_id)
       return false;
     return true;
   });
@@ -426,6 +422,14 @@ export const roomSchema = z
       return { path: "name", message: "Name of the group is required" };
   });
 
+export const roomUpdateSchema = z.object({
+  name: z.string(),
+  files: z.array(fileSchema).default([]),
+  filesData: z.array(frameDataSchema).optional().default([]),
+})
+  .partial()
+  .merge(extraFieldForUpdateMethod)
+
 export const reportActionSchema = z.object({
   actions: z.array(
     z.object({
@@ -433,20 +437,27 @@ export const reportActionSchema = z.object({
       action: z.enum(["keep", "delete", "warn"]),
     })
   )
-    .min(1, "Take a decision to save")
-    .max(50, "Only 50 decisions can be saved at a time"),
+    .min(1, "Take at least one decision")
+    .max(50, "Only 50 decisions can be taken at a time"),
   type: z.enum(["post", "comment"])
 });
 
 export const sessionInvalidationSchema = z.object({
-  passKey: z.string().min(10),
-  date: dateSchema
-    .refine(
-      date => date < getTimeInFuture({ unit: "mo" }),
-      "We only allow delition upto 1 month"
-    )
-    .optional()
+  passKey: z.string().min(10)
 });
 
 export const sessionInvalidationSchemaServer = sessionInvalidationSchema
   .merge(z.object({ email: emailSchema }))
+
+export const createArrayOfUidsSchema = (limit: number) => z.object({
+  users: z
+    .array(z.string())
+    .refine(
+      (a) => a.length > 0 && a.length <= limit,
+      `At least one and upto ${limit} users should be selected.`
+    )
+    .refine((a) => a.every((u) => isValidParloId(u)), {
+      path: ["custom"],
+      message: "user id is invalid! Please re-select and try again"
+    }),
+});

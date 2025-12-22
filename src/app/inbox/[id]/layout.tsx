@@ -1,0 +1,44 @@
+import LoginModal from "@components/fallbacks/LoginModal";
+import { NotFound } from "@components/ui";
+import { getUserFromToken } from "@lib/auth/utils";
+import { getRoomById } from "@lib/helpers/common";
+import { fetchQuery, getQueryClient } from "@lib/providers/queryClient";
+import { getQueryKeys } from "@lib/utils";
+import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
+import { cookies } from "next/headers";
+import { PropsWithChildren } from "react";
+
+const ChatLayout = async ({ params: { id }, children }: PropsWithChildren<{ params: { id: string } }>) => {
+
+    const [rmid] = id.split('-');
+
+    const queryClient = getQueryClient();
+    const jar = cookies();
+    const user = await getUserFromToken(jar);
+
+    if (!user) return (
+        <LoginModal redirectTo="/inbox" />
+    )
+
+    const room = await fetchQuery({
+        queryClient,
+        queryFn: () => getRoomById(user.user_id, rmid, jar),
+        queryKey: getQueryKeys("room_rmid_uid", { rmid, uid: user.user_id }),
+    });
+
+    if (!room) return (
+        <NotFound
+            title="Oops! Looks like The Parlocula Explorers couldn't find anything."
+            paras={["Possible Reason: Incorrect room id.", "Please visit inbox and try again."]}
+        />
+    )
+
+    return (
+        <HydrationBoundary state={dehydrate(queryClient)}>
+            {children}
+        </HydrationBoundary>
+    )
+
+}
+
+export default ChatLayout;

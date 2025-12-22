@@ -1,27 +1,32 @@
-import { getRequest } from "@lib/helpers/common";
-import { searchHandler } from "@lib/pipelines";
-import { ObjectId } from "@lib/utils";
-import { Member } from "@model";
+import { getHandler } from "@lib/helpers/handlers";
+import { convertMatchToLookupExpr, searchHandler } from "@lib/pipelines";
 
-export const GET = getRequest(async (r, params) => {
+// Searching Banned Users
+export const GET = getHandler(async (r, params) => {
   const { id } = params;
 
   return await searchHandler({
     r,
+    filterInsideSearch: { isActive: true },
     filters: [
-      { $match: { thread_id: ObjectId(id), banned: true } },
       {
         $lookup: {
-          from: "users",
-          as: "user",
-          localField: "user_id",
-          foreignField: "_id",
+          from: "members",
+          let: { uid: "$_id" },
+          pipeline: [
+            convertMatchToLookupExpr({
+              thread_id: id,
+              user_id: "$$uid",
+              banned: true
+            }),
+            { $count: "exists" }
+          ],
+          as: "member"
         },
       },
-      { $unwind: "$user" },
-      { $replaceRoot: { newRoot: "$user" } },
+      { $match: { $expr: { $eq: [{ $size: "$member" }, 1] } } },
+      { $project: { member: 0 } }
     ],
-    collection: "users",
-    DocModel: Member,
+    type: "users",
   });
 });

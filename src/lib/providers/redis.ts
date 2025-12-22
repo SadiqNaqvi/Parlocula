@@ -67,14 +67,16 @@ export const handleParsing = (data: any) => {
 
 export const handlePipelineResponse = <T = unknown>(res: [error: Error | null, result: unknown][] | null): T[] => {
   if (!res) throw new Error("Pipeline returned nothing");
+
   return res.map(result => {
     const [e, r] = result;
     if (e) throw new Error(e.message);
+    else if (Array.isArray(r)) {
+      r.map(handleParsing) as T[];
+    }
     return handleParsing(r) as T;
   });
 }
-
-
 
 type RedisJsonCommands =
   | "set"

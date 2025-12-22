@@ -9,8 +9,8 @@
 .patternBackground {
   position: fixed;
   inset: 0;
-  background-image: url(/_next/static/media/logo_pattern.c4ae4510.webp);
-  background-size: 600px;
+  background-image: url("../assets/placeholder.png");
+  background-size: 100px;
   filter: brightness(0.4);
   z-index: 0;
 }
@@ -68,10 +68,6 @@
 
 .wrap-anywhere {
   overflow-wrap: anywhere;
-}
-
-.go2072408551 {
-  max-width: unset !important;
 }
 
 *::selection {
@@ -374,7 +370,7 @@ body {
   transition: opacity 0.3s ease;
 }
 
-main:not(.noControl) > *:not(.ppModal) {
+main:not(.fullScreen) > *:not(.ppModal) {
   width: 100%;
   max-width: 768px;
   margin-inline: auto;
@@ -389,10 +385,26 @@ main {
   padding-bottom: 2.5rem;
 }
 
+main.noPadding {
+  padding-bottom: 0;
+}
+
 body:has(#sidebar) main {
   width: calc(100% - var(--sidebarWidth));
   margin-left: var(--sidebarWidth);
   padding-bottom: 4.5rem !important;
+}
+
+.h-size-screen {
+  height: calc(100dvh - 2.5rem);
+}
+
+main.noPadding .h-size-screen {
+  height: 100dvh;
+}
+
+body:has(sidebar) .h-size-screen {
+  height: calc(100dvh - 4.5rem);
 }
 
 .primary-gradient {
@@ -476,7 +488,7 @@ img {
   -webkit-user-drag: none;
 }
 
-input:not(.noControl) {
+input:not(.fullScreen) {
   outline: none;
 }
 

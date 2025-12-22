@@ -1,6 +1,6 @@
+import { localForageStorage } from "@store/utils";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { localForageStorage } from "./user";
 
 type NotificationStoreType = {
   last: string | null;

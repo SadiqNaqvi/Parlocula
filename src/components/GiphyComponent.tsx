@@ -9,7 +9,7 @@ import { useContext } from 'react'
 
 // the search experience consists of the manager and its child components that use SearchContext
 const SearchExperience = ({ callback }: any) => (
-    <SearchContextManager apiKey={process.env.NEXT_PUBLIC_GIPHY_KEY as string}>
+    <SearchContextManager apiKey={process.env.NEXT_PUBLIC_GIPHY_KEY!}>
         <Components callback={callback} />
     </SearchContextManager>
 )
