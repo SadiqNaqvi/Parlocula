@@ -8,20 +8,17 @@ const nextConfig = {
       },
     ],
   },
-  experimental: {
-    esmExternals: "loose",
-    serverComponentsExternalPackages: ["mongoose"],
-  },
+  serverExternalPackages: ["mongoose"],
   logging: {
     fetches: {
       fullUrl: true,
     },
   },
-  webpack: (config) => {
-    // Ignore ALL webpack warnings produced by ./node_modules/keyv/src/index.js file
-    config.ignoreWarnings = [{ module: /node_modules\/keyv\/src\/index\.js/ }];
-    return config;
-  },
+  // turbopack: (config) => {
+  //   // Ignore ALL turbopack warnings produced by ./node_modules/keyv/src/index.js file
+  //   config.ignoreWarnings = [{ module: /node_modules\/keyv\/src\/index\.js/ }];
+  //   return config;
+  // },
 };
 
 export default nextConfig;
