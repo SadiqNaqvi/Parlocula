@@ -11,7 +11,7 @@ export const generateMetadata = () => {
 }
 
 const ShelfHomeLayout = async ({ children }: PropsWithChildren) => {
-    const user = await getUserFromToken(cookies());
+    const user = await getUserFromToken(await cookies());
 
     if (!user) return (
         <LoginModal redirectTo="/shelf" title="Shelves" />

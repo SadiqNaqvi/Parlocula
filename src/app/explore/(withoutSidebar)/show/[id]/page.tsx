@@ -7,8 +7,7 @@ import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { Metadata } from "next";
 import { cookies } from "next/headers";
 import MediaPage from "../../components/MediaPage";
-
-type Props = { params: { id: string } };
+import { ParloPageProps } from "@type/other";
 
 const fetchData = async (params: { id: string }) => {
     const show_id = params.id.split('-')[0];
@@ -17,8 +16,8 @@ const fetchData = async (params: { id: string }) => {
     return await fetchShow(show_id)
 }
 
-export const generateMetadata = async ({ params }: Props): Promise<Metadata> => {
-    const data = await fetchData(params);
+export const generateMetadata = async ({ params }: ParloPageProps): Promise<Metadata> => {
+    const data = await fetchData(await params);
 
     if (!data) return { title: "Parlocula" };
     return {
@@ -27,12 +26,12 @@ export const generateMetadata = async ({ params }: Props): Promise<Metadata> => 
     };
 };
 
-export default async function Page({ params }: Props) {
+export default async function Page({ params }: ParloPageProps) {
 
     const queryClient = getQueryClient();
-    const user = await getUserFromToken(cookies());
+    const user = await getUserFromToken(await cookies());
 
-    const content = await fetchData(params);
+    const content = await fetchData(await params);
 
     if (content && user)
         await prefetchQuery({

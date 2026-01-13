@@ -2,19 +2,21 @@ import { NotFound } from "@components/ui";
 import { getUserFromToken } from "@lib/auth/utils";
 import { getShelf } from "@lib/helpers/common";
 import { isValidParloId } from "@lib/utils";
+import { ParloPageProps } from "@type/other";
 import { Metadata } from "next";
 import { cookies } from "next/headers";
+import { PropsWithChildren } from "react";
 
-export const generateMetadata = async ({ params, searchParams }: { params: { id: string }, searchParams?: { k?: string } }): Promise<Metadata> => {
+export const generateMetadata = async ({ params, searchParams }: ParloPageProps): Promise<Metadata> => {
 
-    const { id } = params;
+    const { id } = await params;
     const lid = id.split('-')[0];
 
     if (!isValidParloId(lid)) return { title: "Parlocula" };
 
-    const user = await getUserFromToken(cookies());
-
-    const { success, result } = await getShelf(lid, user?.user_id, searchParams?.k);
+    const user = await getUserFromToken(await cookies());
+    const { k } = await searchParams;
+    const { success, result } = await getShelf(lid, user?.user_id, k);
     if (!success) return { title: "Parlocula" };
 
     return {
@@ -23,9 +25,9 @@ export const generateMetadata = async ({ params, searchParams }: { params: { id:
 
 }
 
-const ShelfLayout = ({ children, params: { id } }: Readonly<{ children: React.ReactNode, params: { id: string } }>) => {
+const ShelfLayout = async ({ children, params }: PropsWithChildren<ParloPageProps>) => {
 
-    const lid = id.split('-')[0];
+    const lid = (await params).id.split('-')[0];
 
     if (!isValidParloId(lid)) return (
         <NotFound

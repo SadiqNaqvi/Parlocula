@@ -14,7 +14,7 @@ export const generateMetadata = (): Metadata => {
 
 const SavedCommentsPage = async () => {
 
-    const jar = cookies();
+    const jar = await cookies();
     const user = await getUserFromToken(jar);
     const queryClient = getQueryClient();
 

@@ -7,18 +7,17 @@ import {
 import { Member, Thread, User } from "@model";
 
 // Fetch the member status of the current user in a thread.
-export const GET = getHandler(
-  async (_, params: { id: string; cuid: string }) => {
+export const GET = getHandler(async (_, params) => {
 
-    const { id, cuid } = params;
+  const { id, cuid } = params;
 
-    const result = await Member.findOne({
-      thread_id: id,
-      user_id: cuid,
-    });
+  const result = await Member.findOne({
+    thread_id: id,
+    user_id: cuid,
+  });
 
-    return { result, success: true };
-  }
+  return { result, success: true };
+}
 );
 
 // Joining a thread

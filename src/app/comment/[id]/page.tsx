@@ -3,17 +3,14 @@ import { getQueryClient, prefetchQuery } from "@lib/providers/queryClient"
 import { getQueryKeys, refineSearchParams } from "@lib/utils"
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query"
 import RepliesSection from "./RepliesSection"
+import { ParloPageProps } from "@type/other"
 
-type Props = {
-    params: { id: string },
-    searchParams: { p?: string, f?: string, t?: string }
-}
+const Page = async ({ params, searchParams }: ParloPageProps) => {
 
-const Page = async ({ params, searchParams }: Props) => {
+    const cid = (await params).id.split('-')[0];
+    const sp = await searchParams;
 
-    const cid = params.id.split('-')[0];
-
-    const { filter, page } = refineSearchParams("comments", searchParams.p, searchParams.f)
+    const { filter, page } = refineSearchParams("comments", sp.p, sp.f);
 
     const queryClient = getQueryClient();
 

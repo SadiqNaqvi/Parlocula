@@ -2,6 +2,7 @@
 
 import { forwardRef, MutableRefObject, PropsWithChildren, useEffect, useImperativeHandle, useState } from "react";
 import { Root, Overlay, Portal, Content, Handle, Drawer } from "vaul";
+import { OptionalChildren } from "./ui";
 
 type PortalProps = PropsWithChildren<{
   allowHandle?: boolean
@@ -19,10 +20,14 @@ export const NestedSheet = ({ button, children, className }: PropsWithChildren<{
 
 export const DrawerPortal = ({ children, allowHandle, ref }: PortalProps) => (
   <Portal>
-    <Overlay className="fixed inset-0 bg-black/40" />
-    <Content ref={ref} className="h-fit fixed bottom-0 left-0 right-0 outline-none">
-      {allowHandle && <Handle />}
-      {children}
+    <Overlay className="z-[10] fixed inset-0 bg-black/40" />
+    <Drawer.Title />
+    <Drawer.Description />
+    <Content ref={ref} className="h-fit fixed z-[10] bottom-0 left-0 right-0 outline-none">
+      <aside className="mx-auto sm:mb-4 rounded-t-md sm:rounded-md w-full max-w-96 bg-primarylight">
+        {allowHandle && <Handle />}
+        {children}
+      </aside>
     </Content>
   </Portal>
 )
@@ -52,13 +57,11 @@ export const BottomSheet = forwardRef(({ children, state, onClose, allowHandle, 
 
   return (
     <Root open={open} onClose={onClose}>
-      {button && (
+      <OptionalChildren condition={button}>
         <Drawer.Trigger className={className}>{button}</Drawer.Trigger>
-      )}
+      </OptionalChildren>
       <DrawerPortal allowHandle={allowHandle}>
-        <aside className="mx-auto w-full max-w-screen-sm">
-          {children}
-        </aside>
+        {children}
       </DrawerPortal>
     </Root>
   )

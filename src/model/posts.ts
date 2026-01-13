@@ -1,8 +1,7 @@
-import { PostModelType, StrictModel } from "@type/models";
-import { model, models, Schema } from "mongoose";
-import { frameModel, linkModel, numberSchema, StrictSchema } from "./general";
-import { oneDay } from "@lib/constants";
 import { parloId } from "@lib/utils";
+import { PostModelType, StrictModel } from "@type/models";
+import { model, models } from "mongoose";
+import { frameModel, linkModel, numberSchema, StrictSchema } from "./general";
 
 const postModel = new StrictSchema<PostModelType>({
   _id: { type: String, default: parloId },

@@ -11,7 +11,7 @@ import RoomList from "./RoomList";
 
 const InboxLayout = async ({ children }: PropsWithChildren) => {
 
-    const jar = cookies();
+    const jar = await cookies();
     const user = await getUserFromToken(jar);
 
     if (!user) return (

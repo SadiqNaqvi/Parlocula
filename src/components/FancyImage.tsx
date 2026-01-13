@@ -4,6 +4,7 @@ import { getPoster, getThumbnail } from "@lib/utils";
 import Image from "next/image";
 import { ParloImage } from "./ui";
 import { Frame } from "@type/internal";
+import { twMerge } from "tailwind-merge";
 
 type Props = {
     src: Frame | string,
@@ -25,7 +26,7 @@ const FancyImage = ({ id, download, caption, alt, src, height, width, type = "im
 
     return (
         <div
-            className={containerClass ?? "size-fit"}
+            className={twMerge(containerClass, "size-fit")}
             style={{ cursor: "pointer" }}
             key={source}
             data-src={source}
@@ -36,7 +37,7 @@ const FancyImage = ({ id, download, caption, alt, src, height, width, type = "im
             data-caption={caption}>
             {type === "image" ?
                 <ParloImage
-                    // data-lazy-src={thumbnail ?? source}
+                    data-lazy-src={thumbnail ?? source}
                     frame={thumbnail ?? source}
                     alt={alt}
                     height={height}

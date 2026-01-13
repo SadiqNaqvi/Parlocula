@@ -17,10 +17,10 @@ const ThreadHomeLayout = ({ children }: PropsWithChildren) => (
                 <p className="text-zinc-500 text-center mt-2">Explore the fandom of your favourite movies, shows, celebrities, characters and connect with the die hard fans.</p>
             </header>
             <TabContainer className="my-4 w-full">
+                <TabList href="/thread">Popular</TabList>
                 <TabList href="/thread/created">Created</TabList>
                 <TabList href="/thread/manages">Manages</TabList>
                 <TabList href="/thread/joined">Joined</TabList>
-                <TabList href="/t">Popular</TabList>
             </TabContainer>
             {children}
         </main>

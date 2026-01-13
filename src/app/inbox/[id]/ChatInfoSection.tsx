@@ -4,25 +4,10 @@ import { BellIcon, BellSlashIcon, LinkIcon, RightChevron } from "@assets/Icons";
 import { BottomSheet, Navigate, NestedSheet, WarningModal } from "@components";
 import { ParloImage } from "@components/ui";
 import { hideRoom, leaveRoom, updateNotificationOfRoom } from "@lib/helpers/mutations";
-import { getPoster } from "@lib/utils";
 import { useNavigation } from "@store/historystack";
 import { FullRoomType } from "@type/internal";
-import Image from "next/image";
 import { PropsWithChildren, useEffect, useRef, useState } from "react";
 
-/*
--- Private --
-1. Visit
-2. Mute
-
--- Group --
-1. Mute
-2. Leave Room
-
--- Group as Creator -- 
-1. Mute
-2. Leave
-*/
 type Props = { rmid: string, uid: string }
 
 const MuteButton = ({ mute, rmid, uid }: { mute: boolean } & Props) => {

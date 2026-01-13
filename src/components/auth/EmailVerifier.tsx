@@ -2,15 +2,17 @@
 
 import { Form, Input } from "@components/form";
 import { FormSubmitReturnType } from "@components/form/Form";
+import { OTPInput } from "@components/form/OtpInput";
 import Navbar from "@components/Navbar";
+import { LoadingSpinner, OptionalChildren } from "@components/ui";
 import { generateFingerprint } from "@lib/auth";
 import { sendVerificationCode } from "@lib/helpers/server";
 import { useCustomReducer } from "@lib/hooks";
 import appToast from "@lib/providers/toast";
 import { emailSchema, verifyCodeToLoginSchema } from "@lib/schemas";
 import { codetoError, getTimeInFuture } from "@lib/utils";
-import { useState } from "react";
-import { toast } from "sonner";
+import { useMutation } from "@tanstack/react-query";
+import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
 
 const schema = z.object({
@@ -47,24 +49,53 @@ const toastIt = (message: string, type: "success" | "error") => {
     return false;
 }
 
-const EmailVerifier = ({ callback }: { callback: (email: string, code: number) => Promise<FormSubmitReturnType> }) => {
+type Props = {
+    callback: (email: string, code: number) => Promise<FormSubmitReturnType>,
+    navTitle?: string,
+    containerClasses?: string;
+}
+
+const EmailVerifier = ({ callback, navTitle, containerClasses }: Props) => {
 
     const { email, page, canResend, sentAt, tries, setter } = useCustomReducer({
         email: "", page: "email", tries: 0, sentAt: null as Date | null, canResend: true
     });
 
-    const verifyCode = async ({ code }: { code: number }) => {
+    const { isPending, mutate, data } = useMutation({
+        mutationFn: (code: number) => callback(email, code)
+    });
+
+    useEffect(() => {
+        if (!data) return;
+        else if (data === "invalid_verification_code") {
+            setter({ tries: tries + 1 });
+            toastIt("Incorrect verification code", "error");
+        }
+        else if (typeof data === "string") {
+            toastIt(data, "error")
+        }
+
+        else toastIt(data[0].message, "error");
+    }, [data]);
+
+    const otpRef = useRef<{ otp: string }>(null);
+
+    const verifyCode = async () => {
         if (tries >= 3)
             return "You've reached the limit to verify your email. Please try again in an hour.";
 
         else if (sentAt && (Date.now() > getTimeInFuture({ unit: "m", from: sentAt, timeVal: 5 })))
             return "Code expired. Please re-send a verification code or try again in an hour.";
 
-        const errCode = await callback(email, code);
-        if (errCode === "invalid_verification_code")
-            setter({ tries: tries + 1 });
 
-        return errCode;
+        console.log("verify me aaya");
+        const { success, data, error } = verifyCodeToLoginSchema.safeParse({ code: otpRef.current?.otp });
+
+        if (!success) {
+            return toastIt(error.message, "error");
+        }
+
+        mutate(data.code);
     }
 
     const sendCode = async (input?: string) => {
@@ -93,44 +124,57 @@ const EmailVerifier = ({ callback }: { callback: (email: string, code: number) =
     }
 
     if (page === "verification") return (
-        <>
-            <Navbar navTitle="Verify Your Email" onGoBack={() => setter({ page: "email" })} />
+        <div className={containerClasses}>
+
+            <OptionalChildren condition={isPending}>
+                <aside className="fixed backdrop-brightness-50 z-[2] inset-0 flex flex-cntr-all">
+                    <LoadingSpinner />
+                </aside>
+            </OptionalChildren>
+
+            <Navbar
+                className="p-0 mb-4"
+                navTitle="Verify Your Email"
+                onGoBack={() => setter({ page: "email" })} />
 
             <p className="mb-8 text-center text-sm text-zinc-500">Enter 6 digit verification code that has been sent to your email {email}.</p>
 
-            <Form schema={verifyCodeToLoginSchema} submit={verifyCode}>
-                <Input
-                    type="number"
-                    maxLength={6}
-                    name="code"
-                    placeholder="XXXXXX"
-                    autoFocus
-                />
-                <button className="primary w-full mt-4">Verify</button>
-            </Form>
-
-            <div className="mt-4">
-                <CodeCounter canResend={canResend} func={sendCode} />
-                <p className="mt-4 text-sm text-zinc-500 text-center">Please check spam if you are unable to find the mail or check your email and try again.</p>
+            <div className="max-w-80 mx-auto">
+                <OTPInput onSubmit={verifyCode} getterRef={otpRef} />
+                <button onClick={verifyCode} className="primary w-full mt-4">Verify</button>
             </div>
-        </>
+
+            <div className="mt-6">
+                <CodeCounter canResend={canResend} func={sendCode} />
+                <p className="mt-4 text-xs text-zinc-500 text-center">Please check spam if you are unable to find the mail or check your email and try again.</p>
+            </div>
+        </div>
     )
 
     return (
-        <Form
-            className="space-y-4"
-            submit={submit}
-            schema={schema}>
-            <Input
-                name="email"
-                defaultValue={email}
-                autoFocus
-                type="email"
-                className="bg-transparent w-full"
-                placeholder="Email"
-            />
-            <button type="submit" className="primary mt-auto w-full">Continue</button>
-        </Form>
+        <div className={containerClasses}>
+            <OptionalChildren condition={navTitle}>
+                <Navbar
+                    className="p-0 mb-4"
+                    navTitle={navTitle} />
+            </OptionalChildren>
+            <Form
+                className="space-y-4"
+                submit={submit}
+                schema={schema}>
+                <Input
+                    data-testid="emailInputBox"
+                    name="email"
+                    defaultValue={email}
+                    autoFocus
+                    type="email"
+                    className="bg-transparent w-full"
+                    placeholder="example@parlocula.com"
+                    label="Email"
+                />
+                <button type="submit" className="primary mt-auto w-full">Continue</button>
+            </Form>
+        </div>
     )
 }
 

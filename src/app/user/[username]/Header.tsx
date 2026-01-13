@@ -12,6 +12,7 @@ import useCurrentUser from "@store/user";
 import { RequestedUser } from "@type/internal";
 import ActionButton from "./ActionButton";
 import MessageButton from "./MessageButton";
+import { OptionalChildren } from "@components/ui";
 
 type Props = { username: string, uid: string | undefined };
 
@@ -61,7 +62,7 @@ const Component = (data: RequestedUser, props: Props) => {
                             width={112}
                             id="profile_picture"
                             className="size-20 object-cover sm:size-28 max-h-fit aspect-square rounded-full"
-                            frame={profile} />
+                            src={profile} />
                     </div>
                     <div className="flex gap-2 sm:gap-3 my-auto">
                         {userMeta.map(({ label, value }) => (
@@ -75,7 +76,9 @@ const Component = (data: RequestedUser, props: Props) => {
 
                 <section className="mt-4">
 
-                    <h2 className="text-2xl capitalize">{name}</h2>
+                    <OptionalChildren condition={name}>
+                        <h2 className="text-2xl capitalize">{name}</h2>
+                    </OptionalChildren>
                     <h1 data-observe className="text-sm mt-1">@{username}</h1>
 
                     <InteractiveDetailSection className="text-sm mt-2 text-clamp-4">{bio}</InteractiveDetailSection>

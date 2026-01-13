@@ -7,10 +7,12 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import NewRoom from "./NewRoom";
 
-const NewRoomPage = async ({ params: { ruid } }: { params: { ruid: string } }) => {
+const NewRoomPage = async ({ params }: { params: Promise<{ ruid: string }> }) => {
+
+    const { ruid } = await params;
 
     const queryClient = getQueryClient();
-    const jar = cookies();
+    const jar = await cookies();
     const user = await getUserFromToken(jar);
     if (!user) return null;
     else if (ruid === user.user_id) redirect("/inbox");

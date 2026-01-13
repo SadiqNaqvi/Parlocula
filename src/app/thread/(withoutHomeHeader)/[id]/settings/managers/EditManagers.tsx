@@ -61,6 +61,9 @@ export const RemoveManagers = ({ back, tid, managers, uid }: Props & { managers:
                     data={refinedData}
                     callbackRef={callbackRef}
                     returnIds
+                    queryFn={undefined}
+                    queryKeys={undefined}
+                    refiner={undefined}
                 />
             </section>
         </div>

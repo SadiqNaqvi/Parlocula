@@ -6,10 +6,11 @@ import { getQueryKeys } from "@lib/utils";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { cookies } from "next/headers";
 import ThreadList from "../ThreadList";
+import { ParloPageProps } from "@type/other";
 
-const Page = async ({ searchParams }: { searchParams: { p?: string } }) => {
+const Page = async ({ searchParams }: ParloPageProps) => {
 
-    const jar = cookies();
+    const jar = await cookies();
     const user = await getUserFromToken(jar);
 
     if (!user) return (
@@ -17,7 +18,8 @@ const Page = async ({ searchParams }: { searchParams: { p?: string } }) => {
     );
 
     const queryClient = getQueryClient();
-    const page = parseInt(searchParams.p || "1") || 1;
+    const { p } = await searchParams;
+    const page = parseInt(p || "1") || 1;
 
     prefetchInfiniteQuery({
         queryClient,

@@ -4,6 +4,7 @@ import { LeftChevron, ShareIcon } from "@assets/Icons";
 import Navigate from "@components/Navigate";
 import ShareButton from "./ShareButton";
 import { AppIcon } from "@assets/Icons"
+import { twMerge } from "tailwind-merge";
 
 type Props = {
     className?: string,
@@ -17,11 +18,11 @@ type Props = {
 }
 
 const changeTheme = () => {
-    
+
 }
 
 const Navbar = ({ className = "", onGoBack, OptionButton, navTitle, titleToShare, urlToShare, poster, textToShare }: Props) => (
-    <nav className={`${className} px-4 h-14 md:h-16 w-full z-[2] flex flex-cntr-between sticky top-0 bg-primary`}>
+    <nav className={twMerge("px-4 h-14 md:h-16 w-full z-[2] flex flex-cntr-between sticky top-0", className)}>
 
         <div className="flex gap-2 items-center">
             {onGoBack ?

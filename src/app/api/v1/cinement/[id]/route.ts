@@ -3,7 +3,7 @@ import { Cinement } from "@model";
 import { CinementSchemaType } from "@type/schemas";
 
 // Get media item by id
-export const GET = getHandler(async (_, params: { id: string }) => {
+export const GET = getHandler(async (_, params) => {
   const { id } = params;
   const mediaDoc = await Cinement.findOne({ ext_id: id });
 

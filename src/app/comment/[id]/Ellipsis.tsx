@@ -1,9 +1,8 @@
 "use client";
 
 import { Ellipsis } from "@assets/Icons";
-import { OptionMenu, WarningModal, ReportSheet } from "@components";
+import { OptionMenu, ReportSheet, WarningModal } from "@components";
 import { NestedSheetTrigger } from "@components/ui/OptionList";
-import { blockUser } from "@lib/helpers/client";
 import { blockUserMutation, deleteCommentMutation } from "@lib/helpers/mutations";
 import { useNavigation } from "@store/historystack";
 import useCurrentUser from "@store/user";

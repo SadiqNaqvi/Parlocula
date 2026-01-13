@@ -1,6 +1,6 @@
 import AccountDeleted from "@components/EmailTemplates/accountDeleted";
 import AccountDeletionWarning from "@components/EmailTemplates/accountDeletion";
-import { oneDay } from "@lib/constants";
+import { oneDay, parloculaAppURL } from "@lib/constants";
 import { connectDatabase } from "@lib/database";
 import { deleteUser } from "@lib/helpers/deletion";
 import { sendEmail } from "@lib/helpers/server";
@@ -36,7 +36,7 @@ export const POST = async (req: NextRequest) => {
     const isValid = await receiver.verify({
         body,
         signature,
-        url: `${process.env.NEXT_PUBLIC_APP_URL}/api/v1/user/account_deletion`,
+        url: `${parloculaAppURL}/api/v1/user/account_deletion`,
     });
 
     if (!isValid)
@@ -91,7 +91,7 @@ export const POST = async (req: NextRequest) => {
             const thisTime = times + 1;
 
             const job = await client.publishJSON({
-                url: `${process.env.NEXT_PUBLIC_APP_URL}/api/v1/user/account_deletion`,
+                url: `${parloculaAppURL}/api/v1/user/account_deletion`,
                 notBefore: (interval / 1000),
                 method: "POST",
                 body: { ...data, times: thisTime },

@@ -1,3 +1,4 @@
+import { parloculaAppURL } from "@lib/constants";
 import { AblyEventParams, AblyEventType } from "@type/other";
 import Ably, { Realtime, Rest } from "ably";
 // import * as Ably from 'ably/promises';
@@ -10,7 +11,7 @@ export const getAblyOnClient = (client_id: string) => {
 
   if (!ably_realtime) {
     ably_realtime = new Ably.Realtime({
-      authUrl: `${process.env.NEXT_PUBLIC_PARLOCULA_URL}/api/v1/ably`,
+      authUrl: `${parloculaAppURL}/api/v1/ably`,
       clientId: client_id,
       autoConnect: true,
     });
@@ -18,14 +19,6 @@ export const getAblyOnClient = (client_id: string) => {
 
   return ably_realtime;
 };
-
-// export const getAblyRealtime = async () => {
-//   if (!ably_realtime) {
-//     ably_realtime = new Ably.Realtime(process.env.ABLY_API_KEY!);
-//     await ably_realtime.connection.once("connected")
-//   }
-//   return ably_realtime;
-// };
 
 export const getAblyRest = () => {
   if (!ably_rest) ably_rest = new Ably.Rest(process.env.ABLY_API_KEY!);

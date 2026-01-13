@@ -78,7 +78,7 @@ export const POST = postHandler<CinementToAddAndRemoveType>({
       await Shelf.updateMany(
         { _id: { $in: remove } },
         { $inc: { item_count: -1 } },
-        { session, order: true }
+        { session }
       );
 
     }
@@ -114,7 +114,7 @@ export const POST = postHandler<CinementToAddAndRemoveType>({
   },
   preCheck: async ({ data, user_id }) => {
     const { add, remove } = data;
-    const shelves = await Shelf.find({ $in: [...add, ...remove] }, { user_id });
+    const shelves = await Shelf.find({ $in: [...add, ...remove] }, { user_id: 1 });
 
     if (!shelves.length) return {
       success: false,

@@ -26,8 +26,8 @@ export default function SearchHeader({ filter }: { filter: string }) {
     }
 
     return (
-        <header className="bg-primary sticky top-0 z-[2] pt-4 pb-2">
-            <section className="flex items-center gap-2 md:gap-4">
+        <header className="fullScreen border-b border-gray20 sticky top-0 z-[2] pt-2 px-2">
+            <section className="flex items-center">
                 <Navigate comp="button" goto="back" className="smallBtn">
                     <LeftChevron />
                 </Navigate>
@@ -35,16 +35,16 @@ export default function SearchHeader({ filter }: { filter: string }) {
                     defaultVals={{ query: params.get("q") }}
                     skipReset
                     submit={updateQuery}
-                    className="h-10 md:h-12 w-full rounded-md bg-[var(--gray20)] flex items-center gap-2 px-4">
+                    className="h-10 md:h-12 w-full flex items-center gap-2 pl-2">
 
-                    <SearchIcon className="min-h-4 h-4 text-zinc-500" />
+                    <SearchIcon className="size-4 text-zinc-500" />
 
                     <Input
-                        containerClasses="p-0 w-full border-0"
                         type="search"
                         name="query"
                         autoFocus
-                        className="h-full w-full md:pb-[2px] bg-transparent"
+                        className="h-full w-full border-0 p-0"
+                        containerClasses="w-full h-full"
                         placeholder="What are you looking for?"
                     />
                 </Form>

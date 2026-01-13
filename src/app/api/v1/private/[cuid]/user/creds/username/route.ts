@@ -37,7 +37,7 @@ export const PATCH = updateHandler<UsernameUpdateSchemaType>({
     if (!isCorrect)
       return { success: false, errCode: "wrong_passkey" };
 
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
 
     const sid = cookieStore.get("sid")?.value ?? "";
 

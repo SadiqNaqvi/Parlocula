@@ -71,7 +71,10 @@ const InvalidatePage = () => {
         const response = await verifyCode(code, await generateFingerprint());
 
         if (response.success) setEmail(email);
-        else return handleErrorFromMutation(response);
+        else {
+            const errors = handleErrorFromMutation(response);
+            if (errors) return errors;
+        }
     }
 
     if (!email) return (

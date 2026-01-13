@@ -72,13 +72,17 @@ export default function InfiniteScroller({ Loading, onSuccess, placeholderData, 
     });
 
     useEffect(() => {
+        console.log("infiniteScroller", isHydrated, dataSaver);
         if (!isHydrated || dataSaver) return;
-
+        console.log("InfinityScroller Yaha aaya");
         const current = container.current;
 
         const observer = new IntersectionObserver(([entry]) => {
-            if (entry.isIntersecting && !isFetchingNextPage && hasNextPage)
+            console.log("observer me aaya");
+            if (entry.isIntersecting && !isFetchingNextPage && hasNextPage) {
+                console.log("fetching next page");
                 fetchNextPage();
+            }
         }, { threshold: 0.1 })
 
         if (current && hasNextPage) observer.observe(current);
@@ -144,7 +148,7 @@ export default function InfiniteScroller({ Loading, onSuccess, placeholderData, 
             </ul>
             {hasNextPage &&
                 ((isHydrated && !dataSaver) || isFetchingNextPage ?
-                    <div ref={container} className="mt-4 py-2">
+                    <div ref={container} className="mt-4 py-2 w-fit mx-auto">
                         <LoadingComponent />
                     </div>
                     :

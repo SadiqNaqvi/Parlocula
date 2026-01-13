@@ -5,6 +5,7 @@ import { getPoster } from "@lib/utils";
 import { Frame } from "@type/internal";
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import { twMerge } from "tailwind-merge";
 
 type Props = {
     frame: Frame | string | undefined,
@@ -30,11 +31,10 @@ const ParloImage = ({ frame, alt, height, size, width, className, containerClass
         <Image
             height={height || size}
             width={width || size}
-            src={getPoster({ path: undefined })}
+            src={getPoster({ path: frame })}
             alt={alt || ""}
-            className={`size-[${size}px] object-cover`}
+            className={twMerge(`${size ? `size-[${size}px]` : ''} object-cover`, className)}
         />
-
     )
 
     return (
@@ -52,7 +52,7 @@ const ParloImage = ({ frame, alt, height, size, width, className, containerClass
                 src={getPoster({ path: frame.path })}
                 loading={skipLazyLoading ? "eager" : "lazy"}
                 alt={alt || ""}
-                className={`${className} ${loaded ? "inline" : "hidden"}`}
+                className={twMerge(`${loaded ? "inline" : "hidden"}`, className)}
                 onLoadingComplete={() => setLoaded(true)}
             />
 

@@ -3,7 +3,7 @@ import { getPoster, numberConverter } from "@lib/utils";
 import { MereShelf } from "@type/internal";
 import Image from "next/image";
 
-const ShelfBar = ({ _id, item_count, name, poster, saved_count }: MereShelf) => {
+const ShelfBar = ({ _id, item_count, name, poster, saved_count, shelfKey, isPrivate }: MereShelf) => {
     return (
         <Navigate key={_id} comp="link" goto={`/shelf/${_id}`}>
             <article className="flex items-center gap-3 py-2 px-4 border border-gray30 rounded-md">

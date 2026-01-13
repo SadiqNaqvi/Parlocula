@@ -3,10 +3,11 @@ import { getQueryClient, prefetchInfiniteQuery } from "@lib/providers/queryClien
 import { getQueryKeys } from "@lib/utils";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import MembersList from "./MembersList";
+import { ParloPageProps } from "@type/other";
 
-const Page = async ({ params, searchParams }: { params: { id: string }, searchParams: { p?: string } }) => {
+const Page = async ({ params }: ParloPageProps) => {
 
-    const tid = params.id.split('-')[0];
+    const tid = (await params).id.split('-')[0];
 
     const queryClient = getQueryClient();
 

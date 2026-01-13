@@ -3,9 +3,8 @@
 import InfiniteScroller from "@components/InfiniteScroller";
 import { VerticleMovieCard } from "@components/ui";
 import { fetchShowsWithGenres } from "@lib/contentFetcher";
-import { makeUrlSafe } from "@lib/utils";
-import { RefinedGeneralData } from "@type/external";
 import { GeneralGetReturn } from "@type/internal";
+import { useParams } from "next/navigation";
 
 const fetchData = async (page: number, genre: string): Promise<GeneralGetReturn> => {
     const resp = await fetchShowsWithGenres({ page, genre, sort_by: "popularity" })
@@ -13,8 +12,8 @@ const fetchData = async (page: number, genre: string): Promise<GeneralGetReturn>
     return { success: true, result: resp };
 }
 
-export default function Page({ params }: { params: { id: string } }) {
-    const { id } = params;
+export default function Page() {
+    const { id } = useParams() as { id: string };
     return (
         <section>
             <InfiniteScroller

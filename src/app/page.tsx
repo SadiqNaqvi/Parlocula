@@ -5,7 +5,7 @@ import { Metadata } from "next";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
-const title = "Parlocula – Where Stories Bring Us Together";
+const title = "Parlocula - Where Stories Bring Us Together";
 const description =
   "Parlocula is the ultimate community for movie and show lovers. Discover wiki pages for cinements, join discussions, create shelves, share theories, and explore the world of cinema — even as a guest.";
 
@@ -109,7 +109,7 @@ export const metadata: Metadata = {
 
 const IndexPage = async () => {
 
-  const user = await getUserFromToken(cookies());
+  const user = await getUserFromToken(await cookies());
   if (user) redirect('/home');
 
   return (
@@ -125,8 +125,22 @@ const IndexPage = async () => {
         </div>
 
         <div className="flex gap-2 flex-col sm:flex-row fixed sm:static bottom-0 w-full sm:w-fit sm:mx-auto p-4 bg-primarylight bg-opacity-50 sm:bg-transparent rounded-t-md">
-          <Navigate comp="link" goto="/join" type="button" className="primary">Join as a Fan</Navigate>
-          <Navigate comp="link" goto="/home" type="button" className="secondary">Explore as Guest</Navigate>
+          <Navigate
+            comp="link"
+            goto="/join"
+            type="button"
+            data-testid="join-button"
+            className="btn primary">
+            Join as a Fan
+          </Navigate>
+          <Navigate
+            comp="link"
+            goto="/home"
+            type="button"
+            data-testid="join-as-guest-button"
+            className="btn secondary">
+            Explore as Guest
+          </Navigate>
         </div>
       </header>
     </>

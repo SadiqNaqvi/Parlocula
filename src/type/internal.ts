@@ -86,7 +86,7 @@ export type Frame = {
 export type ShelfMetaData = {
   _id: string;
   name: PredefinedShelves;
-  poster?: Frame;
+  poster: string | undefined;
 };
 
 export type MereUser = {
@@ -128,7 +128,7 @@ export type CurrentUser = Omit<
 
 export type RequestedUser = {
   _id: string;
-  name: string;
+  name?: string;
   username: string;
   profile: Frame;
   bio: string;
@@ -260,7 +260,7 @@ export type FullComment = MereComment & {
 
 export type CinementType = {
   title: string;
-  poster: Frame;
+  poster: string;
   year: number;
   cinement_type: "movie" | "show";
   ext_id: string;
@@ -277,13 +277,13 @@ export type MereShelf = {
   item_count?: number;
   saved_count?: number;
   poster: string | undefined;
-  isPrivate: boolean;
   shelfKey: string | undefined;
-  last_added: GenericDate | undefined;
+  isPrivate: boolean;
 };
 
 export type FullShelf = MereShelf &
   document & {
+    last_added: GenericDate | undefined;
     user_id: string;
     username: string;
     collaborators: string[];

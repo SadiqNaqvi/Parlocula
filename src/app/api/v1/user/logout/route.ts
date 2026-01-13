@@ -4,7 +4,7 @@ import { User } from "@model";
 import { cookies } from "next/headers";
 
 export const DELETE = deleteHandler(async ({ user_id }) => {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const session_id = cookieStore.get("sid")?.value;
 
   if (!session_id)

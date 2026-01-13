@@ -9,9 +9,10 @@ import { Metadata } from "next";
 import { cookies } from "next/headers";
 import { PropsWithChildren, Suspense } from "react";
 import Thread from "./Thread";
+import { ParloPageProps } from "@type/other";
 
-export const generateMetadata = async ({ params }: { params: { id: string } }): Promise<Metadata> => {
-    const thread_id = params.id.split('-')[0];
+export const generateMetadata = async ({ params }: ParloPageProps): Promise<Metadata> => {
+    const thread_id = (await params).id.split('-')[0];
 
     if (!isValidParloId(thread_id))
         return { title: "Parlocula" }
@@ -27,7 +28,7 @@ export const generateMetadata = async ({ params }: { params: { id: string } }): 
 const Fetcher = async ({ tid, children }: PropsWithChildren<{ tid: string }>) => {
     const queryClient = getQueryClient();
 
-    const jar = cookies();
+    const jar = await cookies();
     const user = await getUserFromToken(jar);
 
     await Promise.all(
@@ -44,8 +45,7 @@ const Fetcher = async ({ tid, children }: PropsWithChildren<{ tid: string }>) =>
                 queryFn: () => isMember(tid, uid, jar),
             }),
 
-        ]
-        ))
+        ]))
 
     return (
         <HydrationBoundary state={dehydrate(queryClient)}>
@@ -55,9 +55,9 @@ const Fetcher = async ({ tid, children }: PropsWithChildren<{ tid: string }>) =>
     )
 }
 
-const ThreadLayout = ({ children, params }: PropsWithChildren<{ params: { id: string } }>) => {
+const ThreadLayout = async ({ children, params }: PropsWithChildren<ParloPageProps>) => {
 
-    const { id } = params;
+    const { id } = await params;
     const [tid, ...rest] = id.split('-');
 
     if (!isValidParloId(tid)) return (

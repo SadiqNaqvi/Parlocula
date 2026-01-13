@@ -1,15 +1,13 @@
 "use client";
 
-import { AddIcon, AppIcon, ExploreFillIcon, ExploreIcon, HomeFillIcon, HomeIcon, MessagesFillIcon, MessagesIcon, ThreadIcon, UserIcon } from "@assets/Icons";
-import { getPoster } from "@lib/utils";
+import { AddIcon, AppIcon, ExploreFillIcon, ExploreIcon, ThreadIconFill, HomeFillIcon, HomeIcon, MessagesFillIcon, MessagesIcon, ThreadIcon, UserIcon } from "@assets/Icons";
 import useCurrentUser from "@store/user";
 import { usePathname } from "next/navigation";
-import Navigate from "./Navigate";
+import React, { PropsWithChildren } from "react";
+import { BottomSheet, Navigate } from "@components";
 import NotificationButton from "./notifications/NotificationButton";
-import Image from "next/image";
-import React from "react";
-import BottomSheet from "./BottomSheet";
-import { ParloImage } from "./ui";
+import { OptionalChildren, ParloImage } from "./ui";
+import { twMerge } from "tailwind-merge";
 
 const ProfileButton = () => {
 
@@ -19,7 +17,7 @@ const ProfileButton = () => {
     if (!meta) return (
         <div className={`rounded-full border-2 ${pathname.startsWith(`/guest`) ? "border-secondary" : "border-gray-500"}`}>
             <Navigate comp="link" goto="/guest">
-                <UserIcon className="m-2.5 size-5" />
+                <UserIcon className="m-2.5 size-4 md:size-5" />
             </Navigate>
         </div>
     )
@@ -39,18 +37,25 @@ const ProfileButton = () => {
 
 }
 
+const addButtonClasses = "size-[70px] flex gap-2 flex-cntr-all flex-col bg-primary rounded-md border border-gray40"
+
 const AddButton = ({ className }: { className?: string }) => {
 
     return (
-        <BottomSheet button={<AddIcon className={className} />}>
-            <div className="flex gap-4 p-4">
-                <Navigate comp="link" type="button" goto="/post/new" className="p-2 border border-dashed border-gray40">
-                    New Post
-                </Navigate>
-                <Navigate comp="link" type="button" goto="/thread/new" className="p-2 border border-dashed border-gray40">
-                    New Thread
-                </Navigate>
-            </div>
+        <BottomSheet className="mx-auto" button={<AddIcon className={className} />}>
+            <section className="p-6">
+                <h3 className="text-center">Start Creating Now</h3>
+
+                <div className="flex gap-4 mt-4 mx-auto w-fit">
+                    <Navigate comp="link" type="button" goto="/post/new" className={addButtonClasses}>
+                        Post
+                    </Navigate>
+                    <Navigate comp="link" type="button" goto="/thread/new" className={addButtonClasses}>
+                        <ThreadIcon className="size-6 mx-auto" />
+                        <p className="text-sm text-zinc-500">Thread</p>
+                    </Navigate>
+                </div>
+            </section>
         </BottomSheet>
     )
 
@@ -60,90 +65,95 @@ type ButtonProps = {
     href?: string,
     label?: string,
     pathname?: string;
-    Icon: React.ComponentType<{ className?: string }>,
     ActiveIcon?: React.ComponentType<{ className?: string }>,
+    className?: string;
+    skipButtonWrapping?: boolean;
 }
 
-const SidebarButton = ({ href, label, pathname, ActiveIcon, Icon }: ButtonProps) => {
+const defaultButtonClasses = "w-fit mx-auto"
+const iconSize = "size-5"
 
-    const IconToShow = ({ className }: { className?: string }) => {
+const SidebarButton = ({ href, label, pathname, ActiveIcon, children, className, skipButtonWrapping }: PropsWithChildren<ButtonProps>) => {
 
-        if (href && pathname?.startsWith(href) && ActiveIcon)
-            return <ActiveIcon className={className} />;
-
-        return <Icon className={className} />;
-    }
-
-    if (pathname && href) return (
-        <li title={label} key={label} className="w-fit md:w-full">
+    if (href && pathname) return (
+        <li title={label} key={label} className={twMerge(defaultButtonClasses, className)}>
             <Navigate
                 comp="link" goto={href}
-                className={`flex flex-cntr-all w-full transition-colors ${pathname.startsWith(href) ? "nav-active color-secondary" : ""}`}
+                className={`flex flex-cntr-all transition-colors p-2 rounded-md border ${pathname.startsWith(href) ? "color-secondary bg-gray10 border-gray30" : "bg-transparent border-transparent"}`}
             >
-                <IconToShow className="size-6" />
+                {pathname.startsWith(href) && ActiveIcon ?
+                    <ActiveIcon className={iconSize} />
+                    :
+                    children
+                }
             </Navigate>
         </li>
     )
 
     return (
-        <li title={label} key={label} className="w-fit md:w-full">
-            <button className="flex flex-cntr-all w-full">
-                <IconToShow className="size-6" />
-            </button>
+        <li title={label} key={label} className={twMerge(defaultButtonClasses, className)}>
+            <OptionalChildren condition={!skipButtonWrapping} fallback={children}>
+                <button className="flex flex-cntr-all w-full">
+                    {children}
+                </button>
+            </OptionalChildren>
         </li>
-
     )
-
 }
 
-// const links = [
-//     { label: "Home", link: "/home", icon: HomeIcon, activeIcon: HomeFillIcon },
-//     { label: "Explore", link: "/explore", icon: ExploreIcon, activeIcon: ExploreFillIcon },
-//     { label: "New posts", link: "/new", icon: AddIcon, activeIcon: AddIcon },
-//     { label: "Threads", link: "/thread", icon: ThreadIcon, activeIcon: ThreadIcon },
-//     { label: "Inbox", link: "/inbox", icon: MessagesIcon, activeIcon: MessagesFillIcon },
-// ];
+const OptionalSidebarButtons = ({ pathname, className }: { pathname: string, className?: string }) => (
+    <>
+        <SidebarButton className={className} pathname={pathname} href="/notifications" label="Notifications">
+            <NotificationButton active={pathname.startsWith("/notifications")} />
+        </SidebarButton>
+
+        <SidebarButton className={className} pathname={pathname} ActiveIcon={MessagesFillIcon} href="/inbox" label="Inbox">
+            <MessagesIcon className={iconSize} />
+        </SidebarButton>
+    </>
+)
+
+export const TopNavbar = ({ className }: { className?: string; }) => (
+    <nav className={twMerge("sticky z-[1] top-0 p-4 border-b border-gray10 flex flex-cntr-between md:hidden bg-primary", className)}>
+        <div className="text-lg">
+            <AppIcon className="h-6 overflow-visible" />
+        </div>
+        <ul className="flex md:hidden flex-cntr-all gap-4">
+            <OptionalSidebarButtons pathname="" />
+        </ul>
+    </nav>
+)
 
 const Sidebar = () => {
 
     const pathname = usePathname();
 
     return (
-        <nav id="sidebar" className="fixed bottom-0 md:top-0 flex md:flex-col px-2 md:px-0 md:py-6 flex-cntr-between z-[4] h-16 md:h-dvh w-dvw md:w-20 border-t md:border-r md:border-t-0 border-gray20">
+        <nav id="sidebar" className="fixed bottom-0 md:top-0 flex md:flex-col px-2 md:py-6 flex-cntr-between z-[4] h-16 md:h-dvh w-dvw md:w-20 border-t md:border-r md:border-t-0 border-gray20">
 
             <div className="hidden md:block">
-                <AppIcon className="h-8 stroke-[32] stroke-current overflow-visible" />
+                <AppIcon className="h-8 overflow-visible" />
             </div>
 
-            <ul className="flex md:block w-full flex-cntr-between md:space-y-8">
+            <ul className="contents md:block w-full flex-cntr-between md:space-y-8">
 
-                <SidebarButton pathname={pathname} Icon={HomeIcon} ActiveIcon={HomeFillIcon} href="/home" label="Home" />
+                <SidebarButton pathname={pathname} ActiveIcon={HomeFillIcon} href="/home" label="Home">
+                    <HomeIcon className={iconSize} />
+                </SidebarButton>
 
-                <SidebarButton pathname={pathname} Icon={ExploreIcon} ActiveIcon={ExploreFillIcon} href="/explore" label="Explore" />
+                <SidebarButton pathname={pathname} ActiveIcon={ExploreFillIcon} href="/explore" label="Explore">
+                    <ExploreIcon className={iconSize} />
+                </SidebarButton>
 
-                <SidebarButton pathname={pathname} Icon={AddButton} label="New" />
+                <SidebarButton skipButtonWrapping pathname={pathname} label="New">
+                    <AddButton className="size-6" />
+                </SidebarButton>
 
-                <SidebarButton pathname={pathname} Icon={ThreadIcon} href="/thread" label="Threads" />
+                <SidebarButton pathname={pathname} ActiveIcon={ThreadIconFill} href="/thread" label="Threads">
+                    <ThreadIcon className={iconSize} />
+                </SidebarButton>
 
-                <li title="Notifications" className="w-fit sm:w-full">
-                    <NotificationButton active={pathname.startsWith("/notifications")} />
-                </li>
-
-                <SidebarButton pathname={pathname} Icon={MessagesIcon} ActiveIcon={MessagesFillIcon} href="/inbox" label="Inbox" />
-
-                {/* {links.map(el => (
-                    <li title={el.label} key={el.label} className="text-lg w-full">
-                        <Navigate comp="link" className={`flex flex-cntr-all w-full active:text-secondary md:hover:text-secondary transition-colors ${pathname.includes(el.link) ? "nav-active color-secondary" : ""}`} goto={el.link}>
-                            {pathname.startsWith
-                                (el.link) ?
-                                <el.activeIcon className="h-6" />
-                                :
-                                <el.icon className="h-6" />
-                            }
-                        </Navigate>
-                    </li>
-                )
-                )} */}
+                <OptionalSidebarButtons className="hidden md:block" pathname={pathname} />
 
             </ul>
 

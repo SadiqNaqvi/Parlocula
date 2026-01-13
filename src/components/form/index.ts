@@ -12,3 +12,4 @@ export { default as MediaInputCont, MediaInputPrompt } from "./MediaPicker";
 export { default as Choice } from "./Choice";
 export { default as LinkInputManager } from "./LinkInputManager";
 export { default as ShelfForm } from "./ShelfForm";
+export { default as DateInput } from "./DateInput";

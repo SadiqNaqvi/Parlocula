@@ -5,15 +5,17 @@ import { getRoomById } from "@lib/helpers/common";
 import { fetchQuery, getQueryClient } from "@lib/providers/queryClient";
 import { getQueryKeys } from "@lib/utils";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
+import { ParloPageProps } from "@type/other";
 import { cookies } from "next/headers";
 import { PropsWithChildren } from "react";
 
-const ChatLayout = async ({ params: { id }, children }: PropsWithChildren<{ params: { id: string } }>) => {
+const ChatLayout = async ({ params, children }: PropsWithChildren<ParloPageProps>) => {
+    const { id } = await params;
 
     const [rmid] = id.split('-');
 
     const queryClient = getQueryClient();
-    const jar = cookies();
+    const jar = await cookies();
     const user = await getUserFromToken(jar);
 
     if (!user) return (

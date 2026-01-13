@@ -147,12 +147,14 @@ export const createThumbHash = async (file: FileAcceptTypes) => {
     let totalBrightness = 0;
     const rgbValues: number[] = [];
     for (let i = 0; i < data.length; i += 4) {
-        const r = Math.round(data[i] / 32);   // 0–7 (3 bits)
-        const g = Math.round(data[i + 1] / 32);
-        const b = Math.round(data[i + 2] / 32);
+        const r = Math.round(data[i] / 36); // 0–7 (3 bits)
+        const g = Math.round(data[i + 1] / 36); // 0–7 (3 bits)
+        const b = Math.round(data[i + 2] / 85); // 0–3 (2 bits)
         const brightness = (r + g + b) / 3;
         totalBrightness += brightness;
-        rgbValues.push((r << 6) | (g << 3) | b); // pack into 1 byte (3+3+2 bits approx)
+
+        rgbValues.push((r << 5) | (g << 2) | b); // 3 + 3 + 2 = 8 bits
+        // rgbValues.push((r << 6) | (g << 3) | b); // pack into 1 byte (3+3+2 bits approx)
     }
 
     // 5. Convert to binary string

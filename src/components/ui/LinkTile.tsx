@@ -1,7 +1,7 @@
 import { LinkIcon } from "@assets/Icons"
 import BottomSheet from "@components/BottomSheet"
 import Navigate from "@components/Navigate"
-import { getLocalUrl } from "@lib/utils"
+import { parloculaAppURL } from "@lib/constants"
 import { Link as LinkType } from "@type/internal"
 import Link from "next/link"
 
@@ -14,7 +14,7 @@ const LabelAndIcon = ({ label }: { label: string }) => (
 
 const LinkTile = ({ label, path }: LinkType) => {
 
-    if (path.startsWith('/') || new URL(getLocalUrl()).origin === new URL(path).origin) return (
+    if (path.startsWith('/') || new URL(parloculaAppURL).origin === new URL(path).origin) return (
         <Navigate comp="link" goto={path}>
             <LabelAndIcon label={label} />
         </Navigate>

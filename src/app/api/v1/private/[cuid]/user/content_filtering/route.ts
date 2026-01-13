@@ -12,7 +12,7 @@ export const PATCH = updateHandler({
             { session }
         );
 
-        const cookieStore = cookies();
+        const cookieStore = await cookies();
 
         const sid = cookieStore.get("sid")?.value ?? "";
 

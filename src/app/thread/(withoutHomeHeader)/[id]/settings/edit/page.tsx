@@ -55,14 +55,14 @@ const ThreadEditPage = () => {
 
         let additionalFields: Partial<ThreadUpdateSchema> = {};
 
-        if (updatedPoster && updatedPoster.path !== poster) {
+        if (updatedPoster && updatedPoster.path !== poster.path) {
             const { files, filesData } = await readyFrames(updatedPoster);
             additionalFields = {
                 files,
                 filesData,
                 filesToRemove: [{
                     type: "image",
-                    path: poster,
+                    path: poster.path,
                 }]
             }
         }
@@ -88,7 +88,7 @@ const ThreadEditPage = () => {
                 }
             />
 
-            <Poster defaultPoster={data.poster} ref={posterRef} />
+            <Poster defaultPoster={data.poster.path} ref={posterRef} />
 
             <Form
                 ref={formRef}
@@ -119,7 +119,7 @@ const ThreadEditPage = () => {
 
             </Form>
 
-            <ConnectionsInput defaultConnections={data.connections} ref={connectionsRef} />
+            <ConnectionsInput defaultConnections={data.connections} connectionsRef={connectionsRef} />
             <LinkInputManager defaultLinks={data.links} ref={linksRef} />
         </>
     )

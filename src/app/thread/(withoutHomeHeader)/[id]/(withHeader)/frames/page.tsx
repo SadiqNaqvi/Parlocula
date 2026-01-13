@@ -4,17 +4,21 @@ import PostsTab from "../posts"
 import { contentFetcher } from "../utils"
 import { getUserFromToken } from "@lib/auth/utils"
 import { cookies } from "next/headers"
+import { ParloPageProps } from "@type/other"
 
-const Page = async ({ params: { id }, searchParams }: { params: { id: string }, searchParams: { p?: string, f?: string, t?: string } }) => {
+const Page = async ({ params, searchParams }: ParloPageProps) => {
 
     const queryClient = getQueryClient();
 
-    const user = await getUserFromToken(cookies());
+    const user = await getUserFromToken(await cookies());
 
     const allowNsfw = user ? !user.filterContent : false;
 
+    const { id } = await params;
+    const sp = await searchParams;
+
     const response = await contentFetcher({
-        queryClient, id, searchParams, section: "frames", allowNsfw
+        queryClient, id, searchParams: sp, section: "frames", allowNsfw
     });
 
     if (!response) return null;

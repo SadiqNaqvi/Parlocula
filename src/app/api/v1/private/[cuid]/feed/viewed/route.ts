@@ -1,11 +1,12 @@
+import { HandlerParamVariable } from "@lib/helpers/handlers";
 import { getRedis } from "@lib/providers/redis";
 import { NextRequest, NextResponse } from "next/server";
 
-export const POST = async (req: NextRequest, { params }: { params: { cuid: string } }) => {
+export const POST = async (req: NextRequest, { params }: { params: Promise<HandlerParamVariable> }) => {
 
     const data = await req.json() as { posts: string[] };
 
-    const { cuid } = params;
+    const { cuid } = await params;
     try {
 
         const redis = await getRedis();

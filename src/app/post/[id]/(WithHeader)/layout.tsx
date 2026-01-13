@@ -11,12 +11,11 @@ import { Metadata } from "next";
 import { cookies } from "next/headers";
 import { PropsWithChildren, Suspense } from "react";
 import PostHeader from "./PostHeader";
+import { ParloPageProps } from "@type/other";
 
-type Params = { params: { id: string } }
+export const generateMetadata = async ({ params }: ParloPageProps): Promise<Metadata> => {
 
-export const generateMetadata = async ({ params }: Params): Promise<Metadata> => {
-
-    const id = params.id.split('-')[0];
+    const id = (await params).id.split('-')[0];
 
     if (!isValidParloId(id)) return { title: "Parlocula" }
 
@@ -35,7 +34,7 @@ export const generateMetadata = async ({ params }: Params): Promise<Metadata> =>
 const Fetcher = async ({ id, children }: PropsWithChildren<{ id: string }>) => {
 
     const queryClient = getQueryClient();
-    const jar = cookies();
+    const jar = await cookies();
     const user = await getUserFromToken(jar);
 
     const post = await fetchQuery({
@@ -93,8 +92,8 @@ const Fetcher = async ({ id, children }: PropsWithChildren<{ id: string }>) => {
     )
 }
 
-const PostLayout = ({ children, params }: PropsWithChildren<Params>) => {
-    const { id } = params;
+const PostLayout = async ({ children, params }: PropsWithChildren<ParloPageProps>) => {
+    const { id } = await params;
     const [pid, ...rest] = id.split('-');
 
     if (!isValidParloId(pid)) return (

@@ -6,23 +6,22 @@ import { getQueryKeys, isValidParloId, refineSearchParams } from "@lib/utils";
 import { dehydrate, HydrationBoundary } from '@tanstack/react-query';
 import { cookies } from "next/headers";
 import EditShelfForm from "./EditShelfForm";
+import { ParloPageProps } from "@type/other";
 
-type Props = {
-    params: { id: string },
-    searchParams: { p?: string, f?: string, k?: string }
-};
-
-const Page = async ({ params: { id }, searchParams }: Props) => {
+const Page = async ({ params, searchParams }: ParloPageProps) => {
 
     const queryClient = getQueryClient();
 
-    const { filter, page } = refineSearchParams("items", searchParams?.p, searchParams?.f);
+    const { id } = await params;
+    const { p, f, k } = await searchParams;
 
-    const key = searchParams?.k;
-    const user = await getUserFromToken(cookies());
+    const { filter, page } = refineSearchParams("items", p, f);
+
+    const key = k;
+    const user = await getUserFromToken(await cookies());
 
     const sid = id.split('-')[0];
-    
+
     if (!isValidParloId(sid)) return (
         <NotFound
             title="Oops! Look's like you came across a wrong path."

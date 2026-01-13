@@ -6,21 +6,22 @@ import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import CommentSection from "./tabs/CommentSection";
 import { getUserFromToken } from "@lib/auth/utils";
 import { cookies } from "next/headers";
+import { ParloPageProps } from "@type/other";
 
-type Props = { params: { id: string }, searchParams: { p?: string, f?: string } };
-
-const Page = async ({ params, searchParams }: Props) => {
+const Page = async ({ params, searchParams }: ParloPageProps) => {
 
     const queryClient = getQueryClient();
 
-    const { id } = params;
+    const { id } = await params;
 
     const pid = id.split('-')[0];
     if (pid && !isValidParloId(pid)) return null;
 
-    const { filter, page } = refineSearchParams("comments", searchParams.p, searchParams.f);
+    const sp = await searchParams;
 
-    const user = await getUserFromToken(cookies());
+    const { filter, page } = refineSearchParams("comments", sp.p, sp.f);
+
+    const user = await getUserFromToken(await cookies());
 
     const allowNsfw = user ? !user.filterContent : false;
 

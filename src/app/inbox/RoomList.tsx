@@ -39,7 +39,7 @@ const InvitationsCount = ({ uid }: { uid: string }) => {
     return `Invitations ${data.pages[0].total_results || ''}`
 }
 
-const RoomListWrapper = ({ id, children }: PropsWithChildren<{ id: string | string[] }>) => (
+const RoomListWrapper = ({ id, children }: PropsWithChildren<{ id: string | string[] | undefined }>) => (
     <div className={id ? "hidden sm:block" : ''}>
         {children}
     </div>

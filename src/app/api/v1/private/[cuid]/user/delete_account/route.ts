@@ -1,6 +1,6 @@
 import AccountDeletionWarning from "@components/EmailTemplates/accountDeletion";
 import { deleteSession } from "@lib/auth";
-import { oneDay } from "@lib/constants";
+import { oneDay, parloculaAppURL } from "@lib/constants";
 import { updateHandler } from "@lib/helpers/handlers";
 import { sendEmail } from "@lib/helpers/server";
 import { User } from "@model";
@@ -29,7 +29,7 @@ export const PATCH = updateHandler<{ passkey: string }>({
         const interval = now + (6 * oneDay);
 
         const job = await client.publishJSON({
-            url: `${process.env.NEXT_PUBLIC_APP_URL}/api/v1/user/account_deletion`,
+            url: `${parloculaAppURL}/api/v1/user/account_deletion`,
             notBefore: (interval / 1000),
             method: "POST",
             body: {
@@ -68,7 +68,7 @@ export const PATCH = updateHandler<{ passkey: string }>({
 
         await sendEmail({ email: user.email, template, subject: "Account Deletion Update" });
 
-        const jar = cookies()
+        const jar = await cookies()
         jar.delete("sid");
         jar.delete("token");
 

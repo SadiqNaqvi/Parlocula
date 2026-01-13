@@ -1,13 +1,14 @@
 import { Navbar } from "@components"
 import ReportSection from "@components/ReportSection"
 import { getUserFromToken } from "@lib/auth/utils";
+import { ParloPageProps } from "@type/other";
 import { cookies } from "next/headers";
 
-const ThreadReportPage = async ({ params }: { params: { id: string } }) => {
+const ThreadReportPage = async ({ params }: ParloPageProps) => {
 
-    const tid = params.id.split('-')[0];
+    const tid = (await params).id.split('-')[0];
 
-    const user = await getUserFromToken(cookies());
+    const user = await getUserFromToken(await cookies());
 
     if (!user) return null;
 

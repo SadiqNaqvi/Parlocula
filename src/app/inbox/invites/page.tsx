@@ -9,7 +9,7 @@ import RoomInvitationList from "./RoomInvitationList";
 const InvitePage = async () => {
 
     const queryClient = getQueryClient();
-    const jar = cookies();
+    const jar = await cookies();
     const user = await getUserFromToken(jar);
     if (!user) return null;
 

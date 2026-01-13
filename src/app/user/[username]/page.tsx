@@ -1,22 +1,22 @@
+import FilterTiles from "@components/Router/FilterTIles";
+import { getUserFromToken } from "@lib/auth/utils";
 import { getPostsOfUser, getUserByUsername } from "@lib/helpers/common";
 import { fetchQuery, getQueryClient, prefetchInfiniteQuery } from "@lib/providers/queryClient";
 import { getQueryKeys, refineSearchParams } from "@lib/utils";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
-import PostSection from "./tabs/PostSection";
-import FilterTiles from "@components/Router/FilterTIles";
+import { ParloPageProps } from "@type/other";
 import { cookies } from "next/headers";
-import { getUserFromToken } from "@lib/auth/utils";
+import PostSection from "./tabs/PostSection";
 
-type Props = { params: { username: string }, searchParams: { p?: string, f?: string } }
-
-const Page = async ({ params: { username }, searchParams: { f, p } }: Props) => {
+const Page = async ({ params, searchParams }: ParloPageProps) => {
 
     const queryClient = getQueryClient();
-
+    const { username } = await params;
+    const { f, p } = await searchParams;
     const { filter, page } = refineSearchParams("userPosts", p, f);
 
 
-    const currentUser = await getUserFromToken(cookies());
+    const currentUser = await getUserFromToken(await cookies());
 
     const allowNsfw = currentUser ? !currentUser.filterContent : false;
 

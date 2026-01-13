@@ -33,7 +33,7 @@ const FrameContainer = ({ path, type, size, thumb, remove }: FrameToReturn & { r
                 </button>
             )}
 
-            <span className="bg-black bg-opacity-50 text-white rounded-md p-2">
+            <span className="absolute bottom-0 right-0 mr-2 mb-2 bg-black text-sm bg-opacity-50 text-white rounded-md p-1">
                 {showSize(size)}
             </span>
         </>
@@ -100,7 +100,7 @@ const ImageUploader = ({ setFrame }: { setFrame: TypedFunction<FrameToReturn> })
     }
 
     return (
-        <div className="p-4">
+        <div className="p-4 space-y-4">
             <p className="text-zinc-500 text-center">
                 Image should be less than {mediaInputConfig.image.size.label}.
             </p>
@@ -239,7 +239,7 @@ export const MediaInputPrompt = ({ type, callback }: { type: "image" | "both", c
     if (section === "video" && type === "both") return (
         <section className="space-y-2">
             <SectionNav section={section} setSection={setSection} />
-            <ImageUploader setFrame={setFrame} />
+            <VideoUploader setFrame={setFrame} />
         </section>
     )
 
@@ -248,7 +248,7 @@ export const MediaInputPrompt = ({ type, callback }: { type: "image" | "both", c
             {type === "both" && (
                 <SectionNav section={section} setSection={setSection} />
             )}
-            <VideoUploader setFrame={setFrame} />
+            <ImageUploader setFrame={setFrame} />
         </section>
     )
 }

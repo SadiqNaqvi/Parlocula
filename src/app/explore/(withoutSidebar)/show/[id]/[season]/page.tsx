@@ -7,9 +7,10 @@ import { getPoster } from "@lib/utils";
 import { makeUrlSafe } from "@lib/utils";
 import { Metadata } from "next";
 
-type Props = { params: { id: string, season: string } };
+type Params = { id: string, season: string };
+type Props = { params: Promise<Params> };
 
-const fetchSeason = async ({ id, season }: { id: string, season: string }) => {
+const fetchSeason = async ({ id, season }: Params) => {
     const seasonNumber = parseInt(season.split('-')[1]);
     const [showPromise, seasonPromise] = await Promise.all([
         fetchShow(id),
@@ -21,7 +22,7 @@ const fetchSeason = async ({ id, season }: { id: string, season: string }) => {
 
 export const generateMetadata = async ({ params }: Props): Promise<Metadata> => {
 
-    const data = await fetchSeason(params);
+    const data = await fetchSeason(await params);
 
     if (!data) return { title: "Parlocula" };
     const { season, show } = data;
@@ -33,7 +34,7 @@ export const generateMetadata = async ({ params }: Props): Promise<Metadata> => 
 
 const SeasonPage = async ({ params }: Props) => {
 
-    const data = await fetchSeason(params);
+    const data = await fetchSeason(await params);
     if (!data) return (
         <NotFound
             title="Oops! Looks like the popcorn is missing"

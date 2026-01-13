@@ -6,12 +6,15 @@ import { getQueryKeys, isValidParloId } from "@lib/utils";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { cookies } from "next/headers";
 import ChatSection from "./ChatSection";
+import { ParloPageProps } from "@type/other";
 
-const RoomSection = async ({ params: { id } }: { params: { id: string } }) => {
+const RoomSection = async ({ params }: ParloPageProps) => {
+
+    const { id } = await params;
 
     const queryClient = getQueryClient();
     const [rmid] = id.split('-');
-    const jar = cookies();
+    const jar = await cookies();
     const user = await getUserFromToken(jar);
 
     if (!user) return null;

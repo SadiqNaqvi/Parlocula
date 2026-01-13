@@ -44,11 +44,11 @@ export const usernameSchema = z
   );
 
 
-const dateSchema = z.string()
+export const dateSchema = z.number().or(z.string()).or(z.date())
   .transform((val) => new Date(val).getTime())
   .refine((val) => !isNaN(val), "Invalid Date!")
 
-const dobSchema = dateSchema
+export const dobSchema = dateSchema
   .refine((val) => {
     const age = calculateAge(val);
     return age > 12 && age < 80;
@@ -81,7 +81,7 @@ export const frameDataSchema = z.object({
   type: z.enum(["image", "video"]),
   isExternal: z.boolean(),
   path: z.string(),
-  shouldUpload: z.boolean(),
+  shouldUpload: z.boolean().optional(),
   size: z.number(),
   hash: z.string(),
 });
@@ -190,40 +190,24 @@ export const registerUserSchemaClient = z.object({
   name: z
     .string()
     .trim()
-    .min(3, "Name must be at least 3 characters long")
-    .max(25, "Name cannot have more than 25 characters"),
+    .default(""),
+  // .refine((name) => {
+  //   if (!name) return true;
+  //   else if (name.length > 25)
+  //     return "Name cannot have more than 25 characters";
+  // }),
   bio: z
     .string()
     .trim()
     .max(200, "Only 200 characters are allowed")
     .default(""),
-  dob: dobSchema,
 });
 
 export const registerUserSchemaServer = z
   .object({
-    _id: z.string(),
-    username: z
-      .string()
-      .trim()
-      .min(6, "Username must be at least 6 characters long")
-      .max(20, "Username cannot have more than 20 characters")
-      .refine(
-        (username) => usernamePattern.test(username),
-        "Username cannot start with numbers"
-      ),
+    dob: dobSchema,
+    username: usernameSchema,
     email: emailSchema,
-    // genres: z
-    //   .array(z.string())
-    //   .refine(
-    //     (val) => val.length >= 3,
-    //     "At least 3 initial genres are required."
-    //   )
-    //   .refine((val) => val.length <= 5, "Only 5 genres are allowed.")
-    //   .refine(
-    //     (val) => val.every((el) => genresToChoose.includes(el)),
-    //     "You can only choose between the given genres"
-    //   ),
     bioLinks: z.array(linkSchema).default([]),
     files: z.array(fileSchema).optional().default([]),
     filesData: z.array(frameDataSchema).optional().default([]),
@@ -235,7 +219,7 @@ export const userUpdateSchema = z.object({
   files: z.array(fileSchema).optional().default([]),
   filesData: z.array(frameDataSchema).optional().default([]),
 })
-  .merge(registerUserSchemaClient)
+  .merge(registerUserSchemaServer)
   .merge(extraFieldForUpdateMethod)
   .partial();
 
@@ -327,7 +311,6 @@ export const shelfClientSchema = z.object({
 });
 
 export const shelfServerSchema = z.object({
-  _id: z.string(),
   name: z.string().min(3).max(40),
   isPrivate: z.boolean(),
   items: z.array(itemSchema),
@@ -388,7 +371,7 @@ export const messageSchema = z.object({
   replied_content: z.string().optional(),
   room: z.object({
     display_name: z.string(),
-    poster: z.string().optional(),
+    poster: frameDataSchema.optional(),
     mute: z.boolean(),
   })
 });

@@ -12,30 +12,10 @@ import { CinementModelType, NotificationModelType, ShelfItemModelType } from "@t
 import { PushNotificationType } from "@type/other";
 import { CinementSchemaType } from "@type/schemas";
 import Ably from "ably";
-import { v2 as cloudinary, UploadApiOptions, UploadApiResponse } from "cloudinary";
 import { randomInt } from "crypto";
 import { ClientSession } from "mongoose";
 import { cookies } from "next/headers";
 import { createTransport } from "nodemailer";
-
-// cloudinary.config({
-//   cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
-//   api_key: process.env.CLOUDINARY_CLOUD_API_KEY,
-//   api_secret: process.env.CLOUDINARY_CLOUD_API_SECRET,
-// });
-
-// type DeleteApiResponse = {
-//   deleted: Record<string, "deleted" | "not_found" | "error">;
-//   partial: boolean;
-// };
-
-// type UploadToCloudinaryReturn = {
-//   success: true,
-//   response: string[],
-// } | {
-//   success: false,
-//   error: string,
-// }
 
 type CinementDocType = CinementModelType & { _id: string }
 
@@ -147,6 +127,11 @@ export const sendVerificationCode = async (
 ): Promise<GeneralGetReturn> => {
   if (!fingerprint) throw new Error("Fingerprint is not passed");
 
+  if (!!process.env.IS_TESTING) return {
+    success: true,
+    result: null,
+  }
+
   const redis = await getRedis();
 
   const payload: EmailPayload | null = await redis
@@ -187,6 +172,17 @@ export const verifyCode = async (code: string | number, fingerprint: string): Pr
 
     if (!success)
       return { success: false, errCode: "form_error", formError: error.errors }
+
+    if (!!process.env.IS_TESTING) {
+      if (data === 123456) return {
+        success: true,
+        result: null
+      }
+      else return {
+        success: false,
+        errCode: "invalid_verification_code"
+      }
+    }
 
     const redis = await getRedis();
 
@@ -237,7 +233,7 @@ export const sendNotification = async (
 };
 
 export const deleteUserFromCookies = async () => {
-  const jar = cookies();
+  const jar = await cookies();
   jar.delete("sid");
   jar.delete("token");
 };

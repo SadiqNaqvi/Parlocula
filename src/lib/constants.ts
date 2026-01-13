@@ -58,7 +58,7 @@ export const usernamePattern = /^[a-z][a-z0-9_]*$/;
 export const emailPattern =
   /^[a-zA-Z]+[a-zA-Z0-9-]{2,}\@+[a-z]{4,}\.[a-z]{3,}$/;
 
-export const externalImgUrlPrefix = "https://image.tmdb.org/thread/post/";
+export const externalImgUrlPrefix = "https://image.tmdb.org/t/p/";
 
 export const backdrop_sizes = ["w300", "w780", "w1280", "original"];
 export const logo_sizes = [

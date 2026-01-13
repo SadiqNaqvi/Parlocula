@@ -7,24 +7,23 @@ import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { Metadata } from "next";
 import { cookies } from "next/headers";
 import MediaPage from "../../components/MediaPage";
+import { ParloPageProps } from "@type/other";
 
-type Props = { params: { id: string } };
-
-export const generateMetadata = async ({ params }: Props): Promise<Metadata> => {
-    const { id } = params;
+export const generateMetadata = async ({ params }: ParloPageProps): Promise<Metadata> => {
+    const { id } = await params;
     const data = await fetchMovie(id);
 
     if (!data) return { title: "Parlocula" };
     return { title: `${data.title} - Parlocula` };
 };
 
-export default async function MoviePage({ params }: Props) {
+export default async function MoviePage({ params }: ParloPageProps) {
 
-    const { id } = params;
+    const { id } = await params;
 
     const queryClient = getQueryClient();
 
-    const user = await getUserFromToken(cookies());
+    const user = await getUserFromToken(await cookies());
 
     const content = await fetchMovie(id);
 

@@ -1,8 +1,16 @@
 import { PipelineStage } from "mongoose";
 import { RequestCookies } from "next/dist/compiled/@edge-runtime/cookies";
 import { ReadonlyRequestCookies } from "next/dist/server/web/spec-extension/adapters/request-cookies";
-import { GenericDate, InfiniteQueryResponse, MereMessage } from "./internal";
+import { Frame, GenericDate, InfiniteQueryResponse, MereMessage } from "./internal";
 import { NotificationModelType } from "./models";
+
+export type ParloPageProps<
+  P = { id: string, username: string },
+  S = { p?: string, f?: string, t?: string, k?: string }
+> = {
+  params: Promise<P>,
+  searchParams: Promise<S>,
+}
 
 type Arguments<A> =
   A extends undefined ? [] :
@@ -10,7 +18,6 @@ type Arguments<A> =
 export type TypedFunction<A = undefined, R = void> = (...args: Arguments<A>) => R
 
 export type ArrayForArrayResponse<T, R> = T extends any[] ? R[] : R;
-
 
 export type UsersShelfType =
   | "favourite"
@@ -190,7 +197,7 @@ export type AblyEventParams = {
   "message": MereMessage & {
     room: {
       display_name: string,
-      poster?: string,
+      poster?: Frame,
       mute: boolean,
     }
   },

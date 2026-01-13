@@ -84,14 +84,13 @@ export const POST = postHandler<LikeSchemaType>({
 });
 
 // Check if the current user has Liked a comment or not
-export const GET = getHandler(
-  async (_, params: { id: string; cuid: string }) => {
-    const { id, cuid } = params;
+export const GET = getHandler(async (_, params) => {
+  const { id, cuid } = params;
 
-    const like = await Like.exists({ comment_id: id, user_id: cuid });
+  const like = await Like.exists({ comment_id: id, user_id: cuid });
 
-    return { result: Boolean(like), success: true };
-  }
+  return { result: Boolean(like), success: true };
+}
 );
 
 // Delete the Like of the current user on a comment

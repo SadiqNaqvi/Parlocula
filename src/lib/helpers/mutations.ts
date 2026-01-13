@@ -1,22 +1,20 @@
 
 import LinkToast from "@components/toasts/LinkToast"
 import { generateFingerprint } from "@lib/auth"
-import { oneHour } from "@lib/constants"
-import appToast from "@lib/providers/toast"
+import { oneHour, parloculaAppURL } from "@lib/constants"
 import { getQueryClient } from "@lib/providers/queryClient"
-import { codetoError, getLocalUrl, getQueryKeys, objectToFormData, parloId, trycatch } from "@lib/utils"
+import appToast from "@lib/providers/toast"
+import { codetoError, getQueryKeys, objectToFormData, parloId, trycatch } from "@lib/utils"
 import { AppNavigationInstance } from "@store/historystack"
 import { offlineStore } from "@store/offlineStore"
 import useRoomStore from "@store/roomStore"
 import useCurrentUser from "@store/user"
-import { CommentReplyType, CurrentUser, FullComment, FullPost, FullRoomType, FullShelf, GeneralGetReturn, GeneralPostReturn, MereComment, MereMessage, MereRoomType, MereUser, ModeratorType, ShelfCollaborator, ShelfCollaborators, ShelfItemType, ShelvesForCinement, ThreadModType, UserConnectionType } from "@type/internal"
+import { CommentReplyType, CurrentUser, Frame, FullComment, FullPost, FullRoomType, FullShelf, GeneralGetReturn, GeneralPostReturn, MereComment, MereMessage, MereRoomType, MereUser, ModeratorType, ShelfCollaborator, ShelfCollaborators, ShelfItemType, ShelvesForCinement, ThreadModType, UserConnectionType } from "@type/internal"
 import { NotificationModelType } from "@type/models"
 import { ErrorCodes, InfiniteScrollerDataType } from "@type/other"
 import { BookmarkSchemaType, CinementSchemaType, CinementToAddAndRemoveType, CommentSchemaType, CommentSchemaUpdateType, EmailUpdateSchemaType, LikeSchemaType, MessageSchemaType, PostSchemaType, PostUpdateSchemaType, ReportActionSchemaType, ReportSchemaType, ReportTypeEnum, RoomSchemaType, SessionInvalidationServerSchemaType, ShelfEditSchemaType, ShelfSchemaType, ThreadSchemaServer, ThreadUpdateSchema, UsernameUpdateSchemaType, UserSchemaType, UserUpdateSchemaType } from "@type/schemas"
 import axios from "axios"
-import { nanoid } from "nanoid"
 import { setUserOnRefreshOrLogin } from "./user"
-import { toast } from "sonner"
 
 type MutationFunction<R> = () => Promise<GeneralPostReturn<R>>
 
@@ -43,7 +41,7 @@ export const ppPostData = async <T,>({
     return await trycatch(() =>
         axios
             .post(
-                `${getLocalUrl()}/api/v1/private/${uid}/${url}`,
+                `${parloculaAppURL}/api/v1/private/${uid}/${url}`,
                 data ? objectToFormData(data) : new FormData(),
             )
             .then((r) => r.data)
@@ -62,7 +60,7 @@ export const ppUpdateData = async ({
     return await trycatch(() =>
         axios
             .patch(
-                `${getLocalUrl()}/api/v1/private/${uid}/${url}`,
+                `${parloculaAppURL}/api/v1/private/${uid}/${url}`,
                 objectToFormData(data)
             )
             .then((r) => r.data)
@@ -75,7 +73,7 @@ export const ppDeleteData = async (
 ): Promise<GeneralGetReturn> => {
     return await trycatch(() =>
         axios
-            .delete(`${getLocalUrl()}/api/v1/private/${uid}/${url}`)
+            .delete(`${parloculaAppURL}/api/v1/private/${uid}/${url}`)
             .then((res) => res.data)
     );
 };
@@ -86,6 +84,7 @@ export const handleErrorFromMutation = (data: GeneralPostReturn) => {
     else if (formError) return formError;
     else if (customError) appToast.error(customError);
     else appToast.error(codetoError(errCode));
+    return false;
 }
 
 const unstableInternetError = () => {
@@ -286,10 +285,11 @@ export const registerUserMutation = async (data: UserSchemaType) => {
     return performMutation({
         mutationFn: () => axios
             .post<GeneralPostReturn>(
-                `${getLocalUrl()}/api/v1/user/register`,
+                `${parloculaAppURL}/api/v1/user/register`,
                 objectToFormData(data)
             )
-            .then((r) => r.data),
+            .then((r) => r.data)
+            .catch(r => r.response.data),
         onSuccess: ({ data }: { data: CurrentUser }) => {
 
             setUserOnRefreshOrLogin(data, Boolean(data.filterContent));
@@ -309,10 +309,12 @@ export const loginUserMutation = async (data: { email: string, code: number }) =
 
     return performMutation({
         mutationFn: () => axios
-            .post<GeneralPostReturn>(`${getLocalUrl()}/api/v1/user/login`,
+            .post<GeneralPostReturn>(`${parloculaAppURL}/api/v1/user/login`,
                 objectToFormData({ ...data, fingerprint })
             )
-            .then((r) => r.data),
+            .then((r) => r.data)
+            .catch(r => r.response.data),
+
         onSuccess: ({ data }: { data: CurrentUser }) => {
 
             setUserOnRefreshOrLogin(data, Boolean(data.filterContent));
@@ -1119,6 +1121,8 @@ export const createRoomMutation = async (rmid: string, room: RoomSchemaType & { 
     const uid = user_id;
     const now = Date.now();
 
+    const frame = room.filesData[0];
+
     const invitationMessage = {
         content: room.inviteMessage,
         createdAt: now,
@@ -1135,7 +1139,7 @@ export const createRoomMutation = async (rmid: string, room: RoomSchemaType & { 
         otherParticipant_id: ruid,
         otherParticipant_seenAt: undefined,
         seenAt: now,
-        poster,
+        poster: poster && frame ? { ...frame, path: poster } : undefined,
         room_id: rmid,
         createdAt: now,
     }
@@ -1144,7 +1148,7 @@ export const createRoomMutation = async (rmid: string, room: RoomSchemaType & { 
         ...roomForRoomList,
         display_name,
         participant_count: 1,
-        poster,
+        poster: poster && frame ? { ...frame, path: poster } : undefined,
         _id: rmid,
         type: room.type,
         invitationMessage,
@@ -1256,7 +1260,7 @@ export const showMessageOptimistically = ({ message, room, uid }: {
     message: MereMessage,
     room: {
         display_name: string;
-        poster?: string | undefined;
+        poster?: Frame | undefined;
         mute: boolean;
     },
     uid: string,
@@ -1541,7 +1545,7 @@ const removeUser = () => {
 
 export const logoutUser = async () => {
     await performMutation({
-        mutationFn: () => axios.delete(`${getLocalUrl()}/api/v1/user/logout`),
+        mutationFn: () => axios.delete(`${parloculaAppURL}/api/v1/user/logout`),
         onMutate: removeUser
     });
 }
@@ -1567,10 +1571,11 @@ export const updateFeedViewed = async (uid: string, posts: string[]) => {
 export const invalidateSession = async (data: SessionInvalidationServerSchemaType) =>
     await trycatch<GeneralPostReturn>(() =>
         axios.patch(
-            `${getLocalUrl()}/api/v1/user/login`,
+            `${parloculaAppURL}/api/v1/user/login`,
             objectToFormData(data)
         )
             .then((r) => r.data)
+            .catch(r => r.response.data),
     );
 
 export const joinThread = async (tid: string, uid: string) => {

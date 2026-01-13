@@ -3,10 +3,11 @@ import { getReportsOnContent } from "@lib/helpers/common";
 import { getQueryClient, prefetchQuery } from "@lib/providers/queryClient";
 import { getQueryKeys } from "@lib/utils";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
+import { ParloPageProps } from "@type/other";
 
-const UserReportsPage = async ({ params }: { params: { id: string } }) => {
+const UserReportsPage = async ({ params }: ParloPageProps) => {
 
-    const cnid = params.id.split('-')[0];
+    const cnid = (await params).id.split('-')[0];
 
     const queryClient = getQueryClient();
 

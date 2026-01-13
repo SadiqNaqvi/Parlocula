@@ -1,7 +1,7 @@
 import Navbar from "@components/Navbar";
 
 const LoadingSpinner = ({ className = '' }: { className?: string }) => (
-    <div className={`w-full ${className}`}>
+    <div role="status" data-testid="loadingSpinner" className={`${className}`}>
         <div className="loadingSpinner"></div>
     </div>
 )

@@ -1,29 +1,33 @@
 "use client";
 
+import { OptionalChildren } from "@components/ui";
 import { useFormContext } from "react-hook-form"
+import { twMerge } from "tailwind-merge";
 
-const Input = ({ label, name, description, containerClasses, ...args }: { label?: string, name: string, description?: string, containerClasses?: string } & React.InputHTMLAttributes<HTMLInputElement>) => {
+const Input = ({ label, name, description, containerClasses, className, ...args }: { label?: string, name: string, description?: string, containerClasses?: string } & React.InputHTMLAttributes<HTMLInputElement>) => {
 
     const { register, formState: { errors, isSubmitting } } = useFormContext();
     const error = errors[name]?.message?.toString() || "";
 
     return (
-        <div className={`focus-within:border-gray-500 invalid:border-red-500 ${error ? "border-red-500" : "border-gray20"} ${containerClasses || "space-y-2 pb-2 border-b"}`}>
-            {label &&
-                <label htmlFor={name} className="capitalize">
+        <div className={twMerge(`space-y-2`, containerClasses)}>
+            <OptionalChildren condition={label}>
+                <label htmlFor={name}>
                     {label}
                 </label>
-            }
+            </OptionalChildren>
             <input
                 disabled={isSubmitting}
                 {...args}
                 {...register(name)}
-                className={args.className ?? "" + " inline w-full bg-transparent"}
+                className={twMerge(`inline w-full bg-transparent p-2 border rounded-md focus:border-invert ${error ? "border-red-500" : "border-gray40"} `, className)}
             />
-            {error ? <p className="text-sm text-red-500">{error}</p>
-                :
-                description && <p className="text-zinc-500 text-sm">{description}</p>
-            }
+            <OptionalChildren condition={error}>
+                <p className="text-sm text-red-500">{error}</p>
+            </OptionalChildren>
+            <OptionalChildren condition={description}>
+                <p className="text-zinc-500 text-sm">{description}</p>
+            </OptionalChildren>
         </div>
     )
 }

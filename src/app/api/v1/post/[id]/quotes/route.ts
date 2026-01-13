@@ -4,7 +4,7 @@ import { getSearchParams } from "@lib/utils";
 import { Post } from "@model";
 
 // Get posts which quoted a certain post
-export const GET = getHandler(async (r, params: { id: string }) => {
+export const GET = getHandler(async (r, params) => {
   const { id } = params;
 
   const { page, nsfw } = getSearchParams(r.nextUrl, 0);

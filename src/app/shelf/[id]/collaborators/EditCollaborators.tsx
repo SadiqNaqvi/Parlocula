@@ -57,6 +57,9 @@ export const RemoveCollaborators = ({ back, total, sid, uid }: Props) => {
                     data={refinedData}
                     callbackRef={callbackRef}
                     returnIds
+                    queryFn={undefined}
+                    queryKeys={undefined}
+                    refiner={undefined}
                 />
             </section>
         </div>

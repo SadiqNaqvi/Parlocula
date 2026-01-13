@@ -58,14 +58,14 @@ const sessionManagement = async (
 
   const token = await generateToken(tokenPayload);
 
-  cookies().set("token", token, {
+  (await cookies()).set("token", token, {
     httpOnly: true,
     secure: true,
     sameSite: "strict",
     path: "/",
   });
 
-  cookies().set("sid", session_id, {
+  (await cookies()).set("sid", session_id, {
     httpOnly: true,
     secure: true,
     sameSite: "strict",

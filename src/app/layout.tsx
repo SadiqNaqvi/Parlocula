@@ -3,7 +3,8 @@ import Fancybox from "@components/Fancybox";
 import MainLoader from "@components/ui/loading/mainLoading";
 import { getUserFromToken } from "@lib/auth/utils";
 import { getCurrentUser, getNotificationsOfUser } from "@lib/helpers/common";
-import ReactQueryProvider, { fetchQuery, getQueryClient, prefetchInfiniteQuery } from "@lib/providers/queryClient";
+import { fetchQuery, getQueryClient, prefetchInfiniteQuery } from "@lib/providers/queryClient";
+import ReactQueryProvider from "@lib/providers/ReactQueryWrapper"
 import { getQueryKeys } from "@lib/utils";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { Metadata } from "next";
@@ -14,7 +15,7 @@ import { PropsWithChildren, Suspense } from "react";
 import { Toaster } from "sonner";
 import UserHydrator from "./UserHydrator";
 
-const fontFam = Montserrat({ subsets: ["latin"], weight: ["100", "200", "300", "400", "500", "600", "700"] });
+// const fontFam = Montserrat({ subsets: ["latin"], weight: ["100", "200", "300", "400", "500", "600", "700"] });
 
 export const metadata: Metadata = {
   title: "Parlocula",
@@ -26,13 +27,11 @@ const NotificationFetcher = async ({ children }: PropsWithChildren) => {
 
   const queryClient = getQueryClient();
 
-  const jar = cookies();
+  const jar = await cookies();
   const payload = await getUserFromToken(jar);
 
-  let user = payload;
-
-  if (user) {
-    const { user_id, username } = user;
+  if (payload) {
+    const { user_id, username } = payload;
 
     //   queryClient.prefetchInfiniteQuery({
     //     queryKey: getQueryKeys("rooms_uid", { uid: user_id }),
@@ -46,22 +45,19 @@ const NotificationFetcher = async ({ children }: PropsWithChildren) => {
         queryKey: getQueryKeys("user_username", { username }),
         queryFn: () => getCurrentUser(user_id, jar),
       }),
-      prefetchInfiniteQuery({
-        queryClient,
-        initialPageParam: 1,
-        queryKey: getQueryKeys("notifications_uid", { uid: user_id }),
-        queryFn: () => getNotificationsOfUser(user_id, 1, jar)
-      }),
+      // prefetchInfiniteQuery({
+      //   queryClient,
+      //   initialPageParam: 1,
+      //   queryKey: getQueryKeys("notifications_uid", { uid: user_id }),
+      //   queryFn: () => getNotificationsOfUser(user_id, 1, jar)
+      // }),
     ]);
-
-    if (!resp) user = null;
-
   }
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
       {children}
-      <UserHydrator user={user} />
+      <UserHydrator payload={payload} />
     </HydrationBoundary>
   )
 
@@ -72,7 +68,8 @@ const RootLayout = async ({
 }: PropsWithChildren) => {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${fontFam.className}`}>
+      {/* {*<body className={`${fontFam.className}`}>} */}
+      <body>
         <Toaster swipeDirections={["bottom", "left", "right"]} />
         <ReactQueryProvider>
           <ThemeProvider enableSystem defaultTheme="system" attribute={"class"}>
@@ -85,6 +82,7 @@ const RootLayout = async ({
             </Fancybox>
           </ThemeProvider>
         </ReactQueryProvider>
+
       </body>
     </html>
   );

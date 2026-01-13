@@ -4,16 +4,13 @@ import { getUserFromToken } from "@lib/auth/utils";
 import { getCollaboratorsOfShelf } from "@lib/helpers/common";
 import { fetchQuery, getQueryClient } from "@lib/providers/queryClient";
 import { getQueryKeys } from "@lib/utils";
+import { ParloPageProps } from "@type/other";
 import { cookies } from "next/headers";
 
-type Props = {
-    params: { id: string },
-};
+const AddInListPage = async ({ params }: ParloPageProps) => {
 
-const AddInListPage = async ({ params: { id } }: Props) => {
-
-    const [sid] = id.split('-')
-    const jar = cookies();
+    const [sid] = (await params).id.split('-');
+    const jar = await cookies();
     const user = await getUserFromToken(jar);
     const queryClient = getQueryClient();
 

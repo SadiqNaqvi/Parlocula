@@ -8,10 +8,12 @@ import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { ShelfCollaborators } from "@type/internal";
 import { cookies } from "next/headers";
 import Collaborators from "./CollaboratorsPage";
+import { ParloPageProps } from "@type/other";
 
-const CollaboratorsPage = async ({ params: { id } }: { params: { id: string } }) => {
+const CollaboratorsPage = async ({ params }: ParloPageProps) => {
 
-    const jar = cookies();
+    const { id } = await params;
+    const jar = await cookies();
     const user = await getUserFromToken(jar);
 
     if (!user) return (

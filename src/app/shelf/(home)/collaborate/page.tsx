@@ -8,7 +8,7 @@ import ShelfList from "../ShelfList";
 
 const CollaborativeShelvesPage = async () => {
 
-    const user = await getUserFromToken(cookies());
+    const user = await getUserFromToken(await cookies());
     if (!user) return null;
 
     const { user_id } = user;

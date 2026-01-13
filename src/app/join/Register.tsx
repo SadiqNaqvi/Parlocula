@@ -1,7 +1,6 @@
 "use client";
 
-import { DatePicker, Form, Input, Poster, Textarea } from "@components/form";
-import LinkInputManager from "@components/form/LinkInputManager";
+import { Form, Input, Poster, Textarea, DateInput, LinkInputManager } from "@components/form";
 import Navbar from "@components/Navbar";
 import { urlPattern } from "@lib/constants";
 import { isUsernameAvailable } from "@lib/helpers/common";
@@ -14,20 +13,24 @@ import { InputManagerType } from "@type/other";
 import { InputFrame, LinkSchema } from "@type/schemas";
 import { useSearchParams } from "next/navigation";
 import { useRef } from "react";
+import z from "zod";
+import ContentMockup from "./ContentMockup";
+import { EditIcon } from "@assets/Icons";
 
 const Register = ({ email }: { email: string }) => {
 
-    const { username, page, setter } = useCustomReducer({ username: "", page: 0 });
+    const { username, page, dob, setter } = useCustomReducer({ username: "", page: 0, dob: undefined as Date | undefined });
 
     const profileRef = useRef<InputManagerType<InputFrame>>(null);
     const linkRef = useRef<InputManagerType<LinkSchema[]>>(null);
     const formRef = useRef<HTMLFormElement>(null);
+    const dobRef = useRef<{ get: () => Date | undefined }>(null);
 
     const navigation = useNavigation();
     const urlToRedirect = useSearchParams().get("url");
 
-    const submit = async (data: { name: string, bio: string, dob: string }) => {
-
+    const submit = async (data: { name: string, bio: string }) => {
+        if (!dob) return "Date of birth is required";
         const profile = profileRef.current?.getData();
 
         const { files, filesData } = await readyFrames(profile ? [profile] : []);
@@ -37,7 +40,7 @@ const Register = ({ email }: { email: string }) => {
 
         const error = await registerUserMutation({
             ...data,
-            dob: new Date(data.dob).getTime(),
+            dob: dob.getTime(),
             email,
             username,
             bioLinks,
@@ -46,8 +49,13 @@ const Register = ({ email }: { email: string }) => {
         });
 
         if (error) return error;
+        else if (error !== false)
+            navigation.replace(redirectTo);
+    }
 
-        navigation.replace(redirectTo);
+    const storeDob = () => {
+        const dob = dobRef.current?.get();
+        if (dob) setter({ dob, page: 1 })
     }
 
     const checkUsernameAvailability = async (data: { username: string }) => {
@@ -57,101 +65,142 @@ const Register = ({ email }: { email: string }) => {
 
         const { errCode, result, success } = await isUsernameAvailable(data.username);
 
-        if (!success) return codetoError(errCode)
+        if (!success) return codetoError(errCode);
 
         else if (!result) return [{ path: "username", message: "Username is not available" }]
 
-        setter({ username: data.username, page: 1 });
+        setter({ username: data.username, page: 2 });
     }
 
     if (page === 0) return (
         <>
-            <Navbar />
+            <Navbar className="p-0 !h-fit mt-4 sm:mt-0" navTitle="Create Account" />
 
-            <div className="mb-6">
-                <h2 className="text-2xl text-center">Choose Username</h2>
-                <p className="text-center text-sm text-zinc-500 mt-2">You can always change it later</p>
+            <div className="space-y-2 my-4">
+                <label htmlFor="Date">Date of birth</label>
+                <DateInput dateRef={dobRef} onComplete={storeDob} />
             </div>
 
+            <button onClick={storeDob} className="primary w-full ">Next</button>
+            <p className="text-center text-sm text-zinc-500 mt-2">DOB will not appear on your profile.</p>
+        </>
+    )
+
+    else if (page === 1) return (
+        <>
+            <Navbar
+                onGoBack={() => setter({ page: 0 })}
+                className="p-0 !h-fit mt-4 sm:mt-0"
+                navTitle="Create Account" />
+
             <Form
-                className="h-size-screen"
-                schema={usernameSchema}
+                className="mt-6 mb-3"
+                schema={z.object({ username: usernameSchema })}
                 submit={checkUsernameAvailability}>
 
                 <Input
+                data-testid="usernameInputBox"
                     defaultValue={username}
                     name="username"
-                    description="must be in lowercase without white spaces"
+                    description="Recommended: Use the name of your favourite character and sprinkle some numbers and an underscore in it."
                     placeholder="Username"
+                    label="Choose a username"
                     autoFocus
                 />
 
-                <button type="submit" className="primary w-full mt-auto">Next</button>
+                <button type="submit" className="primary w-full mt-4">Next</button>
 
             </Form>
+            <p className="text-center text-sm text-zinc-500 mt-2">You can change them later.</p>
         </>
     )
 
     return (
-        <div className="h-size-screen">
+        <>
 
-            <Navbar onGoBack={() => setter({ page: 0 })} />
+            <Navbar
+                className="p-0 bg-primary !h-fit py-2 sm:pt-0"
+                navTitle="Preview"
+                onGoBack={() => setter({ page: 1 })}
+                OptionButton={
+                    <button
+                        className="primary w-full sm:w-fit sm:mx-auto"
+                        type="submit"
+                        onClick={() => formRef.current?.requestSubmit()}
+                    >
+                        Join
+                    </button>
+                }
+            />
+
+            <p className="text-sm text-center text-zinc-500 my-4">Your profile looks like this. Click on a field to update your profile or skip it for later.</p>
 
             <section className="h-stretch">
-
-                <Poster className="my-6" ref={profileRef} />
 
                 <Form
                     ref={formRef}
                     submit={submit}
                     schema={registerUserSchemaClient}
-                    className="space-y-4"
+                    skipReset
                 >
 
-                    <Input
-                        type="text"
-                        name="name"
-                        placeholder="Display name"
-                        autoFocus
-                    />
+                    <div className="flex gap-4 mb-4 items-center">
+                        <Poster className="size-28 min-w-28 m-0" ref={profileRef} />
+                        <div className="space-y-1">
+                            <div className="flex items-center gap-1">
+                                <EditIcon className="text-zinc-500 size-5" />
+                                <Input
+                                    type="text"
+                                    name="name"
+                                    placeholder="Display name"
+                                    autoFocus
+                                    className="border-0 p-0 text-xl font-semibold"
+                                />
+                            </div>
+                            <p className="font-semibold">@{username}</p>
+                        </div>
+                    </div>
 
-                    <Textarea
-                        maxLength={500}
-                        name="bio"
-                        placeholder="About Yourself"
-                    />
+                    <div className="flex gap-3">
+                        <div className="space-x-[6px]">
+                            <span className="font-semibold text-center text-lg">X</span>
+                            <span className="">Posts</span>
+                        </div>
+                        <div className="space-x-[6px]">
+                            <span className="font-semibold text-center text-lg">X</span>
+                            <span className="">Followers</span>
+                        </div>
+                        <div className="space-x-[6px]">
+                            <span className="font-semibold text-center text-lg">X</span>
+                            <span className="">Following</span>
+                        </div>
+                    </div>
 
-                    <DatePicker
-                        type="date"
-                        placeholder="Date of Birth"
-                        name="dob"
-                    />
+                    <div className="flex mt-4 gap-1 items-center">
+                        <EditIcon className="text-zinc-500 size-4" />
+                        <Textarea
+                            maxLength={500}
+                            name="bio"
+                            placeholder="About Yourself"
+                            containerClassName="flex-1 border-0 p-0"
+                        />
+                    </div>
 
-                    {/* <input
-                    className="px-3 py-2 border border-gray30 rounded-md text-lg bg-transparent w-full"
-                    type="date"
-                    name="dob"
-                    id=""
-                    placeholder="Date of Birth"
-                /> */}
                 </Form>
-                <LinkInputManager ref={linkRef} />
+
+                <div className="my-2">
+                    <LinkInputManager ref={linkRef} />
+                </div>
+
+                <div className="mt-6 flex gap-2">
+                    <div className="flex-1 bg-secondary color-primary rounded-md py-2 text-center">Follow</div>
+                    <div className="flex-1 border-2 border-secondry rounded-md py-2 text-center">Message</div>
+                </div>
+
+                <ContentMockup />
 
             </section>
-
-            <footer>
-
-                <button
-                    className="primary w-full sm:w-fit sm:mx-auto"
-                    type="submit"
-                    onClick={() => formRef.current?.requestSubmit()}
-                >
-                    Next
-                </button>
-
-            </footer>
-
-        </div>
+        </>
     )
 
 }

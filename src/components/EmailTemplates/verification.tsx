@@ -10,7 +10,6 @@ import {
     Section,
     Text
 } from '@react-email/components';
-import { CSSProperties } from 'react';
 
 const logo = "https://lh3.googleusercontent.com/pw/AP1GczN_I3g2XWyPglqNU7GkYnroLYUNTDUyw65s4_6xleNch1O8jO9ItoA-88Wq9NG9l7jUCLlcynt44KIEQnucFHGNgtQDwZokwo9AvtSljHdQaZ_NZK8=w494-h492-no";
 

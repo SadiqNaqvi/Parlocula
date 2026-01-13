@@ -24,7 +24,7 @@ export const PATCH = updateHandler<{ passkey: string }>({
         if (!user) return { success: false, errCode: "resource_not_found" }
 
         deleteSession(user.session_id);
-        const jar = cookies()
+        const jar = await cookies()
         jar.delete("sid");
         jar.delete("token");
 

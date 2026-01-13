@@ -6,10 +6,11 @@ import EmailVerifier from "@components/auth/EmailVerifier";
 import { urlPattern } from "@lib/constants";
 import { loginUserMutation } from "@lib/helpers/mutations";
 import { useNavigation } from "@store/historystack";
+import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 
-const Page = ({ searchParams }: { searchParams: { url?: string } }) => {
-    const urlToRedirect = searchParams.url;
+const Page = () => {
+    const urlToRedirect = useSearchParams().get("url");
     const navigation = useNavigation();
     const [email, setEmail] = useState('');
 
@@ -18,23 +19,25 @@ const Page = ({ searchParams }: { searchParams: { url?: string } }) => {
 
         const redirectTo = urlToRedirect && urlPattern.test(urlToRedirect) ? urlToRedirect : "/home";
 
-        if (!response) return navigation.replace(redirectTo);
+        if (response === undefined) return navigation.replace(redirectTo);
 
         if (typeof response === "string" && response === "unregistered_user")
             setEmail(email);
 
-        return response;
+        return response || '';
     }
 
     if (email) return <Register email={email} />
 
     return (
         <>
-            <EmailVerifier callback={handleLogin} />
+            <EmailVerifier
+                navTitle="Welcome"
+                callback={handleLogin} />
 
-            <div className="mt-6 flex flex-col">
-                <p className="text-sm text-center text-zinc-500">Feels like someone else is using your account?</p>
-                <Navigate className="mx-auto" comp="link" goto="invalidate">Log out everyone</Navigate>
+            <div className="mt-6 text-center space-x-2 space-y-2">
+                <p className="inline text-sm text-center text-zinc-500">Feels like someone else is using your account?</p>
+                <Navigate className="inline text-sm" comp="link" goto="invalidate">Log out everyone</Navigate>
             </div>
         </>
     )

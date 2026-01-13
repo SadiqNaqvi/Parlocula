@@ -1,45 +1,3 @@
-/*
-export const actionBucket = {
-    // 1. Bookmark content
-    "POST:bookmark": {},
-    "POST:comment": {},
-    "PATCH:comment": {},
-    "POST:comment:like": {},
-    "POST:post": {},
-    "PATCH:post": {},
-    "POST:post:reaction": {},
-    "POST:room": {},
-    "PATCH:room": {},
-    "POST:room:message": {},
-    "POST:room:participant:invite": {},
-    "POST:room:participant:remove": {},
-    "PATCH:room:hide": {},
-    "POST:shelf": {},
-    "POST:item": {},
-    "POST:shelf:collaborate": {},
-    "POST:shelf:collaborators": {},
-    "PATCH:shelf:collaborators": {},
-    "POST:thread": {},
-    "PATCH:thread": {},
-    "POST:thread:banned": {},
-    "PATCH:thread:banned": {},
-    "POST:thread:managers": {},
-    "PATCH:thread:managers": {},
-    "POST:thread:member": {},
-    "POST:register": {},
-    "POST:user:login": {},
-    "PATCH:user": {},
-    "PATCH:user:creds": {},
-    "POST:user:follow": {},
-    "POST:user:block": {},
-    "PATCH:room:notification": {},
-    "PATCH:thread:member": {},
-    "PATCH:user:follow": {},
-    "POST:report": {},
-}
-*/
-
-
 import { getRedis, handlePipelineResponse } from "@lib/providers/redis";
 import { NextRequest } from "next/server";
 
@@ -153,7 +111,8 @@ const isProbablyId = (segment: string) => {
 
 export const getActionKey = (req: NextRequest): string => {
     const method = req.method.toUpperCase();
-    const segments = req.nextUrl.pathname.split("/").filter(Boolean);
+  const paths = req.nextUrl.pathname.split("/private/")[1]?.split("/");
+  const segments = paths.filter(Boolean);
 
     const normalized = segments.filter((segment) => {
         if (STATIC_SEGMENTS.has(segment)) return true;
@@ -180,6 +139,19 @@ export const slidingWindowRateLimit = async (req: NextRequest, unique_id: string
 
     const action = getActionKey(req);
     const bKey = ACTION_BUCKET_MAP[action];
+
+    const limits = BUCKET_LIMITS[bKey];
+
+    console.log(action, bKey, limits);
+    if (!limits) return {
+        allowed: true,
+        remaining: 0,
+        current: 0,
+        resetIn: 0
+    };
+
+
+
     const qKey = QUOTA_BUCKET_MAP[action];
     const quota = QUOTA_LIMITS[qKey];
     const userBucketKey = `${bKey}:${unique_id}`;

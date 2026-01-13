@@ -1,37 +1,40 @@
 "use client"
 
 import InfiniteScroller from "@components/InfiniteScroller";
-import { VerticleMovieCard } from "@components/ui";
+import { VerticleMovieCard, VerticleMovieCardSkeleton } from "@components/ui";
 import { fetchMoviesWithGenres } from "@lib/contentFetcher";
-import { makeUrlSafe } from "@lib/utils";
 import { RefinedGeneralData } from "@type/external";
-import { GeneralGetReturn } from "@type/internal";
-
-const fetchData = async (page: number, genre: string): Promise<GeneralGetReturn> => {
-    const resp = await fetchMoviesWithGenres({ page, genre, sort_by: "popularity" })
-    if (!resp) throw new Error("unstable_internet");
-    return { success: true, result: resp };
-}
+import { useParams } from "next/navigation";
 
 const Component = ({ id, poster, rating, title, year, type }: RefinedGeneralData) => (
     <VerticleMovieCard
-        link={`/explore/${type}/${id}-${makeUrlSafe(title)}`}
+        id={id}
+        type={type}
         poster={poster}
         title={title}
         rating={rating}
-        year={year.toString()}
+        year={year}
         key={id} />
 )
 
-export default function MoviePage({ params }: { params: { id: string } }) {
-    const { id } = params;
+const SkeletonLoader = () => (
+    <section className="flex flex-wrap gap-3 justify-center overflow-hidden">
+        {Array(12).fill(0).map((_, i) => (
+            <VerticleMovieCardSkeleton key={i} />
+        ))}
+    </section>
+)
+
+export default function MoviePage() {
+    const { id } = useParams() as { id: string };
     return (
         <section>
             <InfiniteScroller
                 Component={Component}
-                fetchData={(p) => fetchData(p, id)}
+                Loading={SkeletonLoader}
+                fetchData={(page) => fetchMoviesWithGenres({ page, genre: id, sort_by: "popularity" })}
                 queryKeys={["moviesByGenres", id]}
-                className="flex flex-wrap gap-3"
+                className="flex flex-wrap gap-3 justify-center"
             />
         </section>
     )

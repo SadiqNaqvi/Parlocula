@@ -3,9 +3,9 @@ import { getUserFromToken } from "@lib/auth/utils";
 import { TokenPayload } from "@type/internal";
 import { cookies } from "next/headers";
 
-const AccountStatusPage = ({ banEndsAt, isBanned }: Pick<TokenPayload, "isBanned" | "banEndsAt">) => {
+const AccountStatusPage = async ({ banEndsAt, isBanned }: Pick<TokenPayload, "isBanned" | "banEndsAt">) => {
 
-    const user = getUserFromToken(cookies());
+    const user = getUserFromToken(await cookies());
 
     if (!user) return null;
 

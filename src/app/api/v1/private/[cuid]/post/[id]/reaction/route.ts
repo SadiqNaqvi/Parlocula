@@ -4,17 +4,16 @@ import { isMilestoneReached } from "@lib/utils";
 import { Post, Reaction, User } from "@model";
 
 // Get the reaction of the current user on a post.
-export const GET = getHandler(
-  async (_, params: { id: string; cuid: string }) => {
-    const { id, cuid } = params;
+export const GET = getHandler(async (_, params) => {
+  const { id, cuid } = params;
 
-    const reaction = await Reaction.findOne(
-      { post_id: id, user_id: cuid },
-      { reaction: 1 }
-    ).exec();
+  const reaction = await Reaction.findOne(
+    { post_id: id, user_id: cuid },
+    { reaction: 1 }
+  ).exec();
 
-    return { result: reaction?.reaction, success: true };
-  }
+  return { result: reaction?.reaction, success: true };
+}
 );
 
 // Creating a reaction on a post

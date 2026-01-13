@@ -8,7 +8,9 @@ import { cookies } from "next/headers";
 import { PropsWithChildren, Suspense } from "react";
 import Header from "./Header";
 
-export const generateMetadata = async ({ params: { username } }: { params: { username: string } }) => {
+export const generateMetadata = async ({ params }: { params: Promise<{ username: string }> }) => {
+
+    const { username } = await params;
 
     const { result, success } = await getUserByUsername(username);
 
@@ -23,7 +25,7 @@ export const generateMetadata = async ({ params: { username } }: { params: { use
 const Fetcher = async ({ username, children }: PropsWithChildren<{ username: string }>) => {
     const queryClient = getQueryClient();
 
-    const jar = cookies();
+    const jar = await cookies();
     const user = await getUserFromToken(jar);
 
     const current = user?.username === username;
@@ -59,11 +61,12 @@ const Fetcher = async ({ username, children }: PropsWithChildren<{ username: str
     )
 }
 
-const Layout = ({ children, params }: PropsWithChildren<{ params: { username: string } }>) => {
+const Layout = async ({ children, params }: PropsWithChildren<{ params: Promise<{ username: string }> }>) => {
+    const { username } = await params;
     return (
         <main>
-            <Suspense fallback={<FullPageLoadingSpinner path={[params.username]} />}>
-                <Fetcher username={params.username}>{children}</Fetcher>
+            <Suspense fallback={<FullPageLoadingSpinner path={[username]} />}>
+                <Fetcher username={username}>{children}</Fetcher>
             </Suspense>
         </main>
     )

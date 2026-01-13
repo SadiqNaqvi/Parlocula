@@ -1,4 +1,4 @@
-import { getCacheTags, getLocalUrl, objectToFormData } from "@lib/utils";
+import { getCacheTags, objectToFormData } from "@lib/utils";
 import {
   AggregatedResponse,
   CurrentUser,
@@ -28,7 +28,7 @@ import {
 import { CollaboratorModelType, NotificationModelType, ReportModelType } from "@type/models";
 import { AvailableCacheTags, CookiesType, PPGetDataProps } from "@type/other";
 import axios from "axios";
-import { oneDay, queryFilters } from "../constants";
+import { oneDay, parloculaAppURL, queryFilters } from "../constants";
 
 export const ppGetData = async <T, K extends AvailableCacheTags = any>(
   { url, revalidate, tag, options, cookies, searchParams }: PPGetDataProps<K>
@@ -37,16 +37,19 @@ export const ppGetData = async <T, K extends AvailableCacheTags = any>(
   const cacheTags = tag && options ? getCacheTags(tag, options) : undefined;
   const jar = cookies?.getAll().map((c) => `${c.name}=${c.value}`).join("; ");
 
-  const urlToFetch = new URL(url, `${getLocalUrl()}/api/v1`);
+  const urlToFetch = new URL(url, `${parloculaAppURL}/api/v1/`);
 
   Object.entries(searchParams ?? {}).forEach(([k, v]) => {
     urlToFetch.searchParams.set(k, `${v}`);
   });
 
+  console.log(urlToFetch.href, url, searchParams);
+
   try {
 
     return await fetch(urlToFetch.href, {
       next: { revalidate: revalidate ?? 0, tags: cacheTags },
+      cache: revalidate ? "force-cache" : "no-cache",
       headers: jar ? { Cookie: jar } : undefined,
     }).then((res) => res.json());
 
@@ -414,7 +417,7 @@ export const getCinement = async (ext_id: string, type: "movie" | "show"): Promi
   };
 
   const { result } = await axios
-    .post(`${getLocalUrl()}/api/v1/cinement/${id}`, objectToFormData(data))
+    .post(`${parloculaAppURL}/api/v1/cinement/${id}`, objectToFormData(data))
     .then((r) => r.data);
 
   return result;

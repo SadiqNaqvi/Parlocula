@@ -4,7 +4,8 @@ import ShelfForm from "@components/form/ShelfForm";
 import ObserverHeader from "@components/ObserverHeader";
 import { NotFound, VerticleMovieCard } from "@components/ui";
 import { fetchCollection } from "@lib/contentFetcher";
-import { getPoster, makeUrlSafe } from "@lib/utils";
+import { getPoster } from "@lib/utils";
+import { ParloPageProps } from "@type/other";
 import { CinementSchemaType } from "@type/schemas";
 import { Metadata } from "next";
 
@@ -13,10 +14,8 @@ const fetchData = async (params: { id: string }) => {
     return await fetchCollection(collection_id);
 }
 
-type Props = { params: { id: string } };
-
-export const generateMetadata = async ({ params }: Props): Promise<Metadata> => {
-    const data = await fetchData(params);
+export const generateMetadata = async ({ params }: ParloPageProps): Promise<Metadata> => {
+    const data = await fetchData(await params);
 
     if (!data) return { title: "Parlocula" };
     return {
@@ -25,9 +24,9 @@ export const generateMetadata = async ({ params }: Props): Promise<Metadata> => 
     };
 };
 
-const Page = async ({ params }: Props) => {
+const Page = async ({ params }: ParloPageProps) => {
 
-    const content = await fetchData(params);
+    const content = await fetchData(await params);
 
     if (!content) return (
         <NotFound

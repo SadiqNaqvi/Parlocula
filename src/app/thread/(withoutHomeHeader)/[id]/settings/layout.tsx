@@ -6,13 +6,14 @@ import { getThreadById } from "@lib/helpers/common";
 import { fetchQuery, getQueryClient } from "@lib/providers/queryClient";
 import { getQueryKeys } from "@lib/utils";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
+import { ParloPageProps } from "@type/other";
 import { cookies } from "next/headers";
 import { PropsWithChildren, Suspense } from "react";
 
 const Fetcher = async ({ id, children }: PropsWithChildren<{ id: string }>) => {
 
     const queryClient = getQueryClient();
-    const user = await getUserFromToken(cookies());
+    const user = await getUserFromToken(await cookies());
 
     if (!user) return (
         <LoginModal redirectTo={`/thread/${id}/settings`} />
@@ -47,9 +48,9 @@ const Fetcher = async ({ id, children }: PropsWithChildren<{ id: string }>) => {
 
 }
 
-const ThreadSettingLayout = ({ params }: { params: { id: string } }) => {
+const ThreadSettingLayout = async ({ params }: ParloPageProps) => {
 
-    const [id, ...rest] = params.id.split("-");
+    const [id, ...rest] = (await params).id.split("-");
 
     return (
         <Suspense fallback={<FullPageLoadingSpinner path={rest} />}>

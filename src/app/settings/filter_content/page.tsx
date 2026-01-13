@@ -6,7 +6,7 @@ import FilterContentTogglePage from "./FilterContent";
 
 const FilterContentPage = async () => {
 
-    const user = await getUserFromToken(cookies());
+    const user = await getUserFromToken(await cookies());
 
     if (!user) return null;
 

@@ -9,12 +9,11 @@ import { Metadata } from "next";
 import { cookies } from "next/headers";
 import { PropsWithChildren, Suspense } from "react";
 import CommentHeader from "./Header";
+import { ParloPageProps } from "@type/other";
 
-type Params = { params: { id: string } }
+export const generateMetadata = async ({ params }: ParloPageProps): Promise<Metadata> => {
 
-export const generateMetadata = async ({ params }: Params): Promise<Metadata> => {
-
-    const cid = params.id.split('-')[0];
+    const cid = (await params).id.split('-')[0];
 
     if (!isValidParloId(cid))
         return { title: "Parlocula" }
@@ -36,7 +35,7 @@ const Fetcher = async ({ cid, children }: PropsWithChildren<{ cid: string }>) =>
 
     const queryClient = getQueryClient();
 
-    const jar = cookies();
+    const jar = await cookies();
 
     const user = await getUserFromToken(jar);
 
@@ -92,9 +91,9 @@ const Fetcher = async ({ cid, children }: PropsWithChildren<{ cid: string }>) =>
     )
 }
 
-const CommentLayout = async ({ children, params }: PropsWithChildren<Params>) => {
+const CommentLayout = async ({ children, params }: PropsWithChildren<ParloPageProps>) => {
 
-    const cid = params.id.split('-')[0];
+    const cid = (await params).id.split('-')[0];
 
     if (cid && !isValidParloId(cid)) return (
         <NotFound

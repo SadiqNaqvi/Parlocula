@@ -64,14 +64,14 @@ export const parseResponse = async (response: Response): Promise<ParseResponseTy
 }
 
 export const handleArrayForArrayResponse = <T, R>(input: T, result: R[]): ArrayForArrayResponse<T, R> => {
-    if (Array.isArray(input)) {
-        return result as ArrayForArrayResponse<T, R>;
-    } else {
-        return result[0] as ArrayForArrayResponse<T, R>;
-    }
+  if (Array.isArray(input)) {
+    return result as ArrayForArrayResponse<T, R>;
+  } else {
+    return result[0] as ArrayForArrayResponse<T, R>;
+  }
 }
 
-export const timeAgo = (timestamp: GenericDate, short?: boolean) => {
+export const timeAgo = (timestamp: GenericDate | undefined, short?: boolean) => {
   if (!timestamp) return;
   const time = new Date(timestamp).getTime();
 
@@ -401,10 +401,6 @@ export const generateInitialData = (data: any[]) => ({
   total: data.length === queryLimit ? queryLimit + 1 : data.length,
 });
 
-export const getLocalUrl = () => {
-  return process.env.NEXT_PUBLIC_PARLOCULA_URL ?? "";
-};
-
 export const getTimeInFuture = ({
   timeVal = 1,
   unit,
@@ -440,10 +436,10 @@ class ConditionalArray<T> extends Array<T> {
    */
   concatConditionally<P extends unknown>(
     prop: P,
-    getItem: (p: NonNullable<P>) => T | T[]
+    getItem?: (p: NonNullable<P>) => T | T[]
   ): this {
     if (prop) {
-      const item = getItem(prop as NonNullable<P>);
+      const item: T | T[] = getItem ? getItem(prop as NonNullable<P>) : prop as T;
       const items = Array.isArray(item) ? item : [item];
       this.push(...items);
     }

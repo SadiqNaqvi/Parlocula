@@ -4,22 +4,18 @@ import { getThreadsForMedia } from "@lib/helpers/common";
 import { getQueryClient, prefetchInfiniteQuery } from "@lib/providers/queryClient";
 import { refineSearchParams } from "@lib/utils";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
+import { ParloPageProps } from "@type/other";
 import { cookies } from "next/headers";
 
-type Props = {
-    params: { id: string },
-    searchParams?: { p?: string, f?: string },
-}
-
-const MediaThreadsPage = async ({ params, searchParams }: Props) => {
+const MediaThreadsPage = async ({ params, searchParams }: ParloPageProps) => {
 
     const queryClient = getQueryClient();
+    const sp = await searchParams;
+    const { filter, page } = refineSearchParams("threads", sp.p, sp.f)
 
-    const { filter, page } = refineSearchParams("threads", searchParams?.p, searchParams?.f)
+    const id = (await params).id.split('-')[0];
 
-    const id = params.id.split('-')[0];
-
-    const user = await getUserFromToken(cookies());
+    const user = await getUserFromToken(await cookies());
 
     const allowNsfw = user ? !user.filterContent : false;
 

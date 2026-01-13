@@ -1,15 +1,13 @@
 "use client";
 
 import { XmarkIcon } from "@assets/Icons";
-import { InfiniteScroller, BottomSheet, BottomSheetRef, GeneralTile } from "@components";
-import { Form } from "@components/form";
+import { BottomSheet, BottomSheetRef, GeneralTile, InfiniteScroller } from "@components";
 import { ParloImage } from "@components/ui";
 import { joinedThreadsOfUser } from "@lib/helpers/common";
-import { getPoster, getQueryKeys } from "@lib/utils";
+import { getQueryKeys } from "@lib/utils";
 import useOfflineStore from "@store/offlineStore";
 import useCurrentUser from "@store/user";
 import { InfiniteQueryResponse, MereThread } from "@type/internal";
-import Image from "next/image";
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { Drawer } from "vaul";
 

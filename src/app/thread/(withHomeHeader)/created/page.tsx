@@ -1,15 +1,16 @@
 import LoginModal from "@components/fallbacks/LoginModal";
 import { getUserFromToken } from "@lib/auth/utils";
-import { createdThreadsOfUser, joinedThreadsOfUser } from "@lib/helpers/common";
+import { createdThreadsOfUser } from "@lib/helpers/common";
 import { getQueryClient, prefetchInfiniteQuery } from "@lib/providers/queryClient";
 import { getQueryKeys } from "@lib/utils";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
+import { ParloPageProps } from "@type/other";
 import { cookies } from "next/headers";
 import ThreadList from "../ThreadList";
 
-const Page = async ({ searchParams }: { searchParams: { p?: string } }) => {
+const Page = async ({ searchParams }: ParloPageProps) => {
 
-    const jar = cookies();
+    const jar = await cookies();
     const user = await getUserFromToken(jar);
 
     if (!user) return (
@@ -17,7 +18,8 @@ const Page = async ({ searchParams }: { searchParams: { p?: string } }) => {
     );
 
     const queryClient = getQueryClient();
-    const page = parseInt(searchParams.p || "1") || 1;
+    const { p } = await searchParams;
+    const page = parseInt(p || "1") || 1;
 
     prefetchInfiniteQuery({
         queryClient,

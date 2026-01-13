@@ -25,15 +25,15 @@ export const getRedis = async () => {
         return Math.min(times * 200, 2000); // exponential backoff (200ms → 2s max)
       }
     });
-
-    if (global._redis.status === "end" || global._redis.status === "close")
-      await global._redis.connect()
-        .then(() => console.log("💪🙌 Redis Connected Successfully 🙌💪"))
-        .catch((e: any) => {
-          console.log("Redis Connection Failed:", e.message)
-          global._redis?.disconnect();
-        });
   }
+  if (global._redis.status === "end" || global._redis.status === "close")
+    await global._redis.connect()
+      .then(() => console.log("💪🙌 Redis Connected Successfully 🙌💪"))
+      .catch((e: any) => {
+        console.log("Redis Connection Failed:", e.message)
+        global._redis?.disconnect();
+      });
+  // }
 
   return global._redis;
 };

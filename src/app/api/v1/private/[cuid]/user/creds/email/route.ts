@@ -29,7 +29,7 @@ export const PATCH = updateHandler<EmailUpdateSchemaType>({
     if (!bcrypt.compareSync(passkey, user.passkey))
       return { success: false, errCode: "wrong_passkey" };
 
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const sid = cookieStore.get("sid")?.value;
 
     if (!sid) return { success: false, errCode: "unauthenticated_access" }

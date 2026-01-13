@@ -16,7 +16,7 @@ type Props = {
 const PredefinedShelvesList = ({ user }: { user: RequestedUser }) => (
   <ul className="mb-2 space-y-2">
 
-    {user.predefinedShelves.map(({ _id, name, poster }) => (
+    {user.predefinedShelves.map(({ _id, name, poster}) => (
 
       <li key={_id}>
 
@@ -25,6 +25,8 @@ const PredefinedShelvesList = ({ user }: { user: RequestedUser }) => (
           name={name}
           poster={poster}
           shelf_type={name as PredefinedShelves}
+          isPrivate={false}
+          shelfKey={undefined}
         />
 
       </li>

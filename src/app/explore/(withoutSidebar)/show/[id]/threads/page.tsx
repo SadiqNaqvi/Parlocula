@@ -1,14 +1,10 @@
 import MediaThreadsPage from "@app/explore/(withoutSidebar)/components/MediaThreadsPage";
 import { fetchShow } from "@lib/contentFetcher";
+import { ParloPageProps } from "@type/other";
 import { Metadata } from "next";
 
-type Props = {
-    params: { id: string },
-    searchParams: { p?: string, f?: string },
-}
-
-export const generateMetadata = async ({ params }: Props): Promise<Metadata> => {
-    const id = params.id.split('-')[0];
+export const generateMetadata = async ({ params }: ParloPageProps): Promise<Metadata> => {
+    const id = (await params).id.split('-')[0];
 
     const data = await fetchShow(id);
     if (!data) return { title: "Parlocula" };

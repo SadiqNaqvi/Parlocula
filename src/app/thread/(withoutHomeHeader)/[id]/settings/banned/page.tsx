@@ -5,12 +5,15 @@ import { getQueryKeys } from "@lib/utils";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { cookies } from "next/headers";
 import BannedList from "./Banned";
+import { ParloPageProps } from "@type/other";
 
-const BannedPage = async ({ params: { id } }: { params: { id: string } }) => {
+const BannedPage = async ({ params }: ParloPageProps) => {
+
+    const { id } = await params;
 
     const queryClient = getQueryClient();
     const tid = id.split('-')[0];
-    const jar = cookies();
+    const jar = await cookies();
     const user = await getUserFromToken(jar);
 
     if (!user) return null;

@@ -2,7 +2,7 @@
 
 import { CommentIcon, QuoteIcon } from "@assets/Icons";
 import { FramesCarousel, GenericWrapper, Navbar, Navigate, SaveButton } from "@components";
-import { MetadataTile, ParloImage } from "@components/ui";
+import { MetadataTile, OptionalChildren, ParloImage } from "@components/ui";
 import LinksSection from "@components/ui/LinksSection";
 import { getPostById } from "@lib/helpers/common";
 import { getPoster, getQueryKeys, numberConverter, makeUrlSafe } from "@lib/utils";
@@ -74,7 +74,7 @@ const PostHeader = (props: Props) => {
                         }
                     </header>
 
-                    {quoted_post_id && quoted_post_title && (
+                    <OptionalChildren condition={quoted_post_id && quoted_post_title}>
                         <section className="my-2 border border-gray30">
                             <Navigate comp="link" goto={`/post/${quoted_post_id}`} className="py-2">
                                 <p className="mt-2 font-bold line-clamp-2">
@@ -94,7 +94,7 @@ const PostHeader = (props: Props) => {
                                 </div>
                             </Navigate>
                         </section>
-                    )}
+                    </OptionalChildren>
 
                     <section className="px-4 mt-2 space-y-4">
 

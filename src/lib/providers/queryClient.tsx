@@ -1,9 +1,8 @@
-"use client";
+// "use client";
 
-import { defaultShouldDehydrateQuery, isServer, Query, QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { refineResponseForInfiniteQuery, refineResponseForQuery } from "../utils";
+import { defaultShouldDehydrateQuery, isServer, Query, QueryClient } from "@tanstack/react-query";
 import { GeneralGetReturn, GeneralMultipleReturn } from "@type/internal";
+import { refineResponseForInfiniteQuery, refineResponseForQuery } from "../utils";
 
 const makeQueryClient = () =>
     new QueryClient({
@@ -85,13 +84,3 @@ export const prefetchInfiniteQuery = ({ queryClient, queryFn, queryKey, initialP
     gcTime: 60 * 60 * 1000,
     initialPageParam,
 });
-
-export default function ReactQueryProvider({ children }: { children: React.ReactNode }) {
-    const queryClient = getQueryClient();
-    return (
-        <QueryClientProvider client={queryClient}>
-            {children}
-            <ReactQueryDevtools initialIsOpen={false} />
-        </QueryClientProvider>
-    );
-}

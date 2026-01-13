@@ -293,6 +293,7 @@ type TmdbSlide = { _id: string, isSlide: true, title: string, data: RefinedGener
 export type FeedPost = AggregatedPost | TmdbSlide;
 
 const refineResponse = (resp: GeneralGetReturn<AggregatedResponse<AggregatedPost>>): AggregatedResponse<AggregatedPost> => {
+    if (!resp) return { data: [], total: 0 }
     const { success, errCode, result } = resp;
     if (success) return result;
     else {
@@ -306,6 +307,8 @@ const getTmdbSlides = async (p: number): Promise<Omit<TmdbSlide, "isSlide">[]> =
         fetchTrendingMovies(p),
         fetchTrendingShows(p)
     ]);
+
+    console.log("firstSlide", firstSlide, "secondSlide", secondSlide);
 
     return [
         { data: firstSlide?.results || [], title: "Trending Movies of ths week", _id: `trending_movies_page_${p}` },
@@ -327,10 +330,16 @@ export const useFeedHook = () => {
             ] : []),
         ]);
 
+        console.log("slides", slides);
+        console.log("trending", trending);
+        console.log("curated", curated);
+
         const trendingPosts = refineResponse(trending);
         const curatedPosts = refineResponse(curated);
+        console.log("curatedPosts", curatedPosts);
 
         let finalFeed: FeedPost[] = [];
+        // 10
         const interval = Math.floor((trendingPosts.data.length + curatedPosts.data.length) / 2);
 
         trendingPosts.data.concat(curatedPosts.data)
@@ -339,7 +348,9 @@ export const useFeedHook = () => {
                 finalFeed.push(post);
 
                 if ((i + 1) % interval === 0) {
-                    const slide = slides[(i + 1) / interval];
+                    const index = ((i + 1) / interval) - 1;
+                    console.log(index)
+                    const slide = slides[index];
                     if (slide.data.length) {
                         finalFeed.push({ ...slide, isSlide: true })
                     }

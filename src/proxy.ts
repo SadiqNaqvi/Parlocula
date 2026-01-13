@@ -1,6 +1,5 @@
 import { generateToken, getSession, verifyToken } from "@lib/auth";
-import { checkCooldownState, slidingWindowRateLimit } from "@lib/helpers/redis/rate_limiting";
-import { GeneralPostReturn } from "@type/internal";
+import { slidingWindowRateLimit } from "@lib/helpers/redis/rate_limiting";
 import { ErrorCodes } from "@type/other";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -66,7 +65,7 @@ const validateUser = async (
   return { success: true, user_id };
 };
 
-export const middleware = async (req: NextRequest) => {
+export const proxy = async (req: NextRequest) => {
   console.log("middleware entered");
   const { pathname } = req.nextUrl;
 
@@ -94,14 +93,14 @@ export const middleware = async (req: NextRequest) => {
   //     errCode: "rate_limit_exceed",
   //   }, { status: 429 })
   // }
-
+if(req.method !== "GET"){
   const lala = await slidingWindowRateLimit(req, user.user_id);
 
   if (!lala.allowed) return NextResponse.json({
     success: false,
     errCode: "rate_limit_exceed",
   }, { status: 429 });
-
+}
   return response;
 };
 

@@ -1,9 +1,10 @@
-import { BookmarkIcon, CommentIcon, LinkIcon, RightChevron, ThumbUpIcon } from "@assets/Icons";
-import { Navigate, FramesCarousel } from "@components";
-import { getPoster, numberConverter, makeUrlSafe, timeAgo } from "@lib/utils";
+import { BookmarkIcon, CommentIcon, FrameIcon, LinkIcon, RightChevron, ThumbUpIcon } from "@assets/Icons";
+import { FramesCarousel, Navigate } from "@components";
+import { makeUrlSafe, numberConverter, timeAgo } from "@lib/utils";
 import { MerePost } from "@type/internal";
-import Image from "next/image";
 import ParloImage from "./ParloImage";
+import MetadataTile from "./MetaDataTile";
+import { BreadCrumbs, BreadCrumbTile } from "./Breadcrumbs";
 
 type SectionType = "thread" | "user";
 
@@ -22,14 +23,10 @@ const PostBarHeader = ({ poster, profile, thread_id, thread_name, username, sect
             </Navigate>
 
             <div className="flex gap-2 items-center">
-                <Navigate comp="link" goto={`/thread/${thread_id}`} className="flex gap-2">
-                    <span>{thread_name}</span>
-                    <RightChevron className="size-2" />
-                </Navigate>
-                <Navigate comp="link" goto={`/user/${username}`} className="flex gap-2">
-                    <span>{username}</span>
-                    <RightChevron className="size-2" />
-                </Navigate>
+                <BreadCrumbs>
+                    <BreadCrumbTile href={`/thread/${thread_id}`}>Thread</BreadCrumbTile>
+                    <BreadCrumbTile href={`/user/${username}`}>{username}</BreadCrumbTile>
+                </BreadCrumbs>
             </div>
         </div>
     )
@@ -63,66 +60,47 @@ const PostBarHeader = ({ poster, profile, thread_id, thread_name, username, sect
 
 const PostBar = ({ _id, comment_count, nsfw, createdAt, editedAt, poster, reaction_count, frames_count, links_count, spoiler, category, thread_id, title, frames, saved_count, username, profile, thread_name, additional }: Props & MerePost) => {
 
-    return (
-        <article className="p-2 w-full space-y-3 border-b border-gray40">
+    const statisticList = [
+        { value: frames_count, Icon: FrameIcon },
+        { value: links_count, Icon: LinkIcon },
+        { value: reaction_count, Icon: ThumbUpIcon },
+        { value: comment_count, Icon: CommentIcon },
+        { value: saved_count, Icon: BookmarkIcon },
+    ]
 
-            <header className="space-y-3">
+    return (
+        <article className="px-2 py-4 space-y-4 w-full border-b group-last:border-0 border-gray10">
+
+            <header className="space-y-2">
                 <PostBarHeader poster={poster} profile={profile} thread_id={thread_id} thread_name={thread_name} username={username} section={additional?.section || "all"} />
-                <ul className="flex gap-2 text-sm text-zinc-500">
-                    <li>{timeAgo(createdAt)}</li>
-                    {editedAt && (<li>Edited: {timeAgo(editedAt)}</li>)}
-                </ul>
+                <MetadataTile
+                    others={[
+                        { value: category, className: "bg-gray10 px-3 py-1 color-primary" }
+                    ]}
+                    nsfw={nsfw}
+                    spoiler={spoiler}
+                    createdAt={createdAt}
+                    editedAt={editedAt || undefined}
+                />
             </header>
 
-            <section className="flex gap-4 my-2 flex-col sm:flex-row-reverse">
+            <section className="flex gap-2 flex-col sm:flex-row-reverse">
 
                 <Navigate role="button" comp="link" goto={`/post/${_id}-${makeUrlSafe(title)}`} className="w-full">
-                    <ul className="flex gap-3">
-                        {category && (
-                            <li className="bg-gray10 rounded-md px-3 py-1 text-xs capitalize">{category}</li>
-                        )}
-                        {nsfw && (
-                            <li className="bg-violet-500 bg-opacity-30 rounded-md text-xs px-3 py-1">NSFW</li>
-                        )}
-                        {spoiler && (
-                            <li className="bg-orange-500 bg-opacity-30 rounded-md px-3 py-1 text-xs">SPOILER</li>
-                        )}
-                    </ul>
-
-                    <div className="flex gap-2 my-3">
-                        <h3 className="text-lg font-semibold line-clamp-4">{title}</h3>
-                    </div>
+                    <h3 className="customize text-lg font-semibold line-clamp-4">{title}</h3>
                 </Navigate>
 
-                <FramesCarousel className="w-full sm:w-80" frames={frames || []} />
+                <FramesCarousel gallery={_id} className="w-full sm:w-80" frames={frames || []} />
             </section>
 
-            <section>
-                <div className="space-x-2 text-sm text-zinc-500 inline mr-4">
-                    <div>Frames: {frames_count || 0}</div>
-                    <div className="space-x-2">
-                        <LinkIcon className="size-4" />
-                        <span>{links_count || 0}</span>
-                    </div>
-                </div>
-                <div className="space-x-2 text-sm text-zinc-500 inline ">
-
-                    <div className="space-x-1">
-                        <ThumbUpIcon className="size-4" />
-                        <span>{numberConverter(reaction_count)}</span>
-                    </div>
-
-                    <div className="space-x-1">
-                        <CommentIcon className="size-4" />
-                        <span>{numberConverter(comment_count)}</span>
-                    </div>
-
-                    <div className="spaxe-x-1">
-                        <BookmarkIcon className="size-4" />
-                        <span>{saved_count}</span>
-                    </div>
-                </div>
-            </section>
+            <ul className="flex gap-3">
+                {statisticList.map(({ Icon, value }, i) => (
+                    <li key={i} className="flex items-center gap-1 text-zinc-500">
+                        <Icon className="size-4" />
+                        <span>{numberConverter(value || 0)}</span>
+                    </li>
+                ))}
+            </ul>
 
         </article>
     )

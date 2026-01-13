@@ -4,6 +4,7 @@ import Ably from "ably";
 import Push from "ably/push";
 import { toast } from "sonner";
 import { trycatch } from "../utils";
+import { parloculaAppURL } from "@lib/constants";
 
 export const checkPushStatus = () => {
   return Notification.permission;
@@ -18,7 +19,7 @@ export const enablePush = (user_id: string) =>
     }
 
     const client = new Ably.Realtime({
-      authUrl: `${process.env.NEXT_PUBLIC_PARLOCULA_URL}/api/v1/ably`,
+      authUrl: `${parloculaAppURL}/api/v1/ably`,
       pushServiceWorkerUrl: "/sw.js",
       clientId: user_id,
       plugins: { Push },
@@ -31,7 +32,7 @@ export const enablePush = (user_id: string) =>
 export const disablePush = (user_id: string) =>
   trycatch(() => {
     new Ably.Realtime({
-      authUrl: `${process.env.NEXT_PUBLIC_PARLOCULA_URL}/api/v1/ably`,
+      authUrl: `${parloculaAppURL}/api/v1/ably`,
       pushServiceWorkerUrl: "/sw.js",
       clientId: user_id,
       plugins: { Push },

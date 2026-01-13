@@ -4,18 +4,18 @@ import { getUserFromToken } from "@lib/auth/utils";
 import { getCurrentUser } from "@lib/helpers/common";
 import { fetchQuery, getQueryClient } from "@lib/providers/queryClient";
 import { getQueryKeys } from "@lib/utils";
-import { Link, User } from "@type/internal";
+import { Link, CurrentUser } from "@type/internal";
 import { cookies } from "next/headers";
 
 const ShelvesPage = async () => {
 
-    const jar = cookies();
+    const jar = await cookies();
     const meta = await getUserFromToken(jar);
     if (!meta) return null;
 
     const { user_id, username } = meta;
 
-    const user = await fetchQuery<User>({
+    const user = await fetchQuery<CurrentUser>({
         queryClient: getQueryClient(),
         queryFn: () => getCurrentUser(user_id, jar),
         queryKey: getQueryKeys("user_username", { username }),

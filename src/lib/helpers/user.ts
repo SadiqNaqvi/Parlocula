@@ -2,20 +2,20 @@ import { getAblyOnClient } from "@lib/providers/ably";
 import { getQueryKeys } from "@lib/utils";
 import useNotification from "@store/notification";
 import useCurrentUser from "@store/user";
-import { MereRoomType, User } from "@type/internal";
+import { MereRoomType, CurrentUser } from "@type/internal";
 import { AblyEventParams } from "@type/other";
 import { ConnectionStateChange } from "ably";
 import { toast } from "sonner";
 import { showMessageOptimistically, updateDoc, updateDocInInfiniteQueryResult } from "./mutations";
 
-const setUser = (user: User, contentFiltering: boolean) => {
+const setUser = (user: CurrentUser, contentFiltering: boolean) => {
     const { setUser, setUserMeta, setContentFiltering } = useCurrentUser.getState();
     setContentFiltering(contentFiltering);
     setUserMeta({ user_id: user._id, username: user.username, profile: user.profile });
     setUser(user);
 }
 
-export const setUserOnRefreshOrLogin = (user: User, contentFiltering: boolean) => {
+export const setUserOnRefreshOrLogin = (user: CurrentUser, contentFiltering: boolean) => {
 
     setUser(user, contentFiltering);
 

@@ -9,7 +9,7 @@ import { UserUpdateSchemaType } from "@type/schemas";
 import { cookies } from "next/headers";
 
 // Get the details of the profile of the current user.
-export const GET = getHandler(async (_, params: { cuid: string }) => {
+export const GET = getHandler(async (_, params) => {
   const { cuid } = params;
 
   const response = await User.aggregate(
@@ -47,7 +47,7 @@ export const PATCH = updateHandler<UserUpdateSchemaType>({
 
     if ("profile" in dataToUpdate || "dob" in dataToUpdate || "filterContent" in dataToUpdate) {
 
-      const cookieStore = cookies();
+      const cookieStore = await cookies();
       const sid = cookieStore.get("sid")?.value;
 
       if (!sid) return { success: false, errCode: "unauthenticated_access" }

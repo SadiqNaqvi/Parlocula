@@ -25,7 +25,7 @@ export const fetchExt = async <T = unknown>(url: string, revalidate?: number): P
       { next: { revalidate: revalidate || oneDay * 7 } }
     ).then((r) => r.json());
   } catch {
-    return { success: false, response: "" }
+    return { status: false, response: "" }
   }
 }
 
@@ -39,7 +39,7 @@ export const fetchMovie = async (
     getCinement(id, "movie"),
   ]);
 
-  if (!data || !data.success || !cinement) return;
+  if (!data || !data.status || !cinement) return;
 
   return {
     ...data.response,
@@ -52,7 +52,7 @@ export const fetchSimilarMovies = async (id: string, page = 1) => {
 
   const data = await fetchExt<ExtGeneralPaginatedData>(`movie/similar?id=${id}&p=${page}`);
 
-  if (data.success) return data.response;
+  if (data.status) return data.response;
 };
 
 export const fetchMoviesWithCast = async (
@@ -64,7 +64,7 @@ export const fetchMoviesWithCast = async (
 
   const data = await fetchExt<ExtGeneralPaginatedData>(`movies?c=${id}&sort=${sort_by}&p=${page}`);
 
-  if (data.success) return {
+  if (data.status) return {
     success: true,
     result: data.response,
   }
@@ -83,10 +83,12 @@ export const fetchMoviesWithGenres = async ({
   genre: string;
   page: number;
   sort_by: SortOptions;
-}) => {
+}): Promise<GeneralGetReturn<ExtGeneralPaginatedData>> => {
   const data = await fetchExt<ExtGeneralPaginatedData>(`movies?g=${genre}&sort=${sort_by}&p=${page}`)
 
-  if (data.success) return {
+  console.log("movies with genres", data);
+
+  if (data.status) return {
     success: true,
     result: data.response,
   }
@@ -107,7 +109,7 @@ export const fetchMoviesWithYear = async (
 
   const data = await fetchExt<ExtGeneralPaginatedData>(`movies?y=${year}&sort=${sort_by}&p=${page}`);
 
-  if (data.success) return {
+  if (data.status) return {
     success: true,
     result: data.response,
   }
@@ -127,7 +129,7 @@ export const fetchMoviesWithCompany = async (
 
   const data = await fetchExt<ExtGeneralPaginatedData>(`company/movies?id=${id}&sort=${sort_by}&p=${page}`)
 
-  if (data.success) return data.response;
+  if (data.status) return data.response;
 
 };
 
@@ -140,7 +142,7 @@ export const fetchMoviesWithNetwork = async (
 
   const data = await fetchExt<ExtGeneralPaginatedData>(`network/movies?id=${id}&sort=${sort_by}&p=${page}`)
 
-  if (data.success) return data.response
+  if (data.status) return data.response
 };
 
 export const fetchCollection = async (id: string) => {
@@ -148,7 +150,7 @@ export const fetchCollection = async (id: string) => {
 
   const data = await fetchExt<RefinedCollectionData>(`collection?id=${id}`)
 
-  if (data.success) return data.response;
+  if (data.status) return data.response;
   console.error(
     "Some erorr occoured while fetching collection: " + data.response
   );
@@ -160,15 +162,12 @@ export const fetchCompany = async (id: string) => {
 
   const data = await fetchExt<RefinedCompanyData>(`company?id=${id}`)
 
-  if (data.success) return {
-    success: true,
-    result: data.response,
-  }
+  if (data.status) return data.response;
 
   console.error(
     "Some erorr occoured while fetching company: " + data.response
   );
-  return { success: false, errCode: "uncaught_error" };
+  return;
 };
 
 export const findWithIMDB = async (id: string) => {
@@ -176,7 +175,7 @@ export const findWithIMDB = async (id: string) => {
 
   const data = await fetchExt(`find?id=${id}`)
 
-  if (data.success) return {
+  if (data.status) return {
     success: true,
     result: data.response,
   }
@@ -190,15 +189,12 @@ export const fetchNetwork = async (id: string) => {
 
   const data = await fetchExt<RefinedCompanyData>(`network?id=${id}`)
 
-  if (data.success) return {
-    success: true,
-    result: data.response,
-  }
+  if (data.status) return data.response;
 
   console.error(
     "Some erorr occoured while fetching network: " + data.response
   );
-  return { success: false, errCode: "uncaught_error" };
+  return;
 
 };
 
@@ -207,15 +203,12 @@ export const fetchPerson = async (id: string) => {
 
   const data = await fetchExt<RefinedPersonData>(`person?id=${id}`)
 
-  if (data.success) return {
-    success: true,
-    result: data.response,
-  }
+  if (data.status) return data.response;
 
   console.error(
     "Some erorr occoured while fetching person: " + data.response
   );
-  return { success: false, errCode: "uncaught_error" };
+  return;
 
 };
 
@@ -227,7 +220,7 @@ export const fetchShow = async (id: string) => {
     getCinement(id, "show"),
   ]);
 
-  if (!data || !data.success || !cinement) return;
+  if (!data || !data.status || !cinement) return;
 
   return {
     ...data.response,
@@ -244,7 +237,7 @@ export const fetchSeasonForShow = async (
 
   const data = await fetchExt<RefinedSeasonData>(`show/seasons?id=${show_id}&s=${season}`)
 
-  if (data.success)
+  if (data.status)
     return data.response;
 
 };
@@ -258,7 +251,7 @@ export const fetchEpisodeForSeason = async (
 
   const data = await fetchExt<RefinedEpisodeData>(`show/episode?id=${show_id}&s=${season}&e=${episode}`)
 
-  if (data.success)
+  if (data.status)
     return data.response;
 
 };
@@ -268,7 +261,7 @@ export const fetchSimilarShows = async (id: string, page: number = 1) => {
 
   const data = await fetchExt<ExtGeneralPaginatedData>(`show/similar?id=${id}&p=${page}`)
 
-  if (data.success) return data.response;
+  if (data.status) return data.response;
   console.error(
     "Some erorr occoured while fetching movie recommendations: " +
     data.response
@@ -289,7 +282,7 @@ export const fetchShowsWithGenres = async ({
 
   const data = await fetchExt<ExtGeneralPaginatedData>(`shows?g=${genre}&sort=${sort_by}&p=${page}`)
 
-  if (data.success) return {
+  if (data.status) return {
     success: true,
     result: data.response,
   }
@@ -310,7 +303,7 @@ export const fetchShowsWithCompany = async (
 
   const data = await fetchExt<ExtGeneralPaginatedData>(`company/shows?id=${id}&sort=${sort_by}&p=${page}`)
 
-  if (data.success) return data.response;
+  if (data.status) return data.response;
 
 }
 
@@ -323,7 +316,7 @@ export const fetchShowsWithNetwork = async (
 
   const data = await fetchExt<ExtGeneralPaginatedData>(`network/shows?id=${id}&sort=${sort_by}&p=${page}`)
 
-  if (data.success) return data.response;
+  if (data.status) return data.response;
 
 }
 
@@ -331,7 +324,7 @@ export const searchCompany = async (query: string, page: number = 1): Promise<Ge
 
   const data = await fetchExt<ExtPaginatedSearchData>(`search?q=${query}&t=company&p=${page}`)
 
-  if (data.success) return {
+  if (data.status) return {
     success: true,
     result: data.response,
   }
@@ -347,7 +340,7 @@ export const searchCollection = async (query: string, page: number = 1): Promise
 
   const data = await fetchExt<ExtPaginatedSearchData>(`search?q=${query}&t=collection&p=${page}`)
 
-  if (data.success) return {
+  if (data.status) return {
     success: true,
     result: data.response,
   }
@@ -363,7 +356,7 @@ export const searchMovie = async (query: string, page: number = 1): Promise<Gene
 
   const data = await fetchExt<ExtPaginatedSearchData>(`search?q=${query}&t=movie&p=${page}`)
 
-  if (data.success) return {
+  if (data.status) return {
     success: true,
     result: data.response,
   }
@@ -379,7 +372,7 @@ export const searchShow = async (query: string, page: number = 1): Promise<Gener
 
   const data = await fetchExt<ExtPaginatedSearchData>(`search?q=${query}&t=tv&p=${page}`)
 
-  if (data.success) return {
+  if (data.status) return {
     success: true,
     result: data.response,
   }
@@ -395,7 +388,7 @@ export const searchPerson = async (query: string, page: number = 1): Promise<Gen
 
   const data = await fetchExt<ExtPaginatedSearchData>(`search?q=${query}&t=person&p=${page}`)
 
-  if (data.success) return {
+  if (data.status) return {
     success: true,
     result: data.response,
   }
@@ -412,7 +405,7 @@ export const searchAllContent = async (query: string, page: number = 1): Promise
 
   const data = await fetchExt<ExtPaginatedSearchData>(`search?q=${query}&t=multi&p=${page}`)
 
-  if (data.success) return {
+  if (data.status) return {
     success: true,
     result: data.response
   };
@@ -428,7 +421,7 @@ export const searchAllContent = async (query: string, page: number = 1): Promise
 export const searchOnlyMediaItems = async (query: string, page = 1): Promise<GeneralGetReturn<PaginatedData<ExtSearchDataCinementOnly>>> => {
   const data = await fetchExt<PaginatedData<ExtSearchDataCinementOnly>>(`search?q=${query}&t=cinements&p=${page}`)
 
-  if (data.success) return {
+  if (data.status) return {
     success: true, result: data.response
   };
 
@@ -442,28 +435,38 @@ export const fetchTrendingMovies = async (page: number = 1) => {
 
   const data = await fetchExt<ExtGeneralPaginatedData>(`trending?t=movie&p=${page}`)
 
-  if (data.success) return data.response;
-  console.error(
-    "Some erorr occoured while fetching trending movies: " + data.response
-  );
+  console.log("trendingMovies", data);
+
+  if (typeof data.response === "string") {
+    console.error(
+      "Some erorr occoured while fetching trending shows: ", data
+    );
+    return;
+  }
+
+  return data.response;
 
 };
 
 export const fetchTrendingShows = async (page: number = 1) => {
 
   const data = await fetchExt<ExtGeneralPaginatedData>(`trending?t=tv&p=${page}`)
-  if (data.success) return data.response;
-  console.error(
-    "Some erorr occoured while fetching trending shows: " + data.response
-  );
 
+  if (typeof data.response === "string") {
+    console.error(
+      "Some erorr occoured while fetching trending shows:", data
+    );
+    return;
+  }
+
+  return data.response;
 };
 
 export const fetchTrendingPerson = async (page: number = 1) => {
 
   const data = await fetchExt<ExtGeneralPaginatedData>(`trending?t=person&p=${page}`)
 
-  if (data.success) return data.response;
+  if (data.status) return data.response;
   console.error(
     "Some erorr occoured while fetching trending people: " + data.response
   );
@@ -474,7 +477,7 @@ export const fetchTrendingPerson = async (page: number = 1) => {
 export const fetchTrendingContent = async (page: number = 1) => {
 
   const data = await fetchExt<ExtGeneralPaginatedData>(`trending?t=all&p=${page}`)
-  if (data.success) return data.response;
+  if (data.status) return data.response;
   console.error(
     "Some erorr occoured while fetching trending content: " + data.response
   );

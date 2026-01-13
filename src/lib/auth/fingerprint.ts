@@ -1,5 +1,4 @@
 import { createHash } from "crypto";
-import { memo } from "react";
 
 let chchedFingerprint: string | null = null;
 

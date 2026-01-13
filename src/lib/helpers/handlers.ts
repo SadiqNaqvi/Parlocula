@@ -16,7 +16,7 @@ import { updateQuotaLimit } from "./redis/rate_limiting";
 
 type RT = AvailableRevalidateTags
 
-type HandlerParamVariable = { id: string; cuid: string;[key: string]: string }
+export type HandlerParamVariable = { id: string; cuid: string;[key: string]: string }
 
 type NotArray<T> = T extends any[] ? never : T;
 
@@ -82,7 +82,7 @@ export type HandlerResponse =
 type DeleteHandlerResponse = Promise<Omit<HandlerResponse & { files?: Frame[] }, "result">>
 
 export const getHandler = <T extends any>(handler: GetHandlerFunction<T>) => {
-    return async function (req: NextRequest, { params }: { params: HandlerParamVariable }) {
+    return async function (req: NextRequest, { params }: { params: Promise<HandlerParamVariable> }) {
         try {
             const isDbConnected = await connectDatabase();
             if (!isDbConnected) return NextResponse.json(
@@ -93,7 +93,7 @@ export const getHandler = <T extends any>(handler: GetHandlerFunction<T>) => {
                 { status: 500 }
             );
 
-            const data = await handler(req, params);
+            const data = await handler(req, await params);
 
             return NextResponse.json(data, { status: data.success ? 200 : 500 });
         } catch (err: any) {
@@ -172,8 +172,10 @@ export const postHandler = <T extends HandlerData>({ handler, preCheck, schema, 
     schema?: ZodSchema;
     skipUserCheck?: boolean,
 }) => {
-    return async function (req: NextRequest, { params }: { params: any }) {
+    return async function (req: NextRequest, { params }: { params: Promise<HandlerParamVariable> }) {
         const payload = skipUserCheck ? null : await getUserFromToken(req.cookies);
+
+        const awaitedParams = await params;
 
         if (!skipUserCheck && !payload)
             return NextResponse.json(
@@ -191,7 +193,7 @@ export const postHandler = <T extends HandlerData>({ handler, preCheck, schema, 
 
         const response = await getDataFromRequest<T>(req, schema);
 
-        if (!response.success) return NextResponse.json(response, { status: 402 });
+        if (!response.success) return NextResponse.json(response, { status: 400 });
 
         const data = response.result;
 
@@ -215,7 +217,7 @@ export const postHandler = <T extends HandlerData>({ handler, preCheck, schema, 
 
                 const { errCode, success } = await preCheck({
                     req,
-                    params,
+                    params: awaitedParams,
                     user_id,
                     username,
                     data,
@@ -248,7 +250,7 @@ export const postHandler = <T extends HandlerData>({ handler, preCheck, schema, 
                     username: username as string,
                     session,
                     req,
-                    params,
+                    params: awaitedParams,
                     profile: profile?.path,
                     isNsfw,
                 });
@@ -280,7 +282,8 @@ export const postHandler = <T extends HandlerData>({ handler, preCheck, schema, 
             );
         } catch (err: any) {
             await deleteFiles(frames);
-            await session?.abortTransaction().catch(console.error);
+            if (session?.inTransaction())
+                await session.abortTransaction().catch(console.error);
 
             console.error(
                 `Error occurred while POST at path ${req.nextUrl.pathname}:`,
@@ -294,7 +297,7 @@ export const postHandler = <T extends HandlerData>({ handler, preCheck, schema, 
             }, { status: 500 });
         } finally {
             session?.endSession();
-            revalidateTags.forEach((tag) => revalidateTag(tag));
+            revalidateTags.forEach((tag) => revalidateTag(tag, "max"));
         }
     };
 };
@@ -303,7 +306,7 @@ export const deleteHandler = (
     handler: (args: Omit<MutationHandlerFunctionParams, "frames" | "data" | "isNsfw">) => DeleteHandlerResponse,
     precheck?: (req: NextRequest, params: any) => PrecheckResponse | Promise<PrecheckResponse>
 ) => {
-    return async (req: NextRequest, { params }: any) => {
+    return async (req: NextRequest, { params }: { params: Promise<HandlerParamVariable> }) => {
         const payload = await getUserFromToken(req.cookies);
 
         if (!payload)
@@ -333,7 +336,7 @@ export const deleteHandler = (
                 await handler({
                     req,
                     user_id,
-                    params,
+                    params: await params,
                     username,
                     session,
                     profile: profile?.path,
@@ -358,7 +361,7 @@ export const deleteHandler = (
             });
         } finally {
             session?.endSession();
-            revalidateTags.forEach((tag) => revalidateTag(tag));
+            revalidateTags.forEach((tag) => revalidateTag(tag, "max"));
         }
     };
 };
@@ -368,9 +371,10 @@ export const updateHandler = <T extends HandlerData>({ handler, preCheck, schema
     preCheck?: PrecheckFunction<T>;
     schema?: ZodSchema;
 }) => {
-    return async (req: NextRequest, { params }: any) => {
+    return async (req: NextRequest, { params }: { params: Promise<HandlerParamVariable> }) => {
         // Checking if there is a current user and taking it's user_id and username
         const payload = await getUserFromToken(req.cookies);
+        const awaitedParams = await params;
 
         if (!payload)
             return NextResponse.json(
@@ -406,7 +410,7 @@ export const updateHandler = <T extends HandlerData>({ handler, preCheck, schema
             if (preCheck) {
                 const { errCode, success } = await preCheck({
                     data,
-                    params,
+                    params: awaitedParams,
                     req,
                     user_id,
                     username,
@@ -434,7 +438,7 @@ export const updateHandler = <T extends HandlerData>({ handler, preCheck, schema
                     profile: profile?.path,
                     session,
                     req,
-                    params,
+                    params: awaitedParams,
                 });
 
             if (success) {
@@ -482,7 +486,7 @@ export const updateHandler = <T extends HandlerData>({ handler, preCheck, schema
             );
         } finally {
             session?.endSession();
-            revalidateTags.forEach((tag) => revalidateTag(tag));
+            revalidateTags.forEach((tag) => revalidateTag(tag, "max"));
         }
     };
 };

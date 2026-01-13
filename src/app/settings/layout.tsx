@@ -9,9 +9,9 @@ export const metadata: Metadata = {
     keywords: "movies, tv shows, web series, movie recommendation, movie recommendation system, tv show recommendation system, movies suggestion, movie suggestion, show suggestion, series suggestion",
 };
 
-const SettingsLayout = ({ children }: Readonly<{ children: React.ReactNode }>) => {
+const SettingsLayout = async ({ children }: Readonly<{ children: React.ReactNode }>) => {
 
-    const user = getUserFromToken(cookies());
+    const user = getUserFromToken(await cookies());
 
     if (!user) return (
         <LoginModal redirectTo="/settings" />

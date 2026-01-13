@@ -595,8 +595,8 @@ export type SortOptions = "popularity" | "rating" | "year" | "title";
 
 
 export type GeneralExtReturn<T = any> = (
-  { success: true; response: T }
-  | { success: false; response: string }
+  { status: true; response: T }
+  | { status: false; response: string }
 );
 
 export type ExtGeneralPaginatedData = PaginatedData<RefinedGeneralData>

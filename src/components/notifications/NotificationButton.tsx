@@ -1,14 +1,14 @@
 "use client";
 
+import { BellFillIcon, BellIcon } from "@assets/Icons";
 import { getQueryClient } from "@lib/providers/queryClient";
 import { getQueryKeys } from "@lib/utils";
 import useNotification from "@store/notification";
 import useCurrentUser from "@store/user";
-import Navigate from "../Navigate";
-import { BellFillIcon, BellIcon } from "@assets/Icons";
-import { useEffect } from "react";
-import { InfiniteQueryResponse } from "@type/internal";
 import { InfiniteScrollerDataType } from "@type/other";
+import { useEffect } from "react";
+import Navigate from "../Navigate";
+import { OptionalChildren } from "@components/ui";
 
 const NotificationButton = ({ active }: { active: boolean }) => {
     const { user, isHydrated } = useCurrentUser();
@@ -24,13 +24,9 @@ const NotificationButton = ({ active }: { active: boolean }) => {
     }, [user, isHydrated, checkNewNotification, hydrated])
 
     return (
-        <Navigate comp="link" goto="/notifications">
-            {active ?
-                <BellFillIcon />
-                :
-                <BellIcon />
-            }
-        </Navigate>
+        <OptionalChildren condition={active} fallback={<BellIcon />}>
+            <BellFillIcon />
+        </OptionalChildren>
     )
 }
 

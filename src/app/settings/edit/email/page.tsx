@@ -45,7 +45,8 @@ const Page = () => {
 
     const requestUpdate = async (data: { code: number }) => {
         if (!update) return;
-        return await updateEmail({ ...data, ...update })
+        const errors = await updateEmail({ ...data, ...update })
+        if (errors) return errors;
     }
 
     if (page === "verify") return (

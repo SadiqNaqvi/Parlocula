@@ -1,4 +1,3 @@
-
 import { Navbar, SearchInList } from "@components";
 import { UserBar } from "@components/ui";
 import { getBlockedUsers, searchBlockedUsers } from "@lib/helpers/common";

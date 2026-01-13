@@ -4,9 +4,9 @@ import { TypedFunction } from "@type/other";
 import { PropsWithChildren } from "react";
 
 const BreadCrumb = ({ children }: PropsWithChildren) => (
-    <div className="text-sm space-x-2">
-        <span>{children}</span>
-        <span><RightChevron /></span>
+    <div className="text-sm flex gap-2 items-center hover:underline">
+        <strong>{children}</strong>
+        <RightChevron className="size-4 group-last:rotate-90" />
     </div>
 )
 
@@ -15,7 +15,7 @@ export const BreadCrumbTile = ({ children, href, onClick }: PropsWithChildren<{ 
     if (!children) return;
 
     else if (href) return (
-        <li>
+        <li className="group">
             <Navigate comp="link" goto={href} className="inline">
                 <BreadCrumb>{children}</BreadCrumb>
             </Navigate>
@@ -23,14 +23,14 @@ export const BreadCrumbTile = ({ children, href, onClick }: PropsWithChildren<{ 
     )
 
     else if (onClick) return (
-        <li>
+        <li className="group">
             <button onClick={onClick} className="inline">
             </button>
         </li>
     )
 
     else return (
-        <li>
+        <li className="group">
             <BreadCrumb>{children}</BreadCrumb>
         </li>
     )

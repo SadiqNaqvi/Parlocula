@@ -1,12 +1,13 @@
 "use client";
 
+import { OptionalChildren } from "@components/ui";
 import LoadingSpinner from "@components/ui/loading/LoadingSpinner";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { forwardRef, HTMLAttributes, } from "react";
 import { useForm, FormProvider } from "react-hook-form"
 import { ZodIssue } from "zod";
 
-export type FormSubmitReturnType = { path: string, message: string }[] | string | null | void | undefined | ZodIssue[]
+export type FormSubmitReturnType = { path: string, message: string }[] | string | false | null | void | undefined | ZodIssue[]
 
 type FormProps = {
     schema?: any,
@@ -23,9 +24,10 @@ const FormContainer = ({ children, schema, submit, defaultVals, hideLoading, ski
         defaultValues: defaultVals
     });
 
-    const { handleSubmit, setError, formState: { errors, isSubmitting }, reset } = formMethod;
+    const { handleSubmit, setError, formState: { errors, isSubmitting }, reset, clearErrors } = formMethod;
 
     const submitForm = async (data: any) => {
+        clearErrors();
         if (isSubmitting) return;
         const errors = await submit(data);
         if (errors) {
@@ -36,23 +38,22 @@ const FormContainer = ({ children, schema, submit, defaultVals, hideLoading, ski
                     else setError(error.path.join('.'), { message: error.message })
                 })
             else setError("custom", { message: errors })
-        }
-        else if (!skipReset) reset();
+        } else if (!skipReset && errors !== false) reset();
     }
 
     return (
         <>
-            {isSubmitting && !hideLoading && (
+            <OptionalChildren condition={isSubmitting && !hideLoading}>
                 <div style={{ margin: 0, padding: 0 }} className="fixed inset-0 backdrop-brightness-[25%] z-[10] cursor-not-allowed">
-                    <LoadingSpinner />
+                    <LoadingSpinner className="forceCenter" />
                 </div>
-            )}
+            </OptionalChildren>
             <FormProvider {...formMethod}>
                 <form ref={ref} {...args} onSubmit={handleSubmit(submitForm)}>
                     {children}
-                    {errors.custom &&
-                        <p className="text-center text-red-500 text-sm my-4">{errors.custom.message as string}</p>
-                    }
+                    <OptionalChildren condition={errors.custom?.message}>
+                        <p className="text-center text-red-500 text-sm my-4">{errors.custom?.message as string}</p>
+                    </OptionalChildren>
                 </form>
             </FormProvider>
         </>

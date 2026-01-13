@@ -1,15 +1,17 @@
+import FilterTiles from "@components/Router/FilterTIles";
 import { getShelvesOfUser, getUserByUsername } from "@lib/helpers/common";
 import { fetchQuery, getQueryClient, prefetchInfiniteQuery } from "@lib/providers/queryClient";
 import { getQueryKeys, refineSearchParams } from "@lib/utils";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
+import { ParloPageProps } from "@type/other";
 import ShelfSection from "../tabs/ShelfSection";
-import FilterTiles from "@components/Router/FilterTIles";
 
-type Props = { params: { username: string }, searchParams: { p?: string, f?: string, t?: string } }
-
-const Page = async ({ params: { username }, searchParams: { f, p } }: Props) => {
+const Page = async ({ params, searchParams }: ParloPageProps) => {
 
     const queryClient = getQueryClient();
+
+    const { username } = await params;
+    const { f, p } = await searchParams;
 
     const user = await fetchQuery({
         queryClient,

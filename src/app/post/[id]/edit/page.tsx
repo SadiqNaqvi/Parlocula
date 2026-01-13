@@ -10,7 +10,9 @@ import { checkEditedFields, getQueryKeys, readyFrames } from "@lib/utils";
 import { useNavigation } from "@store/historystack";
 import useCurrentUser from "@store/user";
 import { FullPost } from "@type/internal";
+import { ParloPageProps } from "@type/other";
 import { InputFrame } from "@type/schemas";
+import { useParams } from "next/navigation";
 
 type Props = { id: string }
 
@@ -20,7 +22,9 @@ const getQueryProps = ({ id }: Props) => ({
     args: [id],
 });
 
-const Page = ({ params: { id } }: { params: { id: string } }) => {
+const Page = () => {
+
+    const { id } = useParams() as { id: string };
 
     const { meta } = useCurrentUser();
     const navigation = useNavigation();

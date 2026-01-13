@@ -6,11 +6,13 @@ import { getQueryKeys } from "@lib/utils";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { cookies } from "next/headers";
 import FollowingList from "./FollowingList";
+import { ParloPageProps } from "@type/other";
 
-const FollowingPage = async ({ searchParams: { p } }: { searchParams: { p?: string } }) => {
+const FollowingPage = async ({ searchParams }: ParloPageProps) => {
 
-    const jar = cookies();
+    const jar = await cookies();
     const user = await getUserFromToken(jar);
+    const { p } = await searchParams;
 
     const queryClient = getQueryClient();
 

@@ -1,15 +1,12 @@
 import Image from "next/image";
 import AppLogo from "@assets/logo.png"
+import { AppIcon } from "@assets/Icons";
 
 const MainLoader = () => (
     <div className="bg-gray-900 size-screen flex flex-cntr-all">
         <div>
-            <div className="mx-auto relative size-12 sm:size-24">
-                <Image
-                    layout="fill"
-                    alt="App Logo"
-                    src={AppLogo.src}
-                />
+            <div className="mx-auto relative">
+                <AppIcon className="size-12 md:size-24" />
             </div>
             <h1 className="mt-6 text-xl sm:text-3xl">Parlocula</h1>
         </div>

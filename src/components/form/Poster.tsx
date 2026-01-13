@@ -10,15 +10,16 @@ import { InputFrame } from "@type/schemas";
 import Image from "next/image";
 import { forwardRef, useImperativeHandle, useRef } from "react";
 import { MediaInputPrompt } from "./MediaPicker";
+import { twMerge } from "tailwind-merge";
+import OptionList from "@components/ui/OptionList";
 
 type Props = {
     defaultPoster?: string,
-    className?: string
-    size?: `size-${number}`
+    className?: string,
 };
 
 const Poster = forwardRef<InputManagerType<InputFrame | null>, Props>(
-    ({ className, defaultPoster, size }: Props, ref) => {
+    ({ className, defaultPoster }: Props, ref) => {
 
         const { poster, frame, setter } = useCustomReducer({
             poster: defaultPoster ?? "",
@@ -48,8 +49,10 @@ const Poster = forwardRef<InputManagerType<InputFrame | null>, Props>(
             sheetRef.current?.close();
         }
 
+        const classNames = twMerge("group mx-auto size-48 border border-dashed rounded-full border-zinc-500 relative", className)
+
         if (!poster) return (
-            <div className={`group ${className || "mx-auto"} ${size || "size-48"} relative`}>
+            <div className={classNames}>
                 <BottomSheet button={<EditIcon />} className="smallBtn rounded-full flex flex-cntr-all size-full">
                     <MediaInputPrompt type="image" callback={addPoster} />
                 </BottomSheet>
@@ -57,7 +60,7 @@ const Poster = forwardRef<InputManagerType<InputFrame | null>, Props>(
         )
 
         return (
-            <div className={`group ${className || "mx-auto"} ${size || "size-48"} relative`}>
+            <div className={classNames}>
                 <div className="size-full absolute z-[1] rounded-full border border-dashed border-slate-500 group-has-[img]:backdrop-brightness-50 group-has-[img]:text-slate-50">
                     <OptionMenu
                         id="update-poster"
@@ -70,11 +73,11 @@ const Poster = forwardRef<InputManagerType<InputFrame | null>, Props>(
                                 <MediaInputPrompt type="image" callback={addPoster} />
                             </NestedSheet>
                         </li>
-                        <li className="w-full border-b border-gray30 hover:border-:(--gray40)">
-                            <button onClick={removePoster}>
-                                Remove
-                            </button>
-                        </li>
+                        {/* <li className="w-full border-b border-gray30 hover:border-:(--gray40)"> */}
+                        <OptionList onClick={removePoster}>
+                            Remove
+                        </OptionList>
+                        {/* </li> */}
                     </OptionMenu>
                 </div>
 

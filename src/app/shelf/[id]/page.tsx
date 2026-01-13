@@ -5,18 +5,20 @@ import { createArray, getQueryKeys, refineSearchParams } from "@lib/utils";
 import { dehydrate, HydrationBoundary } from '@tanstack/react-query';
 import { cookies } from "next/headers";
 import ShelfPage from "./ShelfPage";
+import { ParloPageProps } from "@type/other";
 
-type Props = { params: { id: string }, searchParams: { p?: string, f?: string, k?: string } };
+const Page = async ({ params, searchParams }: ParloPageProps) => {
 
-const Page = async ({ params: { id }, searchParams }: Props) => {
+    const { id } = await params;
+    const sp = await searchParams;
 
     const queryClient = getQueryClient();
 
     const sid = id.split('-')[0];
 
-    const { filter, page } = refineSearchParams("items", searchParams?.p, searchParams?.f);
-    const key = searchParams.k;
-    const jar = cookies();
+    const { filter, page } = refineSearchParams("items", sp.p, sp.f);
+    const key = sp.k;
+    const jar = await cookies();
     const user = await getUserFromToken(jar);
 
     await Promise.all(

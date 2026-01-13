@@ -5,19 +5,21 @@ import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import QuoteSection from "../tabs/QuoteSection";
 import { getUserFromToken } from "@lib/auth/utils";
 import { cookies } from "next/headers";
+import { ParloPageProps } from "@type/other";
 
-const QuotesPage = async ({ params, searchParams }: { params: { id: string }, searchParams: { p?: string, f?: string } }) => {
+const QuotesPage = async ({ params, searchParams }: ParloPageProps) => {
 
     const queryClient = getQueryClient();
 
-    const { id } = params;
+    const { id } = await params;
+    const sp = await searchParams;
 
     const pid = id.split('-')[0];
     if (pid && !isValidParloId(pid)) return null;
 
-    const page = parseInt(searchParams.p || "1") || 1;
+    const page = parseInt(sp.p || "1") || 1;
 
-    const user = await getUserFromToken(cookies());
+    const user = await getUserFromToken(await cookies());
 
     const allowNsfw = user ? !user.filterContent : false;
 

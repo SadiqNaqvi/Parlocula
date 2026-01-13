@@ -37,3 +37,12 @@ yarn-error.log*
 next-env.d.ts
 
 certificates
+
+# Playwright
+node_modules/
+/test-results/
+/tests/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/

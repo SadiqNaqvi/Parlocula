@@ -8,21 +8,21 @@ export default function ExplorePage() {
 
     return (
         <>
-            <header className="bg-[var(--primary)] pt-4 pb-2 sticky top-0">
-                <Navigate comp="link" role="button" goto={`/explore/search`} className="flex items-center rounded-md justify-start h-10 md:h-12 cursor-text w-full bg-gray20 gap-2 px-4">
+            <header className="fullScreen bg-primary p-2 sticky z-[1] top-0 border-b border-gray20">
+                <Navigate comp="link" role="button" goto={`/explore/search`} className="flex items-center rounded-md justify-start h-10 md:h-12 cursor-text w-full gap-2 px-4">
                     <SearchIcon className="min-h-4 h-4 text-zinc-500" />
                     <span className="text-zinc-500 line-clamp-1 leading-tight select-none">
                         What are you looking for?
                     </span>
                 </Navigate>
             </header>
-            <section className="my-3 space-y-3">
-                <h3 className="uppercase text-lg font-semibold">Explore Genres</h3>
-                <div className="flex flex-wrap">
+            <section className="my-6 space-y-3 px-2">
+                <h3>Explore Genres</h3>
+                <div className="flex flex-wrap gap-2">
                     {movieGenres.concat(showGenres).map((genre: string) => (
                         <Navigate
                             comp="link"
-                            className="capitalize cursor-pointer bg-gray10 md:hover:bg-[var(--gray20)] border border-gray10 p-2 rounded-lg inline"
+                            className="capitalize cursor-pointer bg-gray10 md:hover:bg-gray20 border border-gray30 py-2 px-4 rounded-lg inline"
                             key={genre}
                             goto={`/explore/genres/${genre.toLowerCase().replaceAll(' ', '-')}`}
                             type="button"
@@ -32,13 +32,24 @@ export default function ExplorePage() {
                     ))}
                 </div>
             </section>
-            <section className="my-3 space-y-3">
-                <h3 className="uppercase text-lg font-semibold">Trending Movies</h3>
+            <section className="my-6 space-y-3 px-2">
+                <h3>Trending Movies</h3>
                 <div className="w-full">
                     <DataFetcher
                         querykeys={["movies", "trending"]}
                         type="movie"
                         func="fetchTrendingMovies"
+                        args={[]}
+                    />
+                </div>
+            </section>
+            <section className="my-6 space-y-3 px-2">
+                <h3>Trending Shows</h3>
+                <div className="w-full">
+                    <DataFetcher
+                        querykeys={["shows", "trending"]}
+                        type="show"
+                        func="fetchTrendingShows"
                         args={[]}
                     />
                 </div>

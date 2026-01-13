@@ -7,6 +7,7 @@ import { ExtGeneralPaginatedData, RefinedGeneralData } from "@type/external";
 import { useEffect, useRef, useState } from "react";
 import VerticleMovieCard, { VerticleMovieCardSkeleton } from "./ui/VerticleMovieCard";
 import { GeneralGetReturn } from "@type/internal";
+import { twMerge } from "tailwind-merge";
 
 const funcMap = {
     fetchMoviesWithCast,
@@ -33,8 +34,6 @@ type Props<T extends AllowedFunctions> = {
     querykeys: string[],
 }
 
-type lala = Props<"fetchMoviesWithCast">
-
 const DataFetcher = <T extends AllowedFunctions>({ func, args, type, className = '', querykeys, except }: Props<T>) => {
 
     const [isVisible, setIsVisible] = useState(false);
@@ -43,7 +42,7 @@ const DataFetcher = <T extends AllowedFunctions>({ func, args, type, className =
     useEffect(() => {
 
         const current = container.current;
-
+        
         const observer = new IntersectionObserver(([entry]) => {
             if (entry.isIntersecting && !isVisible && entry.intersectionRatio >= 0.2)
                 setIsVisible(true);
@@ -80,7 +79,7 @@ const DataFetcher = <T extends AllowedFunctions>({ func, args, type, className =
     });
 
     if (!isVisible) return (
-        <div className="h-64 w-full"></div>
+        <div ref={container} className="h-64 w-full"></div>
     );
 
     else if (isFetching || isRefetching) return (
@@ -102,7 +101,7 @@ const DataFetcher = <T extends AllowedFunctions>({ func, args, type, className =
         )
 
     return (
-        <div className={"flex gap-4 pb-2 overflow-x-auto" + className}>
+        <div className={twMerge("flex gap-4 pb-2 overflow-x-auto", className)}>
             {data.slice(0, 20).map((content: RefinedGeneralData) => (
                 <VerticleMovieCard {...content} key={content.id} />
             ))}

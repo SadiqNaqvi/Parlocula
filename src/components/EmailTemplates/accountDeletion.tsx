@@ -1,3 +1,4 @@
+import { parloculaAppURL } from '@lib/constants';
 import { numberConverter } from '@lib/utils';
 import {
     Body,
@@ -148,7 +149,7 @@ const AccountDeletionWarning = ({ username, warning, deleteOn, userDocsCount }: 
 
                         <Link
                             style={ActionButtonPrimary}
-                            href={`${process.env.NEXT_PUBLIC_APP_URL}/join`}>
+                            href={`${parloculaAppURL}/join`}>
                             Login
                         </Link>
 

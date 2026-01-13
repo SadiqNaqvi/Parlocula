@@ -1,13 +1,14 @@
 import { getUserFromToken } from "@lib/auth/utils";
 import { cookies } from "next/headers";
 import ReportedContentsSection from "../ReportedContentsSection";
+import { ParloPageProps } from "@type/other";
 
-const ReportedCommentsPage = async ({ params }: { params: { id: string } }) => {
+const ReportedCommentsPage = async ({ params }: ParloPageProps) => {
 
-    const user = await getUserFromToken(cookies());
+    const user = await getUserFromToken(await cookies());
     if (!user) return null;
 
-    const tid = params.id.split('-')[0];
+    const tid = (await params).id.split('-')[0];
 
     return <ReportedContentsSection tid={tid} uid={user.user_id} type="comment" />
 

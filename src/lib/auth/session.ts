@@ -1,11 +1,8 @@
-import { oneDay } from "@lib/constants";
-import { Session } from "@type/internal";
-import { Redis } from "@upstash/redis";
+"use server";
 
-export const redis = new Redis({
-  url: process.env.UPSTASH_URL,
-  token: process.env.UPSTASH_TOKEN,
-});
+import { oneDay } from "@lib/constants";
+import { getRedis, handleParsing } from "@lib/providers/redis";
+import { Session } from "@type/internal";
 
 export const storeToRedis = async (
   id: string,
@@ -13,7 +10,8 @@ export const storeToRedis = async (
   obj: Record<string, any>
 ) => {
   try {
-    const resp = await redis.setex(id, exp, obj);
+    const redis = await getRedis();
+    const resp = await redis.setex(id, exp, JSON.stringify(obj));
     return resp === "OK";
   } catch (err: any) {
     console.log("Error occured while storing sessions", err.message);
@@ -34,8 +32,9 @@ export const getSession = async <T = undefined>(
   id: string
 ): Promise<{ success: boolean; result: ReturnType<T> | null }> => {
   try {
+    const redis = await getRedis();
     const session = (await redis.get(id)) as ReturnType<T>;
-    return { success: true, result: session };
+    return { success: true, result: handleParsing(session) };
   } catch (err) {
     console.log("Error getting sessions", err);
     return { success: false, result: null };
@@ -44,6 +43,7 @@ export const getSession = async <T = undefined>(
 
 export const deleteSession = async (id: string) => {
   try {
+    const redis = await getRedis();
     return !!(await redis.del(id));
   } catch (err) {
     console.error("Error occured while deleting session:", err);

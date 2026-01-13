@@ -1,21 +1,29 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { RefObject, useEffect, useImperativeHandle, useRef, useState } from "react";
 
 interface OTPInputProps {
     length?: number;
-    onChange?: (value: string) => void;
+    onFilled?: (value: string) => void;
+    onSubmit?: (value: string) => void;
     value?: string;
+    getterRef: RefObject<{ otp: string }>
 }
 
-export const OTPInput: React.FC<OTPInputProps> = ({
+export const OTPInput = ({
     length = 6,
-    onChange,
+    onFilled,
+    onSubmit,
     value,
-}) => {
+    getterRef
+}: OTPInputProps) => {
     const [internalValue, setInternalValue] = useState<string>(
         value ?? "".padEnd(length, "")
     );
 
     const inputsRef = useRef<HTMLInputElement[]>([]);
+
+    useImperativeHandle(getterRef, () => ({
+        otp: internalValue
+    }));
 
     // Sync controlled value
     useEffect(() => {
@@ -32,7 +40,9 @@ export const OTPInput: React.FC<OTPInputProps> = ({
 
         const finalValue = newValue.join("");
         setInternalValue(finalValue);
-        onChange?.(finalValue);
+        if (finalValue.length === length) {
+            onFilled?.(finalValue);
+        }
 
         // Move focus
         if (v !== "" && index < length - 1) {
@@ -43,6 +53,8 @@ export const OTPInput: React.FC<OTPInputProps> = ({
     const handleKeyDown = (index: number, e: React.KeyboardEvent) => {
         if (e.key === "Backspace" && !internalValue[index] && index > 0) {
             inputsRef.current[index - 1]?.focus();
+        } else if (e.key === "Enter" && index === inputsRef.current.length - 1 && internalValue.length === 6) {
+            onSubmit?.(internalValue);
         }
     };
 
@@ -53,7 +65,9 @@ export const OTPInput: React.FC<OTPInputProps> = ({
 
         const newValue = pasted.padEnd(length, "").slice(0, length);
         setInternalValue(newValue);
-        onChange?.(newValue);
+        if (newValue.length === length) {
+            onFilled?.(newValue);
+        }
 
         // Focus last filled input
         const lastIndex = Math.min(pasted.length - 1, length - 1);
@@ -61,18 +75,20 @@ export const OTPInput: React.FC<OTPInputProps> = ({
     };
 
     return (
-        <div className="flex gap-2">
+        <div className="flex gap-2 w-full">
             {Array.from({ length }).map((_, i) => (
                 <input
                     key={i}
                     ref={(el) => {
                         if (el) inputsRef.current[i] = el;
                     }}
+                    data-testid={`otpInput-${i}`}
+                    autoFocus={!i}
                     value={internalValue[i] || ""}
                     onChange={(e) => handleChange(i, e.target.value)}
                     onKeyDown={(e) => handleKeyDown(i, e)}
                     onPaste={handlePaste}
-                    className="w-12 h-12 rounded-md border border-gray-300 text-center text-xl font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className={`w-[15%] aspect-square h-auto rounded-md border border-gray50 text-center`}
                     inputMode="numeric"
                     maxLength={1}
                 />

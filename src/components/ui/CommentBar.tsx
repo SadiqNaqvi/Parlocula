@@ -1,8 +1,8 @@
 import { BookmarkIcon, ThumbUpIcon } from "@assets/Icons";
 import { Navigate } from "@components";
-import { getPoster, numberConverter, timeAgo } from "@lib/utils";
+import { numberConverter, timeAgo } from "@lib/utils";
 import useGlobalStore from "@store/globalStore";
-import { CommentReplyType, MereComment, CurrentUser } from "@type/internal";
+import { CommentReplyType, CurrentUser, MereComment } from "@type/internal";
 import Image from "next/image";
 import ParloImage from "./ParloImage";
 
@@ -142,6 +142,6 @@ const CommentBar = ({ _id, attachment, nsfw, spoiler, post_id, user, content, st
 
 export const CommentBarWithoutReply = (comment: Omit<Props, "restrictReply">) => (
     <CommentBar {...comment} restrictReply={true} />
-)
+);
 
 export default CommentBar;

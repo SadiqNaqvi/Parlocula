@@ -6,16 +6,15 @@ import { getPoster } from "@lib/utils";
 import { Metadata } from "next";
 import { MediaFetcher, ThreadFetcher } from "../../components";
 import { Navigate } from "@components";
+import { ParloPageProps } from "@type/other";
 
 const fetchData = async (params: { id: string }) => {
     const company_id = params.id.split('-')[0];
     return await fetchPerson(company_id);
 }
 
-type Props = { params: { id: string } };
-
-export const generateMetadata = async ({ params }: Props): Promise<Metadata> => {
-    const data = await fetchData(params);
+export const generateMetadata = async ({ params }: ParloPageProps): Promise<Metadata> => {
+    const data = await fetchData(await params);
 
     if (!data) return { title: "Parlocula" };
     return {
@@ -24,9 +23,9 @@ export const generateMetadata = async ({ params }: Props): Promise<Metadata> => 
     };
 };
 
-const Page = async ({ params }: Props) => {
+const Page = async ({ params }: ParloPageProps) => {
 
-    const content = await fetchData(params);
+    const content = await fetchData(await params);
 
     if (!content) return (
         <NotFound

@@ -3,11 +3,9 @@ import { getHandler } from "@lib/helpers/handlers";
 import { attachNsfwInPipeline, postsAggregationPipeline } from "@lib/pipelines";
 import { getSearchParams } from "@lib/utils";
 import { Post } from "@model";
-import { NextRequest } from "next/server";
 
 // Get posts of a thread
-export const GET = getHandler(
-  async (r: NextRequest, params: { id: string }) => {
+export const GET = getHandler(async (r, params) => {
     const { id } = params;
 
     const { page, nsfw, filter } = getSearchParams(r.nextUrl, 0, "latest");

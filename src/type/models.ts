@@ -51,7 +51,7 @@ export type FrameModelType = Frame & {
 
 export type UserModelType = {
   _id?: Nanoid;
-  name: string;
+  name?: string;
   username: string;
   email: string;
   dob: GenericDate;

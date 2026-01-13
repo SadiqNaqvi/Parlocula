@@ -5,15 +5,16 @@ import { getQueryKeys, refineSearchParams } from "@lib/utils";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { cookies } from "next/headers";
 import ShelfList from "../ShelfList";
+import { ParloPageProps } from "@type/other";
 
-const PrivateShelvesPage = async ({ searchParams }: { searchParams?: { f?: string } }) => {
+const PrivateShelvesPage = async ({ searchParams }: ParloPageProps) => {
 
-    const user = await getUserFromToken(cookies());
+    const user = await getUserFromToken(await cookies());
     if (!user) return null;
 
     const { user_id } = user;
-
-    const { filter } = refineSearchParams("shelves", "1", searchParams?.f);
+    const { f } = await searchParams;
+    const { filter } = refineSearchParams("shelves", "1", f);
 
     const queryClient = getQueryClient();
 

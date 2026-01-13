@@ -1,20 +1,13 @@
 "use client";
 
-import { NotFound, PostBar, ShowError, VerticleMovieCard } from "@components/ui";
+import { TopNavbar } from "@components/Sidebar";
+import { NotFound, OptionalChildren, PostBar, ShowError, VerticleMovieCard } from "@components/ui";
 import LoadingSpinner, { FullPageLoadingSpinner } from "@components/ui/loading/LoadingSpinner";
 import { updateFeedViewed } from "@lib/helpers/mutations";
 import { FeedPost, useFeedHook } from "@lib/hooks";
 import useCurrentUser from "@store/user";
 import { ErrorCodes } from "@type/other";
 import { useEffect, useRef } from "react";
-
-const HomeNav = () => {
-    return (
-        <nav className="p-4 border-b border-gray40">
-            <h1 className="">Parlocula</h1>
-        </nav>
-    )
-}
 
 const FeedCard = ({ post, setViewed }: { post: FeedPost, setViewed: (post: string) => void }) => {
 
@@ -53,16 +46,16 @@ const FeedCard = ({ post, setViewed }: { post: FeedPost, setViewed: (post: strin
             if (current) observer.unobserve(current);
         }
 
-    }, [])
+    }, []);
 
 
     if ("isSlide" in post) return (
-        <li className="list-style-none">
+        <li className="list-style-none border-b border-gray10 last:border-0">
             <article className="px-2 py-4 w-full">
                 <h3 className="font-semibold text-sm uppercase mb-2">{post.title}</h3>
                 <ul className="flex w-full overflow-x-auto noScroll gap-2">
                     {post.data.map(content => (
-                        <VerticleMovieCard {...content} />
+                        <VerticleMovieCard key={content.id} {...content} />
                     ))}
                 </ul>
             </article>
@@ -70,7 +63,7 @@ const FeedCard = ({ post, setViewed }: { post: FeedPost, setViewed: (post: strin
     )
 
     return (
-        <li ref={postListContainer} className="list-style-none">
+        <li ref={postListContainer} className="list-style-none group">
             <PostBar {...post} />
         </li>
     )
@@ -102,6 +95,10 @@ const HomeFeedPage = () => {
     }, [dataSaver, isFetchingNextPage, fetchNextPage, hasNextPage]);
 
     useEffect(() => {
+        console.log(data, error);
+    }, [data, error]);
+
+    useEffect(() => {
         return () => {
             const current = viewedMap.current
 
@@ -116,16 +113,19 @@ const HomeFeedPage = () => {
         return <FullPageLoadingSpinner path={["Parlocula"]} />
 
     else if (error) return (
-        <ShowError
-            heading="Oops! Error occured"
-            errCode={error.message as ErrorCodes}
-            retry={refetch}
-        />
+        <>
+            <TopNavbar />
+            <ShowError
+                heading="Oops! Error occured"
+                errCode={error.message as ErrorCodes}
+                retry={refetch}
+            />
+        </>
     )
 
     else if (!data) return (
         <>
-            <HomeNav />
+            <TopNavbar />
             <NotFound
                 title="Such an empty feed"
                 paras={["Guess its time to start joining threads, following users and start posting"]}
@@ -143,7 +143,7 @@ const HomeFeedPage = () => {
 
     return (
         <>
-            <HomeNav />
+            <TopNavbar />
             <div id="feedContainer">
                 <ul>
                     {data.pages.
@@ -152,17 +152,18 @@ const HomeFeedPage = () => {
                             <FeedCard post={post} setViewed={setViewed} key={post._id} />
                         ))}
                 </ul>
-                {hasNextPage &&
-                    (!dataSaver || isFetchingNextPage ?
+                <OptionalChildren condition={hasNextPage}>
+                    <OptionalChildren condition={dataSaver || isFetchingNextPage}>
                         <div ref={loadingContainerRef} className="mt-4 py-2">
                             <LoadingSpinner />
                         </div>
-                        :
+                    </OptionalChildren>
+                    <OptionalChildren condition={!(dataSaver || isFetchingNextPage)}>
                         <div className="w-full flex flex-cntr-all">
                             <button className="primary" onClick={manuallyLoadNextPage}>Load More</button>
                         </div>
-                    )
-                }
+                    </OptionalChildren>
+                </OptionalChildren>
             </div>
         </>
     )

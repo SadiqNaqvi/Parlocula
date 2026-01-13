@@ -3,12 +3,15 @@ import { getParticipantsOfRoom, getRoomById } from "@lib/helpers/common";
 import { fetchQuery, getQueryClient, prefetchInfiniteQuery } from "@lib/providers/queryClient";
 import { getQueryKeys } from "@lib/utils";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
+import { ParloPageProps } from "@type/other";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
-const RoomMembersPage = async ({ params: { id } }: { params: { id: string } }) => {
+const RoomMembersPage = async ({ params }: ParloPageProps) => {
 
-    const jar = cookies()
+    const { id } = await params;
+
+    const jar = await cookies()
     const user = await getUserFromToken(jar);
 
     if (!user) return null;

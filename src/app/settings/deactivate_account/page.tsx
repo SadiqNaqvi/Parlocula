@@ -7,7 +7,6 @@ import { deactivateAccount } from "@lib/helpers/mutations";
 import { useNavigation } from "@store/historystack";
 import useCurrentUser from "@store/user";
 import { z } from "zod";
-//k3Y881MPNvgBpGhjZIEwPDRkxajaVZ0D
 
 const schema = z.object({
 

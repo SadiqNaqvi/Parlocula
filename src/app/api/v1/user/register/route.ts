@@ -12,6 +12,8 @@ import { UserSchemaType } from "@type/schemas";
 import bcrypt from "bcrypt";
 import { cookies } from "next/headers";
 
+// export const runtime = "nodejs"
+
 export const POST = postHandler<UserSchemaType>({
   handler: async ({ data, frames, session, isNsfw }) => {
     const { name, dob, email, bio, username, bioLinks } = data;
@@ -78,14 +80,14 @@ export const POST = postHandler<UserSchemaType>({
 
     const token = await generateToken(tokenPayload);
 
-    cookies().set("token", token, {
+    (await cookies()).set("token", token, {
       httpOnly: true,
       secure: true,
       sameSite: "strict",
       path: "/",
     });
 
-    cookies().set("sid", session_id, {
+    (await cookies()).set("sid", session_id, {
       httpOnly: true,
       secure: true,
       sameSite: "strict",

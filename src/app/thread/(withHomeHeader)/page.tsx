@@ -6,14 +6,17 @@ import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import ThreadList from "./ThreadList";
 import { getUserFromToken } from "@lib/auth/utils";
 import { cookies } from "next/headers";
+import { ParloPageProps } from "@type/other";
 
-const PopularThreadsPage = async ({ searchParams }: { searchParams: { p?: string, f?: string } }) => {
+const PopularThreadsPage = async ({ searchParams }: ParloPageProps) => {
 
-    const { filter, page } = refineSearchParams("threads", searchParams.p, searchParams.f)
+    const sp = await searchParams;
+
+    const { filter, page } = refineSearchParams("threads", sp.p, sp.f)
 
     const queryClient = getQueryClient();
 
-    const user = await getUserFromToken(cookies());
+    const user = await getUserFromToken(await cookies());
 
     const allowNsfw = user ? !user.filterContent : false;
 

@@ -6,10 +6,7 @@ import { StrictSchema, frameModel, linkModel, numberSchema } from "./general";
 const userModel = new StrictSchema<UserModelType>(
   {
     _id: { type: String, default: parloId },
-    name: {
-      type: String,
-      required: true,
-    },
+    name: String,
     username: {
       type: String,
       unique: true,
@@ -18,7 +15,6 @@ const userModel = new StrictSchema<UserModelType>(
     usernameUpdatedAt: { type: Date, default: undefined },
     email: {
       type: String,
-      unique: true,
       required: true,
     },
     emailUpdatedAt: Date,
@@ -37,7 +33,7 @@ const userModel = new StrictSchema<UserModelType>(
 
     // Metadata
     edited_at: { type: Date, default: null },
-    session_id: { type: String, index: true },
+    session_id: String,
     lastLoginAt: { type: Date, default: Date.now },
     lastCommentedAt: Date,
     lastPostedAt: Date,
@@ -63,7 +59,7 @@ const userModel = new StrictSchema<UserModelType>(
 );
 
 userModel.index({ username: 1, isActive: 1 });
-userModel.index({ email: 1 });
+userModel.index({ email: 1 }, {unique: true});
 
 const User: StrictModel<UserModelType> =
   (models.User as any) || (model("User", userModel) as StrictModel<UserModelType>);

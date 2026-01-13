@@ -6,10 +6,11 @@ import { getQueryKeys } from "@lib/utils";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { cookies } from "next/headers";
 import FollowerList from "./FollowerList";
+import { ParloPageProps } from "@type/other";
 
-const FollowersPage = async ({ searchParams: { p } }: { searchParams: { p?: string } }) => {
+const FollowersPage = async ({ searchParams }: ParloPageProps) => {
 
-    const jar = cookies();
+    const jar = await cookies();
     const user = await getUserFromToken(jar);
 
     const queryClient = getQueryClient();
@@ -17,7 +18,7 @@ const FollowersPage = async ({ searchParams: { p } }: { searchParams: { p?: stri
     if (!user) return (
         <LoginModal redirectTo="/settings/followers" />
     );
-
+    const { p } = await searchParams;
     const page = parseInt(p || "1") || 1;
 
     await prefetchInfiniteQuery({
