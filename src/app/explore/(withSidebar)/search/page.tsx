@@ -1,10 +1,8 @@
 "use client";
 
 import InfiniteScroller from "@components/InfiniteScroller";
-import { CommentBarWithoutReply, PostBar, SearchTile, ThreadTile } from "@components/ui";
-import SearchLoadingSection from "@components/ui/loading/SearchResultSkeleton";
-import ListTile from "@components/ui/ShelfBar";
-import UserBar from "@components/ui/UserBar";
+import { CommentBarWithoutReply, PostBar, SearchTile, ThreadTile, ShelfBar, UserBar } from "@components/ui";
+import { SearchSkeleton } from "@components/ui/loading";
 import { searchFilters } from "@lib/constants";
 import { searchAllContent, searchCollection, searchCompany, searchMovie, searchPerson, searchShow } from "@lib/contentFetcher";
 import { searchComments, searchPosts, searchShelves, searchThreads, searchUsers } from "@lib/helpers/common";
@@ -45,9 +43,9 @@ const SearchPage = () => {
         if (currentFilter === "posts") return PostBar;
         else if (currentFilter === "comments") return CommentBarWithoutReply;
         else if (currentFilter === "threads") return ThreadTile;
-        else if (currentFilter === "shelves") return ListTile;
+        else if (currentFilter === "shelves") return ShelfBar;
         else if (currentFilter === "users") return UserBar;
-        else return SearchTile
+        else return SearchTile;
     }
 
     const notFoundMessage = {
@@ -56,7 +54,7 @@ const SearchPage = () => {
     }
 
     const queryFn = async (p: number) => {
-        const func = getQueryFn(filter, !filterContent);
+        const func = getQueryFn(currentFilter, !filterContent);
         return await func(searchQuery, p);
     }
 
@@ -64,10 +62,10 @@ const SearchPage = () => {
         <>
             <SearchHeader filter={currentFilter} />
 
-            <section className="mt-6">
+            <section className="mt-6 px-4">
                 <InfiniteScroller
                     notFoundMessage={notFoundMessage}
-                    Loading={SearchLoadingSection}
+                    Loading={SearchSkeleton}
                     Component={ComponentToShow()}
                     queryKeys={["search", searchQuery, `filter-${currentFilter}`]}
                     fetchData={queryFn}

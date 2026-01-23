@@ -5,6 +5,12 @@ import { NextRequest, NextResponse } from "next/server";
 
 const getUidAndPath = (req: NextRequest) => {
   const { pathname } = req.nextUrl;
+
+  if (!pathname.includes("api/v1/private")) return {
+    user_id: null,
+    path: pathname
+  }
+
   const paths = pathname.split("/private/")[1]?.split("/");
   if (!paths) throw new Error(`Inavlid pathname in URL! ${pathname}`);
 
@@ -31,23 +37,32 @@ const validateUser = async (
 
   const payload = await verifyToken(token);
 
-  const { user_id } = getUidAndPath(rq);
+  const uid = getUidAndPath(rq).user_id;
 
-  if (!payload || payload.user_id !== user_id)
+  // If token is invalid or tampered
+  if (!payload || (uid && payload.user_id !== uid))
     return { success: false, errCode: "unauthenticated_access" };
 
-  else if (payload.exp && payload.exp > Date.now()) return { success: true, user_id };
+  const { user_id } = payload;
 
+  // If token is neither tampered nor expired, return true;
+  if (payload.exp && payload.exp > Date.now())
+    return { success: true, user_id };
+
+  // If token is expired, check user session
   const { result, success } = await getSession(session_id);
 
-  if (!success) return { success: false, errCode: "unknown_error" };
+  // If session could not be fetched possibly because of network 
+  if (!success) return { success: false, errCode: "unstable_internet" };
 
+  // If session is not available, delete cookies
   else if (!result) {
     rq.cookies.delete("token");
     rq.cookies.delete("sid");
     return { success: false, errCode: "unauthenticated_access" };
   }
 
+  // If session is available, refresh token
   const { email, expireOn, ...tokenPayload } = result;
 
   const newToken = await generateToken(tokenPayload);
@@ -59,6 +74,7 @@ const validateUser = async (
     path: "/",
   });
 
+  // If token is temporarily banned
   if (result.isBanned && result.banEndsAt && new Date(result.banEndsAt).getTime() > Date.now())
     return { success: false, errCode: "temporary_banned" }
 
@@ -66,8 +82,9 @@ const validateUser = async (
 };
 
 export const proxy = async (req: NextRequest) => {
-  console.log("middleware entered");
   const { pathname } = req.nextUrl;
+
+  console.log("middleware entered for", pathname);
 
   const response = NextResponse.next();
 
@@ -76,34 +93,34 @@ export const proxy = async (req: NextRequest) => {
 
   console.log("is User in Middleware:", user.success);
 
-  if (!user.success) {
+  // If user does exists and user is trying to perform mutation, check limitation.
+  if (user.success && req.method !== "GET") {
+    const limit = await slidingWindowRateLimit(req, user.user_id);
 
-    // User is trying to get a shelf or shelf items. User could be guest.
+    if (!limit.allowed) return NextResponse.json({
+      success: false,
+      errCode: "rate_limit_exceed",
+    },
+      { status: 429 });
+  }
+
+  // If user does not exists
+  else if (!user.success) {
+
+    // If and only if user is trying to get shelf or shelf item, then only allow guest to go further.
     if (req.method === "GET" && (pathname.includes("/shelf") || pathname.includes("/item")) && user.reason === "noTokenORSession")
       return response;
 
-    return NextResponse.json(user, { status: 403 });
+    // If user is a guest and trying to do anything private (which only authenticated users can do)
+    else if (pathname.includes("/api/v1/private"))
+      return NextResponse.json(user, { status: 403 });
+
   }
 
-  // const cooldownState = await checkCooldownState(user.user_id);
-
-  // if (cooldownState) {
-  //   return NextResponse.json({
-  //     success: false,
-  //     errCode: "rate_limit_exceed",
-  //   }, { status: 429 })
-  // }
-if(req.method !== "GET"){
-  const lala = await slidingWindowRateLimit(req, user.user_id);
-
-  if (!lala.allowed) return NextResponse.json({
-    success: false,
-    errCode: "rate_limit_exceed",
-  }, { status: 429 });
-}
   return response;
 };
 
 export const config = {
-  matcher: ["/api/v1/private/:path*"],
+  // matcher: ["/((?!_next|login|signup|public|.*\\..*).*)"],
+  matcher: ["/((?!_next|.*\\..*).*)"]
 };

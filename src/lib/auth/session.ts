@@ -11,7 +11,7 @@ export const storeToRedis = async (
 ) => {
   try {
     const redis = await getRedis();
-    const resp = await redis.setex(id, exp, JSON.stringify(obj));
+    const resp = await redis.setex(`session:${id}`, exp, JSON.stringify(obj));
     return resp === "OK";
   } catch (err: any) {
     console.log("Error occured while storing sessions", err.message);
@@ -33,7 +33,7 @@ export const getSession = async <T = undefined>(
 ): Promise<{ success: boolean; result: ReturnType<T> | null }> => {
   try {
     const redis = await getRedis();
-    const session = (await redis.get(id)) as ReturnType<T>;
+    const session = (await redis.get(`session:${id}`)) as ReturnType<T>;
     return { success: true, result: handleParsing(session) };
   } catch (err) {
     console.log("Error getting sessions", err);
@@ -44,7 +44,7 @@ export const getSession = async <T = undefined>(
 export const deleteSession = async (id: string) => {
   try {
     const redis = await getRedis();
-    return !!(await redis.del(id));
+    return !!(await redis.del(`session:${id}`));
   } catch (err) {
     console.error("Error occured while deleting session:", err);
     return false;

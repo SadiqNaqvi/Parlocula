@@ -1,8 +1,6 @@
 "use client"
 
-import { Form, Input } from "@components/form";
-import { FormSubmitReturnType } from "@components/form/Form";
-import { OTPInput } from "@components/form/OtpInput";
+import { Form, Input, FormSubmitReturnType, OTPInput } from "@components/form";
 import Navbar from "@components/Navbar";
 import { LoadingSpinner, OptionalChildren } from "@components/ui";
 import { generateFingerprint } from "@lib/auth";

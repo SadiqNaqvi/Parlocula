@@ -1,18 +1,12 @@
-import AddToShelf from "@app/explore/(withoutSidebar)/components/AddToShelf";
-import { CollectionIcon, CrownIcon, HeartIcon, LinkIcon, StarIcon } from "@assets/Icons";
-import { DataFetcher } from "@components";
-import FancyImage from "@components/FancyImage";
-import Navigate from "@components/Navigate";
-import ObserverHeader from "@components/ObserverHeader";
-import { ContentBox, NotFound, VerticleMovieCard } from "@components/ui";
-import InteractiveDetailSection from "@components/ui/InteractiveDetailSection";
-import { createArray, getPoster } from "@lib/utils";
-import { makeUrlSafe } from "@lib/utils";
+import { CollectionIcon, CrownIcon, HeartIcon, StarIcon } from "@assets/Icons";
+import { DataFetcher, FancyImage, Navigate, ObserverHeader } from "@components";
+import { ContentBox, InteractiveDetailSection, LinkTile, NotFound, ParloFooter, VerticleMovieCard } from "@components/ui";
+import { createArray, getPoster, makeUrlSafe } from "@lib/utils";
 import { RefinedCast, RefinedMovieData, RefinedShowData } from "@type/external";
-import ShowTrailerButton from "./ShowTrailerButton";
-import ThreadFetcher from "./ThreadFetcher";
-import { CinementSchemaType } from "@type/schemas";
 import { FullCinementType } from "@type/internal";
+import { CinementSchemaType } from "@type/schemas";
+import { PropsWithChildren } from "react";
+import {AddToShelf,ShowTrailerButton,ThreadFetcher} from "./";
 
 type Props = {
     type: "movie"
@@ -21,6 +15,15 @@ type Props = {
     type: "show"
     content: RefinedShowData & FullCinementType | undefined
 }
+
+const Section = ({ children }: PropsWithChildren) => (
+    <section className="p-4 space-y-6 border-b border-gray30 last:border-0">
+        {children}
+    </section>
+)
+
+const posterSize = "size-24 sm:size-40";
+const shifting = "-mt-12 sm:-mt-20"
 
 const MediaPage = ({ content, type }: Props) => {
 
@@ -32,6 +35,7 @@ const MediaPage = ({ content, type }: Props) => {
                 `Please search the ${type} with its title in the Explore Page`
             ]}
             redirectToExplore
+            fullScreen
         />
     )
 
@@ -63,20 +67,23 @@ const MediaPage = ({ content, type }: Props) => {
     ({
         label: "Seasons",
         val: ("seasons" in content ? content.seasons.length : 0)
-    }))
+    }));
 
     return (
         <>
             <ObserverHeader
                 titleToShare={`Check out ${content.title} on Parlocula`}
-                navTitle={content.title}>
+                navTitle={content.title}
+                poster={content.poster}
+                className="px-4 border-b border-gray30 pb-4"
+            >
 
-                <div className="w-full mt-2">
+                <div className="w-full">
                     <FancyImage
                         containerClass="w-full"
                         width={768}
                         height={300}
-                        className="w-full rounded-md h-[300px] object-cover object-top"
+                        className="w-full rounded-md aspect-[16/9] max-h-[300px] object-cover object-top"
                         alt="Backdrop"
                         id="backdrop-popover"
                         thumbnail={getPoster({ external: true, type: "backdrop", path: content.backdrop, size: "w780" })}
@@ -93,32 +100,49 @@ const MediaPage = ({ content, type }: Props) => {
                         src={getPoster({ external: true, type: "poster", path: content.poster, size: "original" })}
                         height={160}
                         width={160}
+                        containerClass={`${shifting} ml-4`}
                         download={`Poster of ${content.title} - Parlocula`}
-                        className="border-4 border-primary object-cover size-24 sm:size-40 ml-4 translate-y-[-50%] rounded-full"
+                        className={`border-4 border-primary object-cover ${posterSize} rounded-full`}
                         alt={`Poster of ${content.title}`}
                     />
 
-                    <div className="w-fit h-fit flex gap-2 sm:gap-4 pt-4">
-                        {metadata.map(el => (
-                            <div key={el.label} className="border-0 gap-1 md:gap-2 flex flex-col flex-cntr-all md:flex-row sm:p-4 sm:border border-gray20 rounded-md">
-                                <span>{el.val}</span>
-                                <label className="text-xs text-zinc-500">{el.label}</label>
-                            </div>
-                        ))}
+                    <div className="space-y-1 mt-2">
+                        <h1 data-observe className="text-xl sm:text-3xl font-semibold uppercase">{content.title}</h1>
 
+                        <p className="text-sm md:text-base text-zinc-500">{content.tagline}</p>
                     </div>
-
                 </div>
 
-                <h1 data-observe className="text-xl sm:text-4xl -mt-10 sm:-mt-16 font-semibold uppercase">{content.title}</h1>
-
-                <p className="text-sm md:text-base text-zinc-500">{content.tagline}</p>
+                <ul className={`flex gap-2 sm:gap-4 mt-4`}>
+                    {metadata.map(el => (
+                        <li key={el.label} className="gap-1 md:gap-2 flex flex-col flex-cntr-all">
+                            <strong>{el.val}</strong>
+                            <span className="text-zinc-500 text-sm">{el.label}</span>
+                        </li>
+                    ))}
+                </ul>
 
                 <div className="mt-4">
                     <InteractiveDetailSection className="text-sm text-gray-500">
                         {content.overview}
                     </InteractiveDetailSection>
                 </div>
+
+                <ul className="my-4 flex gap-3 md:gap-4 overflow-x-auto noScroll">
+                    {content.genres.map(el => (
+                        <li key={el} className="flex">
+                            <Navigate role="button" comp="link"
+                                goto={`/explore/genre/${el.toLowerCase().replaceAll(' ', '-')}`}
+                                className="text-sm px-2 py-1 bg-gray10 border border-gray30 rounded-md whitespace-nowrap text-nowrap">
+                                {el}
+                            </Navigate>
+                        </li>
+                    ))}
+                    <span className="h-inherit min-w-[2px] bg-gray-500"></span>
+                    {linkSection.map(link => (
+                        <LinkTile key={link.path} {...link} />
+                    ))}
+                </ul>
 
                 <div className="mt-4 text-sm flex gap-2">
                     <ShowTrailerButton trailers={content.trailers} />
@@ -127,37 +151,16 @@ const MediaPage = ({ content, type }: Props) => {
                         className="flex-1 py-1 flex flex-cntr-all border border-gray50 rounded-md"
                         cinement={cinementForShelf} />
                 </div>
-
-                <ul className="my-4 flex gap-3 md:gap-4 overflow-x-auto noScroll">
-                    {linkSection.map(({ label, path }) => (
-                        <li key={path}>
-                            <a role="button" href={path} target="_blank" className="flex gap-2 p-2 border border-gray30 rounded-md">
-                                <span className="block size-fit"><LinkIcon className="size-4" /></span>
-                                <span className="text-sm">{label}</span>
-                            </a>
-                        </li>
-                    ))}
-                    <span className="h-inherit min-w-[2px] bg-gray-500"></span>
-                    {content.genres.map(el => (
-                        <li key={el} className="flex">
-                            <Navigate role="button" comp="link"
-                                goto={`/explore/genre?q=${el.toLowerCase().replaceAll(' ', '-')}`}
-                                className="text-sm p-2 border border-gray30 rounded-md whitespace-nowrap text-nowrap">
-                                {el}
-                            </Navigate>
-                        </li>
-                    ))}
-                </ul>
             </ObserverHeader>
 
-            <section className="space-y-2 my-2 py-4 bg-primarylight">
-                <h3 className="uppercase text-sm font-semibold">Full Plot</h3>
-                <p className="text-base lg:text-lg leading-normal">{content.plot}</p>
-            </section>
+            <Section>
+                <h3 className="parloHeading">Full Plot</h3>
+                <p className="leading-normal">{content.plot}</p>
+            </Section>
 
-            {type === "show" &&
-                <section className="space-y-2 my-2 py-4 bg-primarylight">
-                    <h2 className="text-sm uppercase font-semibold">Seasons</h2>
+            {type === "show" && (
+                <Section>
+                    <h2 className="parloHeading">Seasons</h2>
                     <div className="flex gap-4 overflow-x-auto pb-2">
                         {content.seasons.map(el => (
                             <VerticleMovieCard
@@ -169,11 +172,11 @@ const MediaPage = ({ content, type }: Props) => {
                             />
                         ))}
                     </div>
-                </section>
-            }
+                </Section>
+            )}
 
-            <section className="space-y-2 my-2 py-4 bg-primarylight">
-                <h3 className="uppercase text-sm font-semibold">Top Cast</h3>
+            <Section>
+                <h3 className="parloHeading">Top Cast</h3>
                 <div className="overflow-x-auto flex gap-4 pb-2">
                     {content.cast.map((el: RefinedCast) => (
                         <ContentBox
@@ -184,35 +187,35 @@ const MediaPage = ({ content, type }: Props) => {
                             title={el.name} />
                     ))}
                 </div>
-            </section>
+            </Section>
 
-            <section className="space-y-2 my-2 py-4 bg-primarylight">
-                <h3 className="uppercase text-sm font-semibold">Deciding Factors</h3>
+            <Section>
+                <h3 className="parloHeading">Deciding Factors</h3>
                 <div className="flex overflow-x-auto gap-4 pb-2">
                     <article className="h-44 lg:h-52 px-4 rounded-lg flex flex-col aspect-video flex-cntr-even border border-[var(--gray40)]">
                         <span className="p-4 rounded-full bg-orange-500 bg-opacity-20">
                             <CrownIcon className="h-10 text-orange-600" />
                         </span>
-                        <p className="text-lg text-center">{content.awards}</p>
+                        <p className="text-center">{content.awards}</p>
                     </article>
                     <article className="h-44 lg:h-52 px-4 rounded-lg flex flex-col aspect-video flex-cntr-even border border-[var(--gray40)]">
                         <span className="p-4 rounded-full bg-pink-500 bg-opacity-20">
                             <HeartIcon className="h-10 text-pink-600" />
                         </span>
-                        <p className="text-lg text-center">4M+ People Suggesting</p>
+                        <p className="text-center">4M+ People Suggesting</p>
                     </article>
                     <article className="h-44 lg:h-52 px-4 rounded-lg flex flex-col aspect-video flex-cntr-even border border-[var(--gray40)]">
                         <span className="p-4 rounded-full bg-purple-500 bg-opacity-20">
                             <StarIcon className="h-10 text-purple-600" />
                         </span>
-                        <p className="text-lg text-center">7.8 Popcorn Rating</p>
+                        <p className="text-center">7.8 Popcorn Rating</p>
                     </article>
                 </div>
-            </section>
+            </Section>
 
             {type === "movie" && content.collection &&
-                <section className="space-y-2 my-2 py-4 bg-primarylight">
-                    <h3 className="uppercase text-sm font-semibold">Belongs To</h3>
+                <Section>
+                    <h3 className="parloHeading">Belongs To</h3>
                     <div className="flex flex-wrap gap-4">
                         <Navigate
                             comp="link"
@@ -224,32 +227,32 @@ const MediaPage = ({ content, type }: Props) => {
                             <span className="text-lg">{content.collection.name}</span>
                         </Navigate>
                     </div>
-                </section>
+                </Section>
             }
 
-            <section className="space-y-2 my-2 py-4 bg-primarylight">
-                <div className="flex-flex-cntr-between">
-                    <h3 className="uppercase text-sm font-semibold">Connected Threads</h3>
+            <Section>
+                <div className="flex flex-cntr-between">
+                    <h3 className="parloHeading">Connected Threads</h3>
                     <Navigate comp="link" goto={`${content.tmdb_id}/threads`}>More</Navigate>
                 </div>
                 <ThreadFetcher id={content.tmdb_id} type="movie" />
-            </section>
+            </Section>
 
-            <section className="space-y-2 my-2 py-4 bg-primarylight">
-                <h3 className="uppercase text-sm font-semibold">More Like this</h3>
+            <Section>
+                <h3 className="parloHeading">More Like this</h3>
                 <DataFetcher
                     type={type}
                     func={type === "movie" ? "fetchSimilarMovies" : "fetchSimilarShows"}
                     args={[content.tmdb_id]}
                     querykeys={[`similar-${type}`, content.ext_id]}
                 />
-            </section>
+            </Section>
 
             {content.cast.splice(0, 2).map((el) => (
-                <section key={el.id} className="space-y-2 my-2 py-4 bg-primarylight">
+                <Section key={el.id}>
 
                     <div className="flex flex-cntr-between">
-                        <h3 className="uppercase text-sm font-semibold">More of {el.name}</h3>
+                        <h3 className="parloHeading">More of {el.name}</h3>
                         <Navigate comp="link" role="button" goto={`/explore/person/${el.id}`}>More</Navigate>
                     </div>
 
@@ -258,10 +261,11 @@ const MediaPage = ({ content, type }: Props) => {
                         func="fetchMoviesWithCast"
                         args={[el.id]}
                         except={content.tmdb_id}
-                        querykeys={["moviesWithCast", `${el.id}`]}
+                        querykeys={["moviesWithCast", el.id]}
                     />
-                </section>
+                </Section>
             ))}
+            <ParloFooter />
         </>
     )
 }

@@ -24,11 +24,11 @@ export const SearchResultSkeleton = () => {
 
 const SearchLoadingSection = () => {
     return (
-        <div className="space-y-4">
+        <ul className="space-y-4 w-full">
             <SearchResultSkeleton />
             <SearchResultSkeleton />
             <SearchResultSkeleton />
-        </div>
+        </ul>
     )
 }
 

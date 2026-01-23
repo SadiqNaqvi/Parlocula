@@ -5,3 +5,5 @@ export { default as MediaThreadsPage } from "./MediaThreadsPage";
 export { default as ShowTrailerButton } from "./ShowTrailerButton";
 export { default as ThreadFetcher } from "./ThreadFetcher";
 export { default as ThreadList } from "./ThreadList";
+export {default as AddToShelf} from "./AddToShelf";
+export {default as AddToCollaborativeShelf} from "./AddToCollaborativeShelf";

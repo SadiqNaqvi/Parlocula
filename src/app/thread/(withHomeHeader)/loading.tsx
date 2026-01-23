@@ -1,3 +1,3 @@
-import { FullPageLoadingSpinner } from "@components/ui/loading/LoadingSpinner";
+import LoadingSpinner from "@components/ui/loading/LoadingSpinner";
 
-export default FullPageLoadingSpinner
+export default LoadingSpinner

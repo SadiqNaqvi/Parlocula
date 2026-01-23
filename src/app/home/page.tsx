@@ -51,7 +51,7 @@ const FeedCard = ({ post, setViewed }: { post: FeedPost, setViewed: (post: strin
 
     if ("isSlide" in post) return (
         <li className="list-style-none border-b border-gray10 last:border-0">
-            <article className="px-2 py-4 w-full">
+            <article className="px-2 py-4 w-full space-y-2">
                 <h3 className="font-semibold text-sm uppercase mb-2">{post.title}</h3>
                 <ul className="flex w-full overflow-x-auto noScroll gap-2">
                     {post.data.map(content => (
@@ -93,10 +93,6 @@ const HomeFeedPage = () => {
             if (current) observer.unobserve(current);
         }
     }, [dataSaver, isFetchingNextPage, fetchNextPage, hasNextPage]);
-
-    useEffect(() => {
-        console.log(data, error);
-    }, [data, error]);
 
     useEffect(() => {
         return () => {

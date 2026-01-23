@@ -17,7 +17,7 @@ const PostBarHeader = ({ poster, profile, thread_id, thread_name, username, sect
             <Navigate comp="link" goto={`/user/${username}`}>
                 <ParloImage
                     frame={profile}
-                    className="inline object-cover rounded-full"
+                    className="inline object-cover rounded-full size-[40px]"
                     size={40}
                     alt="Profile picture of the author of this post" />
             </Navigate>
@@ -100,6 +100,7 @@ const PostBar = ({ _id, comment_count, nsfw, createdAt, editedAt, poster, reacti
                         <span>{numberConverter(value || 0)}</span>
                     </li>
                 ))}
+                <i className="fa-light fa-link"></i>
             </ul>
 
         </article>

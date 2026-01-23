@@ -14,7 +14,9 @@ const Component = ({ id, poster, rating, title, year, type }: RefinedGeneralData
         title={title}
         rating={rating}
         year={year}
-        key={id} />
+        key={id}
+        className="w-auto min-w-auto"
+    />
 )
 
 const SkeletonLoader = () => (
@@ -28,13 +30,13 @@ const SkeletonLoader = () => (
 export default function MoviePage() {
     const { id } = useParams() as { id: string };
     return (
-        <section>
+        <section className="px-2">
             <InfiniteScroller
                 Component={Component}
                 Loading={SkeletonLoader}
                 fetchData={(page) => fetchMoviesWithGenres({ page, genre: id, sort_by: "popularity" })}
                 queryKeys={["moviesByGenres", id]}
-                className="flex flex-wrap gap-3 justify-center"
+                className="grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-2 justify-center"
             />
         </section>
     )

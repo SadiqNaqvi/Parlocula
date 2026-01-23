@@ -19,35 +19,37 @@ export default function Page() {
         { label: "fantasy shows", type: "show", value: "fantasy" },
     ]
 
-
     return (
         <>
-            <main className="max-w-screen-lg mx-auto px-4 w-full">
-                <Navbar navTitle="Genres" />
-                <ul className="sticky top-0 bg-primary py-2 overflow-x-auto flex gap-4 noScroll">
-                    {movieGenres.concat(showGenres).map(el =>
-                        <li className="capitalize text-nowrap" key={el}>
-                            <Navigate comp="link" goto={`${el.replaceAll(' ', '-')}`} role="button" className="px-4 py-3 bg-gray20 block rounded-md">{el}</Navigate>
-                        </li>
-                    )}
-                </ul>
-                {genresToDisplay.map(el => (
-                    <section className="mt-4 space-y-4" key={el.value}>
-                        <div className="flex flex-cntr-between">
-                            <h2 className="text-xl uppercase font-semibold">{el.label}</h2>
-                            <Navigate comp="link" goto={`${el.value}`}><RightChevron /></Navigate>
-                        </div>
-                        <DataFetcher
-                            args={[{ genre: el.value, page: 1, sort_by: "popularity" }]}
-                            type={el.type}
-                            func={el.type === "movie" ? "fetchMoviesWithGenres" : "fetchShowsWithGenres"}
-                            querykeys={[`${el.type}sByGenre`, el.value]}
-                        />
-                    </section>
-                ))
+            <Navbar navTitle="Genres" />
+            <ul className="sticky top-0 bg-primary py-2 overflow-x-auto flex gap-4 noScroll">
+                {movieGenres.concat(showGenres).map(el =>
+                    <li className="capitalize text-nowrap" key={el}>
+                        <Navigate 
+                        comp="link" goto={`${el.replaceAll(' ', '-')}`} role="button"
+                         className="px-4 py-2 bg-gray10 border border-gray20 block rounded-md">{el}</Navigate>
+                    </li>
+                )}
+            </ul>
+            {genresToDisplay.map(el => (
+                <section className="mt-4 space-y-4" key={el.value}>
+                    <div className="flex flex-cntr-between">
+                        <h2 className="parloHeading">{el.label}</h2>
+                        <Navigate comp="link" goto={`genres/${el.value}`} className="flex gap-2">
+                            <span>More</span>
+                            <RightChevron className="size-4" />
+                        </Navigate>
+                    </div>
+                    <DataFetcher
+                        args={[{ genre: el.value, page: 1, sort_by: "popularity" }]}
+                        type={el.type}
+                        func={el.type === "movie" ? "fetchMoviesWithGenres" : "fetchShowsWithGenres"}
+                        querykeys={[`${el.type}sByGenre`, el.value]}
+                    />
+                </section>
+            ))
 
-                }
-            </main>
+            }
         </>
     )
 }

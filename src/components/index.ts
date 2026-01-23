@@ -2,10 +2,7 @@ export { default as GenericWrapper } from "./GenericWrapper";
 export { default as CreateEditPost } from "./CreateEditPost";
 export { default as DataFetcher } from "./DataFetcher";
 export { default as InfiniteScroller } from "./InfiniteScroller";
-export {
-  default as LinkInputManager,
-  InputPrompt,
-} from "./form/LinkInputManager";
+export { default as LinkInputManager, InputPrompt, } from "./form/LinkInputManager";
 export { default as FancyboxModal } from "./FancyboxModal";
 export { default as Navbar } from "./Navbar";
 export { default as Navigate } from "./Navigate";

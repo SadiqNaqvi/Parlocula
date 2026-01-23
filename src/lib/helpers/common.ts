@@ -29,6 +29,7 @@ import { CollaboratorModelType, NotificationModelType, ReportModelType } from "@
 import { AvailableCacheTags, CookiesType, PPGetDataProps } from "@type/other";
 import axios from "axios";
 import { oneDay, parloculaAppURL, queryFilters } from "../constants";
+import { GeneralExtReturn, RefinedMovieData, RefinedShowData } from "@type/external";
 
 export const ppGetData = async <T, K extends AvailableCacheTags = any>(
   { url, revalidate, tag, options, cookies, searchParams }: PPGetDataProps<K>
@@ -43,7 +44,7 @@ export const ppGetData = async <T, K extends AvailableCacheTags = any>(
     urlToFetch.searchParams.set(k, `${v}`);
   });
 
-  console.log(urlToFetch.href, url, searchParams);
+  // console.log(urlToFetch.href, url, searchParams);
 
   try {
 
@@ -398,27 +399,33 @@ export const getCinement = async (ext_id: string, type: "movie" | "show"): Promi
 
   if (item.success) return item.result;
 
-  const media = await fetch(
+  const media: GeneralExtReturn<RefinedShowData | RefinedMovieData> = await fetch(
     `https://testlalaapp.vercel.app/api/${type}?id=${ext_id}`,
     { next: { revalidate: oneDay * 2 } }
   ).then((r) => r.json());
 
   if (!media.status) return null;
 
-  const { title, name, release_date, first_air_date, poster_path } =
-    media.response;
+  const { title, year, poster } = media.response;
 
   const data = {
-    title: title ?? name,
-    poster: poster_path || "",
-    year: new Date(release_date ?? first_air_date).getFullYear(),
-    media_type: type,
-    tmdb_id: id,
+    title: title,
+    poster: poster || "",
+    year,
+    cinement_type: type,
+    ext_id: id,
   };
 
-  const { result } = await axios
+  // console.log("data to post", data);
+
+  const resp = await axios
     .post(`${parloculaAppURL}/api/v1/cinement/${id}`, objectToFormData(data))
-    .then((r) => r.data);
+    .then((r) => r.data)
+    .catch(r => r.response.data);
+
+  // console.log("response of post in getCinement", resp);
+
+  const { result } = resp;
 
   return result;
 };

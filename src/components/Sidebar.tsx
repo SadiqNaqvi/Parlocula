@@ -1,18 +1,52 @@
 "use client";
 
-import { AddIcon, AppIcon, ExploreFillIcon, ExploreIcon, ThreadIconFill, HomeFillIcon, HomeIcon, MessagesFillIcon, MessagesIcon, ThreadIcon, UserIcon } from "@assets/Icons";
+import { AddIcon, AppIcon, ExploreFillIcon, ExploreIcon, PostIcon, ThreadIconFill, HomeFillIcon, HomeIcon, MessagesFillIcon, MessagesIcon, ThreadIcon, UserIcon } from "@assets/Icons";
 import useCurrentUser from "@store/user";
 import { usePathname } from "next/navigation";
-import React, { PropsWithChildren } from "react";
+import React, { PropsWithChildren, useEffect } from "react";
 import { BottomSheet, Navigate } from "@components";
 import NotificationButton from "./notifications/NotificationButton";
 import { OptionalChildren, ParloImage } from "./ui";
 import { twMerge } from "tailwind-merge";
+import * as ThumbHash from "thumbhash"
 
 const ProfileButton = () => {
 
-    const { meta } = useCurrentUser();
+    const meta = useCurrentUser(state => state.meta);
     const pathname = usePathname();
+    useEffect(() => console.log("meta in sidebar", meta), [meta]);
+
+    // const takeHash = async () => {
+    //         if (!meta?.profile) return;
+    //         const src = typeof meta.profile === "string" ? meta.profile : meta.profile.path;
+    //         const image = new Image
+    //         image.src = src;
+    //         image.crossOrigin = "Anonymous";
+    //         await new Promise(resolve => image.onload = resolve)
+    //         const canvas = document.createElement('canvas')
+    //         const context = canvas.getContext('2d')
+    //         const scale = 100 / Math.max(image.width, image.height)
+    //         canvas.width = Math.round(image.width * scale)
+    //         canvas.height = Math.round(image.height * scale);
+
+    //         if (!context) return;
+    //         context.drawImage(image, 0, 0, canvas.width, canvas.height)
+    //         const pixels = context.getImageData(0, 0, canvas.width, canvas.height)
+    //         const binaryThumbHash = ThumbHash.rgbaToThumbHash(pixels.width, pixels.height, pixels.data)
+
+    //         // ThumbHash to data URL
+    //         const placeholderURL = ThumbHash.thumbHashToDataURL(binaryThumbHash)
+
+    //         console.log(binaryThumbHash);
+    //         console.log(placeholderURL);
+
+    //     }
+
+    //     return (
+    //         <button onClick={takeHash}>
+    //             click
+    //         </button>
+    //     )
 
     if (!meta) return (
         <div className={`rounded-full border-2 ${pathname.startsWith(`/guest`) ? "border-secondary" : "border-gray-500"}`}>
@@ -48,7 +82,8 @@ const AddButton = ({ className }: { className?: string }) => {
 
                 <div className="flex gap-4 mt-4 mx-auto w-fit">
                     <Navigate comp="link" type="button" goto="/post/new" className={addButtonClasses}>
-                        Post
+                        <PostIcon className="size-6 mx-auto" />
+                        <p className="text-sm text-zinc-500">Post</p>
                     </Navigate>
                     <Navigate comp="link" type="button" goto="/thread/new" className={addButtonClasses}>
                         <ThreadIcon className="size-6 mx-auto" />
@@ -70,12 +105,12 @@ type ButtonProps = {
     skipButtonWrapping?: boolean;
 }
 
-const defaultButtonClasses = "w-fit mx-auto"
+const defaultButtonClasses = "w-fit md:mx-auto"
 const iconSize = "size-5"
 
 const SidebarButton = ({ href, label, pathname, ActiveIcon, children, className, skipButtonWrapping }: PropsWithChildren<ButtonProps>) => {
 
-    if (href && pathname) return (
+    if (href && typeof pathname === "string") return (
         <li title={label} key={label} className={twMerge(defaultButtonClasses, className)}>
             <Navigate
                 comp="link" goto={href}
@@ -118,7 +153,7 @@ export const TopNavbar = ({ className }: { className?: string; }) => (
         <div className="text-lg">
             <AppIcon className="h-6 overflow-visible" />
         </div>
-        <ul className="flex md:hidden flex-cntr-all gap-4">
+        <ul className="flex md:hidden flex-cntr-all">
             <OptionalSidebarButtons pathname="" />
         </ul>
     </nav>

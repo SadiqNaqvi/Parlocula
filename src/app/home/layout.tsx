@@ -9,11 +9,11 @@ export const metadata: Metadata = {
 
 export default function HomeLayout({ children }: Readonly<{ children: React.ReactNode }>) {
     return (
-        <div className="flex">
+        <>
             <Sidebar />
             <main>
                 {children}
             </main>
-        </div>
+        </>
     )
 }

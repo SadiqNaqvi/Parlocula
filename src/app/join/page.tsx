@@ -24,7 +24,7 @@ const Page = () => {
         if (typeof response === "string" && response === "unregistered_user")
             setEmail(email);
 
-        return response || '';
+        return response;
     }
 
     if (email) return <Register email={email} />

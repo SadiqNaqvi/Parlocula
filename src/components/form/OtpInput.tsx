@@ -8,7 +8,7 @@ interface OTPInputProps {
     getterRef: RefObject<{ otp: string }>
 }
 
-export const OTPInput = ({
+const OTPInput = ({
     length = 6,
     onFilled,
     onSubmit,
@@ -88,7 +88,7 @@ export const OTPInput = ({
                     onChange={(e) => handleChange(i, e.target.value)}
                     onKeyDown={(e) => handleKeyDown(i, e)}
                     onPaste={handlePaste}
-                    className={`w-[15%] aspect-square h-auto rounded-md border border-gray50 text-center`}
+                    className={`w-[15%] aspect-square h-auto rounded-md border border-gray20 bg-gray10 text-center`}
                     inputMode="numeric"
                     maxLength={1}
                 />
@@ -96,3 +96,5 @@ export const OTPInput = ({
         </div>
     );
 };
+
+export default OTPInput;

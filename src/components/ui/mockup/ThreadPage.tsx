@@ -1,17 +1,16 @@
 "use client";
 
-import { MockupCommentBar, MockupPostBar, MockupShelfBar, MockupTabs } from "@components/ui/mockup";
+import { MockupCommentBar, MockupPostBar, MockupTabs } from "@components/ui/mockup";
 import { useState } from "react";
 
 const sections = {
     posts: "Posts",
-    "comments": "Comments",
-    shelves: "Shelves",
+    comments: "Comments",
 }
 
 type Section = keyof typeof sections;
 
-const ContentMockup = () => {
+const ThreadPageMockup = () => {
 
     const [section, setSection] = useState<Section>("posts");
 
@@ -20,15 +19,6 @@ const ContentMockup = () => {
             <MockupTabs tabs={sections} active={section} onClick={setSection} />
             {Array(3).fill(0).map((_, i) => (
                 <MockupCommentBar key={i} />
-            ))}
-        </section>
-    )
-
-    else if (section === "shelves") return (
-        <section className="mt-4 space-y-3">
-            <MockupTabs tabs={sections} active={section} onClick={setSection} />
-            {Array(6).fill(0).map((_, i) => (
-                <MockupShelfBar key={i} />
             ))}
         </section>
     )
@@ -42,8 +32,6 @@ const ContentMockup = () => {
         </section>
     )
 
-
-
 }
 
-export default ContentMockup;
+export default ThreadPageMockup;

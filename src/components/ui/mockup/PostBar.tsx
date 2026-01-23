@@ -18,7 +18,7 @@ const MockupPostBar = ({ username }: { username?: string }) => {
             </header>
 
             <div className="group-odd:flex flex-col gap-2 md:flex-row-reverse">
-                <section className="space-y-4 my-2">
+                <section className="space-y-4 my-2 flex-1">
                     <ul className="flex gap-2 text-sm text-zinc-500">
                         {Array(3).fill(0).map((_, i) => (
                             <li key={i} className="h-2 w-10 rounded-md bg-gray60"></li>
@@ -35,34 +35,36 @@ const MockupPostBar = ({ username }: { username?: string }) => {
                 <section className="group-even:hidden w-full xs:w-80 aspect-square rounded-md bg-gray60"></section>
             </div>
 
-            <section className="flex gap-2">
-                <div className="space-x-2 text-sm text-zinc-500 inline mr-4">
-                    <div className="space-x-2 inline">
-                        <FrameIcon />
-                        <span>X</span>
-                    </div>
-                    <div className="space-x-2 inline">
-                        <LinkIcon className="size-4" />
-                        <span>X</span>
-                    </div>
-                </div>
-                <div className="space-x-2 text-sm text-zinc-500 inline ">
+            <section className="flex gap-6">
+                <div className="flex gap-2 text-sm text-zinc-500">
 
-                    <div className="space-x-1 inline">
+                    <div className="flex gap-1 items-center">
                         <ThumbUpIcon className="size-4" />
                         <span>X</span>
                     </div>
 
-                    <div className="space-x-1 inline">
+                    <div className="flex gap-1 items-center">
                         <CommentIcon className="size-4" />
                         <span>X</span>
                     </div>
 
-                    <div className="spaxe-x-1 inline">
+                    <div className="flex gap-1 items-center">
                         <BookmarkIcon className="size-4" />
                         <span>X</span>
                     </div>
                 </div>
+
+                <div className="flex gap-2 text-sm text-zinc-500">
+                    <div className="flex gap-1 items-center">
+                        <FrameIcon />
+                        <span>X</span>
+                    </div>
+                    <div className="flex gap-1 items-center">
+                        <LinkIcon className="size-4" />
+                        <span>X</span>
+                    </div>
+                </div>
+
             </section>
 
         </article>

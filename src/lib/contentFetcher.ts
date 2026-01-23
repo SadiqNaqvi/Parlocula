@@ -220,6 +220,8 @@ export const fetchShow = async (id: string) => {
     getCinement(id, "show"),
   ]);
 
+  // console.log("at fetchShow", cinement);
+
   if (!data || !data.status || !cinement) return;
 
   return {
@@ -277,8 +279,7 @@ export const fetchShowsWithGenres = async ({
   genre: string;
   page: number;
   sort_by: SortOptions;
-}) => {
-  if (!genre) return;
+}): Promise<GeneralGetReturn<ExtGeneralPaginatedData>> => {
 
   const data = await fetchExt<ExtGeneralPaginatedData>(`shows?g=${genre}&sort=${sort_by}&p=${page}`)
 

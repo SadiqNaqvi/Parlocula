@@ -94,9 +94,9 @@ const DataFetcher = <T extends AllowedFunctions>({ func, args, type, className =
 
     else if (error || !data)
         return (
-            <section className="py-4 w-full border-dashed border-red-500 space-x-4">
-                <p className="text-lg">Something Went Wrong! Please Try again</p>
-                <button className="secondary" onClick={() => refetch()}>Try again</button>
+            <section className="py-4 w-full space-y-4">
+                <p className="text-lg text-center">Something Went Wrong! Please Try again</p>
+                <button className="secondary mx-auto" onClick={() => refetch()}>Try again</button>
             </section>
         )
 

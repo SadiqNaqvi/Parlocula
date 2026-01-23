@@ -149,10 +149,11 @@ export const sendVerificationCode = async (
 
     await sendEmail({ email, template, subject: "Email Verification" });
 
+    const triedTimes = payload?.triedTimes ?? 0;
     const updatedPayload: EmailPayload = {
       code,
       expiresOn: getTimeInFuture({ unit: "m", timeVal: 5 }),
-      triedTimes: (payload?.triedTimes ?? 0) + 1,
+      triedTimes: triedTimes + 1,
     };
 
     await redis.setex(`limits:email:${fingerprint}`, oneHour, JSON.stringify(updatedPayload));

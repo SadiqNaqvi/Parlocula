@@ -7,6 +7,8 @@ import { OptionalChildren } from "./ui";
 type PortalProps = PropsWithChildren<{
   allowHandle?: boolean
   ref?: MutableRefObject<any>,
+  title?: string;
+  description?: string;
 }>
 
 export const NestedSheet = ({ button, children, className }: PropsWithChildren<{ className?: string, button: React.ReactNode }>) => {
@@ -18,25 +20,26 @@ export const NestedSheet = ({ button, children, className }: PropsWithChildren<{
   )
 }
 
-export const DrawerPortal = ({ children, allowHandle, ref }: PortalProps) => (
+export const DrawerPortal = ({ children, allowHandle, description, title, ref }: PortalProps) => (
   <Portal>
     <Overlay className="z-[10] fixed inset-0 bg-black/40" />
-    <Drawer.Title />
-    <Drawer.Description />
-    <Content ref={ref} className="h-fit fixed z-[10] bottom-0 left-0 right-0 outline-none">
-      <aside className="mx-auto sm:mb-4 rounded-t-md sm:rounded-md w-full max-w-96 bg-primarylight">
-        {allowHandle && <Handle />}
+    <Drawer.Title>{title}</Drawer.Title>
+    <Drawer.Description>{description}</Drawer.Description>
+    <Content ref={ref} className="h-fit fixed z-[10] rounded-t-md sm:rounded-md border-t border-gray60 bottom-0 left-0 right-0 outline-none bg-primary py-4">
+      <Handle />
+      <aside className="mx-auto mt-4 min-h-40 w-full max-w-96 max-h-[80dvh] overflow-y-auto">
         {children}
       </aside>
     </Content>
   </Portal>
 )
 
-type BottomSheetProps = PortalProps & {
+export type BottomSheetProps = PortalProps & {
   state?: boolean,
   onClose?: (...a: any) => any,
   button?: React.ReactNode,
   className?: string,
+  snapPoints?: (string | number)[],
 }
 
 export type BottomSheetRef = {
@@ -45,7 +48,7 @@ export type BottomSheetRef = {
   toggle: () => void,
 }
 
-export const BottomSheet = forwardRef(({ children, state, onClose, allowHandle, button, className }: BottomSheetProps, ref) => {
+export const BottomSheet = forwardRef(({ children, description, title, state, onClose, snapPoints, allowHandle, button, className }: BottomSheetProps, ref) => {
 
   const [open, setOpen] = useState<boolean | undefined>(state);
 
@@ -56,11 +59,11 @@ export const BottomSheet = forwardRef(({ children, state, onClose, allowHandle, 
   }));
 
   return (
-    <Root open={open} onClose={onClose}>
+    <Root snapPoints={snapPoints} open={open} onClose={onClose}>
       <OptionalChildren condition={button}>
         <Drawer.Trigger className={className}>{button}</Drawer.Trigger>
       </OptionalChildren>
-      <DrawerPortal allowHandle={allowHandle}>
+      <DrawerPortal title={title} description={description} allowHandle={allowHandle}>
         {children}
       </DrawerPortal>
     </Root>

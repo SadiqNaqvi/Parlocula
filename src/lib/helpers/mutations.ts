@@ -317,6 +317,7 @@ export const loginUserMutation = async (data: { email: string, code: number }) =
 
         onSuccess: ({ data }: { data: CurrentUser }) => {
 
+            console.log(data);
             setUserOnRefreshOrLogin(data, Boolean(data.filterContent));
 
             getQueryClient().setQueryData(

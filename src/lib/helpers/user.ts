@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { showMessageOptimistically, updateDoc, updateDocInInfiniteQueryResult } from "./mutations";
 
 const setUser = (user: CurrentUser, contentFiltering: boolean) => {
+    console.log("user in setUser Func", user);
     const { setUser, setUserMeta, setContentFiltering } = useCurrentUser.getState();
     setContentFiltering(contentFiltering);
     setUserMeta({ user_id: user._id, username: user.username, profile: user.profile });
@@ -17,6 +18,7 @@ const setUser = (user: CurrentUser, contentFiltering: boolean) => {
 
 export const setUserOnRefreshOrLogin = (user: CurrentUser, contentFiltering: boolean) => {
 
+    console.log("user in setUserAndRefresh Func", user);
     setUser(user, contentFiltering);
 
     const ably = getAblyOnClient(user._id)

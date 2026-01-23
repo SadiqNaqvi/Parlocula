@@ -14,8 +14,13 @@ export const GET = getHandler(async (_, params) => {
 // Store media item 
 export const POST = postHandler<CinementSchemaType>({
   handler: async ({ data, params, session }) => {
+    console.log("cinement post handler me aaya");
     const { id } = params;
     const mediaDoc = (await Cinement.create([data], { session }))[0];
+
+    console.log("mediaDoc", mediaDoc);
+
+
     return {
       result: mediaDoc.toObject(),
       success: true,
@@ -23,4 +28,5 @@ export const POST = postHandler<CinementSchemaType>({
       options: { extid: id },
     };
   },
+  skipUserCheck: true,
 });

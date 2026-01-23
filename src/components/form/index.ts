@@ -1,4 +1,4 @@
-export { default as Form } from "./Form";
+export { default as Form, type FormSubmitReturnType } from "./Form";
 export { default as Input } from "./Input";
 export { default as Textarea } from "./Textarea";
 export { default as ToggleButton } from "./ToggleButton";
@@ -13,3 +13,4 @@ export { default as Choice } from "./Choice";
 export { default as LinkInputManager } from "./LinkInputManager";
 export { default as ShelfForm } from "./ShelfForm";
 export { default as DateInput } from "./DateInput";
+export { default as OTPInput } from "./OtpInput";

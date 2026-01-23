@@ -41,6 +41,9 @@ export const usernameSchema = z
   .refine(
     (username) => usernamePattern.test(username),
     "Username can only start with alphabetical characters. Only _ is allowed as special character."
+  ).refine(
+    (username) => !Boolean(["theparlocula", "test", "guest"].some(n => username === n)),
+    "Username cannot be theparlocula, test or guest"
   );
 
 

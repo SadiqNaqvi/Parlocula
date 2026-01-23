@@ -312,6 +312,7 @@ export type still_sizes = "w92" | "w185" | "w300" | "original";
 type InternalPosterProps = {
   external?: false | undefined;
   type?: "image" | "video";
+  size?: undefined;
 };
 
 type ExternalPosterProps =

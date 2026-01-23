@@ -1,6 +1,6 @@
 "use client";
 
-import { BottomSheet, Navbar } from "@components";
+import { BottomSheet, BottomSheetRef, Navbar } from "@components";
 import LoginModal from "@components/fallbacks/LoginModal";
 import { Form, Input, LinkInputManager, Poster, Textarea, ToggleButton } from "@components/form";
 import { createThreadMutation } from "@lib/helpers/mutations";
@@ -11,9 +11,11 @@ import { useNavigation } from "@store/historystack";
 import useCurrentUser from "@store/user";
 import { InputManagerType } from "@type/other";
 import { ThreadSchemaServer } from "@type/schemas";
-import { nanoid } from "nanoid";
 import { useRef } from "react";
 import ConnectionsInput from "./ConnectionsInput";
+import { EditIcon } from "@assets/Icons";
+import { PrimaryButton, ThreadPageMockup } from "@components/ui/mockup";
+import LoginPopupSheet from "@components/sheets/LoginPopupSheet";
 
 const goodToKnowSections = [
     {
@@ -47,11 +49,11 @@ const goodToKnowSections = [
 
 const GoodToKnowButton = () => {
     return (
-        <BottomSheet button="Good To Know">
+        <BottomSheet button="Good To Know" className="px-2 py-1 bg-gray10 border border-gray20 rounded-md">
             {goodToKnowSections.map(({ descriptions, title }, ind) => (
-                <section className="my-3 space-y-3" key={ind}>
-                    <h4 className="font-semibold text-sm upeercase">{title}</h4>
-                    <ul className="space-y-2">
+                <section className="my-6 space-y-4 px-2" key={ind}>
+                    <h4 className="font-semibold text-lg text-center">{title}</h4>
+                    <ul className="space-y-1 list-disc text-sm">
                         {descriptions.map((desc, i) => (
                             <li key={ind + '' + i}>{desc}</li>
                         ))}
@@ -68,16 +70,19 @@ const CreateNewThreadPage = () => {
     const connectionsRef = useRef<InputManagerType>(null);
     const posterRef = useRef<InputManagerType>(null);
     const linksRef = useRef<InputManagerType>(null);
+    const loginSheetRef = useRef<BottomSheetRef>(null);
+
 
     const navigation = useNavigation();
 
     const { meta } = useCurrentUser();
 
-    if (!meta) return (
-        <LoginModal redirectTo="/thread/new" />
-    )
-
     const submit = async (data: Pick<ThreadSchemaServer, "name" | "description" | "nsfw">) => {
+
+        if (!meta) {
+            loginSheetRef.current?.open();
+            return;
+        }
 
         const connections = connectionsRef.current?.getData();
 
@@ -122,46 +127,77 @@ const CreateNewThreadPage = () => {
                     <button type="submit" className="primary" onClick={requestSubmit}>Create</button>
                 }
             />
-
-            <Poster ref={posterRef} />
-
-            <div className="flex justify-end">
-                <GoodToKnowButton />
-            </div>
-
             <Form
                 schema={threadSchemaClient}
                 ref={formRef}
                 submit={submit}
-                className="space-y-6"
+                className="px-2"
+                skipReset
             >
 
-                <Input
-                    name="name"
-                    placeholder="Eg: Spider Man"
-                    label="Name"
-                    required
-                    minLength={5}
-                    maxLength={30}
-                />
+                <section className="flex gap-2 md:gap-4 items-center">
+                    <Poster ref={posterRef} className="mx-0 min-w-24 size-24 md:min-w-36 md:size-36" />
 
-                <Textarea
-                    name="description"
-                    label="Description"
-                    placeholder="Eg: About the thread and rules if any."
-                    required
-                    maxLength={500}
-                />
+                    <div className="flex-1 space-y-1 md:space-y-2">
+                        <div className="flex gap-2 items-center w-full group">
+                            <EditIcon className="text-gray-500 group-has-[:focus]:text-inherit" />
+                            <Input
+                                name="name"
+                                placeholder="Display Name"
+                                className="p-0 border-0 sm:text-xl font-semibold flex-1"
+                                required
+                                minLength={5}
+                                maxLength={30}
+                            />
+                        </div>
+                        <p className="text-sm text-zinc-500">Created by: @{meta?.username || "you"}</p>
+                    </div>
+                </section>
+                <section className="space-y-2 my-4">
+                    <ul className="h-fit flex-wrap whitespace-nowrap mt-2 text-sm text-zinc-500 flex space-x-2">
+                        <li>Created Now</li>
+                        <li>~</li>
+                        <li>X Members</li>
+                        <li>~</li>
+                        <li>X Posts</li>
+                    </ul>
 
-                <ToggleButton label="nsfw" className="w-full py-4 uppercase" />
+                    <div className="flex gap-2 items-center">
+                        <ToggleButton label="nsfw" className="uppercase" />
+                        <GoodToKnowButton />
+                    </div>
+                </section>
+
+                <div className="flex gap-2 group">
+                    <EditIcon className="size-4 mt-1 text-gray-500 group-has-[:focus]:text-inherit" />
+                    <Textarea
+                        name="description"
+                        placeholder="Description - about thread, rules, etc."
+                        required
+                        containerClassName="border-0 pb-0 flex-1 h-fit"
+                        className="py-1 h-fit"
+                        maxLength={500}
+                    />
+                </div>
 
             </Form>
+            <section className="space-y-4">
+                <div className="flex mt-2 gap-2 px-2">
+                    <LinkInputManager ref={linksRef} />
+                </div>
 
-            <section className="my-6 space-y-4">
-                <ConnectionsInput connectionsRef={connectionsRef} />
+                <div className="space-x-4 px-2">
+                    <ConnectionsInput connectionsRef={connectionsRef} />
+                </div>
             </section>
-            <LinkInputManager ref={linksRef} />
 
+            <div className="flex px-2 mt-6">
+                <PrimaryButton>Follow</PrimaryButton>
+            </div>
+
+            <LoginPopupSheet href="/thread/new" sheetRef={loginSheetRef} section="thread details" />
+
+            <ThreadPageMockup />
         </>
     )
 }

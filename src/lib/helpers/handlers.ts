@@ -7,7 +7,7 @@ import { render } from "@react-email/components";
 import { Frame, GeneralGetReturn, GeneralPostReturn } from "@type/internal";
 import { AvailableRevalidateTags, ErrorCodes, RevalidateTagsArgs } from "@type/other";
 import { FrameDataSchemaType } from "@type/schemas";
-import { ClientSession, startSession } from "mongoose";
+import mongoose, { ClientSession } from "mongoose";
 import { revalidateTag } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 import { ZodSchema } from "zod";
@@ -230,7 +230,7 @@ export const postHandler = <T extends HandlerData>({ handler, preCheck, schema, 
                     );
             }
 
-            session = await startSession();
+            session = await mongoose.connection.startSession();
             let isNsfw = false;
             const { files, filesData, filesToRemove, ...rest } = data;
             if (files && files.length && filesData && filesData.length) {
@@ -329,7 +329,7 @@ export const deleteHandler = (
                 if (!success) return NextResponse.json({ success, errCode });
             }
 
-            session = await startSession();
+            session = await mongoose.connection.startSession();
 
             session.startTransaction();
             const { errCode, success, available, options, files, revalidateQueue } =
@@ -404,7 +404,7 @@ export const updateHandler = <T extends HandlerData>({ handler, preCheck, schema
                     errCode: "database_connection_fail",
                 });
 
-            session = await startSession();
+            session = await mongoose.connection.startSession();
 
             // Some pre-checking eg: if the user is authorized to do this specific thing or not
             if (preCheck) {

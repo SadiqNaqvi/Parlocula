@@ -49,6 +49,10 @@ export const frameModel = new Schema<FrameModelType>({
     required: true,
   },
   isExternal: Boolean,
+  hash: {
+    type: String,
+    required: true,
+  }
 });
 
 type ExactSchemaDefinition<T> = {

@@ -40,10 +40,12 @@ const useCurrentUser = create(
       dataSaver: false,
 
       filterContent: true,
-      setUser: (data) => set({ user: data }),
-      setUserMeta: (meta: UserMetaData) => set({ meta }),
+      setUser: (user) => set({ user }),
+      setUserMeta: (meta) => set({ meta }),
 
-      clearUser: () => set({ user: null, meta: null, dataSaver: false, filterContent: true }),
+      clearUser: () => {
+        set({ user: null, meta: null, dataSaver: false, filterContent: true })
+      },
 
       toggleDataSaver: (newState) => set({ dataSaver: newState }),
       setContentFiltering: (newState) => {

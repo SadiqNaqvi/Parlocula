@@ -21,8 +21,8 @@ const sessionManagement = async (
 
   const session_id = crypto.randomUUID();
 
-  const oldDoc = await User.findByIdAndUpdate(
-    user._id,
+  const oldDoc = await User.findOneAndUpdate(
+    { email: user.email },
     {
       lastLoginAt: new Date(),
       session_id,
@@ -32,9 +32,9 @@ const sessionManagement = async (
     { session }
   );
 
-  if (!oldDoc) return null;
+  if (!oldDoc) return "resource_not_found";
 
-  if (oldDoc.session_id) deleteSession(oldDoc.session_id);
+  else if (oldDoc.session_id) deleteSession(oldDoc.session_id);
 
   const { _id, username, isBanned, email, banEndsAt, profile, filterContent, dob } = user;
 
@@ -53,19 +53,19 @@ const sessionManagement = async (
 
   const isStored = await storeSession(session_id, tokenPayload);
 
-  if (!isStored)
-    return "session_store_fail";
+  if (!isStored) return "session_store_fail";
 
   const token = await generateToken(tokenPayload);
+  const jar = await cookies();
 
-  (await cookies()).set("token", token, {
+  jar.set("token", token, {
     httpOnly: true,
     secure: true,
     sameSite: "strict",
     path: "/",
   });
 
-  (await cookies()).set("sid", session_id, {
+  jar.set("sid", session_id, {
     httpOnly: true,
     secure: true,
     sameSite: "strict",

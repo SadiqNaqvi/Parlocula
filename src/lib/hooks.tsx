@@ -311,8 +311,8 @@ const getTmdbSlides = async (p: number): Promise<Omit<TmdbSlide, "isSlide">[]> =
     console.log("firstSlide", firstSlide, "secondSlide", secondSlide);
 
     return [
-        { data: firstSlide?.results || [], title: "Trending Movies of ths week", _id: `trending_movies_page_${p}` },
-        { data: secondSlide?.results || [], title: "Trending Shows of ths week", _id: `trending_shows_page_${p}` }
+        { data: firstSlide?.results || [], title: "Trending Movies", _id: `trending_movies_page_${p}` },
+        { data: secondSlide?.results || [], title: "Trending Shows", _id: `trending_shows_page_${p}` }
     ]
 }
 
@@ -324,38 +324,39 @@ export const useFeedHook = () => {
     const queryFn = async (p: number): Promise<GeneralMultipleReturn<FeedPost>> => {
         const [slides, trending, curated] = await Promise.all([
             getTmdbSlides(p),
-            ppGetData<AggregatedResponse<AggregatedPost>>({ url: "post/trending", revalidate: oneDay }),
+            ppGetData<AggregatedResponse<AggregatedPost>>({ url: "post/trending", revalidate: oneDay, searchParams: { p } }),
             ...(uid ? [
-                ppGetData<AggregatedResponse<AggregatedPost>>({ url: `private/${uid}` })
+                ppGetData<AggregatedResponse<AggregatedPost>>({ url: `post/user/${uid}`, searchParams: { p } })
             ] : []),
         ]);
 
-        console.log("slides", slides);
-        console.log("trending", trending);
-        console.log("curated", curated);
-
         const trendingPosts = refineResponse(trending);
         const curatedPosts = refineResponse(curated);
-        console.log("curatedPosts", curatedPosts);
 
         let finalFeed: FeedPost[] = [];
-        // 10
+
         const interval = Math.floor((trendingPosts.data.length + curatedPosts.data.length) / 2);
 
-        trendingPosts.data.concat(curatedPosts.data)
-            .sort((a, b) => b.score - a.score)
-            .forEach((post, i) => {
-                finalFeed.push(post);
+        if (interval) {
+            trendingPosts.data.concat(curatedPosts.data)
+                .sort((a, b) => b.score - a.score)
+                .forEach((post, i) => {
+                    finalFeed.push(post);
 
-                if ((i + 1) % interval === 0) {
-                    const index = ((i + 1) / interval) - 1;
-                    console.log(index)
-                    const slide = slides[index];
-                    if (slide.data.length) {
-                        finalFeed.push({ ...slide, isSlide: true })
+                    if ((i + 1) % interval === 0) {
+                        const index = ((i + 1) / interval) - 1;
+                        console.log(index)
+                        const slide = slides[index];
+                        if (slide.data.length) {
+                            finalFeed.push({ ...slide, isSlide: true })
+                        }
                     }
-                }
-            });
+                });
+        } else {
+
+            finalFeed = slides.map(slide => ({ ...slide, isSlide: true }));
+        }
+
         const queryPage = {
             data: finalFeed,
             total: Math.max(trendingPosts.total, curatedPosts.total)

@@ -185,14 +185,16 @@ export const makeUrlSafe = (str: string) => {
 };
 
 export const getPoster = (config: getPosterFunctionProps): string => {
-  if (!config.external) {
-    const { path, type } = config;
-    if (!path) return placeholder.src;
-    if (path.includes("https")) return path;
+  const { path } = config;
+  if (!path) return placeholder.src;
+  if (path.includes("https")) return path;
 
-    return `${cloudinary_uri}${type ?? "image"}/upload/${cloudinary_postKey}/${path}${type === "video" ? ".mp4" : ".webp"}`;
-  } else {
-    const { path, size, type } = config;
+  if (config.external || path?.startsWith('/')) {
+
+    if (!config.size)
+      return `${externalImgUrlPrefix}w185${path}`;
+
+    const { size, type } = config;
     if (!path) return placeholder.src;
     switch (type) {
       case "poster":
@@ -208,6 +210,10 @@ export const getPoster = (config: getPosterFunctionProps): string => {
       default:
         return "";
     }
+  } else {
+    const { path, type } = config;
+
+    return `${cloudinary_uri}${type ?? "image"}/upload/${cloudinary_postKey}/${path}${type === "video" ? ".mp4" : ".webp"}`;
   }
 };
 
@@ -239,11 +245,11 @@ type ReturnType<F> = {
 }
 
 export const getSearchParams = <F extends string | undefined>(url: URL, initial = 1, fallbackFilter?: F): ReturnType<F> => {
-  const { get } = url.searchParams;
-  const query = get('q') || get("query");
-  const page = Math.max(Number(get('p') || get("page") || `${initial}`) || initial, initial);
-  const nsfw = Boolean(get("nsfw") === "true");
-  const filter = get("f") || get("filter") || fallbackFilter;
+  const sp = url.searchParams;
+  const query = sp.get('q') || sp.get("query");
+  const page = Math.max(Number(sp.get('p') || sp.get("page") || `${initial}`) || initial, initial);
+  const nsfw = Boolean(sp.get("nsfw") === "true");
+  const filter = sp.get("f") || sp.get("filter") || fallbackFilter;
 
   return { page, nsfw, filter, query } as ReturnType<F>
 }

@@ -1,8 +1,10 @@
 import Redis, { ChainableCommander } from "ioredis";
+import { Pipeline, Redis as UpstashRedis } from "@upstash/redis";
 
 declare global {
   // allow global `redis` in dev
   // eslint-disable-next-line no-var
+  var _upstash_redis: UpstashRedis | undefined;
   var _redis: Redis | undefined;
 }
 
@@ -38,6 +40,17 @@ export const getRedis = async () => {
   return global._redis;
 };
 
+export const getUpstashRedis = async () => {
+
+  if (!global._upstash_redis) {
+    global._upstash_redis = new UpstashRedis({
+      url: process.env.UPSTASH_URL,
+      token: process.env.UPSTASH_TOKEN,
+    });
+  }
+  return global._upstash_redis;
+}
+
 /*
   // Listen for errors (avoid flood by not printing stack every time)
   global._redis.on("error", (err) => {
@@ -65,17 +78,22 @@ export const handleParsing = (data: any) => {
   return data;
 }
 
-export const handlePipelineResponse = <T = unknown>(res: [error: Error | null, result: unknown][] | null): T[] => {
+export const handlePipelineResponse = <T = unknown>(res: T | [error: Error | null, result: unknown][] | null): T[] => {
   if (!res) throw new Error("Pipeline returned nothing");
 
-  return res.map(result => {
-    const [e, r] = result;
-    if (e) throw new Error(e.message);
-    else if (Array.isArray(r)) {
-      r.map(handleParsing) as T[];
-    }
-    return handleParsing(r) as T;
-  });
+  else if (Array.isArray(res)) {
+
+    return res.map(result => {
+      const [e, r] = result;
+      if (e) throw new Error(e.message);
+      else if (Array.isArray(r)) {
+        r.map(handleParsing) as T[];
+      }
+      return handleParsing(r) as T;
+    });
+  }
+
+  return res as T[];
 }
 
 type RedisJsonCommands =
@@ -209,8 +227,6 @@ export const RedisJson = <E extends Redis | ChainableCommander, T extends RedisJ
       redis.call("JSON.TOGGLE", key, resolvePath(path, index)),
   } as Record<T, (...options: RedisJsonOptionsMap[T]) => unknown>;
 }
-
-
 
 export type RedisInstance = Redis;
 

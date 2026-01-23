@@ -14,8 +14,8 @@ import { InputFrame, LinkSchema } from "@type/schemas";
 import { useSearchParams } from "next/navigation";
 import { useRef } from "react";
 import z from "zod";
-import ContentMockup from "./ContentMockup";
 import { EditIcon } from "@assets/Icons";
+import { PrimaryButton, SecondaryButton, UserPageMockup } from "@components/ui/mockup";
 
 const Register = ({ email }: { email: string }) => {
 
@@ -99,7 +99,7 @@ const Register = ({ email }: { email: string }) => {
                 submit={checkUsernameAvailability}>
 
                 <Input
-                data-testid="usernameInputBox"
+                    data-testid="usernameInputBox"
                     defaultValue={username}
                     name="username"
                     description="Recommended: Use the name of your favourite character and sprinkle some numbers and an underscore in it."
@@ -119,7 +119,7 @@ const Register = ({ email }: { email: string }) => {
         <>
 
             <Navbar
-                className="p-0 bg-primary !h-fit py-2 sm:pt-0"
+                className="p-0 py-2 sm:pt-0"
                 navTitle="Preview"
                 onGoBack={() => setter({ page: 1 })}
                 OptionButton={
@@ -186,18 +186,18 @@ const Register = ({ email }: { email: string }) => {
                         />
                     </div>
 
+                    <div className="my-2">
+                        <LinkInputManager ref={linkRef} />
+                    </div>
                 </Form>
 
-                <div className="my-2">
-                    <LinkInputManager ref={linkRef} />
-                </div>
 
                 <div className="mt-6 flex gap-2">
-                    <div className="flex-1 bg-secondary color-primary rounded-md py-2 text-center">Follow</div>
-                    <div className="flex-1 border-2 border-secondry rounded-md py-2 text-center">Message</div>
+                    <PrimaryButton className="flex-1">Follow</PrimaryButton>
+                    <SecondaryButton className="flex-1">Message</SecondaryButton>
                 </div>
 
-                <ContentMockup />
+                <UserPageMockup />
 
             </section>
         </>

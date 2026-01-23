@@ -1,7 +1,7 @@
 import { BookmarkIcon, RightChevron, ThumbUpIcon } from "@assets/Icons";
 
 const MockupCommentBar = ({ username }: { username?: string }) => (
-    <article className="group w-full my-2 py-2 border-b border-gray50">
+    <article className="group w-full my-2 p-2 border-b border-gray50">
 
         <header className="flex gap-2 items-center">
             <span className="size-8 bg-gray60 rounded-full"></span>

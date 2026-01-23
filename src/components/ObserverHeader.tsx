@@ -11,9 +11,10 @@ type Props = {
     urlToShare?: string,
     textToShare?: string,
     poster?: string,
+    className?: string
 }
 
-const ObserverHeader = ({ children, headerClasses, OptionButton, navTitle, titleToShare, urlToShare, poster, textToShare }: PropsWithChildren<Props>) => {
+const ObserverHeader = ({ children, headerClasses, OptionButton, className, navTitle, titleToShare, urlToShare, poster, textToShare }: PropsWithChildren<Props>) => {
 
     const headerRef = useRef<HTMLElement | null>(null);
     const [invisible, setInvisible] = useState(false);
@@ -46,7 +47,7 @@ const ObserverHeader = ({ children, headerClasses, OptionButton, navTitle, title
                 navTitle={invisible ? navTitle : undefined}
                 OptionButton={OptionButton}
             />
-            <header ref={headerRef} className={headerClasses}>{children}</header>
+            <header ref={headerRef} className={className}>{children}</header>
         </>
     )
 

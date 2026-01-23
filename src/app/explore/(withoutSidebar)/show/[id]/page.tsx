@@ -11,7 +11,7 @@ import { ParloPageProps } from "@type/other";
 
 const fetchData = async (params: { id: string }) => {
     const show_id = params.id.split('-')[0];
-    if (show_id === "undefined" || show_id.length < 4) return;
+    if (!show_id || show_id === "undefined" || show_id.length < 4) return;
 
     return await fetchShow(show_id)
 }

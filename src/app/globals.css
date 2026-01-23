@@ -180,11 +180,11 @@ select:-webkit-autofill {
   z-index: 0;
 }
 
-:where(h2, h3, h4, h5, h6):not(.customize) {
-  font-size: 0.875rem;
+:where(h2, h3, h4, h5, h6):where(.parloHeading) {
+  font-size: 0.875rem !important;
   line-height: 1rem;
   text-transform: uppercase;
-  font-weight: 600;
+  font-weight: 600 !important;
 }
 
 .fancybox__content {
@@ -259,13 +259,14 @@ select:-webkit-autofill {
   color: var(--primary);
 }
 
-body.light {
+html.light {
   --primary: var(--light-primary);
   --primarylight: var(--light-secondary);
   --primaryText: var(--light-text);
   --secondary: var(--light-text);
   --secondary-text: var(--dark-text);
 }
+
 @media (prefers-color-scheme: dark) {
   :root {
     --primary: var(--dark-primary);
@@ -276,7 +277,7 @@ body.light {
   }
 }
 
-body.dark {
+html.dark {
   --primary: var(--dark-primary);
   --primarylight: var(--dark-secondary);
   --primaryText: var(--dark-text);
@@ -407,6 +408,17 @@ body {
   background-color: color-mix(in srgb, var(--primary), transparent 50%);
   backdrop-filter: blur(12px);
 }
+
+main {
+  min-height: 100dvh;
+  max-height: fit-content;
+  /* display: flex;
+  flex-direction: column; */
+}
+
+/* main > *:not(.w-fit) {
+  width: 100%;
+} */
 
 main:not(.fullScreen) > *:not(.fullScreen) {
   max-width: 768px;

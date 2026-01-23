@@ -20,13 +20,13 @@ type Props = {
     containerClass?: string,
 }
 
-const FancyImage = ({ id, download, caption, alt, src, height, width, type = "image", thumbnail, containerClass, ...args }: Props) => {
+const FancyImage = ({ id, download, caption, alt, src, height, width, type = "image", thumbnail, containerClass, className, ...args }: Props) => {
 
     const source = typeof src === "string" ? src : src.path;
 
     return (
         <div
-            className={twMerge(containerClass, "size-fit")}
+            className={twMerge("size-fit", containerClass)}
             style={{ cursor: "pointer" }}
             key={source}
             data-src={source}
@@ -42,10 +42,12 @@ const FancyImage = ({ id, download, caption, alt, src, height, width, type = "im
                     alt={alt}
                     height={height}
                     width={width}
+                    className={className}
                 />
                 :
                 <video
                     {...args}
+                    className={className}
                     height={height}
                     width={width}
                     preload="metadata"

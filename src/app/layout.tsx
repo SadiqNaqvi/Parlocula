@@ -18,7 +18,7 @@ import UserHydrator from "./UserHydrator";
 // const fontFam = Montserrat({ subsets: ["latin"], weight: ["100", "200", "300", "400", "500", "600", "700"] });
 
 export const metadata: Metadata = {
-  title: "Parlocula",
+  title: "Parlocula - Where Stories Bring Us Together",
   description: "Stop Searching Start Watching",
   keywords: "movies, tv shows, web series, movie recommendation, movie recommendation system, tv show recommendation system, movies suggestion, movie suggestion, show suggestion, series suggestion",
 };
@@ -60,7 +60,6 @@ const NotificationFetcher = async ({ children }: PropsWithChildren) => {
       <UserHydrator payload={payload} />
     </HydrationBoundary>
   )
-
 }
 
 const RootLayout = async ({
@@ -82,6 +81,7 @@ const RootLayout = async ({
             </Fancybox>
           </ThemeProvider>
         </ReactQueryProvider>
+        {/* <script src="https://kit.fontawesome.com/5d93eb1089.js"></script> */}
 
       </body>
     </html>

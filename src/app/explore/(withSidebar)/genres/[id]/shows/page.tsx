@@ -1,26 +1,42 @@
 "use client"
 
 import InfiniteScroller from "@components/InfiniteScroller";
-import { VerticleMovieCard } from "@components/ui";
+import { VerticleMovieCard, VerticleMovieCardSkeleton } from "@components/ui";
 import { fetchShowsWithGenres } from "@lib/contentFetcher";
-import { GeneralGetReturn } from "@type/internal";
+import { RefinedGeneralData } from "@type/external";
 import { useParams } from "next/navigation";
 
-const fetchData = async (page: number, genre: string): Promise<GeneralGetReturn> => {
-    const resp = await fetchShowsWithGenres({ page, genre, sort_by: "popularity" })
-    if (!resp) throw new Error("unstable_internet");
-    return { success: true, result: resp };
-}
+const Component = ({ id, poster, rating, title, year, type }: RefinedGeneralData) => (
+    <VerticleMovieCard
+        id={id}
+        type={type}
+        poster={poster}
+        title={title}
+        rating={rating}
+        year={year}
+        key={id}
+        className="w-auto min-w-auto"
+    />
+)
+
+const SkeletonLoader = () => (
+    <section className="flex flex-wrap gap-3 justify-center overflow-hidden">
+        {Array(12).fill(0).map((_, i) => (
+            <VerticleMovieCardSkeleton key={i} />
+        ))}
+    </section>
+)
 
 export default function Page() {
     const { id } = useParams() as { id: string };
     return (
         <section>
             <InfiniteScroller
-                Component={VerticleMovieCard}
-                fetchData={(p) => fetchData(p, id)}
+                Component={Component}
+                Loading={SkeletonLoader}
+                fetchData={(page) => fetchShowsWithGenres({ page, genre: id, sort_by: "popularity" })}
                 queryKeys={["showsByGenres", id]}
-                className="flex flex-wrap gap-3"
+                className="grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-2 justify-center"
             />
         </section>
     )

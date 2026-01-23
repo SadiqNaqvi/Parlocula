@@ -1,4 +1,4 @@
-import { SearchIcon } from "@assets/Icons";
+import { RightChevron, SearchIcon } from "@assets/Icons";
 import { DataFetcher, Navigate } from "@components";
 
 export default function ExplorePage() {
@@ -17,7 +17,13 @@ export default function ExplorePage() {
                 </Navigate>
             </header>
             <section className="my-6 space-y-3 px-2">
-                <h3>Explore Genres</h3>
+                <div className="flex flex-cntr-between">
+                    <h3 className="parloHeading">Explore Genres</h3>
+                    <Navigate comp="link" goto="/explore/genres" className="inline space-x-2">
+                        <span>More</span>
+                        <RightChevron className="size-4" />
+                    </Navigate>
+                </div>
                 <div className="flex flex-wrap gap-2">
                     {movieGenres.concat(showGenres).map((genre: string) => (
                         <Navigate
@@ -33,7 +39,7 @@ export default function ExplorePage() {
                 </div>
             </section>
             <section className="my-6 space-y-3 px-2">
-                <h3>Trending Movies</h3>
+                <h3 className="parloHeading">Trending Movies</h3>
                 <div className="w-full">
                     <DataFetcher
                         querykeys={["movies", "trending"]}
@@ -44,7 +50,7 @@ export default function ExplorePage() {
                 </div>
             </section>
             <section className="my-6 space-y-3 px-2">
-                <h3>Trending Shows</h3>
+                <h3 className="parloHeading">Trending Shows</h3>
                 <div className="w-full">
                     <DataFetcher
                         querykeys={["shows", "trending"]}

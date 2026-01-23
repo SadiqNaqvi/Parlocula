@@ -15,19 +15,21 @@ export default function SearchTile({ id, image, media_type, name }: RefinedSearc
         size: mediaFilter === "profile" ? "w185" : "w92"
     } as getPosterFunctionProps;
 
-    return <li className="w-full">
-        <Navigate comp="link" className="h-full w-full flex gap-2 md:gap-4" goto={`/explore/${media_type === "tv" ? "show" : media_type}/${id}-${name.replaceAll(' ', '-')}`}>
-            <Image
-                src={getPoster(posterConfig)}
-                className={`w-16 md:w-20 object-center ${media_type === "person" ? "aspect-square rounded-full object-cover" : media_type === "company" ? "aspect-video object-contain" : "aspect-[2/3] rounded-md object-cover"}`}
-                height={80}
-                width={80}
-                alt={`Poster of ${name}`}
-            />
-            <div className="flex-1 space-y-4">
-                <h2 className="text-xl font-semibold">{name}</h2>
-                <span className="mt-auto text-sm capitalize">{media_type === "tv" ? "show" : media_type}</span>
-            </div>
-        </Navigate>
-    </li>
+    return (
+        <article className="w-full">
+            <Navigate comp="link" className="h-full w-full flex gap-2 md:gap-4" goto={`/explore/${media_type === "tv" ? "show" : media_type}/${id}-${name.replaceAll(' ', '-')}`}>
+                <Image
+                    src={getPoster(posterConfig)}
+                    className={`w-16 md:w-20 object-center ${media_type === "person" ? "aspect-square rounded-full object-cover" : media_type === "company" ? "aspect-video object-contain" : "aspect-[2/3] rounded-md object-cover"}`}
+                    height={80}
+                    width={80}
+                    alt={`Poster of ${name}`}
+                />
+                <div className="flex-1 space-y-4">
+                    <h2 className="text-xl font-semibold">{name}</h2>
+                    <span className="mt-auto text-sm capitalize">{media_type === "tv" ? "show" : media_type}</span>
+                </div>
+            </Navigate>
+        </article>
+    )
 }

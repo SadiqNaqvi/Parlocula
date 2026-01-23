@@ -1,26 +1,34 @@
-import { deleteUserFromCookies } from "@lib/helpers/server";
+"use server";
+
 import { TokenPayload } from "@type/internal";
 import { CookiesType } from "@type/other";
+import { cookies } from "next/headers";
 import { getSession } from "./session";
 import { verifyToken } from "./token";
 
-const checkSessionAndRefreshUser = async (jar: CookiesType): Promise<TokenPayload | null | undefined> => {
-  const session_id = jar.get("sid")?.value;
-  if (!session_id) return null;
+// export const deleteUserFromCookies = async () => {
+//   const jar = await cookies();
+//   jar.delete("sid");
+//   jar.delete("token");
+// };
 
-  const { result, success } = await getSession(session_id);
+// const checkSessionAndRefreshUser = async (jar: CookiesType): Promise<TokenPayload | null | undefined> => {
+//   const session_id = jar.get("sid")?.value;
+//   if (!session_id) return null;
 
-  // Return undefined if session cant be fetched because of network issue.
-  if (!success) return undefined;
-  // Return null if session does not exists.
-  else if (!result) {
-    deleteUserFromCookies();
-    return null;
-  }
+//   const { result, success } = await getSession(session_id);
 
-  const { expireOn, ...rest } = result;
-  return rest;
-};
+//   // Return undefined if session cant be fetched because of network issue.
+//   if (!success) return undefined;
+//   // Return null if session does not exists.
+//   else if (!result) {
+//     deleteUserFromCookies();
+//     return null;
+//   }
+
+//   const { expireOn, ...rest } = result;
+//   return rest;
+// };
 
 export const getUserFromToken = async (
   jar: CookiesType
@@ -32,14 +40,11 @@ export const getUserFromToken = async (
 
   const payload = await verifyToken(token);
 
-  if (!payload || typeof payload === "string" || !payload.user_id) return null;
+  if (!payload || typeof payload === "string" || !payload.user_id)
+    return null;
 
-  else if (payload.exp && payload.exp < Date.now()) {
-    const response = await checkSessionAndRefreshUser(jar);
+  else if (payload.exp && payload.exp < Date.now())
+    return null
 
-    // This will only happen when session couldn't get fetched (possibly because of network issue).
-    if (response === undefined) return payload;
-    else return response;
-  }
   return payload;
 };
