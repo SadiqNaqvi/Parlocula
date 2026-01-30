@@ -3,21 +3,16 @@
 import { InfiniteScroller } from "@components";
 import { VerticleMovieCard } from "@components/ui";
 import { fetchMoviesWithCompany, fetchMoviesWithNetwork, fetchShowsWithCompany, fetchShowsWithNetwork } from "@lib/contentFetcher";
-import { PaginatedData, RefinedGeneralData, SortOptions } from "@type/external";
+import { PaginatedData, PersonWork, RefinedGeneralData, SortOptions } from "@type/external";
 import { GeneralGetReturn } from "@type/internal";
-import { useState } from "react";
 
 type Sections = "movies_company" | "movies_network" | "shows_company" | "shows_network"
 
-type Props = ({
-    label: string,
-    section: Sections,
-    data?: undefined,
-} | {
-    label: string,
-    section: "cast" | "crew",
-    data: any[]
-})[]
+type Props = {
+    section: "cast" | "crew" | Sections,
+    content_id: string,
+    data?: PersonWork[],
+}
 
 const funcMap: Record<Sections, (id: string, page?: number, sort_by?: SortOptions)
     => Promise<PaginatedData<RefinedGeneralData> | undefined>> =
@@ -28,22 +23,23 @@ const funcMap: Record<Sections, (id: string, page?: number, sort_by?: SortOption
     shows_network: fetchShowsWithNetwork,
 }
 
-const MediaFetcher = ({ sections, id }: { sections: Props, id: string, }) => {
+const Component = (data: RefinedGeneralData) => (
+    <VerticleMovieCard {...data} className="w-auto min-w-auto" />
+)
 
-    const [active, setActive] = useState(sections[0].section);
-    const data = sections.find(el => el.section === active)?.data;
+const MediaFetcher = ({ section, data, content_id }: Props) => {
 
     const functionToFetch = async (p: number): Promise<GeneralGetReturn> => {
-        if (active === "cast" || active === "crew")
-            return { success: false, errCode: "unstable_internet" };
-        const func = funcMap[active];
-        const data = await func(id, p);
+        if (section === "cast" || section === "crew")
+            return { success: true, result: [] };
+        const func = funcMap[section];
+        const data = await func(content_id, p);
         if (data) return { success: true, result: data };
         return { success: false, errCode: "unstable_internet" }
     }
 
     const notFoundReasons = (): string => {
-        switch (active) {
+        switch (section) {
             case "cast": return "Looks like this person has never worked as a cast.";
             case "crew": return "Looks like this person has never worked as a crew member.";
             case "movies_company": return "Looks like this company has never produced a movie.";
@@ -63,28 +59,15 @@ const MediaFetcher = ({ sections, id }: { sections: Props, id: string, }) => {
 
     return (
         <section className="mt-4 space-y-4">
-            <ul className="flex gap-4 w-full">
-                {sections.map(({ label, section }) => (
-                    <li
-                        key={section}
-                        onClick={() => setActive(section)}
-                        className={`p-2 pointer border-b-2 ${active === section ? "border-secondary" : "border-zinc-500"} flex-1 sm:flex-0 text-center capitalize`}
-                    >
-                        {label}
-                    </li>
-                ))}
-            </ul>
-            <div>
-                <InfiniteScroller
-                    className="flex flex-wrap gap-4"
-                    Component={VerticleMovieCard}
-                    fetchData={functionToFetch}
-                    queryKeys={[active, id]}
-                    initialData={data ? { data, total: data.length } : undefined}
-                    initialPage={1}
-                    NotFoundSection={NotFoundSection}
-                />
-            </div>
+            <InfiniteScroller
+                className="grid grid-cols-2 sm:grid-cols-4 xs:grid-cols-3 gap-2 sm:gap-4 px-2 sm:px-4"
+                Component={Component}
+                fetchData={functionToFetch}
+                queryKeys={["mediaFetcher", "explore", section, content_id]}
+                initialData={data ? { data, total: data.length } : undefined}
+                initialPage={1}
+                NotFoundSection={NotFoundSection}
+            />
         </section>
     )
 }

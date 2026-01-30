@@ -1,8 +1,10 @@
 "use client";
 
+import { EditIcon } from "@assets/Icons";
 import { BottomSheet, BottomSheetRef, Navbar } from "@components";
-import LoginModal from "@components/fallbacks/LoginModal";
 import { Form, Input, LinkInputManager, Poster, Textarea, ToggleButton } from "@components/form";
+import LoginPopupSheet from "@components/sheets/LoginPopupSheet";
+import { PrimaryButton, ThreadPageMockup } from "@components/ui/mockup";
 import { createThreadMutation } from "@lib/helpers/mutations";
 import appToast from "@lib/providers/toast";
 import { threadSchemaClient } from "@lib/schemas";
@@ -13,9 +15,6 @@ import { InputManagerType } from "@type/other";
 import { ThreadSchemaServer } from "@type/schemas";
 import { useRef } from "react";
 import ConnectionsInput from "./ConnectionsInput";
-import { EditIcon } from "@assets/Icons";
-import { PrimaryButton, ThreadPageMockup } from "@components/ui/mockup";
-import LoginPopupSheet from "@components/sheets/LoginPopupSheet";
 
 const goodToKnowSections = [
     {
@@ -72,7 +71,6 @@ const CreateNewThreadPage = () => {
     const linksRef = useRef<InputManagerType>(null);
     const loginSheetRef = useRef<BottomSheetRef>(null);
 
-
     const navigation = useNavigation();
 
     const { meta } = useCurrentUser();
@@ -85,11 +83,6 @@ const CreateNewThreadPage = () => {
         }
 
         const connections = connectionsRef.current?.getData();
-
-        if (!connections || !connections.length || connections.length > 10) {
-            appToast.error("At least 1 connections are required to create a thread. Upto 10 connections are allowed.")
-            return;
-        }
 
         const poster = posterRef.current?.getData();
         const links = linksRef.current?.getData();
@@ -168,30 +161,29 @@ const CreateNewThreadPage = () => {
                     </div>
                 </section>
 
-                <div className="flex gap-2 group">
+                <div className="flex my-6 gap-2 group">
                     <EditIcon className="size-4 mt-1 text-gray-500 group-has-[:focus]:text-inherit" />
                     <Textarea
                         name="description"
                         placeholder="Description - about thread, rules, etc."
                         required
-                        containerClassName="border-0 pb-0 flex-1 h-fit"
+                        containerClassName="border-0 flex-1 h-fit"
                         className="py-1 h-fit"
                         maxLength={500}
                     />
                 </div>
 
             </Form>
-            <section className="space-y-4">
-                <div className="flex mt-2 gap-2 px-2">
+            <section className="px-2 space-y-4 mt-4">
                     <LinkInputManager ref={linksRef} />
-                </div>
 
-                <div className="space-x-4 px-2">
+                <div>
                     <ConnectionsInput connectionsRef={connectionsRef} />
+                    <p className="text-sm text-gray-500">You can optionally connect this thread to the movies, shows or artists it is based on. If connected, the thread would be shown on these connected wiki page.</p>
                 </div>
             </section>
 
-            <div className="flex px-2 mt-6">
+            <div className="flex px-2 mt-4">
                 <PrimaryButton>Follow</PrimaryButton>
             </div>
 

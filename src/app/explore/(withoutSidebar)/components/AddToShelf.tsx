@@ -14,6 +14,7 @@ import useCurrentUser from "@store/user";
 import { PredefinedShelves } from "@type/models";
 import { CinementSchemaType } from "@type/schemas";
 import AddToCollaborativeShelf from "./AddToCollaborativeShelf";
+import { LoginModal } from "@components/fallbacks";
 
 const AddToShelf = ({ className, cinement, released }: { className?: string, cinement: CinementSchemaType, released: boolean }) => {
 
@@ -25,9 +26,16 @@ const AddToShelf = ({ className, cinement, released }: { className?: string, cin
         enabled: Boolean(meta),
     });
 
-    if (!meta || !user) return null;
+    if (!meta || !user) return (
+        <BottomSheet className={className} button="Add To Shelf">
+            <LoginModal
+                skipFullScreen
+                title="Uh oh! Looks like you are not logged in"
+            />
+        </BottomSheet>
+    );
 
-    else if (isFetching || !isRefetching) return <LoadingButton />
+    else if (isFetching && !isRefetching) return <LoadingButton />
     else if (isError || !data)
         return <button className="secondary" onClick={() => refetch()}>Try Again</button>
 

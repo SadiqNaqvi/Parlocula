@@ -1,6 +1,10 @@
 import { oneKb, oneMb } from "@lib/constants";
+import sharp from "sharp";
+import { thumbHashToDataURL, rgbaToThumbHash } from "thumbhash"
 
 type FileAcceptTypes = Blob | File | string;
+
+const isServer = () => typeof window === "undefined"
 
 export const scaleImage = async (file: File): Promise<Blob | null> => {
     if (!file) return null;
@@ -108,11 +112,90 @@ const loadImage = (file: FileAcceptTypes): Promise<HTMLImageElement> => {
     return new Promise((resolve) => {
         const img = new Image();
         img.src = path;
+        img.crossOrigin = "anonymous";
         img.onload = () => {
             URL.revokeObjectURL(img.src);
             resolve(img);
         }
     });
+}
+
+export const imagePathToBlob = async (
+    imagePath: string,
+    type: string = "image/webp",
+    quality?: number
+): Promise<Blob> => {
+    const img = new Image();
+
+    // Required to avoid tainted canvas
+    img.crossOrigin = "anonymous";
+    img.decoding = "async";
+
+    img.src = imagePath;
+
+    // Wait for image to load
+    await new Promise<void>((resolve, reject) => {
+        img.onload = () => resolve();
+        img.onerror = () =>
+            reject(new Error(`Failed to load image: ${imagePath}`));
+    });
+
+    // Decode into ImageBitmap (faster draw path)
+    const bitmap = await createImageBitmap(img);
+
+    // Create OffscreenCanvas
+    const canvas = new OffscreenCanvas(bitmap.width, bitmap.height);
+    const ctx = canvas.getContext("2d");
+
+    if (!ctx) {
+        bitmap.close();
+        throw new Error("Failed to get 2D context from OffscreenCanvas");
+    }
+
+    ctx.drawImage(bitmap, 0, 0);
+
+    // Free bitmap memory early
+    bitmap.close();
+
+    // Convert to Blob
+    return canvas.convertToBlob({ type, quality });
+}
+
+
+export const getImageData = async (img: FileAcceptTypes) => {
+
+    // if (isServer()) {
+    //     const src = typeof img === "string" ? img : await img.arrayBuffer();
+    //     const image = sharp(src).resize(100, 100, { fit: 'inside' });
+    //     const { data, info } = await image.ensureAlpha().raw().toBuffer({ resolveWithObject: true })
+    //     return { data, width: info.width, height: info.height }
+    // } else {
+    const image = await loadImage(img);
+    const canvas = new OffscreenCanvas(image.width, image.height);
+    const context = canvas.getContext('2d');
+
+    if (!context) throw new Error("No context is created");
+
+    const scale = 100 / Math.max(image.width, image.height);
+    canvas.width = Math.round(image.width * scale);
+    canvas.height = Math.round(image.height * scale);
+    context.drawImage(image, 0, 0, canvas.width, canvas.height);
+    const { data, width, height } = context.getImageData(0, 0, canvas.width, canvas.height);
+    return { data, width, height }
+    // }
+
+}
+
+export const binaryToBase64 = (binary: Uint8Array) => {
+    if (isServer()) return Buffer.from(binary).toString('base64')
+    return btoa(String.fromCharCode(...binary))
+}
+
+export const base64ToBinary = (base64: string) => {
+    if (isServer())
+        return new Uint8Array(Buffer.from(base64, 'base64'))
+
+    return new Uint8Array(atob(base64).split('').map(x => x.charCodeAt(0)))
 }
 
 /**
@@ -126,44 +209,10 @@ const loadImage = (file: FileAcceptTypes): Promise<HTMLImageElement> => {
 
 export const createThumbHash = async (file: FileAcceptTypes) => {
 
-    // 1. Load the image
-    const img = await loadImage(file);
+    const { data, height, width } = await getImageData(file);
+    const binary = rgbaToThumbHash(width, height, data);
+    return binaryToBase64(binary);
 
-    // 2. Draw to a very small canvas
-    const size = 6; // 6x6 gives 36 pixels
-    const aspect = img.width / img.height;
-
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d")!;
-
-    canvas.width = size;
-    canvas.height = size;
-    ctx.drawImage(img, 0, 0, size, size);
-
-    // 3. Get RGBA data
-    const { data } = ctx.getImageData(0, 0, size, size);
-
-    // 4. Quantize and pack color info
-    let totalBrightness = 0;
-    const rgbValues: number[] = [];
-    for (let i = 0; i < data.length; i += 4) {
-        const r = Math.round(data[i] / 36); // 0–7 (3 bits)
-        const g = Math.round(data[i + 1] / 36); // 0–7 (3 bits)
-        const b = Math.round(data[i + 2] / 85); // 0–3 (2 bits)
-        const brightness = (r + g + b) / 3;
-        totalBrightness += brightness;
-
-        rgbValues.push((r << 5) | (g << 2) | b); // 3 + 3 + 2 = 8 bits
-        // rgbValues.push((r << 6) | (g << 3) | b); // pack into 1 byte (3+3+2 bits approx)
-    }
-
-    // 5. Convert to binary string
-    const avgBrightness = Math.round(totalBrightness / (data.length / 4));
-    const aspectByte = Math.min(255, Math.round(aspect * 16));
-    const packedHeader = String.fromCharCode(avgBrightness, aspectByte);
-    const binary = packedHeader + String.fromCharCode(...rgbValues);
-
-    return btoa(binary);
 }
 
 /**
@@ -173,36 +222,5 @@ export const createThumbHash = async (file: FileAcceptTypes) => {
 * @returns string
 */
 
-export const decodeHash = (base64: string): Promise<string> => {
-    const bytes = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
+export const decodeHash = (base64: string) => thumbHashToDataURL(base64ToBinary(base64));
 
-    const avgBrightness = bytes[0];     // first byte: brightness
-    const width = bytes[1];             // second: width
-    const height = bytes[2];            // third: height
-    const pixelData = bytes.slice(3);   // rest: pixel info
-
-    const canvas = document.createElement('canvas');
-    canvas.width = width;
-    canvas.height = height;
-    const ctx = canvas.getContext('2d')!;
-    const imgData = ctx.createImageData(width, height);
-
-    const brightnessFactor = avgBrightness / 128;
-    for (let i = 0; i < pixelData.length; i += 3) {
-        const r = pixelData[i];
-        const g = pixelData[i + 1];
-        const b = pixelData[i + 2];
-
-        // Apply brightness correction (normalize around 128 mid-point)
-        imgData.data[i * (4 / 3) + 0] = Math.min(255, r * brightnessFactor);
-        imgData.data[i * (4 / 3) + 1] = Math.min(255, g * brightnessFactor);
-        imgData.data[i * (4 / 3) + 2] = Math.min(255, b * brightnessFactor);
-        imgData.data[i * (4 / 3) + 3] = 255; // full opacity
-    }
-
-    ctx.putImageData(imgData, 0, 0);
-
-    return new Promise(resolve => {
-        canvas.toBlob(blob => resolve(URL.createObjectURL(blob!)), 'image/webp');
-    });
-}

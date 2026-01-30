@@ -1,6 +1,6 @@
 export default function Loading() {
     return (
-        <main className="max-h-dvh overflow-hidden">
+        <main className="noPadding overflow-hidden">
             <div className="h-44 sm:h-44 bg-gray30"></div>
             <section className="-mt-6 bg-primarylight pb-6 px-4">
                 <div className="max-w-screen-lg mx-auto">

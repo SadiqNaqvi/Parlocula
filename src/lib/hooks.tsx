@@ -71,9 +71,6 @@ type UseQueryProps<T,> = {
     onSuccess?: (d: T) => void,
     placeholderData?: T,
 }
-
-type QueryData<T> = NonNullable<Awaited<ReturnType<QueryFn<T>>>["result"]>
-
 export const useQueryHook = <T,>({ queryKeys, onSuccess, queryFn, initialData, placeholderData, staleTime = oneHour * 1000, enabled = true }: UseQueryProps<T>) => {
     const response = useQuery<T | null>({
         queryKey: queryKeys,

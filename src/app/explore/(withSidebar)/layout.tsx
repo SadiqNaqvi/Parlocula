@@ -1,14 +1,16 @@
 import { Sidebar } from "@components";
+import { ParloFooter } from "@components/ui";
 import { FullPageLoadingSpinner } from "@components/ui/loading/LoadingSpinner";
-import { Suspense } from "react";
+import { PropsWithChildren, Suspense } from "react";
 
-export default function ExploreLayout({ children }: Readonly<{ children: React.ReactNode; }>) {
+export default function ExploreLayout({ children }: PropsWithChildren) {
     return (
         <>
             <Sidebar />
             <main>
                 <Suspense fallback={<FullPageLoadingSpinner />}>
                     {children}
+                    <ParloFooter />
                 </Suspense>
             </main>
         </>

@@ -15,7 +15,7 @@ export const GET = getHandler(async (_, params) => {
   return {
     success: true,
     result: {
-      shelves: shelves.map(obj => obj.shelf_id)
+      shelves: shelves?.map(obj => obj.shelf_id) || []
     }
   };
 }

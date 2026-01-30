@@ -6,7 +6,7 @@ import { Metadata } from "next";
 export const generateMetadata = async ({ params }: ParloPageProps): Promise<Metadata> => {
     const id = (await params).id.split('-')[0];
 
-    const data = await fetchShow(id);
+    const data = await fetchShow(id, false);
     if (!data) return { title: "Parlocula" };
     return {
         title: `Threads on ${data.title} - Parlocula`,

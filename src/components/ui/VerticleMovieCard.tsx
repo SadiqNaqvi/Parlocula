@@ -6,10 +6,10 @@ import { twMerge } from "tailwind-merge";
 
 export const VerticleMovieCardSkeleton = () => (
     <div className="min-w-44 w-44 aspect-[2/3] space-y-2">
-        <div className="w-full aspect-[2/3] skeletonLoading"></div>
+        <div className="w-full aspect-[2/3] bg-primarylight"></div>
         <div className="space-y-2">
-            <div className="w-[90%] rounded-3xl h-2 skeletonLoading"></div>
-            <div className="w-[40%] rounded-3xl h-2 skeletonLoading"></div>
+            <div className="w-[90%] rounded-3xl h-2 bg-primarylight"></div>
+            <div className="w-[40%] rounded-3xl h-2 bg-primarylight"></div>
         </div>
     </div>
 )
@@ -21,7 +21,7 @@ export default function VerticleMovieCard({ id, type, poster, title, year, ratin
             <figure className={twMerge("min-w-44 w-44 relative cursor-pointer", className)}>
 
                 <Image
-                    src={getPoster({ external: true, path: poster, type: "poster", size: "w185", })}
+                    src={getPoster({ external: true, path: poster, type: "poster", size: "w342" })}
                     height={176}
                     width={176}
                     loading="lazy"

@@ -1,13 +1,12 @@
 "use client"
 
-import { BottomSheet, GenericWrapper, Navigate, ObserverHeader, FancyImage } from "@components";
+import { BottomSheet, FancyImage, GenericWrapper, Navigate, ObserverHeader } from "@components";
 import { TabContainer, TabList } from "@components/ui/Tabs";
 import { getThreadById } from "@lib/helpers/common";
-import { getQueryKeys, numberConverter } from "@lib/utils";
+import { getQueryKeys } from "@lib/utils";
 import { Thread as ThreadType } from "@type/internal";
-import EllipsisButton from "./EllipsisButton";
-import ActionsButton from "./ActionButtons";
-import ThreadDetailSheet from "./ThreadDetailSheet";
+import { ActionsButton, EllipsisButton, ThreadDetailsSheet } from "./";
+import { ParloImage } from "@components/ui";
 
 type Props = { id: string, uid?: string }
 
@@ -27,50 +26,48 @@ const Component = (data: ThreadType, { id, uid }: Props) => {
                 navTitle={name}
                 titleToShare={`Check out a thread on "${name}" on Parlocula`}
                 OptionButton={<EllipsisButton creator={created_by} tid={_id} />}
-                headerClasses="flex flex-col md:flex-row mb-4">
+                className="px-2 sm:px-4 mt-2">
 
-                <div>
-                    <FancyImage
-                        download={`Poster of thread "${name}" - Parlocula`}
-                        id="thread-poster"
-                        className="size-32 object-cover rounded-full"
-                        src={poster}
+                <section className="flex gap-2 sm:gap-4 items-center">
+                    <ParloImage
+                        fancy={{
+                            fileNameToDownload: `Poster of thread "${name}" - Parlocula`,
+                            gallery: "thread-poster",
+                        }}
+                        className="min-w-24 size-24 sm:min-w-32 sm:size-32 object-cover rounded-full"
+                        frame={poster}
                         height={128} width={128}
                         alt="Poster"
+                        prioritize
                     />
 
-                    <h1 data-observe className="text-2xl mt-3 sm:text-4xl uppercase font-semibold">{name}</h1>
-
-                    <ul className="flex gap-2 text-xs text-zinc-500">
-                        {nsfw && (
-                            <li className="list-[circle] px-2 py-2 rounded-full bg-purple-500 bg-opacity-50 text-zinc-100">NSFW</li>
-                        )}
-                        <li>
-                            <Navigate comp="link" goto={`${_id}/members`}>{numberConverter(member_count)} Members</Navigate>
-                        </li>
-                        <li className="list-[circle]">Posts: {numberConverter(post_count)}</li>
-                    </ul>
-
-                    <p className="mt-2 line-clamp-2">{description}</p>
-
-                    <div className="mt-2">
-                        <BottomSheet className="text-sm" button="See more">
-                            <ThreadDetailSheet
-                                connections={connections}
-                                createdAt={createdAt}
-                                creator={creator}
-                                description={description}
-                                edited_by={edited_by}
-                                links={links}
-                                managers={managers}
-                            />
-                        </BottomSheet>
+                    <div className="space-y-2">
+                        <h1 data-observe className="text-lg sm:text-xl md:text-2xl line-clamp-2 capitalize font-semibold">{name}</h1>
+                        <p className="text-sm space-x-2">
+                            <span>Created by</span>
+                            <Navigate className="inline underline" comp="link" goto={`/user/${creator}`}>@{creator}</Navigate>
+                        </p>
                     </div>
-                </div>
 
-                <div className="mt-4">
+                </section>
+                <section className="mt-4">
+
+                    <BottomSheet className="text-sm line-clamp-2 whitespace-break-spaces text-left" button={description}>
+                        <ThreadDetailsSheet
+                            connections={connections}
+                            createdAt={createdAt}
+                            creator={creator}
+                            description={description}
+                            edited_by={edited_by}
+                            links={links}
+                            managers={managers}
+                        />
+                    </BottomSheet>
+                </section>
+
+                <section className="mt-4">
                     <ActionsButton uid={uid} thread={{ _id, name, poster }} />
-                </div>
+                </section>
 
             </ObserverHeader>
 

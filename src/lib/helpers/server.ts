@@ -127,7 +127,7 @@ export const sendVerificationCode = async (
 ): Promise<GeneralGetReturn> => {
   if (!fingerprint) throw new Error("Fingerprint is not passed");
 
-  if (!!process.env.IS_TESTING) return {
+  if (process.env.NODE_ENV === "test") return {
     success: true,
     result: null,
   }
@@ -137,6 +137,8 @@ export const sendVerificationCode = async (
   const payload: EmailPayload | null = await redis
     .get(`limits:email:${fingerprint}`)
     .then(r => JSON.parse(r ?? "null"));
+
+  console.log(payload);
 
   if (payload && payload.triedTimes >= 5)
     return { success: false, errCode: "email_verification_limit_exceed" }
@@ -156,7 +158,10 @@ export const sendVerificationCode = async (
       triedTimes: triedTimes + 1,
     };
 
-    await redis.setex(`limits:email:${fingerprint}`, oneHour, JSON.stringify(updatedPayload));
+    await redis.setex(
+      `limits:email:${fingerprint}`,
+      Date.now() + oneHour,
+      JSON.stringify(updatedPayload));
 
     return { success: true, result: null };
 
@@ -174,7 +179,7 @@ export const verifyCode = async (code: string | number, fingerprint: string): Pr
     if (!success)
       return { success: false, errCode: "form_error", formError: error.errors }
 
-    if (!!process.env.IS_TESTING) {
+    if (process.env.NODE_ENV === "test") {
       if (data === 123456) return {
         success: true,
         result: null

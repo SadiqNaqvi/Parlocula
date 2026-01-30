@@ -1,4 +1,5 @@
 import { usePathname, useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
@@ -59,6 +60,9 @@ export const useNavigation = (): AppNavigationInstance => {
   const { setHistory, historyStack, lastPage, popHistory, pushHistory } = useHistoryStack();
   const router = useRouter();
   const pathname = usePathname();
+
+  // Capture navigations and push pathname into history stack
+  useEffect(() => pushHistory(pathname), [pathname]);
 
   return {
     back: () => {

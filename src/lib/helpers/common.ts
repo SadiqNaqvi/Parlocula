@@ -397,7 +397,7 @@ export const getCinement = async (ext_id: string, type: "movie" | "show"): Promi
     options: { extid: id },
   });
 
-  if (item.success) return item.result;
+  if (item.success) return { ...item.result, cinement_id: item.result._id };
 
   const media: GeneralExtReturn<RefinedShowData | RefinedMovieData> = await fetch(
     `https://testlalaapp.vercel.app/api/${type}?id=${ext_id}`,
@@ -432,7 +432,7 @@ export const getCinement = async (ext_id: string, type: "movie" | "show"): Promi
 
 export const getShelvesForCinement = async (id: string, uid: string, cookies?: CookiesType) =>
   await ppGetData<ShelvesForCinement>({
-    url: `/private/${uid}/cinement/${id}`,
+    url: `private/${uid}/cinement/${id}`,
     tag: "shelvesForMedia_mid_uid",
     options: { mid: id, uid },
     revalidate: oneDay,

@@ -50,7 +50,7 @@ const Component = (data: RequestedUser, props: Props) => {
         <>
             <ObserverHeader
                 titleToShare={`Check out @${username} on Parlocula`}
-                headerClasses="mt-4 px-4"
+                className="mt-4 px-2 sm:px-4"
                 OptionButton={<SettingButton uid={data._id} />}
                 navTitle={username}>
 

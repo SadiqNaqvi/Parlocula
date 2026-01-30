@@ -27,7 +27,7 @@ export const DrawerPortal = ({ children, allowHandle, description, title, ref }:
     <Drawer.Description>{description}</Drawer.Description>
     <Content ref={ref} className="h-fit fixed z-[10] rounded-t-md sm:rounded-md border-t border-gray60 bottom-0 left-0 right-0 outline-none bg-primary py-4">
       <Handle />
-      <aside className="mx-auto mt-4 min-h-40 w-full max-w-96 max-h-[80dvh] overflow-y-auto">
+      <aside className="*:mx-auto mt-4 min-h-40 w-full *:max-w-96 max-h-[80dvh] overflow-y-auto">
         {children}
       </aside>
     </Content>

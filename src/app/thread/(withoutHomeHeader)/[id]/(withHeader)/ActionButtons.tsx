@@ -25,17 +25,17 @@ const RoleBasedActionButtons = ({ role, tid }: { tid: string, role: ThreadMember
     }
 
     if (role === "moderator_invitee") return (
-        <div>
-            <div className="flex gap-2">
+        <>
+            <div className="contents">
                 <button onClick={acceptInvite} className="primary flex-1 sm:flex-0">Accept</button>
                 <button onClick={rejectInvite} className="secondary flex-1 sm:flex-0">Deny</button>
             </div>
-            <p className="text-sm text-zinc-500">You are invited to become a Manager of this thread.</p>
-        </div>
+            <p className="text-sm text-zinc-500 col-span-4">You are invited to become a Manager of this thread.</p>
+        </>
     )
 
     return (
-        <Navigate comp="link" type="button" goto={`/thread/${tid}/settings`} className="w-full sm:w-fit secondary">
+        <Navigate comp="link" type="button" goto={`/thread/${tid}/settings`} className="btn secondary col-span-2 sm:col-span-1">
             Settings
         </Navigate>
     )
@@ -79,8 +79,8 @@ const JoinButton = ({ thread, uid }: { thread: MereThread, uid?: string }) => {
         )
 
         return (
-            <>
-                <div className="flex gap-2">
+            <div className="grid gap-2 grid-cols-2 sm:grid-cols-4 ">
+                <>
                     <OptionMenu
                         id="connection-options"
                         ButtonElement={<>Joined {state.notification ? <BellIcon /> : <BellSlashIcon />}</>}
@@ -90,9 +90,9 @@ const JoinButton = ({ thread, uid }: { thread: MereThread, uid?: string }) => {
                         <OptionList onClick={() => handleClick("update_thread_notification")}>{state.notification ? "Disable" : "Enable"} Notification</OptionList>
                     </OptionMenu>
                     <button className="secondary flex-1 sm:flex-0" onClick={handleNewPostRedirect}>Create Post</button>
-                </div>
+                </>
                 <RoleBasedActionButtons role={state.role} tid={thread._id} />
-            </>
+            </div>
         )
     }
 

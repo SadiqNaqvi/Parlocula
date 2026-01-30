@@ -21,11 +21,11 @@ const funcMap = {
     fetchTrendingShows,
 }
 
-type AllowedFunctions = keyof typeof funcMap;
+export type AllowedFunctionsForHorizontalList = keyof typeof funcMap;
 
 type FuncMap = typeof funcMap
 
-type Props<T extends AllowedFunctions> = {
+export type HorizontalMovieListProps<T extends AllowedFunctionsForHorizontalList> = {
     func: T,
     args: Parameters<FuncMap[T]>,
     type: string,
@@ -34,7 +34,7 @@ type Props<T extends AllowedFunctions> = {
     querykeys: string[],
 }
 
-const DataFetcher = <T extends AllowedFunctions>({ func, args, type, className = '', querykeys, except }: Props<T>) => {
+const DataFetcher = <T extends AllowedFunctionsForHorizontalList>({ func, args, type, className = '', querykeys, except }: HorizontalMovieListProps<T>) => {
 
     const [isVisible, setIsVisible] = useState(false);
     const container = useRef(null);
@@ -42,7 +42,7 @@ const DataFetcher = <T extends AllowedFunctions>({ func, args, type, className =
     useEffect(() => {
 
         const current = container.current;
-        
+
         const observer = new IntersectionObserver(([entry]) => {
             if (entry.isIntersecting && !isVisible && entry.intersectionRatio >= 0.2)
                 setIsVisible(true);

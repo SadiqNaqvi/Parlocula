@@ -113,7 +113,7 @@ export const timeAgo = (timestamp: GenericDate | undefined, short?: boolean) => 
   return units.find(({ limit }) => elapsed < limit)!.message;
 };
 
-export const numberConverter = (num: number): string => {
+export const numberConverter = (num: number | undefined): string => {
   if (!num) return "0";
   if (num < 1000) return num.toString();
   const digits = Math.ceil(Math.log10(num + 1)); //num+1 because Math.log10 returns 2 for 100 and 3 for 101
@@ -217,6 +217,11 @@ export const getPoster = (config: getPosterFunctionProps): string => {
   }
 };
 
+export const checkAndReturn = <T>(prop: T, equals?: any, notEquals?: any): T | undefined => {
+  if ((notEquals && prop === notEquals) || (equals && prop !== equals) || !Boolean(prop)) return undefined;
+  else return prop;
+}
+
 export const getThumbnail = (vid: string) => {
   if (!vid || !vid.includes("cloudinary")) return placeholder.src;
   const vidArr = vid.split(".");
@@ -247,7 +252,7 @@ type ReturnType<F> = {
 export const getSearchParams = <F extends string | undefined>(url: URL, initial = 1, fallbackFilter?: F): ReturnType<F> => {
   const sp = url.searchParams;
   const query = sp.get('q') || sp.get("query");
-  const page = Math.max(Number(sp.get('p') || sp.get("page") || `${initial}`) || initial, initial);
+  const page = Math.max(Number(sp.get('p') || sp.get("page") || `${initial}`) || initial, initial) - 1;
   const nsfw = Boolean(sp.get("nsfw") === "true");
   const filter = sp.get("f") || sp.get("filter") || fallbackFilter;
 

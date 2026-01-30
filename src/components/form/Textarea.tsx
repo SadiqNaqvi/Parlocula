@@ -17,7 +17,7 @@ const Textarea = ({ label, name, description, className, containerClassName, ...
     const error = errors[name]?.message?.toString() || "";
 
     return (
-        <div className={twMerge(`space-y-2 max-h-[200px] overflow-y-auto pb-2 border-b ${error ? "border-red-500" : "border-gray20"}`, containerClassName)}>
+        <div className={twMerge(`space-y-2 max-h-[200px] overflow-y-auto border-b ${error ? "border-red-500 pb-2" : "border-gray20 pb-[1px]"}`, containerClassName)}>
 
             <OptionalChildren condition={label}>
                 <label className="capitalize" htmlFor={name}>{label}</label>

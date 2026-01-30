@@ -1,31 +1,30 @@
-import { DataFetcher, Navigate } from "@components";
-import FancyImage from "@components/FancyImage";
-import ObserverHeader from "@components/ObserverHeader";
-import { ContentBox, NotFound, VerticleMovieCard } from "@components/ui";
-import { fetchEpisodeForSeason, fetchSeasonForShow, fetchShow } from "@lib/contentFetcher";
-import { getPoster } from "@lib/utils";
+import CinementWikiHeader, { CinementWikiSection } from "@app/explore/(withoutSidebar)/components/CinementWikiPage";
+import { ArtistCard, NotFound } from "@components/ui";
+import { fetchEpisodeForSeason, fetchShow } from "@lib/contentFetcher";
 import { makeUrlSafe } from "@lib/utils";
+import { ParloPageProps } from "@type/other";
 import { Metadata } from "next";
 
 type Ids = { id: string, season: string, episode: string }
-type Props = { params: Ids };
 
-const fetchSeason = async ({ id, episode }: Ids) => {
-    const refineSeason = parseInt(episode.split('-')[1]);
+const fetchSeason = async ({ id, episode,season }: Ids, getInternalData: boolean) => {
+    const refineSeason = parseInt(season.split('-')[1]);
     const seasonNumber = isNaN(refineSeason) ? 1 : refineSeason;
+
+    console.log(seasonNumber);
     const refineEpisode = parseInt(episode.split('-')[1]);
     const episodeNumber = isNaN(refineEpisode) ? 1 : refineEpisode;
     const [showPromise, episodePromise] = await Promise.all([
-        fetchShow(id),
+        fetchShow(id, getInternalData),
         fetchEpisodeForSeason(id, seasonNumber, episodeNumber),
     ]);
     if (!showPromise || !episodePromise) return null;
     return { show: showPromise, episode: episodePromise }
 }
 
-export const generateMetadata = async ({ params }: Props): Promise<Metadata> => {
+export const generateMetadata = async ({ params }: ParloPageProps<Ids>): Promise<Metadata> => {
 
-    const data = await fetchSeason(params);
+    const data = await fetchSeason(await params, false);
 
     if (!data) return { title: "Parlocula" };
     const { episode, show } = data;
@@ -35,15 +34,16 @@ export const generateMetadata = async ({ params }: Props): Promise<Metadata> => 
     };
 };
 
-const EpisodePage = async ({ params }: Props) => {
+const EpisodePage = async ({ params }: ParloPageProps<Ids>) => {
 
-    const data = await fetchSeason(params);
+    const data = await fetchSeason(await params, true);
+
     if (!data) return (
         <NotFound
             title="Oops! Looks like the popcorn is missing"
             paras={[
-                `Possible reasons: Show id is incorrect.`,
-                `Please search the show with its title in the Explore Page`
+                "Possible reasons: Show id is incorrect.",
+                "Please search the show with its title in the Explore Page"
             ]}
         />
     )
@@ -55,90 +55,50 @@ const EpisodePage = async ({ params }: Props) => {
         { label: 'Year', value: new Date(episode.release_date).getFullYear() },
     ]
 
-    const mainTitle = `${episode.title} (S${episode.season_number}/E${episode.episode_number}) of ${show.title}`;
     return <>
-        <ObserverHeader
-            titleToShare={`Check out ${mainTitle} on Parlocula`}
-            navTitle={mainTitle}>
 
-            <div className="w-full mt-2">
-                <FancyImage
-                    containerClass="w-full"
-                    width={768}
-                    height={300}
-                    className="w-full rounded-md h-[300px] object-cover object-top"
-                    alt="Backdrop"
-                    id="backdrop-popover"
-                    thumbnail={getPoster({ external: true, type: "backdrop", path: show.backdrop, size: "w780" })}
-                    src={getPoster({ external: true, type: "backdrop", path: show.backdrop, size: "original" })}
-                    download={`${mainTitle} - Parlocula`}
-                />
-            </div>
+        <CinementWikiHeader
+            backdrop={show.backdrop}
+            overviewOrBio={episode.overview}
+            poster={episode.poster}
+            title={episode.title}
+            titleSupport={<p className="text-sm md:text-base text-zinc-500">{show.tagline}</p>}
+            wikiMeta={metadata}
+        />
 
-            <div className="flex gap-4">
-
-                <FancyImage
-                    id="poster"
-                    thumbnail={getPoster({ external: true, type: "poster", path: episode.poster, size: "w154" })}
-                    src={getPoster({ external: true, type: "poster", path: episode.poster, size: "original" })}
-                    height={160}
-                    width={160}
-                    download={`Poster of ${mainTitle} - Parlocula`}
-                    className="border-4 border-primary object-cover size-24 sm:size-40 ml-4 translate-y-[-50%] rounded-full"
-                    alt={`Poster of ${mainTitle}`}
-                />
-
-                <div className="w-fit h-fit flex gap-2 sm:gap-4 pt-4">
-                    {metadata.map(el => (
-                        <div key={el.label} className="border-0 gap-1 md:gap-2 flex flex-col flex-cntr-all md:flex-row sm:p-4 sm:border border-gray20 rounded-md">
-                            <span>{el.value}</span>
-                            <label className="text-xs text-zinc-500">{el.label}</label>
-                        </div>
-                    ))}
-                </div>
-
-            </div>
-
-            <h1 data-observe className="text-xl sm:text-4xl -mt-10 sm:-mt-16 font-semibold uppercase">{episode.title}</h1>
-
-            <p className="text-sm md:text-base text-zinc-500">{show.tagline}</p>
-
-            <p className="text-sm text-gray-500 mt-6 line-clamp-4">{episode.overview}</p>
-        </ObserverHeader>
-        <section className="mb-6 space-y-3">
-            <h2 className="text-xl uppercase font-semibold">Top Cast</h2>
+        <CinementWikiSection heading="Top Cast">
             <div className="flex gap-4 overflow-x-auto pb-2">
                 {episode.cast.map(el => (
-                    <ContentBox key={el.id} title={el.name} detail={el.character} img={el.poster} link={`/explore/person/${el.id}-${makeUrlSafe(el.name)}`} />
+                    <ArtistCard key={el.id} title={el.name} detail={el.character} img={el.poster} link={`/explore/person/${el.id}-${makeUrlSafe(el.name)}`} />
                 ))}
             </div>
-        </section>
+        </CinementWikiSection>
 
-        <section className="space-y-2 my-2 py-4 bg-primarylight">
-            <h3 className="uppercase text-sm font-semibold">More Like this</h3>
-            <DataFetcher
-                type="show"
-                func="fetchSimilarShows"
-                args={[show.tmdb_id]}
-                querykeys={["similarShows", show.tmdb_id]}
-            />
-        </section>
+        <CinementWikiSection
+            heading="More Like This"
+            horizontalMovieListProps={{
+                type: "show",
+                func: "fetchSimilarShows",
+                args: [show.tmdb_id],
+                querykeys: ["similarShows", show.tmdb_id],
+            }}
+        />
 
         {episode.cast.splice(0, 2).map((el) => (
-            <section key={el.id} className="space-y-2 my-2 py-4 bg-primarylight">
-                <div className="flex flex-cntr-between">
-                    <h3 className="uppercase text-sm font-semibold">More of {el.name}</h3>
-                    <Navigate comp="link" role="button" goto={`/explore/person/${el.id}`}>More</Navigate>
-                </div>
-                <DataFetcher
-                    type="movie"
-                    func="fetchMoviesWithCast"
-                    args={[el.id]}
-                    except={show.tmdb_id}
-                    querykeys={["moviesWithCast", el.id]}
-                />
-            </section>
+            <CinementWikiSection
+                heading={`More of ${el.name}`}
+                hrefForMoreButton={`/explore/person/${el.id}`}
+                key={el.id}
+                horizontalMovieListProps={{
+                    type: "movie",
+                    func: "fetchMoviesWithCast",
+                    args: [el.id],
+                    except: show.tmdb_id,
+                    querykeys: ["moviesWithCast", el.id],
+                }}
+            />
         ))}
+
     </>
 }
 

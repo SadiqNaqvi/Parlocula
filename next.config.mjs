@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
+    dangerouslyAllowLocalIP: true,
     remotePatterns: [
       {
         protocol: "https",
@@ -13,6 +14,9 @@ const nextConfig = {
     fetches: {
       fullUrl: true,
     },
+  },
+  experimental: {
+    globalNotFound: true,
   },
   // turbopack: (config) => {
   //   // Ignore ALL turbopack warnings produced by ./node_modules/keyv/src/index.js file

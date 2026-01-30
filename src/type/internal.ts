@@ -158,23 +158,19 @@ export type ThreadConnection = {
 export type MereThread = {
   _id: string;
   name: string;
-  poster: Frame;
+  poster?: Frame;
   member_count?: number;
   post_count?: number;
 };
 
-export type Thread = document & {
-  name: string;
+export type Thread = document & MereThread & {
   description: string;
-  poster: Frame;
   nsfw: boolean;
   links: Link[];
   connections: ThreadConnection[];
   created_by: string;
   creator: string | undefined;
   edited_by: string | null;
-  member_count: number;
-  post_count: number;
   managers: { username: string, _id: string }[];
 };
 
@@ -268,6 +264,7 @@ export type CinementType = {
 
 export type FullCinementType = CinementType & {
   _id: string;
+  cinement_id: string;
 } & Record<PredefinedShelves, number>;
 
 export type MereShelf = {

@@ -43,7 +43,20 @@ export const GET = getHandler(async (r, params) => {
       $project: {
         "managers.username": 1,
         "managers._id": 1,
-        creator: { $ifNull: [{ arrayElemAt: ["$user.username", 0] }, ""] },
+        creator: { $ifNull: [{ $arrayElemAt: ["$user.username", 0] }, ""] },
+        _id: 1,
+        name: 1,
+        poster: 1,
+        member_count: 1,
+        post_count: 1,
+        description: 1,
+        nsfw: 1,
+        links: 1,
+        connections: 1,
+        created_by: 1,
+        edited_by: 1,
+        createdAt: 1,
+        editedAt: 1,
       }
     },
     {

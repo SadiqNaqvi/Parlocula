@@ -1,21 +1,29 @@
 import "@/app/globals.css";
-import Fancybox from "@components/Fancybox";
-import MainLoader from "@components/ui/loading/mainLoading";
+import { FancyBoxProvider } from "@components";
+import { MainLoading } from "@components/ui/loading";
 import { getUserFromToken } from "@lib/auth/utils";
-import { getCurrentUser, getNotificationsOfUser } from "@lib/helpers/common";
-import { fetchQuery, getQueryClient, prefetchInfiniteQuery } from "@lib/providers/queryClient";
-import ReactQueryProvider from "@lib/providers/ReactQueryWrapper"
+import { getCurrentUser } from "@lib/helpers/common";
+import { fetchQuery, getQueryClient } from "@lib/providers/queryClient";
+import ReactQueryProvider from "@lib/providers/ReactQueryWrapper";
 import { getQueryKeys } from "@lib/utils";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { Metadata } from "next";
 import { ThemeProvider } from "next-themes";
-import { Montserrat } from "next/font/google";
 import { cookies } from "next/headers";
 import { PropsWithChildren, Suspense } from "react";
 import { Toaster } from "sonner";
 import UserHydrator from "./UserHydrator";
+import { Montserrat, Roboto } from "next/font/google"
 
-// const fontFam = Montserrat({ subsets: ["latin"], weight: ["100", "200", "300", "400", "500", "600", "700"] });
+const montserratFont = Montserrat({
+  variable: "--font-montserrat",
+  subsets: ["latin"],
+});
+
+const robotoFont = Roboto({
+  variable: "--font-roboto",
+  subsets: ["latin"],
+});
 
 export const metadata: Metadata = {
   title: "Parlocula - Where Stories Bring Us Together",
@@ -68,17 +76,17 @@ const RootLayout = async ({
   return (
     <html lang="en" suppressHydrationWarning>
       {/* {*<body className={`${fontFam.className}`}>} */}
-      <body>
+      <body className={`${robotoFont.variable} ${montserratFont.variable} antialiased`}>
         <Toaster swipeDirections={["bottom", "left", "right"]} />
         <ReactQueryProvider>
           <ThemeProvider enableSystem defaultTheme="system" attribute={"class"}>
-            <Fancybox>
-              <Suspense fallback={<MainLoader />}>
+            <FancyBoxProvider>
+              <Suspense fallback={<MainLoading />}>
                 <NotificationFetcher>
                   {children}
                 </NotificationFetcher>
               </Suspense>
-            </Fancybox>
+            </FancyBoxProvider>
           </ThemeProvider>
         </ReactQueryProvider>
         {/* <script src="https://kit.fontawesome.com/5d93eb1089.js"></script> */}

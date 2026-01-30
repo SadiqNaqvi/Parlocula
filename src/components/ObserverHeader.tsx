@@ -4,7 +4,6 @@ import { PropsWithChildren, useEffect, useRef, useState } from "react";
 import Navbar from "./Navbar";
 
 type Props = {
-    headerClasses?: string,
     OptionButton?: React.ReactNode,
     navTitle: string
     titleToShare: string,
@@ -14,7 +13,7 @@ type Props = {
     className?: string
 }
 
-const ObserverHeader = ({ children, headerClasses, OptionButton, className, navTitle, titleToShare, urlToShare, poster, textToShare }: PropsWithChildren<Props>) => {
+const ObserverHeader = ({ children, OptionButton, className, navTitle, titleToShare, urlToShare, poster, textToShare }: PropsWithChildren<Props>) => {
 
     const headerRef = useRef<HTMLElement | null>(null);
     const [invisible, setInvisible] = useState(false);

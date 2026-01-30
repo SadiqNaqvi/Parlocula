@@ -43,7 +43,7 @@ export const getUserFromToken = async (
   if (!payload || typeof payload === "string" || !payload.user_id)
     return null;
 
-  else if (payload.exp && payload.exp < Date.now())
+  else if (payload.exp && (payload.exp * 1000) < Date.now())
     return null
 
   return payload;

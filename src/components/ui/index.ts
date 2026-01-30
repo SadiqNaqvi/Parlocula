@@ -1,5 +1,5 @@
 export { default as CommentBar, CommentBarWithoutReply } from "./CommentBar";
-export { default as ContentBox } from "./ContentBox";
+export { default as ArtistCard } from "./ArtistCard";
 export { default as Dropdown } from "./Dropdown";
 export { default as LinkTile } from "./LinkTile";
 export { default as LoadingSpinner } from "./loading/LoadingSpinner";

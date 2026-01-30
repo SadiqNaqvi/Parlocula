@@ -20,6 +20,9 @@ export const GET = getHandler(async (r: NextRequest) => {
   );
 
   const threads = result[0];
+
+  console.log(threads);
+
   if (!threads) return { success: false, errCode: "resource_not_found" };
   return { result: threads, success: true };
 });

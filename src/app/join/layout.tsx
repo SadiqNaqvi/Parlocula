@@ -1,4 +1,7 @@
+import { getUserFromToken } from "@lib/auth/utils";
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import { PropsWithChildren } from "react";
 
 export const metadata: Metadata = {
@@ -7,7 +10,11 @@ export const metadata: Metadata = {
     keywords: "movies, tv shows, web series, movie recommendation, movie recommendation system, tv show recommendation system, movies suggestion, movie suggestion, show suggestion, series suggestion",
 };
 
-const AuthLayout = ({ children }: PropsWithChildren) => {
+const AuthLayout = async ({ children }: PropsWithChildren) => {
+
+    const user = await getUserFromToken(await cookies());
+    if (user) redirect('/home');
+
     return (
         <main className="noPadding sm:flex h-full fullScreen overflow-hidden">
             <section className="px-4 sm:pr-0 sm:mt-4 relative z-[1] w-full sm:w-[340px] max-h-full noScroll overflow-y-auto">

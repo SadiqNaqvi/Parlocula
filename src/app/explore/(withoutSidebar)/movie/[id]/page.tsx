@@ -6,14 +6,16 @@ import { getQueryKeys } from "@lib/utils";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { Metadata } from "next";
 import { cookies } from "next/headers";
-import MediaPage from "../../components/MediaPage";
+import CinementPage from "../../components/CinementPage";
 import { ParloPageProps } from "@type/other";
+import CinementWikiSkeleton from "@components/ui/loading/CinementWikiSkeleton";
 
 export const generateMetadata = async ({ params }: ParloPageProps): Promise<Metadata> => {
     const { id } = await params;
-    const data = await fetchMovie(id);
+    const data = await fetchMovie(id, false);
 
-    if (!data) return { title: "Parlocula" };
+    if (!data) 
+        return { title: "Parlocula" };
     return { title: `${data.title} - Parlocula` };
 };
 
@@ -25,18 +27,18 @@ export default async function MoviePage({ params }: ParloPageProps) {
 
     const user = await getUserFromToken(await cookies());
 
-    const content = await fetchMovie(id);
+    const content = await fetchMovie(id, true);
 
     if (content && user)
         await prefetchQuery({
-            queryFn: () => getShelvesForCinement(content._id, user.user_id),
-            queryKey: getQueryKeys("shelfsForCinement_cnid", { cnid: content._id }),
+            queryFn: () => getShelvesForCinement(content.cinement_id, user.user_id),
+            queryKey: getQueryKeys("shelfsForCinement_cnid", { cnid: content.cinement_id }),
             queryClient,
         });
 
     return (
         <HydrationBoundary state={dehydrate(queryClient)}>
-            <MediaPage content={content} type="movie" />
+            <CinementPage content={content} type="movie" />
         </HydrationBoundary>
     )
 };

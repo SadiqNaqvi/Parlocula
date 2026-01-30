@@ -46,7 +46,9 @@ const validateUser = async (
   const { user_id } = payload;
 
   // If token is neither tampered nor expired, return true;
-  if (payload.exp && payload.exp > Date.now())
+  console.log("payload in proxy", payload.exp, Boolean(payload.exp! * 1000 < Date.now()));
+
+  if (payload.exp && (payload.exp * 1000) > Date.now())
     return { success: true, user_id };
 
   // If token is expired, check user session
@@ -116,11 +118,11 @@ export const proxy = async (req: NextRequest) => {
       return NextResponse.json(user, { status: 403 });
 
   }
-
+  console.log("PROXY DONE");
   return response;
 };
 
 export const config = {
   // matcher: ["/((?!_next|login|signup|public|.*\\..*).*)"],
-  matcher: ["/((?!_next|.*\\..*).*)"]
+  matcher: ["/((?!_next|api\/v1\/ably|.*\\..*).*)"]
 };

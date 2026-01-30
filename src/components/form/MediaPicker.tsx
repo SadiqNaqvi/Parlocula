@@ -40,7 +40,7 @@ const FrameContainer = ({ path, type, size, thumb, remove }: FrameToReturn & { r
     )
 
     if (type === "image") return (
-        <div className="size-60 border rounded-md border-gray40 relative">
+        <div className="size-60 mx-auto border rounded-md border-gray40 relative">
             <Image
                 className="aspect-square h-full object-contain"
                 src={path}
@@ -52,7 +52,7 @@ const FrameContainer = ({ path, type, size, thumb, remove }: FrameToReturn & { r
     )
 
     else return (
-        <div className="size-60 border rounded-md border-gray40 relative">
+        <div className="size-60 mx-auto border rounded-md border-gray40 relative">
             <video
                 height={240}
                 width={240}

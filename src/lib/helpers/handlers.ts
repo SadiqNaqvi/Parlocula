@@ -174,7 +174,7 @@ export const postHandler = <T extends HandlerData>({ handler, preCheck, schema, 
 }) => {
     return async function (req: NextRequest, { params }: { params: Promise<HandlerParamVariable> }) {
         const payload = skipUserCheck ? null : await getUserFromToken(req.cookies);
-
+        console.log(payload);
         const awaitedParams = await params;
 
         if (!skipUserCheck && !payload)

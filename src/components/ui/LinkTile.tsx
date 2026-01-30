@@ -1,4 +1,4 @@
-import { LinkIcon } from "@assets/Icons"
+import { LinkIcon, RightChevron } from "@assets/Icons"
 import BottomSheet from "@components/BottomSheet"
 import Navigate from "@components/Navigate"
 import { parloculaAppURL } from "@lib/constants"
@@ -23,12 +23,17 @@ const LinkTile = ({ label, path }: LinkType) => {
     return (
         <BottomSheet button={<LabelAndIcon label={label} />}>
             <div className="p-4">
-                <h4 className="text-center text-xl mb-2">You are about to be redirected to this path.</h4>
+                <h4 className="text-center text-lg mb-2">You are about to be redirected to this path.</h4>
                 <p className="text-zinc-500 text-center text-sm">Please make sure, you know this path well before you proceed.</p>
-                <Link className="text-sky-500 text-sm my-4 text-center" href={path}>{path}</Link>
+                <div className="my-4 border border-gray20 bg-gray10 rounded-md p-2">
+                    <Link className="text-sky-500 text-sm flex gap-2 flex-cntr-between" href={path}>
+                        <span>{path}</span>
+                        <RightChevron />
+                    </Link>
+                </div>
                 <p className="text-zinc-500 text-center text-sm">Click on this path to proceed.</p>
             </div>
-        </BottomSheet>
+        </BottomSheet >
     )
 }
 

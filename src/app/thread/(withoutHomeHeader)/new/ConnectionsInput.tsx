@@ -46,7 +46,7 @@ const ConnectionsInput = ({ defaultConnections, connectionsRef }: { defaultConne
     return (
         <div className="flex flex-cntr-between">
             <OptionalChildren condition={connections.length} fallback={
-                <h4 className="parloHeading">Add Connections</h4>
+                <h4 className="parloHeading">Connect it to Wikis</h4>
             }>
                 <ul className="flex gap-3 flex-1 overflow-x-auto noScroll">
                     {connections.map(({ path, name }) => (
@@ -62,10 +62,6 @@ const ConnectionsInput = ({ defaultConnections, connectionsRef }: { defaultConne
 
             <BottomSheet title={sheetTitle} description={sheetDesc} onClose={getConnections} ref={sheetRef} button={<AddIcon />}>
                 <section className="p-2 sm:p-4">
-                    <div className="my-4">
-                        <h4 className="parloHeading">Connect this thread to wiki(s)</h4>
-                        <p className="text-center text-sm text-gray-500">You can optionally connect this thread to the movies, shows or artists it is based on. If connected, the thread would be shown on these connected wiki page.</p>
-                    </div>
                     <ListSelector
                         queryFn={searchAllContent}
                         queryKeys={(q) => ["search", "connection", q]}

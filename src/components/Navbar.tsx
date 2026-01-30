@@ -23,7 +23,7 @@ const changeTheme = () => {
 }
 
 const Navbar = ({ className = "", onGoBack, OptionButton, navTitle, titleToShare, urlToShare, poster, textToShare }: Props) => (
-    <nav className={twMerge("p-2 sm:p-4 w-full bg-primary z-[2] flex flex-cntr-between sticky top-0", className)}>
+    <nav className={twMerge("px-2 py-4 sm:px-4 w-full bg-primary z-[2] flex flex-cntr-between sticky top-0 fullScreen", className)}>
 
         <div className="flex gap-2 items-center">
             {onGoBack ?

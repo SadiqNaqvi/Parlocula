@@ -1,11 +1,14 @@
 import Navbar from "@components/Navbar";
+import { OptionalChildren } from "@components/ui";
 import Link from "next/link";
 
 const LoginModal = ({ redirectTo, title, skipFullScreen }: { redirectTo?: string, title?: string, skipFullScreen?: boolean }) => {
 
     return (
-        <div className={`flex flex-col ${skipFullScreen ? "h-size-screen" : "h-stretch"}`}>
-            <Navbar navTitle={title} />
+        <div className={`flex flex-col flex-cntr-all ${skipFullScreen ? "h-stretch" : "h-size-screen"}`}>
+            <OptionalChildren condition={!skipFullScreen}>
+                <Navbar navTitle={title} />
+            </OptionalChildren>
 
             <section className="m-auto space-y-4">
 

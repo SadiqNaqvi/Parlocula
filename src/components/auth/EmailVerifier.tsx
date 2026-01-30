@@ -153,7 +153,7 @@ const EmailVerifier = ({ callback, navTitle, containerClasses }: Props) => {
         <div className={containerClasses}>
             <OptionalChildren condition={navTitle}>
                 <Navbar
-                    className="p-0 mb-4"
+                    className="p-0 bg-transparent my-4"
                     navTitle={navTitle} />
             </OptionalChildren>
             <Form

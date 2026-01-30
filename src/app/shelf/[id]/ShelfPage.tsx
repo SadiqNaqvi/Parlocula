@@ -37,7 +37,7 @@ const Component = (data: FullShelf, { filter, page, uid, key }: Props) => {
                 urlToShare={`/shelf/${_id}${shelfKey ? `?k=${shelfKey}` : ''}`}
                 OptionButton={<EllipsisButton isPrivate={isPrivate} author={user_id} id={_id} />}
                 navTitle={name}
-                headerClasses="pb-4 border-b border-gray30">
+                className="pb-4 border-b border-gray30">
 
                 <div className="size-32">
                     {

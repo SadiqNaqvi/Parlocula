@@ -513,15 +513,9 @@ export type RefinedGeneralData = {
   type: "movie" | "show"
 };
 
-export type RefinedGeneralContentData = {
+export type RefinedGeneralContentData = RefinedGeneralData & {
   backdrop: string;
-  tmdb_id: string;
-  media_type: "movie" | "show";
   overview: string;
-  poster: string;
-  rating: number;
-  release_date: number;
-  title: string;
 };
 
 export type PersonWork = RefinedGeneralContentData & {

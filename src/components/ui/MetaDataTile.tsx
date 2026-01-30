@@ -8,7 +8,7 @@ type Props = {
     editedAt?: GenericDate,
     nsfw?: boolean,
     spoiler?: boolean,
-    others?: { value: string, className?: string, condition?: any }[]
+    others?: { value: React.ReactNode, className?: string, condition?: any }[]
 }
 
 type ListType = {
@@ -16,6 +16,10 @@ type ListType = {
     className?: string | undefined,
     args?: Record<string, any>,
     condition?: string | number | boolean | Date
+}
+
+const isNonNullable = <T,>(prop: T): prop is NonNullable<T> => {
+    return Boolean(prop === undefined || prop === null) ? false : true;
 }
 
 const MetadataTile = ({ createdAt, editedAt, nsfw, spoiler, others }: Props) => {

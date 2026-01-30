@@ -1,7 +1,5 @@
-import { LoadingSpinner } from "@components/ui";
+import CinementWikiSkeleton from "@components/ui/loading/CinementWikiSkeleton";
 
-const Loading = () => (
-    <section className="size-screen flex flex-cntr-all"><LoadingSpinner /></section>
-)
+const Loading = () => <CinementWikiSkeleton backdrop />
 
 export default Loading;

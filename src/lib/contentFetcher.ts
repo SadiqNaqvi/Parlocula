@@ -1,13 +1,15 @@
-import { GeneralGetReturn, GeneralMultipleReturn } from "@type/internal";
+import { FullCinementType, GeneralGetReturn, GeneralMultipleReturn } from "@type/internal";
 import {
   ExtGeneralPaginatedData,
   ExtPaginatedSearchData,
   ExtSearchDataCinementOnly,
   GeneralExtReturn,
+  GeneralPersonData,
   PaginatedData,
   RefinedCollectionData,
   RefinedCompanyData,
   RefinedEpisodeData,
+  RefinedGeneralData,
   RefinedMovieData,
   RefinedPersonData,
   RefinedSearchData,
@@ -29,22 +31,26 @@ export const fetchExt = async <T = unknown>(url: string, revalidate?: number): P
   }
 }
 
-export const fetchMovie = async (
-  id: string
-) => {
+export type CinementReturnType<T extends boolean, D> = T extends true ? D & FullCinementType : D
+export type MovieReturnType<T extends boolean> = CinementReturnType<T, RefinedMovieData>
+export type ShowReturnType<T extends boolean> = CinementReturnType<T, RefinedShowData>
+
+export const fetchMovie = async<T extends boolean>(id: string, getInternalData: T): Promise<CinementReturnType<T, RefinedMovieData> | undefined> => {
   if (!id) return;
 
+  const [ext_id] = id.split('-');
+
   const [data, cinement] = await Promise.all([
-    fetchExt<RefinedMovieData>(`movie?id=${id}`),
-    getCinement(id, "movie"),
+    fetchExt<RefinedMovieData>(`movie?id=${ext_id}`),
+    ...(getInternalData ? [getCinement(ext_id, "movie")] : []),
   ]);
 
-  if (!data || !data.status || !cinement) return;
-
+  if (!data || !data.status || (getInternalData && !cinement)) return;
+  else if (!getInternalData) return data.response as MovieReturnType<T>;
   return {
     ...data.response,
     ...cinement
-  }
+  } as MovieReturnType<T>
 };
 
 export const fetchSimilarMovies = async (id: string, page = 1) => {
@@ -201,7 +207,8 @@ export const fetchNetwork = async (id: string) => {
 export const fetchPerson = async (id: string) => {
   if (!id) return;
 
-  const data = await fetchExt<RefinedPersonData>(`person?id=${id}`)
+  const data = await fetchExt<RefinedPersonData>(`person?id=${id}`);
+
 
   if (data.status) return data.response;
 
@@ -212,22 +219,22 @@ export const fetchPerson = async (id: string) => {
 
 };
 
-export const fetchShow = async (id: string) => {
+export const fetchShow = async <T extends boolean>(id: string, getInternalData: T): Promise<ShowReturnType<T> | undefined> => {
   if (!id) return;
 
+  const [ext_id] = id.split('-');
+
   const [data, cinement] = await Promise.all([
-    fetchExt<RefinedShowData>(`show?id=${id}`),
-    getCinement(id, "show"),
+    fetchExt<RefinedShowData>(`show?id=${ext_id}`),
+    ...(getInternalData ? [getCinement(ext_id, "show")] : []),
   ]);
 
-  // console.log("at fetchShow", cinement);
-
-  if (!data || !data.status || !cinement) return;
-
+  if (!data || !data.status || (getInternalData && !cinement)) return;
+  else if (!getInternalData) return data.response as ShowReturnType<T>;
   return {
     ...data.response,
     ...cinement
-  }
+  } as ShowReturnType<T>
 
 };
 

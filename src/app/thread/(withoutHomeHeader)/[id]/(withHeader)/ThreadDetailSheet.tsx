@@ -11,7 +11,7 @@ const ThreadDetailSheet = ({ connections, createdAt, creator, description, edite
     return (
         <>
             <div className="py-2 border-b border-gray30">
-                <h2 className="font-semibold">More about this thread</h2>
+                <h2 className="parloHeading text-center">More about this thread</h2>
             </div>
 
             <section className="my-3 space-y-2">

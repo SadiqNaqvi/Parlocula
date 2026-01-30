@@ -26,3 +26,4 @@ export { default as ReportSection } from "./ReportSection";
 export { default as ReportSheet } from "./ReportSheet";
 export { default as SaveButton } from "./SaveButton";
 export { default as ShareButton } from "./ShareButton";
+export { default as FancyBoxProvider } from "./Fancybox";

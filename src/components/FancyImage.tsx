@@ -7,7 +7,7 @@ import { Frame } from "@type/internal";
 import { twMerge } from "tailwind-merge";
 
 type Props = {
-    src: Frame | string,
+    src?: Frame | string,
     id: string,
     alt: string,
     height: number,
@@ -22,7 +22,7 @@ type Props = {
 
 const FancyImage = ({ id, download, caption, alt, src, height, width, type = "image", thumbnail, containerClass, className, ...args }: Props) => {
 
-    const source = typeof src === "string" ? src : src.path;
+    const source = !src ? undefined : typeof src === "string" ? src : src.path;
 
     return (
         <div
@@ -31,7 +31,6 @@ const FancyImage = ({ id, download, caption, alt, src, height, width, type = "im
             key={source}
             data-src={source}
             data-fancybox={id}
-            data-frame
             data-download-src={download ? source : undefined}
             data-download-filename={download}
             data-caption={caption}>
@@ -51,7 +50,7 @@ const FancyImage = ({ id, download, caption, alt, src, height, width, type = "im
                     height={height}
                     width={width}
                     preload="metadata"
-                    poster={getThumbnail(source)}>
+                    poster={source ? getThumbnail(source) : undefined}>
                     <source src={source} />
                 </video>
             }

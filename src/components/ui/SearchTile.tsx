@@ -20,7 +20,7 @@ export default function SearchTile({ id, image, media_type, name }: RefinedSearc
             <Navigate comp="link" className="h-full w-full flex gap-2 md:gap-4" goto={`/explore/${media_type === "tv" ? "show" : media_type}/${id}-${name.replaceAll(' ', '-')}`}>
                 <Image
                     src={getPoster(posterConfig)}
-                    className={`w-16 md:w-20 object-center ${media_type === "person" ? "aspect-square rounded-full object-cover" : media_type === "company" ? "aspect-video object-contain" : "aspect-[2/3] rounded-md object-cover"}`}
+                    className={`w-12 md:w-16 object-center aspect-square ${media_type === "person" ? "rounded-full object-cover " : media_type === "company" ? "object-contain" : "rounded-md object-cover"}`}
                     height={80}
                     width={80}
                     alt={`Poster of ${name}`}

@@ -1,7 +1,7 @@
-import { getPoster, numberConverter, makeUrlSafe } from "@lib/utils"
+import { makeUrlSafe, numberConverter } from "@lib/utils"
 import { MereThread } from "@type/internal"
-import Image from "next/image"
 import Navigate from "../Navigate"
+import OptionalChildren from "./OptionalChildren"
 import ParloImage from "./ParloImage"
 
 const ThreadTile = ({ name, poster, _id, member_count, post_count }: MereThread) => {
@@ -9,16 +9,20 @@ const ThreadTile = ({ name, poster, _id, member_count, post_count }: MereThread)
         <Navigate role="button" comp="link" goto={`/thread/${_id}-${makeUrlSafe(name)}`}>
             <article className="flex gap-4 p-3 rounded-md border border-gray30">
                 <ParloImage
-                    className="size-10 rounded-full object-cover"
+                    className="min-w-10 size-10 rounded-full object-cover"
                     frame={poster}
                     alt="Poster"
                     size={40}
                 />
                 <section className="space-y-1">
                     <h3 className="font-semibold line-clamp-1">{name}</h3>
-                    <div className="space-x-4 text-sm text-zinc-500">
-                        {member_count && <span> {numberConverter(member_count)} Members</span>}
-                        {post_count && <span> {numberConverter(post_count)} Posts</span>}
+                    <div className="space-x-2 text-sm text-zinc-500">
+                        <OptionalChildren condition={member_count}>
+                            <span> {numberConverter(member_count)} Members</span>
+                        </OptionalChildren>
+                        <OptionalChildren condition={post_count}>
+                            <span> {numberConverter(post_count)} Posts</span>
+                        </OptionalChildren>
                     </div>
                 </section>
             </article>
