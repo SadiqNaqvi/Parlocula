@@ -25,9 +25,9 @@ export const DrawerPortal = ({ children, allowHandle, description, title, ref }:
     <Overlay className="z-[10] fixed inset-0 bg-black/40" />
     <Drawer.Title>{title}</Drawer.Title>
     <Drawer.Description>{description}</Drawer.Description>
-    <Content ref={ref} className="h-fit fixed z-[10] rounded-t-md sm:rounded-md border-t border-gray60 bottom-0 left-0 right-0 outline-none bg-primary py-4">
+    <Content ref={ref} className="h-fit fixed z-[10] border-t border-gray60 bottom-0 left-0 right-0 outline-none bg-primary py-4">
       <Handle />
-      <aside className="*:mx-auto mt-4 min-h-40 w-full *:max-w-96 max-h-[80dvh] overflow-y-auto">
+      <aside className="sheetContainer mt-4 min-h-40 w-full max-h-[80dvh] overflow-y-auto">
         {children}
       </aside>
     </Content>
@@ -58,10 +58,19 @@ export const BottomSheet = forwardRef(({ children, description, title, state, on
     toggle: () => setOpen(!open),
   }));
 
+  const handleClick = () => {
+    setOpen(!open);
+  }
+
+  const handleOnClose = () => {
+    setOpen(false);
+    onClose?.();
+  }
+
   return (
-    <Root snapPoints={snapPoints} open={open} onClose={onClose}>
+    <Root snapPoints={snapPoints} open={open} onClose={handleOnClose}>
       <OptionalChildren condition={button}>
-        <Drawer.Trigger className={className}>{button}</Drawer.Trigger>
+        <Drawer.Trigger onClick={handleClick} className={className}>{button}</Drawer.Trigger>
       </OptionalChildren>
       <DrawerPortal title={title} description={description} allowHandle={allowHandle}>
         {children}

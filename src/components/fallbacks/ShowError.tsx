@@ -2,22 +2,27 @@
 
 import { ErrorFaceIcon } from "@assets/Icons";
 import Navbar from "@components/Navbar";
+import { OptionalChildren } from "@components/ui";
 import { codetoError } from "@lib/utils";
 import { ErrorCodes } from "@type/other";
+import { twMerge } from "tailwind-merge";
 
 type Props = {
     heading: string,
     retry?: () => any
     messages?: string[]
     errCode?: ErrorCodes,
-    fullScreen?: boolean
+    fullScreen?: boolean,
+    className?: string;
 }
 
-const ShowError = ({ heading, errCode, messages = [], retry, fullScreen }: Props) => {
+const ShowError = ({ heading, errCode, messages = [], retry, fullScreen, className }: Props) => {
     return (
         <>
-            {fullScreen && <Navbar />}
-            <section className={`${fullScreen ? "size-screen flex flex-cntr-all" : "forceCenter"} flex-col gap-3`}>
+            <OptionalChildren condition={fullScreen}>
+                <Navbar />
+            </OptionalChildren>
+            <section className={twMerge(`${fullScreen ? "size-screen flex flex-cntr-all" : "forceCenter"} flex-col gap-3`, className)}>
 
                 <ErrorFaceIcon className="size-40 mx-auto" />
 

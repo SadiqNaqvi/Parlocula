@@ -1,4 +1,4 @@
-import MediaThreadsPage from "@app/explore/(withoutSidebar)/components/MediaThreadsPage";
+import CinementThreadPage from "@app/explore/(withoutSidebar)/components/CinementThreadPage";
 import { fetchMovie } from "@lib/contentFetcher";
 import { ParloPageProps } from "@type/other";
 import { Metadata } from "next";
@@ -14,6 +14,6 @@ export const generateMetadata = async ({ params }: ParloPageProps): Promise<Meta
     }
 }
 
-const Page = MediaThreadsPage;
+const Page = CinementThreadPage;
 
 export default Page;

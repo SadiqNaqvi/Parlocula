@@ -69,11 +69,12 @@ export const POST = postHandler<CinementToAddAndRemoveType>({
         { $inc: { item_count: 1 } },
         { session }
       );
+
     }
 
     if (remove.length) {
 
-      await ShelfItem.deleteMany({ _id: id, shelf_id: { $in: remove } }, { session });
+      await ShelfItem.deleteMany({ cinement_id: id, shelf_id: { $in: remove } }, { session });
 
       await Shelf.updateMany(
         { _id: { $in: remove } },
@@ -101,7 +102,7 @@ export const POST = postHandler<CinementToAddAndRemoveType>({
         { session }
       );
 
-      idsToRevalidate.push(`media-${ext_id}`);
+      idsToRevalidate.push(`cinement-${ext_id}`);
     }
 
     return {
@@ -109,12 +110,14 @@ export const POST = postHandler<CinementToAddAndRemoveType>({
       result: null,
       revalidateQueue: idsToRevalidate
         .concat(add.concat(remove).map(id => `items-${id}-1-latest`))
-        .concat([`shelfsForMedia-${id}-user-${cuid}`])
+        .concat([`shelvesForCinement-${id}-user-${cuid}`])
     }
   },
   preCheck: async ({ data, user_id }) => {
     const { add, remove } = data;
-    const shelves = await Shelf.find({ $in: [...add, ...remove] }, { user_id: 1 });
+    const shelves = await Shelf.find({
+      _id: { $in: [...add, ...remove] }
+    }, { user_id: 1 });
 
     if (!shelves.length) return {
       success: false,

@@ -25,8 +25,9 @@ export const addItemsInShelf = async (
   id: string,
   user_id: string,
   session: ClientSession
-) => {
-  if (!items || !items.length) return;
+): Promise<ShelfItemModelType[]> => {
+  if (!items || !items.length) 
+    throw new Error("shelf items array, which is to be added in shelf, is empty");
 
   // Step 1: Separate confirmed and unconfirmed cinements
   const confirmedItems = items.filter((item) => item.isConfirm === true);
@@ -90,6 +91,8 @@ export const addItemsInShelf = async (
   if (itemsArr.length > 0) {
     await ShelfItem.create(itemsArr, { session, ordered: true });
   }
+
+  return itemsArr;
 };
 
 type EmailPayload = {
@@ -160,7 +163,7 @@ export const sendVerificationCode = async (
 
     await redis.setex(
       `limits:email:${fingerprint}`,
-      Date.now() + oneHour,
+      oneHour,
       JSON.stringify(updatedPayload));
 
     return { success: true, result: null };

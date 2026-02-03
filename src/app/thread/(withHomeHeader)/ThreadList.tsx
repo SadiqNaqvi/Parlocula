@@ -64,7 +64,7 @@ const PopularThreadsList = ({ filter, page, allowNsfw }: PopularSectionProps) =>
     />
 )
 
-const ThreadList = (props: Props) => {
+const threadList = (props: Props) => {
     const { section } = props;
     const { meta } = useCurrentUser();
 
@@ -84,4 +84,4 @@ const ThreadList = (props: Props) => {
 
 }
 
-export default ThreadList;
+export default threadList;

@@ -1,11 +1,10 @@
 "use client";
 
-import { LeftChevron, ShareIcon } from "@assets/Icons";
-import Navigate from "@components/Navigate";
-import ShareButton from "./ShareButton";
-import { AppIcon } from "@assets/Icons"
+import { LeftChevron, ShareIcon, AppIcon } from "@assets/Icons";
+import { Navigate, ShareButton } from "@components";
 import { twMerge } from "tailwind-merge";
 import { OptionalChildren } from "./ui";
+import { useTheme } from "next-themes";
 
 type Props = {
     className?: string,
@@ -18,43 +17,51 @@ type Props = {
     onGoBack?: () => void
 }
 
-const changeTheme = () => {
+const Navbar = ({ className = "", onGoBack, OptionButton, navTitle, titleToShare, urlToShare, poster, textToShare }: Props) => {
 
-}
+    const { setTheme, resolvedTheme } = useTheme();
 
-const Navbar = ({ className = "", onGoBack, OptionButton, navTitle, titleToShare, urlToShare, poster, textToShare }: Props) => (
-    <nav className={twMerge("px-2 py-4 sm:px-4 w-full bg-primary z-[2] flex flex-cntr-between sticky top-0 fullScreen", className)}>
+    const toggleTheme = () => {
+        setTheme(resolvedTheme === "dark" ? "light" : "dark");
+    }
 
-        <div className="flex gap-2 items-center">
-            {onGoBack ?
-                <button onClick={onGoBack}>
-                    <LeftChevron />
-                </button>
-                :
-                <Navigate comp="button" goto="back">
-                    <LeftChevron />
-                </Navigate>
-            }
-            <span className={`line-clamp-1 text-lg`}>{navTitle}</span>
-        </div>
-        <OptionalChildren condition={!navTitle}>
-            <div className="size-8" onClick={changeTheme}>
-                <AppIcon className="size-full" />
+    return (
+        <nav className={twMerge("px-2 py-4 sm:px-4 w-full bg-primary z-[2] flex flex-cntr-between sticky top-0 fullScreen", className)}>
+
+            <div className="flex gap-2 items-center">
+                {onGoBack ?
+                    <button onClick={onGoBack}>
+                        <LeftChevron />
+                    </button>
+                    :
+                    <Navigate comp="button" goto="back">
+                        <LeftChevron />
+                    </Navigate>
+                }
+                <span className={`line-clamp-1 text-lg`}>{navTitle}</span>
             </div>
-        </OptionalChildren>
 
-        <div className="flex gap-4 items-center">
-            {titleToShare &&
-                <ShareButton
-                    title={titleToShare}
-                    url={urlToShare}
-                    text={textToShare}>
-                    <ShareIcon />
-                </ShareButton>
-            }
-            {OptionButton}
-        </div>
-    </nav>
-)
+            <OptionalChildren condition={!navTitle}>
+                <div className="size-6 cursor-pointer" onClick={toggleTheme}>
+                    <AppIcon className="size-full" />
+                </div>
+            </OptionalChildren>
+
+            <div className="flex gap-4 items-center">
+                {titleToShare &&
+                    <ShareButton
+                        title={titleToShare}
+                        url={urlToShare}
+                        text={textToShare}
+                        // poster={poster}
+                    >
+                        <ShareIcon />
+                    </ShareButton>
+                }
+                {OptionButton}
+            </div>
+        </nav>
+    )
+}
 
 export default Navbar;

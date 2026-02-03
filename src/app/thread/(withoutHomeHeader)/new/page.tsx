@@ -4,7 +4,7 @@ import { EditIcon } from "@assets/Icons";
 import { BottomSheet, BottomSheetRef, Navbar } from "@components";
 import { Form, Input, LinkInputManager, Poster, Textarea, ToggleButton } from "@components/form";
 import LoginPopupSheet from "@components/sheets/LoginPopupSheet";
-import { PrimaryButton, ThreadPageMockup } from "@components/ui/mockup";
+import { MockupButton, ThreadPageMockup } from "@components/ui/mockup";
 import { createThreadMutation } from "@lib/helpers/mutations";
 import appToast from "@lib/providers/toast";
 import { threadSchemaClient } from "@lib/schemas";
@@ -184,7 +184,7 @@ const CreateNewThreadPage = () => {
             </section>
 
             <div className="flex px-2 mt-4">
-                <PrimaryButton>Follow</PrimaryButton>
+                <MockupButton primary>Follow</MockupButton>
             </div>
 
             <LoginPopupSheet href="/thread/new" sheetRef={loginSheetRef} section="thread details" />

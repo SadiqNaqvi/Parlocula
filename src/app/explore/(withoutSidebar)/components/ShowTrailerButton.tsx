@@ -12,7 +12,7 @@ const ShowTrailerButton = ({ trailers }: { trailers: { key: string, [key: string
     }
 
     return (
-        <button onClick={showTrailer} className="primary textWithIcon flex-grow sm:flex-none">
+        <button onClick={showTrailer} className="primary flex-1 sm:flex-none">
             <PlayIcon />
             Watch Trailer
         </button>

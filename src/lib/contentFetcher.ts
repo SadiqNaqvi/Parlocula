@@ -45,7 +45,10 @@ export const fetchMovie = async<T extends boolean>(id: string, getInternalData: 
     ...(getInternalData ? [getCinement(ext_id, "movie")] : []),
   ]);
 
-  if (!data || !data.status || (getInternalData && !cinement)) return;
+  if(getInternalData && !cinement)
+    throw new Error("Error occured while fetching cinement for the movie")
+
+  else if (!data || !data.status) return;
   else if (!getInternalData) return data.response as MovieReturnType<T>;
   return {
     ...data.response,

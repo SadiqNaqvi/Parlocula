@@ -1,11 +1,10 @@
-import CinementWikiHeader, { CinementWikiSection } from "@app/explore/(withoutSidebar)/components/CinementWikiPage";
-import { NotFound, TabContainer, TabList } from "@components/ui";
+import { CinementWikiHeader, CinementWikiSection, HorizontalThreadList } from "@app/explore/(withoutSidebar)/components";
+import { NotFound, OptionalChildren, TabContainer, TabList } from "@components/ui";
+import { CinementWikiSkeleton } from "@components/ui/loading";
 import { fetchPerson } from "@lib/contentFetcher";
 import { ParloPageProps } from "@type/other";
 import { Metadata } from "next";
 import { PropsWithChildren, Suspense } from "react";
-import { Loading, ThreadFetcher } from "../../../components";
-import CinementWikiSkeleton from "@components/ui/loading/CinementWikiSkeleton";
 
 const fetchData = async (params: { id: string }) => {
     const company_id = params.id.split('-')[0];
@@ -47,10 +46,20 @@ const Page = async ({ params, children }: PropsWithChildren<{ params: { id: stri
                 overviewOrBio={content.biography}
                 descriptionSupport={(
                     <div className="mt-4 space-y-2 text-zinc-500 text-xs md:text-sm">
-                        <p>Born on: {new Date(content.birth).toDateString()} at {content.place_of_birth}</p>
-                        {content.death && (
-                            <p>Died on: {new Date(content.death).toDateString()} at {content.place_of_death}</p>
-                        )}
+                        <p>
+                            Born on: {new Date(content.birth).toDateString()}
+                            <OptionalChildren condition={content.place_of_birth}>
+                                at {content.place_of_birth}
+                            </OptionalChildren>
+                        </p>
+                        <OptionalChildren condition={content.death}>
+                            <p>
+                                Died on: {new Date(content.death || 0).toDateString()}
+                                <OptionalChildren condition={content.place_of_death}>
+                                    at {content.place_of_death}
+                                </OptionalChildren>
+                            </p>
+                        </OptionalChildren>
                     </div>
                 )}
             />
@@ -60,11 +69,11 @@ const Page = async ({ params, children }: PropsWithChildren<{ params: { id: stri
                 heading="Connected Threads"
                 hrefForMoreButton={`${content.tmdb_id}/threads`}
             >
-                <ThreadFetcher id={content.tmdb_id} type="person" />
+                <HorizontalThreadList id={content.tmdb_id} type="person" />
             </CinementWikiSection>
 
             <TabContainer>
-                <TabList href={currentPage}>As Cast</TabList>
+                <TabList className="" href={currentPage}>As Cast</TabList>
                 <TabList href={currentPage + "/crew"}>As Crew</TabList>
             </TabContainer>
 

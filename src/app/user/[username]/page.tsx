@@ -15,7 +15,6 @@ const Page = async ({ params, searchParams }: ParloPageProps) => {
     const { f, p } = await searchParams;
     const { filter, page } = refineSearchParams("userPosts", p, f);
 
-
     const currentUser = await getUserFromToken(await cookies());
 
     const allowNsfw = currentUser ? !currentUser.filterContent : false;

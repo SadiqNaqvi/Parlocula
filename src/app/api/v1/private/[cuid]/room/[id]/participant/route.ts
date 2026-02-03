@@ -11,7 +11,7 @@ import Participant from "@model/participants";
 // Get participants of a non-private room
 export const GET = getHandler(async (r, params) => {
 
-  const page = getPageParams(r);
+  const page = getPageParams(r) - 1;
   const { id, cuid } = params;
 
   const isParticipant = await checkIfParticipantExists(id, cuid);

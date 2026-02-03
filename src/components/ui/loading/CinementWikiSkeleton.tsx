@@ -7,7 +7,7 @@ type Props = {
 
 }
 
-const animationClasses = "bg-primarylight";
+const animationClasses = "skeleton-pulse-loading";
 
 const TitleSkeleton = () => (
     <div className={`h-5 sm:h-9 w-full max-w-96 rounded-md ${animationClasses}`}></div>
@@ -21,7 +21,7 @@ const DescriptionSkeleton = ({ lines = 3 }: { lines?: number }) => (
     </ul>
 )
 
-const secondaryButtoClasses = "border-2 border-primarylight"
+const secondaryButtoClasses = "border-2 border-primarylight animate-pulse"
 
 const ButtonSkeleton = ({ primary, secondary }: { primary?: boolean, secondary?: boolean }) => (
     <div className={`flex-1 sm:max-w-32 h-12 rounded-md ${primary ? animationClasses : ''} ${secondary ? secondaryButtoClasses : ''}`}></div>
@@ -47,7 +47,7 @@ const CinementWikiSkeleton = ({ backdrop, title }: Props) => (
         <Navbar />
         <header className="mt-2 pb-4 border-b px-2 sm:px-4 border-gray30">
             <OptionalChildren condition={backdrop}>
-                <section className={`w-full rounded-md aspect-[16/9] max-h-[300px] ${animationClasses}`}>
+                <section className={`w-full h-auto rounded-md aspect-[16/9] max-h-[250px] ${animationClasses}`}>
                 </section>
             </OptionalChildren>
 
@@ -56,7 +56,7 @@ const CinementWikiSkeleton = ({ backdrop, title }: Props) => (
                 <div className={`w-full space-y-2 ${backdrop ? "mt-4 pl-28 sm:pl-44" : ''}`}>
                     <OptionalChildren condition={title} fallback={<TitleSkeleton />}>
                         <h1 className="text-xl sm:text-3xl line-clamp-2 font-semibold uppercase">
-                            {title}
+                            {decodeURI(title || '')}
                         </h1>
                     </OptionalChildren>
 

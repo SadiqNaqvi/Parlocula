@@ -4,7 +4,7 @@ import { fetchCompany } from "@lib/contentFetcher";
 import { getPoster } from "@lib/utils";
 import { ParloPageProps } from "@type/other";
 import { Metadata } from "next";
-import { MediaFetcher } from "../../components";
+import { CinementGrid } from "../../components";
 import { PropsWithChildren, Suspense } from "react";
 import { FullPageLoadingSpinner } from "@components/ui/loading/LoadingSpinner";
 import CinementWikiHeader from "../../components/CinementWikiPage";

@@ -8,7 +8,7 @@ import Report from "@model/reports";
 // Here id is thread id.
 export const GET = getHandler(async (r, params) => {
     const { id, cuid } = params;
-    const page = getPageParams(r);
+    const page = getPageParams(r) - 1;
 
     const isManager = await Member.exists({
         thread_id: id,

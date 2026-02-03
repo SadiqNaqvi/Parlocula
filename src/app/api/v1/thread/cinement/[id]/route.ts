@@ -12,13 +12,14 @@ export const GET = getHandler(async (r, { id }) => {
 
   const result = await Thread.aggregate(
     threadsAggregationPipeline({
-      filters: [{ $match: attachNsfwInPipeline({ "connection.path": id }, nsfw) }],
+      filters: [{ $match: attachNsfwInPipeline({ "connections.path": id }, nsfw) }],
       page,
       sort,
     })
   );
 
   const threads = result[0];
-  if (!threads) return { success: false, errCode: "resource_not_found" };
+
+  // if (!threads) return { success: false, errCode: "resource_not_found" };
   return { result: threads, success: true };
 });

@@ -2,6 +2,7 @@ import { CheckBoxIcon, EmptyBoxIcon } from "@assets/Icons";
 import { getPoster } from "@lib/utils";
 import Image from "next/image";
 import { useFormContext } from "react-hook-form";
+import { twMerge } from "tailwind-merge";
 
 type Props = {
     name: string,
@@ -21,7 +22,7 @@ const CheckTile = ({ name, label, disable = false, checked = false, poster, clas
     return (
         <label
             htmlFor={name}
-            className={`inline-flex ${disable ? "brightness-50" : ""} flex-cntr-between w-full capitalize px-4 py-2 pointer ${className}`}>
+            className={twMerge(`inline-flex ${disable ? "brightness-50" : ""} flex-cntr-between w-full capitalize px-4 py-2 pointer`, className)}>
             <input
                 {...register(type === "radio" ? group : name)}
                 value={type === "radio" ? name : undefined}

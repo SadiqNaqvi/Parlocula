@@ -9,7 +9,9 @@ import { toast } from "sonner";
 import { showMessageOptimistically, updateDoc, updateDocInInfiniteQueryResult } from "./mutations";
 
 const setUser = (user: CurrentUser, contentFiltering: boolean) => {
-    console.log("user in setUser Func", user);
+
+    if (!user) return;
+    console.log("USER IN SETUSER FUNC IN LIB/HELPERS/USER", user);
     const { setUser, setUserMeta, setContentFiltering } = useCurrentUser.getState();
     setContentFiltering(contentFiltering);
     setUserMeta({ user_id: user._id, username: user.username, profile: user.profile });

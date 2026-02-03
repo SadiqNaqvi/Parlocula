@@ -15,14 +15,24 @@ type Props = {
 const ActionButton = ({ rid, uid }: Props) => {
 
     const sheetRef = useRef<BottomSheetRef>(null);
+    
     if (rid === uid) return (
-        <Navigate
-            className="primary btn w-full sm:w-fit"
-            role="button"
-            goto="/settings/edit"
-            comp="link">
-            Edit Profile
-        </Navigate>
+        <>
+            <Navigate
+                className="primary btn w-full sm:w-fit"
+                role="button"
+                goto="/settings/edit"
+                comp="link">
+                Edit Profile
+            </Navigate>
+            <Navigate
+                className="secondary btn w-full sm:w-fit"
+                role="button"
+                goto="/settings"
+                comp="link">
+                Settings
+            </Navigate>
+        </>
     )
 
     const Button = ({ user_id, onClick, state }: UserBasedButtonProps<UserConnectionType>) => {

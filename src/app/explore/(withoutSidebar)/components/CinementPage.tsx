@@ -5,7 +5,7 @@ import { checkAndReturn, createArray, makeUrlSafe, numberConverter } from "@lib/
 import { RefinedCast, RefinedMovieData, RefinedShowData } from "@type/external";
 import { FullCinementType, Link } from "@type/internal";
 import { CinementSchemaType } from "@type/schemas";
-import { AddToShelf, ShowTrailerButton, ThreadFetcher, CinementWikiSection, CinementWikiHeader } from "./";
+import { AddToShelf, ShowTrailerButton, HorizontalThreadList, CinementWikiSection, CinementWikiHeader } from "./";
 
 type Props = {
     type: "movie"
@@ -77,7 +77,6 @@ const CinementPage = ({ content, type }: Props) => {
 
     return (
         <>
-
             <CinementWikiHeader
                 backdrop={content.backdrop}
                 overviewOrBio={content.overview}
@@ -87,13 +86,13 @@ const CinementPage = ({ content, type }: Props) => {
                 descriptionSupport={<LinksSection extLinks={extLinks} genres={content.genres} />}
                 wikiMeta={metadata}
                 callToActions={(
-                    <div className="flex gap-2">
+                    <section className="mt-6 flex gap-2">
                         <ShowTrailerButton trailers={content.trailers} />
                         <AddToShelf
                             released={new Date(content.release_date) < new Date()}
-                            className="secondary"
+                            className="secondary flex-1 sm:flex-none"
                             cinement={cinementForShelf} />
-                    </div>
+                    </section>
                 )}
             />
 
@@ -179,7 +178,7 @@ const CinementPage = ({ content, type }: Props) => {
                 heading="Connected Threads"
                 hrefForMoreButton={`${content.tmdb_id}/threads`}
             >
-                <ThreadFetcher id={content.tmdb_id} type="movie" />
+                <HorizontalThreadList id={content.tmdb_id} type="movie" />
             </CinementWikiSection>
 
             <CinementWikiSection

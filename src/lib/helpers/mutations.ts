@@ -9,7 +9,7 @@ import { AppNavigationInstance } from "@store/historystack"
 import { offlineStore } from "@store/offlineStore"
 import useRoomStore from "@store/roomStore"
 import useCurrentUser from "@store/user"
-import { CommentReplyType, CurrentUser, Frame, FullComment, FullPost, FullRoomType, FullShelf, GeneralGetReturn, GeneralPostReturn, MereComment, MereMessage, MereRoomType, MereUser, ModeratorType, ShelfCollaborator, ShelfCollaborators, ShelfItemType, ShelvesForCinement, ThreadModType, UserConnectionType } from "@type/internal"
+import { CommentReplyType, CurrentUser, Frame, FullComment, FullPost, FullRoomType, FullShelf, GeneralGetReturn, GeneralPostReturn, MereComment, MereMessage, MereRoomType, MereShelf, MereUser, ModeratorType, ShelfCollaborator, ShelfCollaborators, ShelfItemType, ShelvesForCinement, ThreadModType, UserConnectionType } from "@type/internal"
 import { NotificationModelType } from "@type/models"
 import { ErrorCodes, InfiniteScrollerDataType } from "@type/other"
 import { BookmarkSchemaType, CinementSchemaType, CinementToAddAndRemoveType, CommentSchemaType, CommentSchemaUpdateType, EmailUpdateSchemaType, LikeSchemaType, MessageSchemaType, PostSchemaType, PostUpdateSchemaType, ReportActionSchemaType, ReportSchemaType, ReportTypeEnum, RoomSchemaType, SessionInvalidationServerSchemaType, ShelfEditSchemaType, ShelfSchemaType, ThreadSchemaServer, ThreadUpdateSchema, UsernameUpdateSchemaType, UserSchemaType, UserUpdateSchemaType } from "@type/schemas"
@@ -822,11 +822,7 @@ export const updateShelvesWithItem = async (
     data: CinementToAddAndRemoveType,
 ) => {
 
-    const removedShelvesMap = new Map<string, boolean>();
-
-    data.remove.forEach(shelf_id => {
-        removedShelvesMap.set(shelf_id, false);
-    });
+    const removedShelvesMap = new Map<string, boolean>(data.remove.map(id => [id, false]));
 
     const queryClient = getQueryClient();
     const key = getQueryKeys("shelfsForCinement_cnid", { cnid: cinement_id });
@@ -837,12 +833,12 @@ export const updateShelvesWithItem = async (
             const prevData = queryClient.getQueryData(key);
 
             queryClient.setQueryData<ShelvesForCinement>(key, (old) => {
-                if (!old) return old;
+                if (!old) return { shelves: data.add };
 
                 return {
                     shelves: [
                         ...old.shelves,
-                        ...data.add
+                        ...data.add,
                     ].filter(id => !removedShelvesMap.has(id)),
                 }
 
@@ -915,22 +911,39 @@ export const createShelfMutation = async (uid: string, shelf: ShelfSchemaType) =
         mutationFn: () => ppPostData<FullShelf>({ url: "shelf", data: shelf, uid }),
         onSuccess: ({ data }) => {
             const shelfKey = getQueryKeys("shelf_sid", { sid: data._id });
-            const cinements = shelf.items.map(item => item.ext_id);
+            const publicShelvesOfUser = getQueryKeys("shelvesOfUser_uid_filter", { uid, filter: "latest" });
+            const privateShelvesOfUser = getQueryKeys("privateShelvesOfUser_uid", { uid });
+            const allShelvesOfUser = getQueryKeys("allShelvesOfUser_uid", { uid });
+            const cinements = shelf.items.map(item => item.cinement_id);
             const queryClient = getQueryClient();
 
             queryClient.setQueryData(shelfKey, data);
 
+            refetchQueries([publicShelvesOfUser, privateShelvesOfUser]);
+
+            addDocsInInfiniteQueryResult<MereShelf>(allShelvesOfUser, {
+                _id: data._id,
+                isPrivate: data.isPrivate,
+                name: data.name,
+                poster: data.poster,
+                shelf_type: data.shelf_type,
+                shelfKey: data.shelfKey,
+                item_count: data.item_count,
+                saved_count: 0,
+            });
+
             cinements.forEach(cinement_id => {
+                if (!cinement_id) return;
                 const cinementKey = getQueryKeys("shelfsForCinement_cnid", { cnid: cinement_id })
 
                 queryClient.setQueryData<ShelvesForCinement>(cinementKey, (old) => {
-                    if (!old) return old;
+                    if (!old) return { shelves: [data._id] };
 
                     return {
-                        shelves: [...data._id, ...old.shelves]
+                        shelves: [...old.shelves, data._id]
                     }
 
-                })
+                });
 
             });
         }

@@ -379,10 +379,12 @@ export const queryKeys: Record<AvailableQueryKeys, string[]> = {
   reportedContents_type_tid: ["reportedContents", "{type}", "threads", "{tid}"],
   collaboratedShelvesOfUser_uid: ["collaboratedShelvesOfUser", "{uid}"],
   invitedShelvesOfUser_uid: ["invitedShelvesOfUser", "{uid}"],
-  privateShelvesOfUser_uid_filter: ["privateShelvesOfUser", "{uid}", "{filter}"],
+  privateShelvesOfUser_uid: ["private-shelves-user-{uid}"],
+  allShelvesOfUser_uid: ["all-shelves-user-{uid}"],
   shelfConnection_sid: ["shelfConnection", "{sid}"],
   shelfsForCinement_cnid: ["shelfsForCinement", "{cnid}"],
-  ifReportExists_cnid_type: ["reportExists", "{cnid}", "{type}"]
+  ifReportExists_cnid_type: ["reportExists", "{cnid}", "{type}"],
+  threadsOnCinementOrArtist_id: ["threadsOnCinementOrArtist", "{id}"]
 };
 
 export const cacheTags: Record<AvailableCacheTags, string[]> = {
@@ -396,11 +398,8 @@ export const cacheTags: Record<AvailableCacheTags, string[]> = {
   postsOfThread_filter_tid_page_category_nsfw: [
     "filter-{filter}-posts-thread-{tid}-page-{page}-tag-{category}-nsfw-{nsfw}",
   ],
-
   threads_filter_page_nsfw: ["filter-{filter}-threads-page-{page}-nsfw-{nsfw}"],
-
   membersOfThread_tid_page: ["members-thread-{tid}-page-{page}"],
-
   joinedThreadsOfUser_uid_page: ["threads-user-{uid}-page-{page}"],
   post_pid: ["post-{pid}"],
   commentsOfPost_pid_filter_page_nsfw: [
@@ -424,10 +423,11 @@ export const cacheTags: Record<AvailableCacheTags, string[]> = {
   shelvesOfUser_uid_filter_page: [
     "shelves-user-{uid}-filter-{filter}-page-{page}",
   ],
-  privateShelvesOfUser_uid_filter_page: [
-    "private-shelves-user-{uid}-filter-{filter}-page-{page}",
+  privateShelvesOfUser_uid_page: [
+    "private-shelves-user-{uid}-page-{page}",
   ],
-  shelvesForMedia_mid_uid: ["shelvesForMedia-{mid}-user-{uid}"],
+  allShelvesOfUser_uid_page: ["allShelves-user-{uid}-page-{page}"],
+  shelvesForCinement_cid_uid: ["shelvesForCinement-{cid}-user-{uid}"],
   items_sid_filter_page_key: ["items-{sid}-{page}-{filter}-{key}"],
   "saved-posts_uid_page": ["savedPosts-user-{uid}", "page-{page}"],
   "saved-comments_uid_page": ["savedComments-user-{uid}", "page-{page}"],
@@ -490,6 +490,8 @@ export const revalidateTags: Record<AvailableRevalidateTags, string[]> = {
   shelfMutation_sid_uid_key: [
     "shelf-{sid}-{key}",
     "shelves-user-{uid}-filter-latest-page-1",
+    "private-shelves-user-{uid}-page-1",
+    "allShelves-user-{uid}-page-1"
   ],
   shelfUpdation_sid_key: ["shelf-{sid}-{key}"],
   shelfCollaboratorMutation_uid_sid: ["shelf-collaborators-{sid}", "shelf-{sid}-{key}", "isShelfCollaborator-{uid}-{sid}"],

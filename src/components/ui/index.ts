@@ -13,6 +13,7 @@ export { default as ThreadTile } from "./ThreadTile";
 export { default as ItemTile } from "./ItemTile";
 export { default as MetadataTile } from "./MetaDataTile"
 export { default as ShelfBar } from "./ShelfBar"
+export { default as ShelfItemBar, ShowOnlyShelfItem } from "./ItemTile"
 export { default as UserBar, SimpleUserBar } from "./UserBar";
 export { default as MessageBar } from "./MessageBar";
 export { TabContainer, TabList } from "./Tabs"
@@ -21,3 +22,5 @@ export { default as ParloImage } from "./ParloImage";
 export { default as OptionalChildren } from "./OptionalChildren";
 export { default as ParloFooter } from "./ParloFooter";
 export { default as InteractiveDetailSection } from "./InteractiveDetailSection";
+export { default as ThreadBox } from "./ThreadBox";
+export { default as LinksSection } from "./LinksSection";

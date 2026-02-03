@@ -15,7 +15,7 @@ const GlobalNotFoundPage = () => {
             <body>
                 <main className="flex flex-col overflow-hidden">
                     <Navbar />
-                    <div className="flex-1 flex flex-cntr-all">
+                    <div className="flex-1 flex flex-cntr-all px-2 sm:px-0">
                         <NotFound
                             title="Oops! Looks like you came across a new path"
                             paras={[

@@ -35,7 +35,7 @@
   --globalRadius: 8px;
   --borderWidth: 2px;
   --sidebarWidth: 5rem;
-  
+
   --primary: var(--light-primary);
   --primarylight: var(--light-secondary);
   --primaryText: var(--light-text);
@@ -51,16 +51,6 @@ html.light {
   --secondary-text: var(--dark-text);
 }
 
-/* @media (prefers-color-scheme: dark) {
-  :root {
-    --primary: var(--dark-primary);
-    --primarylight: var(--dark-secondary);
-    --primaryText: var(--dark-text);
-    --secondary: var(--dark-text);
-    --secondary-text: var(--light-text);
-  }
-} */
-
 html.dark {
   --primary: var(--dark-primary);
   --primarylight: var(--dark-secondary);
@@ -68,16 +58,6 @@ html.dark {
   --secondary: var(--dark-text);
   --secondary-text: var(--light-text);
 }
-
-/* @media (prefers-color-scheme: light) {
-  :root {
-    --primary: var(--light-primary);
-    --primarylight: var(--light-secondary);
-    --primaryText: var(--light-text);
-    --secondary: var(--light-text);
-    --secondary-text: var(--dark-text);
-  }
-} */
 
 @layer utilities {
   .bg-gray10 {
@@ -199,7 +179,7 @@ textarea:-webkit-autofill,
 textarea:-webkit-autofill:hover,
 textarea:-webkit-autofill:focus,
 select:-webkit-autofill {
-  -webkit-text-fill-color: currentColor;
+  -webkit-text-fill-color: var(--primaryText);
   transition: background-color 5000s ease-in-out 0s;
   box-shadow: 0 0 0px 1000px transparent inset;
 }
@@ -209,8 +189,12 @@ select:-webkit-autofill {
   inset: 0;
   background-image: url("/pattern.svg");
   background-size: cover;
-  filter: brightness(0.6);
+  opacity: 0.8;
   z-index: 0;
+}
+
+html.light .patternBackground{
+opacity: 0.4;
 }
 
 h1,
@@ -379,6 +363,12 @@ li {
   justify-content: center;
 }
 
+.sheetContainer > *:not(.customize) {
+  width: 100%;
+  margin-inline: auto;
+  max-width: 24rem;
+}
+
 .fadeToNone {
   opacity: 0;
   display: none;
@@ -399,7 +389,7 @@ html {
 body {
   height: 100dvh;
   max-height: fit-content;
-  overscroll-behavior: contain;
+  overscroll-behavior-y: none;
   color-scheme: light dark;
   background-color: var(--primary);
   font-family:
@@ -667,7 +657,7 @@ textarea {
   }
 }
 
-.skeletonLoading {
+/* .skeletonLoading {
   animation: skeletonLoading 2s infinite ease-in-out;
   background: linear-gradient(
     to right,
@@ -686,6 +676,17 @@ textarea {
   }
   to {
     background-position: 0%;
+  }
+} */
+
+.skeleton-pulse-loading {
+  animation: skeletonPulseLoading 2s infinite cubic-bezier(0.4, 0, 0.6, 1);
+  background: var(--primarylight);
+}
+
+@keyframes skeletonPulseLoading {
+  50% {
+    background: #717170;
   }
 }
 

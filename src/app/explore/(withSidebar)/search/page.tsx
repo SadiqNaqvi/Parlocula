@@ -1,7 +1,7 @@
 "use client";
 
 import InfiniteScroller from "@components/InfiniteScroller";
-import { CommentBarWithoutReply, PostBar, SearchTile, ThreadTile, ShelfBar, UserBar } from "@components/ui";
+import { CommentBarWithoutReply, PostBar, SearchTile, ShelfBar, ThreadTile, UserBar } from "@components/ui";
 import { SearchSkeleton } from "@components/ui/loading";
 import { searchFilters } from "@lib/constants";
 import { searchAllContent, searchCollection, searchCompany, searchMovie, searchPerson, searchShow } from "@lib/contentFetcher";
@@ -81,7 +81,7 @@ const SearchPage = () => {
             <SearchHeader filter={currentFilter} />
             <section className="forceCenter flex-col">
                 <h3 className="text-lg md:text-2xl uppercase font-semibold mb-2">Search what you like!</h3>
-                <p className="text-sm md:text-base text-zinc-500">Movies, Shows, Threads, People, Users, Collections, Companies, etc...</p>
+                <p className="text-sm text-center md:text-base text-zinc-500">Movies, Shows, Threads, People, Users, Collections, Companies, etc...</p>
             </section>
         </>
     )

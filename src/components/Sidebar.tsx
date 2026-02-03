@@ -1,52 +1,19 @@
 "use client";
 
-import { AddIcon, AppIcon, ExploreFillIcon, ExploreIcon, PostIcon, ThreadIconFill, HomeFillIcon, HomeIcon, MessagesFillIcon, MessagesIcon, ThreadIcon, UserIcon } from "@assets/Icons";
+import { AddIcon, AppIcon, ExploreFillIcon, ExploreIcon, HomeFillIcon, HomeIcon, MessagesFillIcon, MessagesIcon, PostIcon, ThreadIcon, ThreadIconFill, UserIcon } from "@assets/Icons";
+import { BottomSheet, Navigate } from "@components";
 import useCurrentUser from "@store/user";
 import { usePathname } from "next/navigation";
 import React, { PropsWithChildren, useEffect } from "react";
-import { BottomSheet, Navigate } from "@components";
+import { twMerge } from "tailwind-merge";
 import NotificationButton from "./notifications/NotificationButton";
 import { OptionalChildren, ParloImage } from "./ui";
-import { twMerge } from "tailwind-merge";
-import * as ThumbHash from "thumbhash"
 
 const ProfileButton = () => {
 
     const meta = useCurrentUser(state => state.meta);
     const pathname = usePathname();
     useEffect(() => console.log("meta in sidebar", meta), [meta]);
-
-    // const takeHash = async () => {
-    //         if (!meta?.profile) return;
-    //         const src = typeof meta.profile === "string" ? meta.profile : meta.profile.path;
-    //         const image = new Image
-    //         image.src = src;
-    //         image.crossOrigin = "Anonymous";
-    //         await new Promise(resolve => image.onload = resolve)
-    //         const canvas = document.createElement('canvas')
-    //         const context = canvas.getContext('2d')
-    //         const scale = 100 / Math.max(image.width, image.height)
-    //         canvas.width = Math.round(image.width * scale)
-    //         canvas.height = Math.round(image.height * scale);
-
-    //         if (!context) return;
-    //         context.drawImage(image, 0, 0, canvas.width, canvas.height)
-    //         const pixels = context.getImageData(0, 0, canvas.width, canvas.height)
-    //         const binaryThumbHash = ThumbHash.rgbaToThumbHash(pixels.width, pixels.height, pixels.data)
-
-    //         // ThumbHash to data URL
-    //         const placeholderURL = ThumbHash.thumbHashToDataURL(binaryThumbHash)
-
-    //         console.log(binaryThumbHash);
-    //         console.log(placeholderURL);
-
-    //     }
-
-    //     return (
-    //         <button onClick={takeHash}>
-    //             click
-    //         </button>
-    //     )
 
     if (!meta) return (
         <div className={`rounded-full border-2 ${pathname.startsWith(`/guest`) ? "border-secondary" : "border-gray-500"}`}>
@@ -78,7 +45,7 @@ const AddButton = ({ className }: { className?: string }) => {
     return (
         <BottomSheet className="mx-auto" button={<AddIcon className={className} />}>
             <section className="p-6">
-                <h3 className="text-center">Start Creating Now</h3>
+                <h3 className="text-center font-semibold">Start Creating Now</h3>
 
                 <div className="flex gap-4 mt-4 mx-auto w-fit">
                     <Navigate comp="link" type="button" goto="/post/new" className={addButtonClasses}>

@@ -23,8 +23,8 @@ const PostSection = ({ username, uid, filter, page, allowNsfw }: Props) => {
         title: "Nothing to see here",
         paras: [
             meta && meta.user_id === uid ?
-                `${username} haven't posted anything` :
-                "Maybe it's time for you to start posting"
+                "Maybe it's time for you to start posting" :
+                `${username} haven't posted anything`
         ]
     };
 

@@ -26,8 +26,8 @@ export default function SearchTile({ id, image, media_type, name }: RefinedSearc
                     alt={`Poster of ${name}`}
                 />
                 <div className="flex-1 space-y-4">
-                    <h2 className="text-xl font-semibold">{name}</h2>
-                    <span className="mt-auto text-sm capitalize">{media_type === "tv" ? "show" : media_type}</span>
+                    <h4 className="sm:text-xl font-semibold line-clamp-1">{name}</h4>
+                    <span className="text-xs sm:text-sm capitalize">{media_type === "tv" ? "show" : media_type}</span>
                 </div>
             </Navigate>
         </article>

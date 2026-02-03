@@ -67,7 +67,6 @@ const ThreadChoice = ({ submitChoice }: { submitChoice: (chosenThread: MereThrea
             </section >
         </div>
     )
-
 }
 
 const ChooseThreadButton = forwardRef(({ defaultVal }: Props, ref) => {

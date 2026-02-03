@@ -14,3 +14,4 @@ export { default as LinkInputManager } from "./LinkInputManager";
 export { default as ShelfForm } from "./ShelfForm";
 export { default as DateInput } from "./DateInput";
 export { default as OTPInput } from "./OtpInput";
+export { default as ShelfSelector } from "./ShelfSelector";

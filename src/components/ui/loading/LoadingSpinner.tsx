@@ -14,7 +14,7 @@ export const FullPageLoadingSpinner = ({ path }: { path?: string[] }) => {
 
     return (
         <section className="h-size-screen">
-            <Navbar navTitle={name} />
+            <Navbar navTitle={decodeURI(name || '')} />
             <div className="forceCenter">
                 <LoadingSpinner />
             </div>

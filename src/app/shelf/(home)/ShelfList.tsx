@@ -20,8 +20,8 @@ const getQueryKeyAndFn = (type: ShelfListCategory, uid: string, filter: string):
     }
 
     else if (type === "private") return {
-        queryFn: (p) => getPrivateShelvesOfUser(uid, p, filter),
-        queryKeys: getQueryKeys("privateShelvesOfUser_uid_filter", { uid, filter })
+        queryFn: (p) => getPrivateShelvesOfUser(uid, p),
+        queryKeys: getQueryKeys("privateShelvesOfUser_uid", { uid })
     }
 
     else return {

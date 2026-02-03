@@ -1,7 +1,9 @@
 "use client";
 
-import { Form, Input, Poster, Textarea, DateInput, LinkInputManager } from "@components/form";
+import { EditIcon } from "@assets/Icons";
+import { DateInput, Form, Input, LinkInputManager, Poster, Textarea } from "@components/form";
 import Navbar from "@components/Navbar";
+import { MockupButton, UserPageMockup } from "@components/ui/mockup";
 import { urlPattern } from "@lib/constants";
 import { isUsernameAvailable } from "@lib/helpers/common";
 import { registerUserMutation } from "@lib/helpers/mutations";
@@ -14,8 +16,6 @@ import { InputFrame, LinkSchema } from "@type/schemas";
 import { useSearchParams } from "next/navigation";
 import { useRef } from "react";
 import z from "zod";
-import { EditIcon } from "@assets/Icons";
-import { PrimaryButton, SecondaryButton, UserPageMockup } from "@components/ui/mockup";
 
 const Register = ({ email }: { email: string }) => {
 
@@ -193,8 +193,8 @@ const Register = ({ email }: { email: string }) => {
 
 
                 <div className="mt-6 flex gap-2">
-                    <PrimaryButton className="flex-1">Follow</PrimaryButton>
-                    <SecondaryButton className="flex-1">Message</SecondaryButton>
+                    <MockupButton primary className="flex-1">Follow</MockupButton>
+                    <MockupButton className="flex-1">Message</MockupButton>
                 </div>
 
                 <UserPageMockup />

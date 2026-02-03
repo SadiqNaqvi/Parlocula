@@ -9,9 +9,9 @@ import { GeneralGetReturn } from "@type/internal";
 type Sections = "movies_company" | "movies_network" | "shows_company" | "shows_network"
 
 type Props = {
-    section: "cast" | "crew" | Sections,
+    section: "cast" | "crew" | "collection" | Sections,
     content_id: string,
-    data?: PersonWork[],
+    data?: (PersonWork | RefinedGeneralData)[],
 }
 
 const funcMap: Record<Sections, (id: string, page?: number, sort_by?: SortOptions)
@@ -27,10 +27,10 @@ const Component = (data: RefinedGeneralData) => (
     <VerticleMovieCard {...data} className="w-auto min-w-auto" />
 )
 
-const MediaFetcher = ({ section, data, content_id }: Props) => {
+const CinementGrid = ({ section, data, content_id }: Props) => {
 
     const functionToFetch = async (p: number): Promise<GeneralGetReturn> => {
-        if (section === "cast" || section === "crew")
+        if (section === "cast" || section === "crew" || section === "collection")
             return { success: true, result: [] };
         const func = funcMap[section];
         const data = await func(content_id, p);
@@ -63,7 +63,7 @@ const MediaFetcher = ({ section, data, content_id }: Props) => {
                 className="grid grid-cols-2 sm:grid-cols-4 xs:grid-cols-3 gap-2 sm:gap-4 px-2 sm:px-4"
                 Component={Component}
                 fetchData={functionToFetch}
-                queryKeys={["mediaFetcher", "explore", section, content_id]}
+                queryKeys={["CinementGrid", "explore", section, content_id]}
                 initialData={data ? { data, total: data.length } : undefined}
                 initialPage={1}
                 NotFoundSection={NotFoundSection}
@@ -72,4 +72,4 @@ const MediaFetcher = ({ section, data, content_id }: Props) => {
     )
 }
 
-export default MediaFetcher;
+export default CinementGrid;

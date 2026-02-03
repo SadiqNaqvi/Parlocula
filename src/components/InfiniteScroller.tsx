@@ -9,7 +9,7 @@ import { ErrorCodes } from "@type/other";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect, useRef } from "react";
 import NotFound from "./fallbacks/NotFound";
-import { LoadingSpinner, ShowError } from "./ui";
+import { LoadingSpinner, OptionalChildren, ShowError } from "./ui";
 
 export type InfiniteScrollerProps = {
     Component: React.ComponentType<any>,
@@ -72,9 +72,9 @@ export default function InfiniteScroller({ Loading, onSuccess, placeholderData, 
     });
 
     useEffect(() => {
-        console.log("infiniteScroller", isHydrated, dataSaver);
+        // console.log("infiniteScroller", isHydrated, dataSaver);
         if (!isHydrated || dataSaver) return;
-        console.log("InfinityScroller Yaha aaya");
+        // console.log("InfinityScroller Yaha aaya");
         const current = container.current;
 
         const observer = new IntersectionObserver(([entry]) => {
@@ -146,17 +146,19 @@ export default function InfiniteScroller({ Loading, onSuccess, placeholderData, 
                     </React.Fragment>
                 ))}
             </ul>
-            {hasNextPage &&
-                ((isHydrated && !dataSaver) || isFetchingNextPage ?
-                    <div ref={container} className="mt-4 py-2 w-fit mx-auto">
+            <OptionalChildren condition={hasNextPage}>
+                <OptionalChildren
+                    fallback={(
+                        <div className="w-full flex flex-cntr-all">
+                            <button className="primary" onClick={manuallyLoadNextPage}>Load More</button>
+                        </div>
+                    )}
+                    condition={(isHydrated && !dataSaver) || isFetchingNextPage}>
+                    <div ref={container} className="mt-4 py-2 w-full">
                         <LoadingComponent />
                     </div>
-                    :
-                    <div className="w-full flex flex-cntr-all">
-                        <button className="primary" onClick={manuallyLoadNextPage}>Load More</button>
-                    </div>
-                )
-            }
+                </OptionalChildren>
+            </OptionalChildren>
         </>
     )
 }

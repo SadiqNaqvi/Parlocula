@@ -38,14 +38,15 @@ const CinementWikiHeader = ({ className, posterClassName, title, titleToShare, p
                         containerClassName="w-full"
                         width={768}
                         height={300}
-                        className={twMerge("w-full rounded-md aspect-[16/9] max-h-[300px] object-cover object-top", posterClassName)}
+                        prioritize
+                        className={twMerge("w-full rounded-md aspect-[16/9] h-auto max-h-[250px] object-cover object-top", posterClassName)}
                         alt="Backdrop"
                         frame={getPoster({ external: true, type: "backdrop", path: backdrop, size: "w780" })}
                     />
                 </section>
             </OptionalChildren>
 
-            <section className={`relative flex gap-4 ${backdrop ? "items-end pl-4" : "items-center"}`}>
+            <section className={`relative flex gap-2 sm:gap-4 ${backdrop ? "items-end pl-4" : "items-center"}`}>
 
                 <ParloImage
                     fancy={{
@@ -55,21 +56,21 @@ const CinementWikiHeader = ({ className, posterClassName, title, titleToShare, p
                     }}
                     height={160}
                     width={160}
-                    className={`${backdrop ? "absolute -translate-y-[50%] top-0" : ''} border-4 border-primary object-cover min-w-24 size-24 sm:min-w-40 sm:size-40 rounded-full`}
+                    className={`${backdrop ? "absolute -translate-y-[50%] top-0 border-4 border-primary" : ''} object-cover min-w-24 size-24 sm:min-w-40 sm:size-40 rounded-full`}
                     alt={`Poster of ${title}`}
                     frame={getPoster({ external: true, type: "poster", path: poster, size: "w185" })}
                 />
 
-                <div className={`w-full space-y-2 ${backdrop ? "mt-2 pl-24 sm:pl-40" : ''}`}>
-                    <h1 data-observe className="text-xl sm:text-3xl line-clamp-2 font-semibold capitalize">{title}</h1>
+                <div className={`w-full space-y-1 ${backdrop ? "mt-2 pl-24 sm:pl-40" : ''}`}>
+                    <h1 data-observe className="text-lg xs:text-xl sm:text-3xl line-clamp-2 font-semibold capitalize">{title}</h1>
 
                     {titleSupport}
                 </div>
             </section>
 
-            <section>
+            <section className={backdrop ? "mt-6 mb-4" : 'my-4'}>
                 <OptionalChildren condition={wikiMeta?.length}>
-                    <ul className={`flex gap-2 ${backdrop ? "mt-6 mb-4" : 'my-4'}`}>
+                    <ul className={"flex gap-2 mb-4"}>
                         {wikiMeta?.map(el => (
                             <li key={el.label} className="gap-1 md:gap-2 flex flex-col flex-cntr-all">
                                 <strong>{el.value}</strong>
@@ -86,9 +87,7 @@ const CinementWikiHeader = ({ className, posterClassName, title, titleToShare, p
             </section>
 
             <OptionalChildren condition={callToActions}>
-                <section className="mt-6 text-sm flex gap-2">
-                    {callToActions}
-                </section>
+                {callToActions}
             </OptionalChildren>
 
         </ObserverHeader>

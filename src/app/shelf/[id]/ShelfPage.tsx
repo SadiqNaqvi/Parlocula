@@ -1,16 +1,13 @@
 "use client";
 
-import { GenericWrapper, InfiniteScroller, Navigate } from "@components";
-import FancyImage from "@components/FancyImage";
-import ObserverHeader from "@components/ObserverHeader";
+import { FancyImage, FilterTiles, GenericWrapper, InfiniteScroller, Navigate, ObserverHeader } from "@components";
 import { ItemTile } from "@components/ui";
 import { getItems, getShelf } from "@lib/helpers/common";
 import { getPoster, getQueryKeys, timeAgo } from "@lib/utils";
 import { FullShelf } from "@type/internal";
 import ActionButton from "./ActionButton";
-import ListIcons from "@components/ui/ListIconMap";
 import EllipsisButton from "./Ellipsis";
-import FilterTiles from "@components/Router/FilterTIles";
+import ShelfPoster from "@components/ui/ShelfPoster";
 
 type Props = {
     id: string,
@@ -39,22 +36,8 @@ const Component = (data: FullShelf, { filter, page, uid, key }: Props) => {
                 navTitle={name}
                 className="pb-4 border-b border-gray30">
 
-                <div className="size-32">
-                    {
-                        shelf_type === "custom" ?
-                            <FancyImage
-                                id="poster"
-                                height={128}
-                                width={128}
-                                className="size-full object-cover rounded-full"
-                                thumbnail={getPoster({ external: true, type: "poster", path: poster, size: "w154" })}
-                                src={getPoster({ external: true, type: "poster", path: poster, size: "original" })}
-                                alt={`Poster`}
-                            />
-                            :
-                            <ListIcons type={shelf_type} />
-                    }
-                </div>
+
+                <ShelfPoster className="size-32" name={name} poster={poster} shelf_type={shelf_type} />
 
                 <div className="space-y-4 my-4">
                     <h1 data-observe className="text-2xl">{name}</h1>

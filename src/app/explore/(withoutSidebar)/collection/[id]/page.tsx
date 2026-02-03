@@ -1,11 +1,11 @@
 import { BottomSheet } from "@components";
 import ShelfForm from "@components/form/ShelfForm";
-import { NotFound, VerticleMovieCard } from "@components/ui";
+import { NotFound } from "@components/ui";
 import { fetchCollection } from "@lib/contentFetcher";
 import { ParloPageProps } from "@type/other";
 import { CinementSchemaType } from "@type/schemas";
 import { Metadata } from "next";
-import CinementWikiHeader, { CinementWikiSection } from "../../components/CinementWikiPage";
+import { CinementGrid, CinementWikiHeader, CinementWikiSection } from "../../components";
 
 const fetchData = async (params: { id: string }) => {
     const collection_id = params.id.split('-')[0];
@@ -64,11 +64,11 @@ const Page = async ({ params }: ParloPageProps) => {
                 )}
             />
             <CinementWikiSection heading="movies">
-                <div className="flex-wrap flex gap-4">
-                    {content.parts.map(el => (
-                        <VerticleMovieCard {...el} />
-                    ))}
-                </div>
+                <CinementGrid
+                    section="collection"
+                    content_id=""
+                    data={content.parts}
+                />
             </CinementWikiSection>
 
         </>

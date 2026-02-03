@@ -1,10 +1,11 @@
+import { PullToRefresh } from "@components";
 import { ParloFooter } from "@components/ui";
 
 const Layout = ({ children }: Readonly<{ children: React.ReactNode }>) => (
-    <main>
+    <PullToRefresh>
         {children}
         <ParloFooter />
-    </main>
+    </PullToRefresh>
 )
 
 export default Layout;

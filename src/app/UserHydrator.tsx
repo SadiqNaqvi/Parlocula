@@ -15,17 +15,21 @@ const UserHydrator = ({ payload }: { payload: TokenPayload | null }) => {
     useEffect(() => console.log("meta in userHydrator", meta), [meta]);
 
     useEffect(() => {
-        if (!payload) {
-            return clearUser();
-        }
+        if (!payload) return;
+        //     {
+        //     return clearUser();
+        // }
 
         const { username } = payload;
 
         const queryClient = getQueryClient();
         const qkeys = getQueryKeys("user_username", { username });
         let userToStore: CurrentUser | null = null;
+
         // This would return the user object or undefined. It would return undefined only if the user opened the web app offline.
         const prefetchedUser = queryClient.getQueryData<CurrentUser>(qkeys);
+
+        console.log("prefetchedUser", prefetchedUser);
 
         // Update user hash with the freshly fetched user data.
         if (prefetchedUser) {

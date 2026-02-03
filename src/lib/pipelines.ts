@@ -474,7 +474,7 @@ export const getFollowersToNotify = async (user_id: string, limit = 50): Promise
         as: "user",
       },
     },
-    { $sort: { "$user.updatedAt": -1 } },
+    { $sort: { "user.updatedAt": -1 } },
     { $limit: limit },
     { $project: { follower: 1 } },
   ]);

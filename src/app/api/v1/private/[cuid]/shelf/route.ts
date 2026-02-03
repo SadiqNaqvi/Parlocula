@@ -1,3 +1,4 @@
+import { filterToSort } from "@lib/constants";
 import { getHandler, postHandler } from "@lib/helpers/handlers";
 import { addItemsInShelf, sendNotification } from "@lib/helpers/server";
 import { getFollowersToNotify, shelvesAggregationPipeline } from "@lib/pipelines";
@@ -9,7 +10,7 @@ import { ShelfSchemaType } from "@type/schemas";
 // Fetching only custom + private shelves of the user.
 export const GET = getHandler(async (r, params) => {
   const { cuid } = params;
-  const page = getPageParams(r);
+  const page = getPageParams(r) - 1;
 
   const shelves = await Shelf.aggregate(
     shelvesAggregationPipeline({
@@ -47,7 +48,7 @@ export const POST = postHandler<ShelfSchemaType>({
       ], { session, ordered: true })
     )[0];
 
-    await addItemsInShelf(
+    const allCinements = await addItemsInShelf(
       items,
       "custom",
       shelf._id,
@@ -77,13 +78,17 @@ export const POST = postHandler<ShelfSchemaType>({
 
     return {
       success: true,
-      available: "shelfMutation_sid_uid_key",
-      options: {
-        sid: shelf._id,
-        uid: user_id,
-        key: shelfKey || "none"
-      },
-      result: shelf,
+      revalidateQueue: allCinements
+        .map(c => `shelvesForCinement-${c.cinement_id}-user-${user_id}`)
+        .concat(
+          Object.keys(filterToSort.shelves)
+            .map(filter => `shelves-user-${user_id}-filter-${filter}-page-1`)
+            .concat([
+              `private-shelves-user-${user_id}-page-1`,
+              `allShelves-user-${user_id}-page-1`
+            ]),
+        ),
+      result: shelf.toObject(),
     };
   },
   schema: shelfServerSchema,

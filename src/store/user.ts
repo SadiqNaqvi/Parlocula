@@ -1,3 +1,4 @@
+import appToast from "@lib/providers/toast";
 import { calculateAge } from "@lib/utils";
 import { localForageStorage } from "@store/utils";
 import { CurrentUser, Frame } from "@type/internal";
@@ -44,7 +45,9 @@ const useCurrentUser = create(
       setUserMeta: (meta) => set({ meta }),
 
       clearUser: () => {
-        set({ user: null, meta: null, dataSaver: false, filterContent: true })
+        // appToast.info("CLEAR USER IS CALLED")
+        alert("CLEAR USER IS CALLED");
+        // set({ user: null, meta: null, dataSaver: false, filterContent: true })
       },
 
       toggleDataSaver: (newState) => set({ dataSaver: newState }),

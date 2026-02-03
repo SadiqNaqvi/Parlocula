@@ -17,11 +17,4 @@ const ThreadBox = ({ _id, name, poster }: MereThread) => (
     </article>
 )
 
-export const ThreadBoxLoadingSkeleton = () => (
-    <div className="size-24 p-2 space-y-3">
-        <div className="size-12 animate-pulse rounded-full"></div>
-        <div className="h-[18px] w-3/4 animate-pulse rounded-lg"></div>
-    </div>
-)
-
 export default ThreadBox;

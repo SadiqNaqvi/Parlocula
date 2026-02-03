@@ -4,12 +4,12 @@ export const CommentBarSkeleton = () => {
         <li className="w-full space-y-2">
             <div className="gap-4 flex items-center">
                 <div className="size-8 rounded-full animate-pulse"></div>
-                <div className="h-3 w-[60%] rounded-lg skeletonLoading"></div>
+                <div className="h-3 w-[60%] rounded-lg skeleton-pulse-loading"></div>
             </div>
             <div className="space-y-2">
-                <div className="h-2 w-[90%] rounded-lg skeletonLoading"></div>
-                <div className="h-2 w-[90%] rounded-lg skeletonLoading"></div>
-                <div className="h-2 w-[50%] rounded-lg skeletonLoading"></div>
+                <div className="h-2 w-[90%] rounded-lg skeleton-pulse-loading"></div>
+                <div className="h-2 w-[90%] rounded-lg skeleton-pulse-loading"></div>
+                <div className="h-2 w-[50%] rounded-lg skeleton-pulse-loading"></div>
             </div>
         </li>
     )

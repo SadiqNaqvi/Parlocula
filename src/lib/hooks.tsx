@@ -71,13 +71,16 @@ type UseQueryProps<T,> = {
     onSuccess?: (d: T) => void,
     placeholderData?: T,
 }
-export const useQueryHook = <T,>({ queryKeys, onSuccess, queryFn, initialData, placeholderData, staleTime = oneHour * 1000, enabled = true }: UseQueryProps<T>) => {
+
+
+export const useQueryHook = <T,>({ queryKeys, onSuccess, queryFn, initialData, placeholderData, staleTime, enabled = true }: UseQueryProps<T>) => {
+    const defaultStaleTime = Date.now()+oneHour*1000;
     const response = useQuery<T | null>({
         queryKey: queryKeys,
         queryFn: () => refineResponseForQuery(queryFn),
         enabled,
-        staleTime,
-        gcTime: oneHour * 1000,
+        staleTime: staleTime||defaultStaleTime,
+        gcTime: defaultStaleTime,
         placeholderData: placeholderData as NonFunctionGuard<T>,
         initialData,
         retry: false,

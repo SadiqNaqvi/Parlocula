@@ -7,11 +7,12 @@ import { logoutUser } from "@lib/helpers/mutations";
 import { useNavigation } from "@store/historystack";
 import useCurrentUser from "@store/user";
 import { PropsWithChildren } from "react";
+import { twMerge } from "tailwind-merge";
 
 const SectionList = ({ children, href, className = '' }: PropsWithChildren<{ href?: string, className?: string }>) => {
 
     if (href) return (
-        <li className={`px-2 *:py-3 ${className}`}>
+        <li className={twMerge("p-2", className)}>
             <Navigate comp="link" goto={href} className="size-full flex flex-cntr-between">
                 <div>{children}</div>
                 <RightChevron className="size-4" />
@@ -27,9 +28,9 @@ const SectionList = ({ children, href, className = '' }: PropsWithChildren<{ hre
 }
 
 const Sections = ({ heading, children }: PropsWithChildren<{ heading: string }>) => (
-    <section className="rounded-md">
-        <h2 className="uppercase text-sm text-semibold p-2">{heading}</h2>
-        <ul className="bg-primarylight">{children}</ul>
+    <section className="space-y-2 mb-4 px-2 last:mb-0">
+        <h2 className="parloHeading">{heading}</h2>
+        <ul className="border rounded-lg border-gray30">{children}</ul>
     </section>
 )
 

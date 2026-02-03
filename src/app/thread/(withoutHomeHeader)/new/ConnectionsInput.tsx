@@ -38,9 +38,8 @@ const ConnectionsInput = ({ defaultConnections, connectionsRef }: { defaultConne
 
     const getConnections = () => {
         const selectedConnections = callbackRef.current?.();
-        console.log(selectedConnections);
         if (!selectedConnections || !selectedConnections.length) return;
-        setConnections(selectedConnections);
+        setConnections([...connections, ...selectedConnections]);
     }
 
     return (

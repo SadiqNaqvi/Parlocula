@@ -46,7 +46,7 @@ const validateUser = async (
   const { user_id } = payload;
 
   // If token is neither tampered nor expired, return true;
-  console.log("payload in proxy", payload.exp, Boolean(payload.exp! * 1000 < Date.now()));
+  // console.log("payload in proxy", payload.exp, Boolean(payload.exp! * 1000 < Date.now()));
 
   if (payload.exp && (payload.exp * 1000) > Date.now())
     return { success: true, user_id };
@@ -113,8 +113,10 @@ export const proxy = async (req: NextRequest) => {
     if (req.method === "GET" && (pathname.includes("/shelf") || pathname.includes("/item")) && user.reason === "noTokenORSession")
       return response;
 
+    console.log("user", user);
+
     // If user is a guest and trying to do anything private (which only authenticated users can do)
-    else if (pathname.includes("/api/v1/private"))
+    if (pathname.includes("/api/v1/private"))
       return NextResponse.json(user, { status: 403 });
 
   }

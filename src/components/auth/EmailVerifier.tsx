@@ -125,13 +125,13 @@ const EmailVerifier = ({ callback, navTitle, containerClasses }: Props) => {
         <div className={containerClasses}>
 
             <OptionalChildren condition={isPending}>
-                <aside className="fixed backdrop-brightness-50 z-[2] inset-0 flex flex-cntr-all">
+                <aside className="fixed backdrop-brightness-50 z-[10] inset-0 flex flex-cntr-all">
                     <LoadingSpinner />
                 </aside>
             </OptionalChildren>
 
             <Navbar
-                className="p-0 mb-4"
+                className="p-0 bg-transparent my-4 sm:mt-0"
                 navTitle="Verify Your Email"
                 onGoBack={() => setter({ page: "email" })} />
 
@@ -153,7 +153,7 @@ const EmailVerifier = ({ callback, navTitle, containerClasses }: Props) => {
         <div className={containerClasses}>
             <OptionalChildren condition={navTitle}>
                 <Navbar
-                    className="p-0 bg-transparent my-4"
+                    className="p-0 bg-transparent my-4 sm:mt-0"
                     navTitle={navTitle} />
             </OptionalChildren>
             <Form

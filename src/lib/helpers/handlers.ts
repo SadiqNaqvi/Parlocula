@@ -13,6 +13,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { ZodSchema } from "zod";
 import { sendEmail } from "./server";
 import { updateQuotaLimit } from "./redis/rate_limiting";
+import { redirect } from "next/navigation";
 
 type RT = AvailableRevalidateTags
 
@@ -174,10 +175,9 @@ export const postHandler = <T extends HandlerData>({ handler, preCheck, schema, 
 }) => {
     return async function (req: NextRequest, { params }: { params: Promise<HandlerParamVariable> }) {
         const payload = skipUserCheck ? null : await getUserFromToken(req.cookies);
-        console.log(payload);
         const awaitedParams = await params;
 
-        if (!skipUserCheck && !payload)
+        if (!(skipUserCheck || payload))
             return NextResponse.json(
                 {
                     success: false,
@@ -230,7 +230,7 @@ export const postHandler = <T extends HandlerData>({ handler, preCheck, schema, 
                     );
             }
 
-            session = await mongoose.connection.startSession();
+            session = await mongoose.startSession();
             let isNsfw = false;
             const { files, filesData, filesToRemove, ...rest } = data;
             if (files && files.length && filesData && filesData.length) {
@@ -238,7 +238,6 @@ export const postHandler = <T extends HandlerData>({ handler, preCheck, schema, 
                 frames = res.frames;
                 isNsfw = res.isNsfw;
             }
-
 
             session.startTransaction();
 
@@ -274,6 +273,8 @@ export const postHandler = <T extends HandlerData>({ handler, preCheck, schema, 
                 }
 
                 await session.commitTransaction().catch(console.error);
+
+
             }
 
             return NextResponse.json(
@@ -329,7 +330,7 @@ export const deleteHandler = (
                 if (!success) return NextResponse.json({ success, errCode });
             }
 
-            session = await mongoose.connection.startSession();
+            session = await mongoose.startSession();
 
             session.startTransaction();
             const { errCode, success, available, options, files, revalidateQueue } =
@@ -404,7 +405,7 @@ export const updateHandler = <T extends HandlerData>({ handler, preCheck, schema
                     errCode: "database_connection_fail",
                 });
 
-            session = await mongoose.connection.startSession();
+            session = await mongoose.startSession();
 
             // Some pre-checking eg: if the user is authorized to do this specific thing or not
             if (preCheck) {
@@ -460,6 +461,7 @@ export const updateHandler = <T extends HandlerData>({ handler, preCheck, schema
                     revalidateTags = getRevalidateTags(available, options);
 
                 await session.commitTransaction();
+
             } else {
                 await deleteFiles(frames);
                 await session.abortTransaction().catch(console.error);

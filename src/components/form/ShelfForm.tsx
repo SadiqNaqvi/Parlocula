@@ -1,7 +1,11 @@
 "use client";
 
+import { EditIcon } from "@assets/Icons";
+import { ParloImage, ShowOnlyShelfItem } from "@components/ui";
+import { MockupButton } from "@components/ui/mockup";
 import { createShelfMutation } from "@lib/helpers/mutations";
 import { shelfClientSchema } from "@lib/schemas";
+import { getPoster } from "@lib/utils";
 import useCurrentUser from "@store/user";
 import { CinementSchemaType } from "@type/schemas";
 import { Form, Input, ToggleButton } from ".";
@@ -27,24 +31,71 @@ const ShelfForm = ({ defaultVals, cinements, callback }: { defaultVals?: any, ci
     }
 
     return (
-        <section className="bg-primary border border-dashed border-gray30 rounded-md space-y-4 p-6 w-full max-w-[500px]">
-
+        <div className="customize w-full max-w-screen-md mx-auto h-screen">
             <Form defaultVals={defaultVals} submit={submit} schema={shelfClientSchema} className="space-y-3">
-                <Input
-                    name="name"
-                    placeholder="Eg: Horror Movies"
-                    label="name"
-                    required
-                />
-                <ToggleButton
-                    name="isPrivate"
-                    label="Private"
-                    className="capitalize w-full"
-                />
-                <button type="submit" className="primary mt-4">Create</button>
+                <div className="mb-4 flex flex-cntr-between py-2 border-b border-gray30">
+                    <h3 className="font-semibold">Create New Shelf</h3>
+
+                    <button type="submit" className="primary">Create</button>
+                </div>
+                <header className="mb-4 pb-4 border-b border-gray30">
+                    <section className="flex gap-4 items-center">
+
+                        <ParloImage
+                            height={128}
+                            width={128}
+                            className="object-cover min-w-24 size-24 sm:min-w-32 sm:size-32 rounded-full"
+                            alt={`Poster of Shelf`}
+                            frame={getPoster({ external: true, type: "poster", path: cinements[0].poster, size: "w185" })}
+                        />
+
+                        <div className="space-y-2 flex-1">
+                            <div className="flex items-center gap-1">
+                                <EditIcon className="text-zinc-500 size-5" />
+                                <Input
+                                    type="text"
+                                    name="name"
+                                    placeholder="Name - Eg: Fav Horror Movies"
+                                    autoFocus
+                                    containerClasses="flex-1"
+                                    minLength={3}
+                                    maxLength={40}
+                                    className="border-0 p-0 text-xl font-semibold w-full"
+                                />
+                            </div>
+                            <p className="text-sm text-zinc-500">Created by @{meta.username}</p>
+                        </div>
+
+                    </section>
+
+                    <ul className="mt-4 flex items-center gap-2">
+                        <li>
+                            <ToggleButton
+                                name="isPrivate"
+                                label="Private"
+                                className="capitalize w-full"
+                            />
+                        </li>
+                        <li className="w-[2px] h-stretch bg-zinc-500 rounded-md"></li>
+                        <li className="text-sm text-zinc-500">Created: Now</li>
+                        <li className="text-sm list-[circle] text-zinc-500">Items: {cinements.length}</li>
+                    </ul>
+
+                    <div className="mt-4 flex gap-2">
+                        <MockupButton primary />
+                        <MockupButton />
+                    </div>
+                </header>
+                <ul>
+                    {cinements.map(cinement => (
+                        <li key={cinement.cinement_id}>
+                            <ShowOnlyShelfItem {...cinement} />
+                        </li>
+                    ))}
+                </ul>
             </Form>
 
-        </section>
+        </div>
     )
 }
 

@@ -1,10 +1,8 @@
 import { PropsWithChildren } from "react";
 import { twMerge } from "tailwind-merge";
 
-export const PrimaryButton = ({ children, className }: PropsWithChildren<{ className?: string }>) => (
-    <div className={twMerge("bg-secondary color-primary rounded-md py-2 px-4 text-center", className)}>{children}</div>
+const MockupButton = ({ children, className, primary }: PropsWithChildren<{ className?: string, primary?: boolean }>) => (
+    <div className={twMerge(`${primary ? "bg-zinc-500" : "border-2 border-zinc-500 "} rounded-md h-12 flex-1 sm:flex-none w-full max-w-screen-xs sm:w-28 text-center`, className)}></div>
 )
 
-export const SecondaryButton = ({ children, className }: PropsWithChildren<{ className?: string }>) => (
-    <div className={twMerge("border-2 border-secondary rounded-md py-2 px-4 text-center", className)}>{children}</div>
-)
+export default MockupButton;

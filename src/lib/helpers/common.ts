@@ -236,7 +236,7 @@ export const getShelvesOfUser = async (
   filter = queryFilters.shelves[0]
 ) =>
   await ppGetData<AggregatedResponse<MereShelf>>({
-    url: `shelves/${uid}`,
+    url: `shelf/${uid}`,
     searchParams: { p: page, f: filter },
     revalidate: oneDay * 3,
     tag: "shelvesOfUser_filter_username_page",
@@ -246,14 +246,29 @@ export const getShelvesOfUser = async (
 export const getPrivateShelvesOfUser = async (
   uid: string,
   page: number,
-  filter = queryFilters.shelves[0]
+  cookies?: CookiesType,
 ) =>
   await ppGetData<AggregatedResponse<MereShelf>>({
     url: `private/${uid}/shelf`,
-    searchParams: { p: page, f: filter },
+    searchParams: { p: page },
     revalidate: oneDay * 3,
     tag: "privateShelvesOfUser_uid_filter_page",
-    options: { filter, uid, page },
+    options: { uid, page },
+    cookies,
+  });
+
+export const getAllShelvesOfUser = async (
+  uid: string,
+  page: number,
+  cookies?: CookiesType,
+) =>
+  await ppGetData<AggregatedResponse<MereShelf>>({
+    url: `private/${uid}/shelf/all`,
+    searchParams: { p: page },
+    revalidate: oneDay * 3,
+    tag: "allShelvesOfUser_uid_page",
+    options: { uid, page },
+    cookies,
   });
 
 export const getShelvesAsCollaborator = async (uid: string, page: number) =>
@@ -338,7 +353,7 @@ export const getRepliesOnComment = async (
     options: { cid: id, filter, page, nsfw },
   });
 
-export const getThreadsForMedia = async (
+export const getThreadsForCinementOrArtist = async (
   id: string,
   page: number,
   nsfw: boolean,
@@ -399,16 +414,16 @@ export const getCinement = async (ext_id: string, type: "movie" | "show"): Promi
 
   if (item.success) return { ...item.result, cinement_id: item.result._id };
 
-  const media: GeneralExtReturn<RefinedShowData | RefinedMovieData> = await fetch(
+  const data: GeneralExtReturn<RefinedShowData | RefinedMovieData> = await fetch(
     `https://testlalaapp.vercel.app/api/${type}?id=${ext_id}`,
     { next: { revalidate: oneDay * 2 } }
   ).then((r) => r.json());
 
-  if (!media.status) return null;
+  if (!data.status) return null;
 
-  const { title, year, poster } = media.response;
+  const { title, year, poster } = data.response;
 
-  const data = {
+  const dataToPost = {
     title: title,
     poster: poster || "",
     year,
@@ -419,7 +434,7 @@ export const getCinement = async (ext_id: string, type: "movie" | "show"): Promi
   // console.log("data to post", data);
 
   const resp = await axios
-    .post(`${parloculaAppURL}/api/v1/cinement/${id}`, objectToFormData(data))
+    .post(`${parloculaAppURL}/api/v1/cinement/${id}`, objectToFormData(dataToPost))
     .then((r) => r.data)
     .catch(r => r.response.data);
 
@@ -433,8 +448,8 @@ export const getCinement = async (ext_id: string, type: "movie" | "show"): Promi
 export const getShelvesForCinement = async (id: string, uid: string, cookies?: CookiesType) =>
   await ppGetData<ShelvesForCinement>({
     url: `private/${uid}/cinement/${id}`,
-    tag: "shelvesForMedia_mid_uid",
-    options: { mid: id, uid },
+    tag: "shelvesForCinement_cid_uid",
+    options: { cid: id, uid },
     revalidate: oneDay,
     cookies,
   });

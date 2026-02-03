@@ -1,16 +1,24 @@
 "use client";
 
 import { ShowError } from "@components/ui";
+import { Metadata } from "next"
+import "@/app/globals.css";
+import { Sidebar } from "@components";
+
+export const metadata: Metadata = {
+    title: "Uh Oh! - Parlocula",
+}
 
 const GlobalErrorBoundary = ({ error, reset }: { error: Error; reset: () => void }) => {
 
     return (
         <html>
             <body>
-                <main>
+                <main className="noPadding flex">
+                    <Sidebar />
                     <ShowError
-                        heading="Uh oh! Looks like we fell into an error hole"
-                        fullScreen
+                        className="px-2 sm:px-0"
+                        heading="Uh oh! The Parlocula Explorers got into trouble"
                         retry={reset}
                     />
                 </main>
