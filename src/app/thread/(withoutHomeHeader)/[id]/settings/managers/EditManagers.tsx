@@ -43,8 +43,6 @@ export const RemoveManagers = ({ back, tid, managers, uid }: Props & { managers:
         back();
     }
 
-    const refinedData = managers.map(refiner);
-
     return (
         <div className="min-h-screen">
 
@@ -58,12 +56,10 @@ export const RemoveManagers = ({ back, tid, managers, uid }: Props & { managers:
 
             <section className="space-y-4">
                 <ListSelector
-                    data={refinedData}
+                    data={managers}
                     callbackRef={callbackRef}
                     returnIds
-                    queryFn={undefined}
-                    queryKeys={undefined}
-                    refiner={undefined}
+                    refiner={refiner}
                 />
             </section>
         </div>

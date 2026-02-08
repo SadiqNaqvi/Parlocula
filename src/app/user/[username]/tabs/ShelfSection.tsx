@@ -1,7 +1,8 @@
 "use client"
 
-import { InfiniteScroller } from "@components";
-import { ShelfBar } from "@components/ui";
+import { RightChevron } from "@assets/Icons";
+import { InfiniteScroller, Navigate } from "@components";
+import { OptionalChildren, ShelfBar } from "@components/ui";
 import { getShelvesOfUser } from "@lib/helpers/common";
 import { getQueryKeys } from "@lib/utils";
 import { RequestedUser } from "@type/internal";
@@ -11,12 +12,13 @@ type Props = {
   user: RequestedUser;
   page: number;
   filter: string;
+  current: boolean;
 };
 
 const PredefinedShelvesList = ({ user }: { user: RequestedUser }) => (
   <ul className="mb-2 space-y-2">
 
-    {user.predefinedShelves.map(({ _id, name, poster}) => (
+    {user.predefinedShelves.map(({ _id, name, poster }) => (
 
       <li key={_id}>
 
@@ -36,12 +38,19 @@ const PredefinedShelvesList = ({ user }: { user: RequestedUser }) => (
   </ul>
 )
 
-const Shelves = ({ filter, page, user }: Props) => {
+const Shelves = ({ filter, page, user, current }: Props) => {
 
   const uid = user._id;
 
   return (
-    <section>
+    <section className="h-size-screen">
+
+      <OptionalChildren condition={current}>
+        <Navigate goto="/shelf" comp="link" className="my-4 mx-2 p-2 rounded-md border border-gray30 flex flex-cntr-between">
+          <span>View All Shelves</span>
+          <RightChevron />
+        </Navigate>
+      </OptionalChildren>
 
       <PredefinedShelvesList user={user} />
 

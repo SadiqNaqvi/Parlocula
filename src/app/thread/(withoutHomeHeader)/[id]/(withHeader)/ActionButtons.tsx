@@ -42,6 +42,8 @@ const RoleBasedActionButtons = ({ role, tid }: { tid: string, role: ThreadMember
 
 }
 
+const className = "primary w-full sm:w-fit";
+
 const JoinButton = ({ thread, uid }: { thread: MereThread, uid?: string }) => {
 
     const navigation = useNavigation();
@@ -49,10 +51,18 @@ const JoinButton = ({ thread, uid }: { thread: MereThread, uid?: string }) => {
 
     const handleNewPostRedirect = () => {
         setThreadToPost(thread);
-        navigation.goto("/new");
+        navigation.goto("/post/new");
     }
 
     const Button = ({ onClick, state, user_id }: UserBasedButtonProps<ThreadMembership>) => {
+
+        if (state?.banned) return (
+            <button
+                className={className}
+                onClick={() => toast.error(" Uh Oh! Something went wrong")}>
+                Join
+            </button>
+        )
 
         const handleClick = (action: AvailableMutations) => {
             if (action === "join_thread")
@@ -62,47 +72,45 @@ const JoinButton = ({ thread, uid }: { thread: MereThread, uid?: string }) => {
             else onClick(null, "update_thread_notification", [thread._id, user_id, !state?.notification]);
         }
 
-        if (state?.banned) return (
-            <button
-                className="primary w-full sm:w-fit"
-                onClick={() => toast.error("Something went wrong!")}>
-                Join
-            </button>
-        )
 
-        else if (!state) return (
+        if (!state) return (
             <button
-                className="primary w-full sm:w-fit"
+                className={className}
                 onClick={() => handleClick("join_thread")}>
                 Join
             </button>
         )
 
         return (
-            <div className="grid gap-2 grid-cols-2 sm:grid-cols-4 ">
-                <>
-                    <OptionMenu
-                        id="connection-options"
-                        ButtonElement={<>Joined {state.notification ? <BellIcon /> : <BellSlashIcon />}</>}
-                        className="secondary flex-1 sm:flex-0"
-                    >
-                        <OptionList onClick={() => handleClick("leave_thread")}>Leave Thread</OptionList>
-                        <OptionList onClick={() => handleClick("update_thread_notification")}>{state.notification ? "Disable" : "Enable"} Notification</OptionList>
-                    </OptionMenu>
-                    <button className="secondary flex-1 sm:flex-0" onClick={handleNewPostRedirect}>Create Post</button>
-                </>
+            <div className="grid gap-2 grid-cols-2 sm:grid-cols-4">
+                <OptionMenu
+                    id="connection-options"
+                    ButtonElement={<>Joined {state.notification ? <BellIcon /> : <BellSlashIcon />}</>}
+                    className="secondary flex-1 sm:flex-0"
+                >
+                    <OptionList onClick={() => handleClick("leave_thread")}>Leave Thread</OptionList>
+                    <OptionList onClick={() => handleClick("update_thread_notification")}>{state.notification ? "Disable" : "Enable"} Notification</OptionList>
+                </OptionMenu>
+                
+                <button className="secondary flex-1 sm:flex-0" onClick={handleNewPostRedirect}>Create Post</button>
+                
                 <RoleBasedActionButtons role={state.role} tid={thread._id} />
             </div>
         )
     }
 
-    return <UserBasedButton
-        Button={Button}
-        uid={uid}
-        queryFn={(user_id) => isMember(thread._id, user_id)}
-        queryKeys={getQueryKeys("membership_tid", { tid: thread._id })}
-        className="p-2 border border-gray-500 rounded-md"
-    />
+    return (
+        <UserBasedButton
+            Button={Button}
+            noUserStateChilren="Join"
+            noUserStateClassName={className}
+            redirectAfterLogin={`/thread/${thread._id}`}
+            uid={uid}
+            queryFn={(user_id) => isMember(thread._id, user_id)}
+            queryKeys={getQueryKeys("membership_tid", { tid: thread._id })}
+            errorStateClassName="p-2 border border-gray-500 rounded-md"
+        />
+    )
 }
 
 export default JoinButton;

@@ -19,7 +19,7 @@ export default function ExplorePage() {
             <section className="my-6 space-y-3 px-2">
                 <div className="flex flex-cntr-between">
                     <h3 className="parloHeading">Explore Genres</h3>
-                    <Navigate comp="link" goto="/explore/genres" className="inline space-x-2">
+                    <Navigate comp="link" goto="/explore/genres" className="text-sm inline space-x-2">
                         <span>More</span>
                         <RightChevron className="size-4" />
                     </Navigate>

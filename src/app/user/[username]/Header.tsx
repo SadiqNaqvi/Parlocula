@@ -48,7 +48,7 @@ const Component = (data: RequestedUser, props: Props) => {
                 OptionButton={<SettingButton uid={data._id} />}
                 navTitle={username}>
 
-                <section className="flex gap-4 sm:flex-col items-center">
+                <section className="flex gap-4 items-center">
                     <ParloImage
                         fancy={{ gallery: "profile_picture" }}
                         alt={`Profile picture of ${data.username}`}
@@ -81,7 +81,7 @@ const Component = (data: RequestedUser, props: Props) => {
 
                 </section>
                 <section className="mt-4 flex gap-2">
-                    <ActionButton uid={props.uid} rid={_id} />
+                    <ActionButton username={username} uid={props.uid} rid={_id} />
                     <MessageButton profile={profile} username={username} ruid={_id} />
                 </section>
             </ObserverHeader>
@@ -98,11 +98,13 @@ const Component = (data: RequestedUser, props: Props) => {
 
 const Header = (props: Props) => {
 
-    return <GenericWrapper
-        component={Component}
-        getQueryProps={getQueryProps}
-        props={props}
-    />
+    return (
+        <GenericWrapper
+            component={Component}
+            getQueryProps={getQueryProps}
+            props={props}
+        />
+    )
 }
 
 export default Header;

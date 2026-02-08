@@ -18,10 +18,12 @@ const ShelfHomeLayout = async ({ children }: PropsWithChildren) => {
     )
 
     return (
-        <main>
+        <>
             <Sidebar />
-            {children}
-        </main>
+            <main>
+                {children}
+            </main>
+        </>
     )
 
 }

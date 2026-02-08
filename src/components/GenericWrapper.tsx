@@ -52,6 +52,7 @@ const GenericWrapper = <T, P extends PropType>(
         <NotFound
             title="Oops! Look's like you came across a wrong path."
             paras={["Content id is incorrect", "Please go back and try again."]}
+            fullScreen
         />
     );
 

@@ -32,7 +32,6 @@ export default function SearchHeader({ filter }: { filter: string }) {
                     <LeftChevron />
                 </Navigate>
                 <Form
-                    defaultVals={{ query: params.get("q") }}
                     skipReset
                     submit={updateQuery}
                     className="h-10 md:h-12 w-full flex items-center gap-2 pl-2">
@@ -42,6 +41,7 @@ export default function SearchHeader({ filter }: { filter: string }) {
                     <Input
                         type="search"
                         name="query"
+                        defaultValue={params.get("q") || undefined}
                         autoFocus
                         className="h-full w-full border-0 p-0"
                         containerClasses="w-full h-full"

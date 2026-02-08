@@ -23,8 +23,8 @@ const ShelfItemContent = ({ poster, title, year }: ContentOnlyProps) => (
 
 export const ShowOnlyShelfItem = ShelfItemContent;
 
-const ShelfItemBar = ({ cinement_id, poster, title, ext_id, year, _id }: ShelfItemType) => (
-    <Navigate className="w-full" goto={`/explore/${cinement_id}/${ext_id}`} comp="link">
+const ShelfItemBar = ({ cinement_type, poster, title, ext_id, year, _id }: ShelfItemType) => (
+    <Navigate className="w-full" goto={`/explore/${cinement_type}/${ext_id}`} comp="link">
         <ShelfItemContent poster={poster} title={title} year={year} />
     </Navigate>
 )

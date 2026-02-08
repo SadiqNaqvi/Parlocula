@@ -14,7 +14,13 @@ export const GET = getHandler(async (r, params) => {
 
   const response = await Shelf.aggregate(
     shelvesAggregationPipeline({
-      filters: [{ $match: { user_id: id, isPrivate: false } }],
+      filters: [{
+        $match: {
+          user_id: id,
+          isPrivate: false,
+          shelf_type: "custom",
+        }
+      }],
       page,
       sort,
     })

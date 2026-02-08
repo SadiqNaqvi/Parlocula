@@ -10,10 +10,9 @@ export { default as ShowError } from "../fallbacks/ShowError";
 export { default as FrameTile } from "./FrameTile";
 export { default as VerticleMovieCard, VerticleMovieCardSkeleton } from "./VerticleMovieCard";
 export { default as ThreadTile } from "./ThreadTile";
-export { default as ItemTile } from "./ItemTile";
 export { default as MetadataTile } from "./MetaDataTile"
 export { default as ShelfBar } from "./ShelfBar"
-export { default as ShelfItemBar, ShowOnlyShelfItem } from "./ItemTile"
+export { default as ShelfItemBar, ShowOnlyShelfItem } from "./ShelfItemBar"
 export { default as UserBar, SimpleUserBar } from "./UserBar";
 export { default as MessageBar } from "./MessageBar";
 export { TabContainer, TabList } from "./Tabs"
@@ -24,3 +23,4 @@ export { default as ParloFooter } from "./ParloFooter";
 export { default as InteractiveDetailSection } from "./InteractiveDetailSection";
 export { default as ThreadBox } from "./ThreadBox";
 export { default as LinksSection } from "./LinksSection";
+export { default as ShelfPoster } from "./ShelfPoster"

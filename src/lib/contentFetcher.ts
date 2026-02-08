@@ -45,7 +45,7 @@ export const fetchMovie = async<T extends boolean>(id: string, getInternalData: 
     ...(getInternalData ? [getCinement(ext_id, "movie")] : []),
   ]);
 
-  if(getInternalData && !cinement)
+  if (getInternalData && !cinement)
     throw new Error("Error occured while fetching cinement for the movie")
 
   else if (!data || !data.status) return;
@@ -331,13 +331,20 @@ export const fetchShowsWithNetwork = async (
 
 }
 
+const filterNonPosterResults = (response: ExtPaginatedSearchData): ExtPaginatedSearchData => {
+  return {
+    ...response,
+    results: response.results.filter(res => res.image)
+  }
+}
+
 export const searchCompany = async (query: string, page: number = 1): Promise<GeneralGetReturn<ExtPaginatedSearchData>> => {
 
   const data = await fetchExt<ExtPaginatedSearchData>(`search?q=${query}&t=company&p=${page}`)
 
   if (data.status) return {
     success: true,
-    result: data.response,
+    result: filterNonPosterResults(data.response),
   }
 
   console.error(
@@ -353,7 +360,7 @@ export const searchCollection = async (query: string, page: number = 1): Promise
 
   if (data.status) return {
     success: true,
-    result: data.response,
+    result: filterNonPosterResults(data.response),
   }
 
   console.error(
@@ -369,7 +376,7 @@ export const searchMovie = async (query: string, page: number = 1): Promise<Gene
 
   if (data.status) return {
     success: true,
-    result: data.response,
+    result: filterNonPosterResults(data.response),
   }
 
   console.error(
@@ -385,7 +392,7 @@ export const searchShow = async (query: string, page: number = 1): Promise<Gener
 
   if (data.status) return {
     success: true,
-    result: data.response,
+    result: filterNonPosterResults(data.response),
   }
 
   console.error(
@@ -401,7 +408,7 @@ export const searchPerson = async (query: string, page: number = 1): Promise<Gen
 
   if (data.status) return {
     success: true,
-    result: data.response,
+    result: filterNonPosterResults(data.response),
   }
 
   console.error(
@@ -418,7 +425,7 @@ export const searchAllContent = async (query: string, page: number = 1): Promise
 
   if (data.status) return {
     success: true,
-    result: data.response
+    result: filterNonPosterResults(data.response),
   };
 
   console.error(
@@ -433,7 +440,11 @@ export const searchOnlyMediaItems = async (query: string, page = 1): Promise<Gen
   const data = await fetchExt<PaginatedData<ExtSearchDataCinementOnly>>(`search?q=${query}&t=cinements&p=${page}`)
 
   if (data.status) return {
-    success: true, result: data.response
+    success: true,
+    result: {
+      ...data.response,
+      results: data.response.results.filter(res => res.poster),
+    }
   };
 
   console.error(

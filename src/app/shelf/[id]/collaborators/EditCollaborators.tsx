@@ -40,8 +40,6 @@ export const RemoveCollaborators = ({ back, total, sid, uid }: Props) => {
         back();
     }
 
-    const refinedData = total.map(refiner);
-
     return (
         <div>
             <Navbar
@@ -54,12 +52,10 @@ export const RemoveCollaborators = ({ back, total, sid, uid }: Props) => {
 
             <section className="space-y-4">
                 <ListSelector
-                    data={refinedData}
+                    data={total}
                     callbackRef={callbackRef}
                     returnIds
-                    queryFn={undefined}
-                    queryKeys={undefined}
-                    refiner={undefined}
+                    refiner={refiner}
                 />
             </section>
         </div>

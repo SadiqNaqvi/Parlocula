@@ -24,18 +24,18 @@ const ShelvesPage = async () => {
     if (!user) return null;
 
     const links: Link[] = [
-        { label: "👁 Public", path: "public" },
-        { label: "🤫 Private", path: "private" },
-        { label: "🤝 Collaborative", path: "collaborate" },
-        { label: "✉ Invited", path: "invited" },
-        { label: "✔ Saved", path: "/me/saved/shelfs" },
+        { label: "👁 Public", path: "/shelf/public" },
+        { label: "🤫 Private", path: "/shelf/private" },
+        { label: "🤝 Collaborative", path: "/shelf/collaborate" },
+        { label: "✉ Invited", path: "/shelf/invited" },
+        { label: "✔ Saved", path: "/settings/saved/shelves" },
     ];
 
     return (
         <>
             <Navbar navTitle="Shelves" />
-            <section>
-                <ul className="bg-primarylight">
+            <section className="px-2">
+                <ul className="border border-gray40 rounded-md">
                     {links.map(({ label, path }) => (
                         <li key={path}>
                             <Navigate
@@ -48,9 +48,9 @@ const ShelvesPage = async () => {
                     ))}
                 </ul>
             </section>
-            <section>
-                <h2 className="text-uppercase text-sm p-2" >Pre-Defined Shelves</h2>
-                <ul className="bg-primarylight">
+            <section className="px-2">
+                <h2 className="parloHeading p-2">Pre-Defined Shelves</h2>
+                <ul className="brder border-gray40 rounded-md">
                     {user.predefinedShelves.map(({ name, _id }) => (
                         <li key={_id}>
                             <Navigate

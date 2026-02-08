@@ -2,6 +2,7 @@
 
 import { RightChevron } from "@assets/Icons";
 import { BottomSheet, Navbar, Navigate, WarningModal } from "@components";
+import { ParloFooter } from "@components/ui";
 import { FullPageLoadingSpinner } from "@components/ui/loading/LoadingSpinner";
 import { logoutUser } from "@lib/helpers/mutations";
 import { useNavigation } from "@store/historystack";
@@ -12,7 +13,7 @@ import { twMerge } from "tailwind-merge";
 const SectionList = ({ children, href, className = '' }: PropsWithChildren<{ href?: string, className?: string }>) => {
 
     if (href) return (
-        <li className={twMerge("p-2", className)}>
+        <li className={twMerge("px-2 py-3", className)}>
             <Navigate comp="link" goto={href} className="size-full flex flex-cntr-between">
                 <div>{children}</div>
                 <RightChevron className="size-4" />
@@ -21,15 +22,15 @@ const SectionList = ({ children, href, className = '' }: PropsWithChildren<{ hre
     )
 
     return (
-        <li className={`px-2 *:py-3 ${className}`}>
+        <li className={`px-2 py-3 ${className}`}>
             {children}
         </li>
     )
 }
 
 const Sections = ({ heading, children }: PropsWithChildren<{ heading: string }>) => (
-    <section className="space-y-2 mb-4 px-2 last:mb-0">
-        <h2 className="parloHeading">{heading}</h2>
+    <section className="space-y-3 mb-4 px-2 last:mb-0">
+        <h2 className="parloHeading pl-2">{heading}</h2>
         <ul className="border rounded-lg border-gray30">{children}</ul>
     </section>
 )
@@ -53,39 +54,39 @@ const SettingPage = () => {
 
             <Sections heading="my account">
 
-                <SectionList href="edit">Edit Profile</SectionList>
+                <SectionList href="/settings/edit">Edit Profile</SectionList>
 
-                <SectionList href="edit/username">{user.username}</SectionList>
+                <SectionList href="/settings/edit/username">{user.username}</SectionList>
 
-                <SectionList href="edit/email">
+                <SectionList href="/settings/edit/email">
                     <p className="line-clamp-1">{user.email}</p>
                 </SectionList>
 
-                <SectionList href="account_status">Account Status</SectionList>
+                <SectionList href="/settings/account_status">Account Status</SectionList>
             </Sections>
 
             <Sections heading="saved">
-                <SectionList href="saved">Saved Posts</SectionList>
-                <SectionList href="saved/comments">Saved Comments</SectionList>
-                <SectionList href="saved/shelves">Saved Shelves</SectionList>
+                <SectionList href="/settings/saved">Saved Posts</SectionList>
+                <SectionList href="/settings/saved/comments">Saved Comments</SectionList>
+                <SectionList href="/settings/saved/shelves">Saved Shelves</SectionList>
             </Sections>
 
             <Sections heading="people">
-                <SectionList href="followers">Followers</SectionList>
-                <SectionList href="following">Following</SectionList>
-                <SectionList href="blocked">Blocked</SectionList>
+                <SectionList href="/settings/followers">Followers</SectionList>
+                <SectionList href="/settings/following">Following</SectionList>
+                <SectionList href="/settings/blocked">Blocked</SectionList>
             </Sections>
 
             <Sections heading="personalize">
-                <SectionList href="notifications">Notifications</SectionList>
-                <SectionList href="filter_content">Filter Content</SectionList>
-                <SectionList href="data_saver">Data Saver</SectionList>
-                <SectionList href="theme">App Theme</SectionList>
+                <SectionList href="/settings/notifications">Notifications</SectionList>
+                <SectionList href="/settings/filter_content">Filter Content</SectionList>
+                <SectionList href="/settings/data_saver">Data Saver</SectionList>
+                <SectionList href="/settings/theme">App Theme</SectionList>
             </Sections>
 
             <Sections heading="related to app">
-                <SectionList href="report">Report a Problem</SectionList>
-                <SectionList href="feedback">Submit a Feedback, Request or Suggestion</SectionList>
+                <SectionList href="/settings/report">Report a Problem</SectionList>
+                <SectionList href="/settings/feedback">Submit a Feedback, Request or Suggestion</SectionList>
                 <SectionList href="/app/terms_and_conditions">Terms and Conditions</SectionList>
                 <SectionList href="/app/privacy_policy">Privacy Policy</SectionList>
                 <SectionList href="/app/about">About Parlocula</SectionList>
@@ -101,10 +102,10 @@ const SettingPage = () => {
                         />
                     </BottomSheet>
                 </SectionList>
-                <SectionList href="deactivate_account" className="text-red-500">Deactivate Account</SectionList>
-                <SectionList href="delete_account" className="text-red-500">Delete Account</SectionList>
+                <SectionList href="/settings/deactivate_account" className="text-red-500">Deactivate Account</SectionList>
+                <SectionList href="/settings/delete_account" className="text-red-500">Delete Account</SectionList>
             </Sections>
-
+            <ParloFooter />
         </>
     )
 }

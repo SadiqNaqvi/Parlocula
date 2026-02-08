@@ -6,8 +6,10 @@ import { getSearchParams } from "@lib/utils";
 import { Cinement, Shelf, ShelfItem } from "@model";
 import { CinementToAddAndRemoveType } from "@type/schemas";
 
-// Getting items for a shelf including private, id = shelf_id
+// Getting items for a shelf (public or private), id = shelf_id
 export const GET = getHandler(async (r, params) => {
+
+  console.log("Entered Handler");
   const { id } = params; // shelf_id
 
   const { page, filter } = getSearchParams(r.nextUrl, 0, "latest");

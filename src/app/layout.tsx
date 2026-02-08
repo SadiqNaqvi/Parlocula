@@ -5,15 +5,16 @@ import { getUserFromToken } from "@lib/auth/utils";
 import { getCurrentUser } from "@lib/helpers/common";
 import { fetchQuery, getQueryClient } from "@lib/providers/queryClient";
 import ReactQueryProvider from "@lib/providers/ReactQueryWrapper";
+import generateDynamicMetadata from "@lib/seo/metadata";
 import { getQueryKeys } from "@lib/utils";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
-import { Metadata } from "next";
+import { CurrentUser } from "@type/internal";
 import { ThemeProvider } from "next-themes";
+import { Montserrat, Roboto } from "next/font/google";
 import { cookies } from "next/headers";
 import { PropsWithChildren, Suspense } from "react";
 import { Toaster } from "sonner";
 import UserHydrator from "./UserHydrator";
-import { Montserrat, Roboto } from "next/font/google"
 
 const montserratFont = Montserrat({
   variable: "--font-montserrat",
@@ -25,11 +26,7 @@ const robotoFont = Roboto({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "Parlocula - Where Stories Bring Us Together",
-  description: "Stop Searching Start Watching",
-  keywords: "movies, tv shows, web series, movie recommendation, movie recommendation system, tv show recommendation system, movies suggestion, movie suggestion, show suggestion, series suggestion",
-};
+export const metadata = generateDynamicMetadata({});
 
 const NotificationFetcher = async ({ children }: PropsWithChildren) => {
 
@@ -37,7 +34,7 @@ const NotificationFetcher = async ({ children }: PropsWithChildren) => {
 
   const jar = await cookies();
   const payload = await getUserFromToken(jar);
-
+  let currentUser: CurrentUser | null = null;
   if (payload) {
     const { user_id, username } = payload;
 
@@ -60,19 +57,19 @@ const NotificationFetcher = async ({ children }: PropsWithChildren) => {
       //   queryFn: () => getNotificationsOfUser(user_id, 1, jar)
       // }),
     ]);
+
+    currentUser = resp;
   }
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
       {children}
-      <UserHydrator payload={payload} />
+      <UserHydrator currentUser={currentUser} payload={payload} />
     </HydrationBoundary>
   )
 }
 
-const RootLayout = async ({
-  children,
-}: PropsWithChildren) => {
+const RootLayout = async ({ children }: PropsWithChildren) => {
   return (
     <html lang="en" suppressHydrationWarning>
       {/* {*<body className={`${fontFam.className}`}>} */}

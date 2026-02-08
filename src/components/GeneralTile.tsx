@@ -1,8 +1,7 @@
 import { CheckBoxIcon, EmptyBoxIcon } from "@assets/Icons";
-import { getPoster } from "@lib/utils";
 import { Frame } from "@type/internal";
-import Image from "next/image";
-import { ParloImage } from "./ui";
+import { twMerge } from "tailwind-merge";
+import { OptionalChildren, ParloImage } from "./ui";
 
 type Props = {
     title: string,
@@ -13,29 +12,27 @@ type Props = {
     checked?: boolean
 }
 
-const GeneralTile = ({ title, className = "", poster, onClick, checked, showCheckBox }: Props) => {
+const GeneralTile = ({ title, className, poster, onClick, checked, showCheckBox }: Props) => {
     return (
-        <div className={className + " flex gap-2 items-center"} onClick={onClick}>
-            <div className="flex items-center gap-3">
-                {poster && (
+        <div className={twMerge("flex gap-2 flex-cntr-all", className)} onClick={onClick}>
+            <div className="flex items-center gap-2">
+                <OptionalChildren condition={poster}>
                     <ParloImage
-                        className="object-cover rounded-md"
-                        size={50}
+                        className="size-12 min-w-12 object-cover rounded-md"
+                        size={48}
                         alt={`Poster of ${title}`}
                         frame={poster}
                     />
-                )}
-                <h3>{title}</h3>
+                </OptionalChildren>
+                <h4>{title}</h4>
             </div>
-            {showCheckBox && (
-                <span className="ml-auto">
-                    {checked ?
+            <OptionalChildren condition={showCheckBox}>
+                <span>
+                    <OptionalChildren condition={checked} fallback={<EmptyBoxIcon />}>
                         <CheckBoxIcon />
-                        :
-                        <EmptyBoxIcon />}
+                    </OptionalChildren>
                 </span>
-
-            )}
+            </OptionalChildren>
         </div>
     )
 }

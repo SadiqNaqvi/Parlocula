@@ -6,6 +6,8 @@ import { ParloPageProps } from "@type/other";
 import { CinementSchemaType } from "@type/schemas";
 import { Metadata } from "next";
 import { CinementGrid, CinementWikiHeader, CinementWikiSection } from "../../components";
+import generateDynamicMetadata from "@lib/seo/metadata";
+import { getPoster } from "@lib/utils";
 
 const fetchData = async (params: { id: string }) => {
     const collection_id = params.id.split('-')[0];
@@ -13,13 +15,20 @@ const fetchData = async (params: { id: string }) => {
 }
 
 export const generateMetadata = async ({ params }: ParloPageProps): Promise<Metadata> => {
-    const data = await fetchData(await params);
+    const awaitedParams = await params;
+    const data = await fetchData(awaitedParams);
 
-    if (!data) return { title: "Parlocula" };
-    return {
-        title: `${data.title} - Parlocula`,
-        description: data.overview,
-    };
+    if (!data) return generateDynamicMetadata({});
+
+    const { title, overview, backdrop } = data;
+
+    return generateDynamicMetadata({
+        title,
+        allowRobots: true,
+        description: overview,
+        coverImage: backdrop ? getPoster({ path: backdrop, external: true, type: "backdrop", size: "w1280" }) : undefined,
+        url: `/explore/collection/${awaitedParams.id}`,
+    });
 };
 
 const Page = async ({ params }: ParloPageProps) => {

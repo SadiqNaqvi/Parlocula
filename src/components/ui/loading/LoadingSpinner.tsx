@@ -2,7 +2,7 @@ import Navbar from "@components/Navbar";
 import { twMerge } from "tailwind-merge";
 
 const LoadingSpinner = ({ className = '' }: { className?: string }) => (
-    <div role="status" data-testid="loadingSpinner" className={twMerge("h-[50dvh] flex flex-cntr-all", className)}>
+    <div role="status" data-testid="loadingSpinner" className={twMerge("h-size-screen flex flex-cntr-all", className)}>
         <div className="loadingSpinner"></div>
     </div>
 )

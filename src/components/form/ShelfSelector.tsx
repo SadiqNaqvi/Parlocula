@@ -1,7 +1,6 @@
 import { AddIcon, CheckIcon } from "@assets/Icons";
-import ShelfPoster from "@components/ui/ShelfPoster";
+import { OptionalChildren, ShelfPoster } from "@components/ui";
 import { AllShelves } from "@type/models";
-import { useFormContext } from "react-hook-form";
 import { twMerge } from "tailwind-merge";
 
 export type ShelfSelectorProps = {
@@ -12,33 +11,25 @@ export type ShelfSelectorProps = {
     disabled?: boolean,
     checked?: boolean,
     className?: string;
+    onClick: (id: string) => void;
 }
 
-const ShelfSelector = ({ _id, name, poster, shelf_type, checked, disabled, className }: ShelfSelectorProps) => {
-    const { register } = useFormContext();
+const ShelfSelector = ({ _id, name, poster, shelf_type, checked, disabled, className, onClick }: ShelfSelectorProps) => {
 
     return (
-        <label
-            htmlFor={_id}
-            className={twMerge(`inline-flex ${disabled ? "brightness-50" : ""} flex-cntr-between w-full capitalize px-4 py-2 pointer`, className)}>
-            <input
-                {...register(_id)}
-                value={_id}
-                type={"checkbox"}
-                disabled={disabled}
-                defaultChecked={checked}
-                id={_id}
-                className="sr-only peer"
-            />
+        <div
+            className={twMerge(`inline-flex ${disabled ? "brightness-50" : ""} flex-cntr-between w-full capitalize px-4 py-2 pointer`, className)}
+            onClick={() => onClick(_id)}
+        >
             <div className="flex gap-2 items-center">
                 <ShelfPoster iconsClassName="p-3" name={name} poster={poster} shelf_type={shelf_type} />
 
                 <span className="font-medium">{name}</span>
             </div>
-
-            <CheckIcon className="hidden peer-checked:block" />
-            <AddIcon className="block peer-checked:hidden" />
-        </label>
+            <OptionalChildren condition={checked} fallback={<AddIcon />}>
+                <CheckIcon />
+            </OptionalChildren>
+        </div>
     )
 }
 

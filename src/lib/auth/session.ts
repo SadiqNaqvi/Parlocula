@@ -22,7 +22,7 @@ export const storeToRedis = async (
 export const storeSession = async (id: string, object: Omit<Session, "expireOn">) => {
   return await storeToRedis(id, oneDay * 30, {
     ...object,
-    expiresOn: new Date().getTime() + oneDay * 30 * 1000,
+    expiresOn: Date.now() + oneDay * 30,
   });
 };
 

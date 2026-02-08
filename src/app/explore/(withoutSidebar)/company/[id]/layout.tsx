@@ -1,14 +1,11 @@
-import { ObserverHeader } from "@components";
-import { NotFound, OptionalChildren, ParloFooter, ParloImage, TabContainer, TabList } from "@components/ui";
+import { NotFound, TabContainer, TabList } from "@components/ui";
+import CinementWikiSkeleton from "@components/ui/loading/CinementWikiSkeleton";
 import { fetchCompany } from "@lib/contentFetcher";
-import { getPoster } from "@lib/utils";
+import generateDynamicMetadata from "@lib/seo/metadata";
 import { ParloPageProps } from "@type/other";
 import { Metadata } from "next";
-import { CinementGrid } from "../../components";
 import { PropsWithChildren, Suspense } from "react";
-import { FullPageLoadingSpinner } from "@components/ui/loading/LoadingSpinner";
 import CinementWikiHeader from "../../components/CinementWikiPage";
-import CinementWikiSkeleton from "@components/ui/loading/CinementWikiSkeleton";
 
 const fetchData = async (params: { id: string }) => {
     const company_id = params.id.split('-')[0];
@@ -16,18 +13,25 @@ const fetchData = async (params: { id: string }) => {
 }
 
 export const generateMetadata = async ({ params }: ParloPageProps): Promise<Metadata> => {
-    const data = await fetchData(await params);
 
-    if (!data) return { title: "Parlocula" };
-    return {
-        title: `${data.title} - Parlocula`,
-        description: data.description,
-    };
+    const awaitedParams = await params;
+    const data = await fetchData(awaitedParams);
+
+    if (!data) return generateDynamicMetadata({});
+
+    const { title, description } = data;
+
+    return generateDynamicMetadata({
+        title,
+        allowRobots: true,
+        description,
+        url: `/explore/company/${awaitedParams.id}`,
+    });
 };
 
 const Page = async ({ params, children }: PropsWithChildren<{ params: { id: string } }>) => {
 
-    const content = await fetchData(await params);
+    const content = await fetchData(params);
 
     if (!content) return (
         <NotFound

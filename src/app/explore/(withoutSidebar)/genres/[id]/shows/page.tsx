@@ -19,10 +19,12 @@ const Component = ({ id, poster, rating, title, year, type }: RefinedGeneralData
     />
 )
 
+const containerClassName = "grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-2 justify-center";
+
 const SkeletonLoader = () => (
-    <section className="flex flex-wrap gap-3 justify-center overflow-hidden">
+    <section className={containerClassName}>
         {Array(12).fill(0).map((_, i) => (
-            <VerticleMovieCardSkeleton key={i} />
+            <VerticleMovieCardSkeleton className="w-auto min-w-auto" key={i} />
         ))}
     </section>
 )
@@ -36,7 +38,7 @@ export default function Page() {
                 Loading={SkeletonLoader}
                 fetchData={(page) => fetchShowsWithGenres({ page, genre: id, sort_by: "popularity" })}
                 queryKeys={["showsByGenres", id]}
-                className="grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-2 justify-center"
+                className={containerClassName}
             />
         </section>
     )

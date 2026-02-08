@@ -1,10 +1,20 @@
 import { RightChevron } from "@assets/Icons";
 import { Navigate } from "@components";
-import { LinkTile } from "@components/ui";
+import { LinkTile, OptionalChildren } from "@components/ui";
 import { timeAgo } from "@lib/utils";
 import { Thread } from "@type/internal";
+import { PropsWithChildren } from "react";
 
 type Props = Pick<Thread, "connections" | "createdAt" | "description" | "creator" | "edited_by" | "links" | "managers">
+
+const Section = ({ children, condition, heading, fallback }: PropsWithChildren<{ condition?: any, heading: string, fallback?: React.ReactNode }>) => (
+    <OptionalChildren condition={condition ?? true} fallback={fallback}>
+        <section className="px-2 my-6 space-y-2">
+            <h3 className="parloHeading">{heading}</h3>
+            {children}
+        </section>
+    </OptionalChildren>
+)
 
 const ThreadDetailSheet = ({ connections, createdAt, creator, description, edited_by, links, managers }: Props) => {
 
@@ -14,63 +24,58 @@ const ThreadDetailSheet = ({ connections, createdAt, creator, description, edite
                 <h2 className="parloHeading text-center">More about this thread</h2>
             </div>
 
-            <section className="my-3 space-y-2">
-                <h3 className="text-sm">Description</h3>
-                <p>{description}</p>
-                <p className="text-sm text-zinc-500">Created At: {timeAgo(createdAt)}</p>
-            </section>
+            <Section heading="Description">
+                <p className="whitespace-break-spaces">{description}</p>
+            </Section>
 
-            {creator && (
-                <section className="my-3 space-y-2">
-                    <h3 className="text-sm">Creator</h3>
-                    <div className="border border-gray20 rounded-md">
-                        <Navigate comp="link" goto={`/user/${creator}`} className="p-2 flex flex-cntr-all gap-2">
-                            <span className="line-clamp-1">{creator}</span>
-                            <span><RightChevron /></span>
-                        </Navigate>
-                    </div>
-                </section>
-            )}
+            <Section heading="Created At">
+                <p>{new Date(createdAt).toLocaleDateString()} - {timeAgo(createdAt)}</p>
+            </Section>
 
-            <section className="my-3 space-y-2">
-                <h3 className="text-sm">Managers</h3>
-                {Boolean(managers.length) ? (
-                    <ul className="space-y-2">
-                        {managers.map(({ _id, username }) => (
-                            <li key={_id} className="border border-gray20 rounded-md">
-                                <Navigate className="p-2 flex gap-2 flex-cntr-between" comp="link" goto={`/user/${username}`}>
-                                    <span className="line-clamp-1">{username}</span>
-                                    <span><RightChevron /></span>
-                                </Navigate>
-                            </li>
-                        ))}
-                    </ul>
-                )
-                    : (
-                        <div className="py-4">
-                            <p>No Managers Yet</p>
-                        </div>
-                    )}
-            </section>
+            <Section heading="Creator" condition={creator}>
+                <div className="border border-gray20 rounded-md">
+                    <Navigate comp="link" goto={`/user/${creator}`} className="p-2 flex flex-cntr-all gap-2">
+                        <span className="line-clamp-1">{creator}</span>
+                        <span><RightChevron /></span>
+                    </Navigate>
+                </div>
+            </Section>
+
+            <Section heading="Managers" condition={managers.length} fallback={(
+                <div className="py-4">
+                    <p>No Managers Yet</p>
+                </div>
+            )}>
+                <ul className="space-y-2">
+                    {managers.map(({ _id, username }) => (
+                        <li key={_id} className="border border-gray20 rounded-md">
+                            <Navigate className="p-2 flex gap-2 flex-cntr-between" comp="link" goto={`/user/${username}`}>
+                                <span className="line-clamp-1">{username}</span>
+                                <span><RightChevron /></span>
+                            </Navigate>
+                        </li>
+                    ))}
+                </ul>
+            </Section>
 
 
-            {edited_by && (
-                <section className="my-3 space-y-2">
-                    <h3 className="text-sm">Last Edited By</h3>
-                    <div className="border border-gray20 rounded-md">
-                        <Navigate comp="link" goto={`/user/${edited_by}`} className="p-2 flex flex-cntr-all gap-2">
-                            <span className="line-clamp-1">{edited_by}</span>
-                            <span><RightChevron /></span>
-                        </Navigate>
-                    </div>
-                </section>
-            )}
+            <Section heading="Last Edited By" condition={Boolean(edited_by)}>
+                <div className="border border-gray20 rounded-md">
+                    <Navigate comp="link" goto={`/user/${edited_by}`} className="p-2 flex flex-cntr-all gap-2">
+                        <span className="line-clamp-1">{edited_by}</span>
+                        <span><RightChevron /></span>
+                    </Navigate>
+                </div>
+            </Section>
 
-            <section className="my-3 space-y-2">
-                <h3 className="text-sm">Connections</h3>
+            <Section heading="Connections" condition={connections.length} fallback={(
+                <div className="py-4">
+                    <p>Not connected to any cinement or artist</p>
+                </div>
+            )}>
                 <ul className="space-y-2">
                     {connections.map(({ name, path, type }) => (
-                        <li key={path} className="border border-gray20 rounded-md">
+                        <li key={`/explore/${type}/${path}`} className="border border-gray20 rounded-md">
                             <Navigate className="p-2 flex gap-2 flex-cntr-between" comp="link" goto={`/${type}/${path}`}>
                                 <span className="line-clamp-1">{name}</span>
                                 <span><RightChevron /></span>
@@ -78,18 +83,15 @@ const ThreadDetailSheet = ({ connections, createdAt, creator, description, edite
                         </li>
                     ))}
                 </ul>
-            </section>
+            </Section>
 
-            {Boolean(links.length) && (
-                <section className="my-3 space-y-2">
-                    <h3 className="text-sm">External Links</h3>
-                    <ul className="space-y-2">
-                        {links.map(link => (
-                            <LinkTile key={link.path} {...link} />
-                        ))}
-                    </ul>
-                </section>
-            )}
+            <Section heading="External Links" condition={links.length}>
+                <ul className="space-y-2">
+                    {links.map(link => (
+                        <LinkTile key={link.path} {...link} />
+                    ))}
+                </ul>
+            </Section>
 
         </>
     )

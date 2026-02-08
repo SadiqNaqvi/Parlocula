@@ -1,11 +1,31 @@
 import { getUserFromToken } from "@lib/auth/utils";
 import { checkIfItemSaved, getItems, getShelf, getShelfConnection } from "@lib/helpers/common";
 import { getQueryClient, prefetchInfiniteQuery, prefetchQuery } from "@lib/providers/queryClient";
-import { createArray, getQueryKeys, refineSearchParams } from "@lib/utils";
+import { createArray, getQueryKeys, isValidParloId, refineSearchParams } from "@lib/utils";
 import { dehydrate, HydrationBoundary } from '@tanstack/react-query';
 import { cookies } from "next/headers";
 import ShelfPage from "./ShelfPage";
 import { ParloPageProps } from "@type/other";
+import { Metadata } from "next";
+
+export const generateMetadata = async ({ params, searchParams }: ParloPageProps): Promise<Metadata> => {
+    const { id } = await params;
+    const lid = id.split('-')[0];
+
+    if (!isValidParloId(lid)) return { title: { absolute: "Parlocula - The Cinematic Planet" } };
+
+    const user = await getUserFromToken(await cookies());
+
+    const { k } = await searchParams;
+
+    const { success, result } = await getShelf(lid, user?.user_id, k);
+    if (!success || !result) return { title: "Parlocula" };
+
+    return {
+        title: `${result.name} - Shelf ${result.username ? `by @${result.username} ` : ''}`
+    }
+
+}
 
 const Page = async ({ params, searchParams }: ParloPageProps) => {
 

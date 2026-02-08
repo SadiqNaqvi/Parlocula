@@ -7,7 +7,7 @@ import ParloImage from "./ParloImage"
 const ThreadTile = ({ name, poster, _id, member_count, post_count }: MereThread) => {
     return (
         <Navigate role="button" comp="link" goto={`/thread/${_id}-${makeUrlSafe(name)}`}>
-            <article className="flex gap-4 p-3 rounded-md border border-gray30">
+            <article className="flex gap-2 items-center p-2 sm:px-4">
                 <ParloImage
                     className="min-w-10 size-10 rounded-full object-cover"
                     frame={poster}

@@ -1,5 +1,5 @@
 import CinementWikiHeader, { CinementWikiSection } from "@app/explore/(withoutSidebar)/components/CinementWikiPage";
-import { ArtistCard, NotFound } from "@components/ui";
+import { ArtistCard, NotFound, ParloFooter } from "@components/ui";
 import { fetchEpisodeForSeason, fetchShow } from "@lib/contentFetcher";
 import { makeUrlSafe } from "@lib/utils";
 import { ParloPageProps } from "@type/other";
@@ -7,7 +7,7 @@ import { Metadata } from "next";
 
 type Ids = { id: string, season: string, episode: string }
 
-const fetchSeason = async ({ id, episode,season }: Ids, getInternalData: boolean) => {
+const fetchEpisode = async ({ id, episode, season }: Ids, getInternalData: boolean) => {
     const refineSeason = parseInt(season.split('-')[1]);
     const seasonNumber = isNaN(refineSeason) ? 1 : refineSeason;
 
@@ -24,7 +24,7 @@ const fetchSeason = async ({ id, episode,season }: Ids, getInternalData: boolean
 
 export const generateMetadata = async ({ params }: ParloPageProps<Ids>): Promise<Metadata> => {
 
-    const data = await fetchSeason(await params, false);
+    const data = await fetchEpisode(await params, false);
 
     if (!data) return { title: "Parlocula" };
     const { episode, show } = data;
@@ -36,7 +36,7 @@ export const generateMetadata = async ({ params }: ParloPageProps<Ids>): Promise
 
 const EpisodePage = async ({ params }: ParloPageProps<Ids>) => {
 
-    const data = await fetchSeason(await params, true);
+    const data = await fetchEpisode(await params, true);
 
     if (!data) return (
         <NotFound
@@ -99,6 +99,7 @@ const EpisodePage = async ({ params }: ParloPageProps<Ids>) => {
             />
         ))}
 
+        <ParloFooter />
     </>
 }
 

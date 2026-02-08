@@ -5,8 +5,8 @@ import { persist } from "zustand/middleware";
 
 type HistoryStackType = {
   historyStack: string[];
-  lastEntry: string | null;
-  lastPage: string | null;
+  prevPage: string | null;
+  recentlyOpened: string | null;
   popHistory: () => string | undefined;
   pushHistory: (entry: string) => void;
   setHistory: (updater: (history: string[]) => string[]) => void;
@@ -16,24 +16,28 @@ export const useHistoryStack = create(
   persist(
     (set, get) => ({
       historyStack: [],
-      lastEntry: null,
-      lastPage: null,
+      prevPage: null,
+      recentlyOpened: null,
 
       popHistory: () => {
         const history = get().historyStack;
         history.pop();
-        set(() => ({ historyStack: history }));
+        set(() => ({
+          historyStack: history,
+          prevPage: history.at(-1),
+        }));
         return history.length ? history[history.length - 1] : undefined;
       },
 
-      pushHistory: (entry: string) =>
-        set((prev: HistoryStackType) => ({
-          lastPage: prev.historyStack
-            ? prev.historyStack.at(-1)
-            : null,
+      pushHistory: (entry: string) => {
+        set((prev) => ({
           historyStack: [...new Set([...prev.historyStack, entry])],
-          lastEntry: entry,
-        })),
+          prevPage: prev.historyStack.at(-1),
+          recentlyOpened: entry,
+        }));
+
+        console.log("Pushed", entry, "in history stack, now it looks like this", get());
+      },
 
       setHistory: (updater) => {
         set((prev: HistoryStackType) => ({
@@ -44,7 +48,7 @@ export const useHistoryStack = create(
     {
       name: "historyStack",
       partialize: (state: HistoryStackType) => ({
-        lastPage: state.lastPage,
+        recentlyOpened: state.recentlyOpened,
       }),
     }
   )
@@ -57,17 +61,23 @@ export type AppNavigationInstance = {
 }
 
 export const useNavigation = (): AppNavigationInstance => {
-  const { setHistory, historyStack, lastPage, popHistory, pushHistory } = useHistoryStack();
+  const { setHistory, historyStack, recentlyOpened, prevPage, popHistory, pushHistory } = useHistoryStack();
   const router = useRouter();
   const pathname = usePathname();
 
-  // Capture navigations and push pathname into history stack
-  useEffect(() => pushHistory(pathname), [pathname]);
+  useEffect(() => {
+    // Check if user navigated backwards
+    if (pathname === prevPage) {
+      popHistory();
+    }
+
+  }, [pathname]);
 
   return {
     back: () => {
       popHistory();
-      router.replace(lastPage && lastPage !== pathname ? lastPage : "/home");
+      // console.log("popping from history stack", pathname, recentlyOpened, recentlyOpened && recentlyOpened !== pathname);
+      router.replace(prevPage && prevPage !== pathname ? prevPage : recentlyOpened && recentlyOpened !== pathname ? recentlyOpened : "/home");
     },
     replace: (href: string) => {
       setHistory((history) => {

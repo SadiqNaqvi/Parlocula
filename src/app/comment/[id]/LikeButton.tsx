@@ -5,6 +5,23 @@ import UserBasedButton, { UserBasedButtonProps } from "@components/UserBasedButt
 import { checkLikeOnComment } from "@lib/helpers/common";
 import { getQueryKeys, numberConverter } from "@lib/utils";
 
+const NoUserStateButton = ({ count }: { count: number }) => (
+    <>
+        <ThumbUpIcon />
+        <span>
+            {count ? numberConverter(count) : 0}
+        </span>
+    </>
+)
+
+const LoadingButton = () => (
+    <span>
+        <span className="size-8 animate-spin"></span>
+    </span>
+)
+
+const className = "inline-flex p-2 gap-2 items-center border border-gray20 rounded-lg";
+
 const LikeButton = ({ id, likesCount, author, uid }: { id: string, likesCount: number, author: string, uid: string | undefined }) => {
 
     const Button = ({ onClick, state, user_id }: UserBasedButtonProps<boolean>) => {
@@ -19,31 +36,32 @@ const LikeButton = ({ id, likesCount, author, uid }: { id: string, likesCount: n
         }
 
         return (
-            <div className="inline-flex p-2 border border-gray20 rounded-lg">
+            <div className={className}>
 
-                <button className="pr-2 smallBtn" onClick={handleClick}>
+                <button className="smallBtn" onClick={handleClick}>
                     {state ? <ThumbUpIconFill /> : <ThumbUpIcon />}
                 </button>
 
-                <span className="px-2 border-x border-gray20">
+                <span className="border-l border-gray20">
                     {numberConverter(likesCount + (state ? 1 : 0))}
                 </span>
             </div>
         )
     };
 
-    return <UserBasedButton
-        uid={uid}
-        Button={Button}
-        queryFn={(uid) => checkLikeOnComment(id, uid)}
-        queryKeys={getQueryKeys("like_cid", { cid: id })}
-        className="inline p-1 border border-gray20 rounded-lg"
-        Loading={(
-            <span>
-                <span className="size-8 animate-spin"></span>
-            </span>
-        )}
-    />
+    return (
+        <UserBasedButton
+            uid={uid}
+            Button={Button}
+            noUserStateChilren={<NoUserStateButton count={likesCount} />}
+            noUserStateClassName={className}
+            redirectAfterLogin={`/comment/${id}`}
+            queryFn={(uid) => checkLikeOnComment(id, uid)}
+            queryKeys={getQueryKeys("like_cid", { cid: id })}
+            errorStateClassName="inline p-1 border border-gray20 rounded-lg"
+            Loading={<LoadingButton />}
+        />
+    )
 }
 
 export default LikeButton;

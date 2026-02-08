@@ -35,6 +35,7 @@
   --globalRadius: 8px;
   --borderWidth: 2px;
   --sidebarWidth: 5rem;
+  --paddingBottom: 2.5rem;
 
   --primary: var(--light-primary);
   --primarylight: var(--light-secondary);
@@ -193,8 +194,8 @@ select:-webkit-autofill {
   z-index: 0;
 }
 
-html.light .patternBackground{
-opacity: 0.4;
+html.light .patternBackground {
+  opacity: 0.4;
 }
 
 h1,
@@ -417,13 +418,7 @@ body {
 main {
   min-height: 100dvh;
   max-height: fit-content;
-  /* display: flex;
-  flex-direction: column; */
 }
-
-/* main > *:not(.w-fit) {
-  width: 100%;
-} */
 
 main:not(.fullScreen) > *:not(.fullScreen) {
   max-width: 768px;
@@ -434,25 +429,24 @@ body:has(#sidebar) main {
   width: stretch;
   margin-left: var(--sidebarWidth);
 }
-
-main:not(.noPadding) {
-  padding-bottom: 2.5rem;
+main.noPadding {
+  --paddingBottom: 0;
 }
 
-div.flex:has(main) {
-  min-height: 100%;
+main:not(.noPadding) {
+  padding-bottom: var(--paddingBottom);
 }
 
 .h-size-screen {
-  height: calc(100dvh - 2.5rem);
+  height: calc(100dvh - var(--paddingBottom));
 }
 
-main.noPadding .h-size-screen {
-  height: 100dvh;
+.h-size-screen .h-size-screen {
+  height: unset;
 }
 
-body:has(sidebar) .h-size-screen {
-  height: calc(100dvh - 4.5rem);
+main:has(nav) .h-size-screen {
+  height: calc(100dvh - 60px - var(--paddingBottom));
 }
 
 .primary-gradient {
@@ -464,55 +458,6 @@ body:has(sidebar) .h-size-screen {
     transparent,
     transparent
   );
-}
-
-body:has([popover]:popover-open, dialog:open, .ppModal) {
-  overflow: hidden;
-}
-
-details.bioDetail > summary {
-  list-style-type: none;
-}
-details.bioDetail[open] > summary {
-  display: block;
-}
-
-details.bioDetail:not([open]) > summary::after {
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  padding-left: 2pt;
-  content: "...more";
-  color: gray;
-  background-color: var(--primary);
-  font-size: 0.8rem;
-}
-
-.topRightFloat {
-  position: absolute;
-  top: 0;
-  right: 0;
-  background-color: var(--primary);
-}
-
-.topRightFloat::before,
-.topRightFloat::after {
-  content: "";
-  position: absolute;
-  height: 10px;
-  width: 10px;
-  border-radius: 0 8px;
-  box-shadow: 4px -4px 0 2px var(--primary);
-}
-
-.topRightFloat::before {
-  top: 0;
-  left: -10px;
-}
-
-.topRightFloat::after {
-  right: 0;
-  bottom: -10px;
 }
 
 .fade-effect {
@@ -723,8 +668,8 @@ textarea {
     all: unset;
   }
 
-  body:has(#sidebar) main {
-    padding-bottom: 4.5rem;
+  body:has(#sidebar) {
+    --paddingBottom: 4.5rem;
   }
 
   :root {

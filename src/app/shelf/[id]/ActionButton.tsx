@@ -18,20 +18,27 @@ type Props = {
 
 const AddItemButton = ({ sid }: { sid: string }) => (
     <Navigate
-        comp="link" goto={`shelf/${sid}/add`}
-        type="button" className="primary flex-1"
+        comp="link" goto={`/shelf/${sid}/add`}
+        type="button" className="btn primary"
     >
         Add Items
     </Navigate>
 )
 
 const SaveShelfButton = ({ isPrivate, saved_count, sid, uid, author }: { isPrivate: boolean, uid: string | undefined, author: string, sid: string, saved_count: number | undefined }) => {
-    if (!isPrivate && uid) return (
-        <SaveButton author={author} uid={uid} count={saved_count} type="Shelf" id={sid} />
+    if (!isPrivate) return (
+        <SaveButton
+            author={author}
+            uid={uid}
+            count={saved_count}
+            type="Shelf"
+            id={sid}
+            className="primary gap-2"
+        />
     )
 }
 
-const CheckShelfConnection = ({ uid, sid, children }: PropsWithChildren<{ uid: string, sid: string }>) => {
+const CheckShelfConnection = ({ uid, sid }: { uid: string, sid: string }) => {
 
     const { data } = useQueryHook({
         queryFn: () => getShelfConnection(uid, sid),
@@ -47,50 +54,52 @@ const CheckShelfConnection = ({ uid, sid, children }: PropsWithChildren<{ uid: s
     }
 
     if (data?.type === "collaborator") return (
-        <div className="flex gap-2">
-            <AddItemButton sid={sid} />
-            {children}
-        </div>
+        <AddItemButton sid={sid} />
     )
 
     else if (data?.type === "invitee") return (
-        <div className="space-y-2">
-            {children}
-            <div className="flex gap-2">
+        <>
+            <div className="contents">
                 <button className="primary" onClick={acceptInvitation}>Accept</button>
                 <button className="secondary" onClick={rejectInvitation}>Reject</button>
             </div>
-            <p className="text-xs sm:text-sm text-zinc-500 text-center">You{"'"}re invited to become a collaborator of this shelf</p>
-        </div>
+            <p className="text-xs sm:text-sm text-zinc-500 text-center col-span-4">You{"'"}re invited to become a collaborator of this shelf</p>
+        </>
     )
 
 }
 
+const sectionClassName = "grid gap-2 grid-cols-2 sm:grid-cols-4";
+
 const ActionButton = ({ isPrivate, cuid, author, id, saved_count }: Props) => {
 
     if (cuid === author) return (
-        <section className="flex gap-2">
+        <section className={sectionClassName}>
             <AddItemButton sid={id} />
             <Navigate
-                className="secondary flex-1"
+                className="btn secondary gap-2"
+                type="button"
+                comp="link"
+                goto={`/shelf/${id}/edit`}>
+                <EditIcon />
+                <span>Edit</span>
+            </Navigate>
+            <Navigate
+                className="btn secondary col-span-2 sm:col-span-1"
                 comp="link"
                 goto={`/shelf/${id}/collaborators`}
                 type="button"
             >
                 Manage
             </Navigate>
-            <Navigate className="secondary" type="button" comp="link" goto={`/shelf/${id}/edit`}>
-                <EditIcon className="size-5" />
-            </Navigate>
 
         </section>
     )
 
     else if (cuid) return (
-        <section className="flex gap-2">
-            <CheckShelfConnection sid={id} uid={cuid}>
-                <SaveShelfButton author={author} isPrivate={isPrivate} saved_count={saved_count} sid={id} uid={cuid} />
-            </CheckShelfConnection>
+        <section className={sectionClassName}>
+            <SaveShelfButton author={author} isPrivate={isPrivate} saved_count={saved_count} sid={id} uid={cuid} />
+            <CheckShelfConnection sid={id} uid={cuid} />
         </section>
     )
 

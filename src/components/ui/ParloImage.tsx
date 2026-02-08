@@ -1,7 +1,7 @@
 import { decodeHash } from "@lib/helpers/media";
 import { getPoster } from "@lib/utils";
 import { Frame } from "@type/internal";
-import Image from "next/image";
+import Image, { ImageLoader } from "next/image";
 import { twMerge } from "tailwind-merge";
 
 type FancyProps = {
@@ -21,6 +21,7 @@ type Props = {
     alt?: string,
     prioritize?: boolean,
     fancy?: FancyProps;
+    loader?: ImageLoader;
 }
 
 const getFancyAttributes = (config: FancyProps | undefined, src: string | undefined) => {
@@ -59,7 +60,7 @@ const getFancyAttributes = (config: FancyProps | undefined, src: string | undefi
 
 // const isInternal = (frame: Props["frame"]): frame is Frame => Boolean(frame && typeof frame !== "string");
 
-const ParloImage = ({ frame, alt, height, size, width, className, containerClassName, prioritize, fancy }: Props) => {
+const ParloImage = ({ frame, alt, height, size, width, className, containerClassName, prioritize, fancy, loader }: Props) => {
 
     const source = !frame ? undefined : typeof frame === "string" ? frame : frame.path;
 
@@ -85,6 +86,7 @@ const ParloImage = ({ frame, alt, height, size, width, className, containerClass
                 src={getPoster({ path: source })}
                 loading={prioritize ? "eager" : "lazy"}
                 alt={alt || ""}
+                loader={loader}
                 // onError={() => setError(true)}
                 className={twMerge(`cursor-pointer`, className)}
                 blurDataURL={frame && typeof frame !== "string" ? decodeHash(frame.hash) : undefined}

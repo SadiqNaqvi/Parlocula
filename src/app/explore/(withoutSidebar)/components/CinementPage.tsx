@@ -1,6 +1,6 @@
 import { CollectionIcon, CrownIcon, EyesIcon, HeartIcon, StarIcon } from "@assets/Icons";
 import { Navigate } from "@components";
-import { ArtistCard, LinkTile, NotFound, VerticleMovieCard } from "@components/ui";
+import { ArtistCard, LinkTile, NotFound, ParloFooter, VerticleMovieCard } from "@components/ui";
 import { checkAndReturn, createArray, makeUrlSafe, numberConverter } from "@lib/utils";
 import { RefinedCast, RefinedMovieData, RefinedShowData } from "@type/external";
 import { FullCinementType, Link } from "@type/internal";
@@ -205,6 +205,7 @@ const CinementPage = ({ content, type }: Props) => {
                     }}
                 />
             ))}
+            <ParloFooter />
         </>
     )
 }

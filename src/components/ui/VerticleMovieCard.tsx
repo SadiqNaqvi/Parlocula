@@ -4,8 +4,8 @@ import Image from "next/image";
 import { RefinedGeneralData } from "@type/external";
 import { twMerge } from "tailwind-merge";
 
-export const VerticleMovieCardSkeleton = () => (
-    <div className="min-w-44 w-44 aspect-[2/3] space-y-2">
+export const VerticleMovieCardSkeleton = ({ className }: { className?: string }) => (
+    <div className={twMerge("min-w-44 w-44 aspect-[2/3] space-y-2", className)}>
         <div className="w-full aspect-[2/3] skeleton-pulse-loading"></div>
         <div className="space-y-2">
             <div className="w-[90%] rounded-3xl h-2 skeleton-pulse-loading"></div>

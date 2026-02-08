@@ -7,6 +7,15 @@ import { getQueryKeys, numberConverter } from "@lib/utils";
 import EmojiPicker, { Emoji, EmojiClickData, Theme } from "emoji-picker-react";
 import { useRef } from "react";
 
+const className = "flex gap-2 items-center text-sm";
+
+const NoUserStateButton = ({ count }: { count: number }) => (
+    <>
+        <ReactIcon />
+        <span>{numberConverter(count)}</span>
+    </>
+)
+
 const ReactionButton = ({ id, count, uid }: { id: string, count: number, uid: string | undefined }) => {
 
     const sheetRef = useRef<BottomSheetRef>();
@@ -21,7 +30,7 @@ const ReactionButton = ({ id, count, uid }: { id: string, count: number, uid: st
         }
 
         return (
-            <span className="flex gap-2 items-center text-sm">
+            <>
                 <BottomSheet
                     button={
                         <>
@@ -33,7 +42,7 @@ const ReactionButton = ({ id, count, uid }: { id: string, count: number, uid: st
                             </span>
                         </>
                     }
-                    className="flex gap-2"
+                    className={className}
                 >
                     <EmojiPicker
                         theme={Theme.DARK}
@@ -43,17 +52,22 @@ const ReactionButton = ({ id, count, uid }: { id: string, count: number, uid: st
                         onEmojiClick={handleReactionClick}
                         reactionsDefaultOpen />
                 </BottomSheet>
-            </span>
+            </>
         )
     }
 
-    return <UserBasedButton
-        uid={uid}
-        className="flex p-2 border border-gray-500 border-opacity-30 rounded-md"
-        Button={Button}
-        queryFn={(userid) => getReactionOnPost(id, userid)}
-        queryKeys={getQueryKeys("reaction_pid", { pid: id })}
-    />
+    return (
+        <UserBasedButton
+            uid={uid}
+            noUserStateChilren={<NoUserStateButton count={count} />}
+            noUserStateClassName={className}
+            redirectAfterLogin={`/post/${id}`}
+            errorStateClassName="flex p-2 border border-gray-500 border-opacity-30 rounded-md"
+            Button={Button}
+            queryFn={(userid) => getReactionOnPost(id, userid)}
+            queryKeys={getQueryKeys("reaction_pid", { pid: id })}
+        />
+    )
 }
 
 export default ReactionButton;

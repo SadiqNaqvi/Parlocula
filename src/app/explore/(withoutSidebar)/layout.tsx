@@ -1,10 +1,9 @@
 import { PullToRefresh } from "@components";
-import { ParloFooter } from "@components/ui";
+import { PropsWithChildren } from "react";
 
-const Layout = ({ children }: Readonly<{ children: React.ReactNode }>) => (
+const Layout = ({ children }: PropsWithChildren) => (
     <PullToRefresh>
         {children}
-        <ParloFooter />
     </PullToRefresh>
 )
 

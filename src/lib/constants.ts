@@ -23,9 +23,11 @@ export const searchFilters = [
   "companies",
 ];
 
-export const parloculaAppURL = process.env.NODE_ENV === "development" ?
-  "http://localhost:3000"
-  : process.env.NEXT_PUBLIC_PARLOCULA_URL!
+export const app_production_url = process.env.NEXT_PUBLIC_PARLOCULA_URL ?? "https://parlocula.vercel.app";
+export const parloculaAppURL =
+  process.env.NODE_ENV === "development" ?
+    "http://localhost:3000" :
+    app_production_url
 
 export const availablePostCategories = [
   "discussion",
@@ -576,9 +578,3 @@ export const threadReportOptions: ReportReasonType[] = [
   ...commonReportOptions,
   "Duplicate Thread",
 ];
-
-/*
-1. remove ObjectId(id) from aggregation pipelines since we started using nanoid
-2. update isValidParloId() to validate nanoid
-3. Shelf Private Key updation
-*/

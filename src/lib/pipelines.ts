@@ -41,7 +41,7 @@ export const commentProjection = {
 
 export const shelfProjection = {
   user_id: 0,
-  save_count: 0,
+  saved_count: 0,
   createdAt: 0,
   updatedAt: 0,
 }
@@ -431,6 +431,7 @@ export const currentUserPipeline = (filter: PipelineStage.Match["$match"]) => [
       from: "shelves",
       let: { id: "$_id" },
       pipeline: [
+        // convertMatchToLookupExpr({ user_id: "$$id", shelf_type: "custom" })
         {
           $match: {
             $expr: {
@@ -532,9 +533,9 @@ const createSearchFilter = (filter: FilterInsideSearchType) => {
 
 export const searchHandler = async ({ r, type, filters, applyNsfwCheck, filterInsideSearch }: SearchHandlerProps): Promise<GeneralGetReturn> => {
 
-  const { get } = r.nextUrl.searchParams;
+  const sp = r.nextUrl.searchParams;
 
-  const query: string | null = get("q");
+  const query: string | null = sp.get("q");
   if (!query) return { success: false, errCode: "unknown_error" };
 
   const { page, nsfw } = getSearchParams(r.nextUrl, 0);

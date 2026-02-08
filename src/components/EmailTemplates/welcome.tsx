@@ -9,8 +9,9 @@ import {
     Section,
     Text
 } from '@react-email/components';
+import { app_production_url } from '@lib/constants';
 
-const logo = "https://lh3.googleusercontent.com/pw/AP1GczN_I3g2XWyPglqNU7GkYnroLYUNTDUyw65s4_6xleNch1O8jO9ItoA-88Wq9NG9l7jUCLlcynt44KIEQnucFHGNgtQDwZokwo9AvtSljHdQaZ_NZK8=w494-h492-no";
+const logo = new URL("/apple-touch-icon", app_production_url).href;
 
 const WelcomeEmail = ({ passkey }: { passkey: string }) => (
     <Html>
@@ -86,6 +87,7 @@ const header = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
+    width:"100%",
     padding: '15px 0',
 };
 

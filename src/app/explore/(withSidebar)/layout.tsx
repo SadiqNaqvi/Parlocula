@@ -1,5 +1,4 @@
 import { Sidebar } from "@components";
-import { ParloFooter } from "@components/ui";
 import { FullPageLoadingSpinner } from "@components/ui/loading/LoadingSpinner";
 import { PropsWithChildren, Suspense } from "react";
 
@@ -10,7 +9,6 @@ export default function ExploreLayout({ children }: PropsWithChildren) {
             <main>
                 <Suspense fallback={<FullPageLoadingSpinner />}>
                     {children}
-                    <ParloFooter />
                 </Suspense>
             </main>
         </>

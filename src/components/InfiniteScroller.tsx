@@ -9,7 +9,8 @@ import { ErrorCodes } from "@type/other";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect, useRef } from "react";
 import NotFound from "./fallbacks/NotFound";
-import { LoadingSpinner, OptionalChildren, ShowError } from "./ui";
+import { LoadingSpinner, OptionalChildren, ParloFooter, ShowError } from "./ui";
+import { twMerge } from "tailwind-merge";
 
 export type InfiniteScrollerProps = {
     Component: React.ComponentType<any>,
@@ -26,7 +27,8 @@ export type InfiniteScrollerProps = {
     paginate?: boolean;
     placeholderData?: InfiniteQueryResponse<any> | AggregatedResponse<any>
     onSuccess?: (d: InfiniteData<InfiniteQueryResponse<any>, number>) => void,
-    enabled?: boolean
+    enabled?: boolean,
+    showFooter?: boolean;
 }
 
 const defaultClasses = "space-y-4";
@@ -36,7 +38,7 @@ const defaultNotFoundMessages = {
     paras: ["Please search the resouce using it's name, title, username, etc."],
 }
 
-export default function InfiniteScroller({ Loading, onSuccess, placeholderData, Component, fetchData, queryKeys, NotFoundSection, notFoundMessage = defaultNotFoundMessages, initialPage = 1, enabled = true, initialData, callback, className = defaultClasses, paginate = true, additional }: InfiniteScrollerProps) {
+export default function InfiniteScroller({ Loading, showFooter, onSuccess, placeholderData, Component, fetchData, queryKeys, NotFoundSection, notFoundMessage = defaultNotFoundMessages, initialPage = 1, enabled = true, initialData, callback, className = defaultClasses, paginate = true, additional }: InfiniteScrollerProps) {
 
     const container = useRef(null);
     const searchParams = useSearchParams();
@@ -47,7 +49,7 @@ export default function InfiniteScroller({ Loading, onSuccess, placeholderData, 
     const updateSearchParams = (page: number) => {
         const params = new URLSearchParams(searchParams);
         params.set("p", page.toString());
-        router.replace(`${pathname}?${params.toString()}`)
+        router.replace(`${pathname}?${params.toString()}`, { scroll: false })
     }
 
     const gotoTop = () => {
@@ -56,14 +58,17 @@ export default function InfiniteScroller({ Loading, onSuccess, placeholderData, 
         router.replace(`${pathname}?${params.toString()}`)
     }
 
-    const { data, refetch, isLoading, error, isFetchingNextPage, hasNextPage, fetchNextPage } = useInfiniteQueryHook({
+    const { data, refetch, isLoading, error, isFetchingNextPage, hasNextPage, fetchNextPage, isFetched } = useInfiniteQueryHook({
         queryKeys: queryKeys,
-        queryFn: (p) => fetchData(p)
-            .then(res => {
-                if (paginate && res.success && (("results" in res.result && res.result?.results?.length) || ("data" in res.result && res.result?.data?.length)) && p > 1)
-                    updateSearchParams(p)
-                return res;
-            }),
+        queryFn: (p) => {
+            console.log("page in infinite scroller", p);
+            return fetchData(p)
+                .then(res => {
+                    if (paginate && res.success && (("results" in res.result && res.result?.results?.length) || ("data" in res.result && res.result?.data?.length)) && p > 1)
+                        updateSearchParams(p)
+                    return res;
+                })
+        },
         initialData,
         initialPage,
         placeholderData,
@@ -74,13 +79,10 @@ export default function InfiniteScroller({ Loading, onSuccess, placeholderData, 
     useEffect(() => {
         // console.log("infiniteScroller", isHydrated, dataSaver);
         if (!isHydrated || dataSaver) return;
-        // console.log("InfinityScroller Yaha aaya");
         const current = container.current;
 
         const observer = new IntersectionObserver(([entry]) => {
-            console.log("observer me aaya");
             if (entry.isIntersecting && !isFetchingNextPage && hasNextPage) {
-                console.log("fetching next page");
                 fetchNextPage();
             }
         }, { threshold: 0.1 })
@@ -90,7 +92,7 @@ export default function InfiniteScroller({ Loading, onSuccess, placeholderData, 
         return () => {
             if (current) observer.unobserve(current);
         }
-    }, [dataSaver, isHydrated]);
+    }, [dataSaver, isHydrated, isLoading]);
 
     const manuallyLoadNextPage = () => {
         fetchNextPage();
@@ -111,7 +113,7 @@ export default function InfiniteScroller({ Loading, onSuccess, placeholderData, 
         else return NotFoundSection;
     }
 
-    if (isLoading) return <LoadingComponent />
+    if (isLoading || !isFetched) return <LoadingComponent />
 
     else if (error) return (
         <ShowError
@@ -121,32 +123,29 @@ export default function InfiniteScroller({ Loading, onSuccess, placeholderData, 
         />
     )
 
-    else if (!data?.pages[0]?.results?.length && initialPage !== 1)
-        return (
-            <NotFoundComponent
-                title="Looks like you came across too far"
-                paras={[`No data is available at page ${initialPage}`]}
-                ActionButton={<button className="primary" onClick={gotoTop}>Go to top</button>}
-            />
-        )
+    else if (!data?.pages[0]?.results?.length && initialPage !== 1) return (
+        <NotFoundComponent
+            title="Looks like you came across too far"
+            paras={[`No data is available at page ${initialPage}`]}
+            ActionButton={<button className="primary" onClick={gotoTop}>Go to top</button>}
+        />
+    )
 
     else if (!data || !data.pages[0]?.total_results)
         return <NotFoundComponent {...notFoundMessage} />
 
     return (
         <>
-            <ul className={className} id="infiniteScroller">
-                {data?.pages.map((content, ind) => (
-                    <React.Fragment key={ind}>
-                        {content.results.map((el, i) => (
-                            <li key={el.id || el._id || el.tmdb_id || `${ind}${i}`} className="list-none">
-                                <Component {...el} callback={callback} additional={additional} user={meta} />
-                            </li>
-                        ))}
-                    </React.Fragment>
-                ))}
+            <ul className={twMerge(showFooter ? "h-size-screen" : "", className)} id="infiniteScroller">
+                {data.pages.
+                    flatMap(page => page.results)
+                    .map((content, ind) => (
+                        <li key={content.id || content._id || content.tmdb_id || ind} className="list-none">
+                            <Component {...content} callback={callback} additional={additional} user={meta} />
+                        </li>
+                    ))}
             </ul>
-            <OptionalChildren condition={hasNextPage}>
+            <OptionalChildren condition={hasNextPage} fallback={showFooter && <ParloFooter className="mt-auto" />}>
                 <OptionalChildren
                     fallback={(
                         <div className="w-full flex flex-cntr-all">

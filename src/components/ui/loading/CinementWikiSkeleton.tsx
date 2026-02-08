@@ -55,7 +55,7 @@ const CinementWikiSkeleton = ({ backdrop, title }: Props) => (
                 <div className={`${backdrop ? "absolute -translate-y-[50%] top-0" : ''} ${animationClasses} border-4 border-primary min-w-24 size-24 sm:min-w-40 sm:size-40 rounded-full`}></div>
                 <div className={`w-full space-y-2 ${backdrop ? "mt-4 pl-28 sm:pl-44" : ''}`}>
                     <OptionalChildren condition={title} fallback={<TitleSkeleton />}>
-                        <h1 className="text-xl sm:text-3xl line-clamp-2 font-semibold uppercase">
+                        <h1 className="text-xl sm:text-3xl line-clamp-2 font-semibold capitalize">
                             {decodeURI(title || '')}
                         </h1>
                     </OptionalChildren>

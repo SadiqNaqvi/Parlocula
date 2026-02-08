@@ -1,5 +1,5 @@
 import CinementWikiHeader, { CinementWikiSection } from "@app/explore/(withoutSidebar)/components/CinementWikiPage";
-import { ArtistCard, NotFound, VerticleMovieCard } from "@components/ui";
+import { ArtistCard, NotFound, ParloFooter, VerticleMovieCard } from "@components/ui";
 import { fetchSeasonForShow, fetchShow } from "@lib/contentFetcher";
 import { makeUrlSafe } from "@lib/utils";
 import { Metadata } from "next";
@@ -106,6 +106,7 @@ const SeasonPage = async ({ params }: Props) => {
                     }}
                 />
             ))}
+            <ParloFooter />
         </>
     )
 }

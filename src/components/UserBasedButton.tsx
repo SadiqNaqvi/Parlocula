@@ -2,9 +2,10 @@
 
 import { useQueryHook } from "@lib/hooks";
 import { AvailableMutations, MutationFunctionAgruments, performMutation, setMutation } from "@lib/providers/mutationStore";
-import appToast from "@lib/providers/toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRef } from "react";
+import BottomSheet from "./BottomSheet";
+import { LoginModal } from "./fallbacks";
 
 type OnClickFunc = <M extends AvailableMutations, T>(newState: T, action: M, args: MutationFunctionAgruments<M>) => void
 
@@ -19,8 +20,11 @@ type Props<T> = {
     uid: string | undefined,
     queryFn: (user_id: string) => Promise<any>,
     Button: (arg: UserBasedButtonProps<T>) => JSX.Element,
-    className?: string,
+    errorStateClassName?: string,
+    noUserStateChilren: React.ReactNode,
+    noUserStateClassName?: string,
     Loading?: React.ReactNode,
+    redirectAfterLogin?: string,
 }
 
 export const LoadingButton = ({ primary = true }: { primary?: boolean }) => (
@@ -30,7 +34,7 @@ export const LoadingButton = ({ primary = true }: { primary?: boolean }) => (
     </button>
 );
 
-const UserBasedButton = <T,>({ Button, queryFn, queryKeys, className, Loading, uid }: Props<T>) => {
+const UserBasedButton = <T,>({ Button, queryFn, queryKeys, errorStateClassName, redirectAfterLogin, noUserStateChilren, noUserStateClassName, Loading, uid }: Props<T>) => {
 
     const queryClient = useQueryClient();
 
@@ -45,7 +49,17 @@ const UserBasedButton = <T,>({ Button, queryFn, queryKeys, className, Loading, u
     });
 
     if (!uid) return (
-        <Button state={null} user_id="" onClick={() => appToast.error("You need to log in!")} />
+        <BottomSheet button={noUserStateChilren} className={noUserStateClassName}>
+            <LoginModal
+                redirectTo={redirectAfterLogin}
+                skipFullScreen
+                desc={[
+                    "You have been arrested by the Parlocula Cops",
+                    "Looks like you need to log-in to perform this action",
+                ]}
+            />
+        </BottomSheet>
+
     )
 
     const LoadingComponent = Loading ?? <LoadingButton />;
@@ -55,7 +69,7 @@ const UserBasedButton = <T,>({ Button, queryFn, queryKeys, className, Loading, u
     else if (error) return (
         <button
             onClick={() => refetch()}
-            className={className || "secondary"}>
+            className={errorStateClassName || "secondary"}>
             ⚠Try Again
         </button>
     )

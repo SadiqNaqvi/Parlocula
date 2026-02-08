@@ -6,16 +6,21 @@ import { AvailableMutations } from "@lib/providers/mutationStore";
 import { getQueryKeys } from "@lib/utils";
 import { UserConnectionType } from "@type/internal";
 import { useRef } from "react";
+import { toast } from "sonner";
 
 type Props = {
     rid: string,
     uid: string | undefined,
+    username: string;
 }
 
-const ActionButton = ({ rid, uid }: Props) => {
+const primaryButtonClassName = "flex-1 sm:flex-none primary"
+const secondaryButtonClassName = "flex-1 sm:flex-none secondary"
+
+const ActionButton = ({ rid, uid, username }: Props) => {
 
     const sheetRef = useRef<BottomSheetRef>(null);
-    
+
     if (rid === uid) return (
         <>
             <Navigate
@@ -37,8 +42,14 @@ const ActionButton = ({ rid, uid }: Props) => {
 
     const Button = ({ user_id, onClick, state }: UserBasedButtonProps<UserConnectionType>) => {
 
-        if (!state || state.isBlocked)
-            return <button className="flex-1 sm:w-fit primary">Follow</button>
+        if (!state || state.isBlocked) return (
+            <button
+                className={primaryButtonClassName}
+                onClick={() => toast("Uh Oh! Something went wrong")}
+            >
+                Follow
+            </button>
+        )
 
         const handleClick = (action: AvailableMutations) => {
             if (action === "update_user_notification")
@@ -65,13 +76,13 @@ const ActionButton = ({ rid, uid }: Props) => {
         const { followBack, follows, haveBlocked, notification } = state;
 
         if (haveBlocked) return (
-            <button className="flex-1 sm:w-fit secondary" onClick={() => handleClick("unblock_user")}>
+            <button className={secondaryButtonClassName} onClick={() => handleClick("unblock_user")}>
                 Unblock
             </button>
         )
 
         else if (!follows) return (
-            <button className="flex-1 sm:w-fit primary" onClick={() => handleClick("follow_user")}>
+            <button className={primaryButtonClassName} onClick={() => handleClick("follow_user")}>
                 {followBack ? "Follow back" : "Follow"}
             </button>
         )
@@ -81,7 +92,7 @@ const ActionButton = ({ rid, uid }: Props) => {
                 <OptionMenu
                     sheetRef={sheetRef}
                     ButtonElement={<>Unfollow {notification ? <BellIcon /> : <BellSlashIcon />}</>}
-                    className="flex-1 sm:w-fit secondary"
+                    className={secondaryButtonClassName}
                 >
                     <OptionList onClick={() => handleClick("unfollow_user")}>Unfollow</OptionList>
                     <OptionList onClick={() => handleClick("block_user")}>Block</OptionList>
@@ -95,6 +106,9 @@ const ActionButton = ({ rid, uid }: Props) => {
     return (
         <UserBasedButton
             Button={Button}
+            noUserStateChilren="Follow"
+            redirectAfterLogin={`/user/${username}`}
+            noUserStateClassName={primaryButtonClassName}
             uid={uid}
             queryFn={(uid) => checkUserConnection(uid, rid)}
             queryKeys={getQueryKeys("connection_ruid", { ruid: rid })}

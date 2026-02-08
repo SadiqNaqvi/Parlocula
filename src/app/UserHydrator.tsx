@@ -7,18 +7,15 @@ import useCurrentUser from '@store/user';
 import { CurrentUser, TokenPayload } from '@type/internal';
 import { useEffect } from 'react';
 
-const UserHydrator = ({ payload }: { payload: TokenPayload | null }) => {
+const UserHydrator = ({ payload, currentUser }: { payload: TokenPayload | null, currentUser: CurrentUser | null }) => {
 
-    const { clearUser, user, meta } = useCurrentUser();
+    const { user, meta } = useCurrentUser();
 
-    useEffect(() => console.log("user in userHydrator", user), [user]);
-    useEffect(() => console.log("meta in userHydrator", meta), [meta]);
+    // useEffect(() => console.log("user in userHydrator", user), [user]);
+    // useEffect(() => console.log("meta in userHydrator", meta), [meta]);
 
     useEffect(() => {
         if (!payload) return;
-        //     {
-        //     return clearUser();
-        // }
 
         const { username } = payload;
 
@@ -26,14 +23,9 @@ const UserHydrator = ({ payload }: { payload: TokenPayload | null }) => {
         const qkeys = getQueryKeys("user_username", { username });
         let userToStore: CurrentUser | null = null;
 
-        // This would return the user object or undefined. It would return undefined only if the user opened the web app offline.
-        const prefetchedUser = queryClient.getQueryData<CurrentUser>(qkeys);
-
-        console.log("prefetchedUser", prefetchedUser);
-
         // Update user hash with the freshly fetched user data.
-        if (prefetchedUser) {
-            userToStore = prefetchedUser;
+        if (currentUser) {
+            userToStore = currentUser;
         }
         else {
 

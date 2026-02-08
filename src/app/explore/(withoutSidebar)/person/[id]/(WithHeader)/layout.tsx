@@ -1,7 +1,8 @@
 import { CinementWikiHeader, CinementWikiSection, HorizontalThreadList } from "@app/explore/(withoutSidebar)/components";
-import { NotFound, OptionalChildren, TabContainer, TabList } from "@components/ui";
+import { NotFound, OptionalChildren, ParloFooter, TabContainer, TabList } from "@components/ui";
 import { CinementWikiSkeleton } from "@components/ui/loading";
 import { fetchPerson } from "@lib/contentFetcher";
+import generateDynamicMetadata from "@lib/seo/metadata";
 import { ParloPageProps } from "@type/other";
 import { Metadata } from "next";
 import { PropsWithChildren, Suspense } from "react";
@@ -12,13 +13,19 @@ const fetchData = async (params: { id: string }) => {
 }
 
 export const generateMetadata = async ({ params }: ParloPageProps): Promise<Metadata> => {
-    const data = await fetchData(await params);
+    const awaitedParams = await params;
+    const data = await fetchData(awaitedParams);
 
-    if (!data) return { title: "Parlocula" };
-    return {
-        title: `${data.name} - Parlocula`,
-        description: data.biography,
-    };
+    if (!data) return generateDynamicMetadata({});
+
+    const { name, biography } = data;
+
+    return generateDynamicMetadata({
+        title: name,
+        allowRobots: true,
+        description: biography,
+        url: `/explore/person/${awaitedParams.id}`,
+    });
 };
 
 const Page = async ({ params, children }: PropsWithChildren<{ params: { id: string } }>) => {
@@ -90,6 +97,7 @@ const ArtistPageLayout = async ({ children, params }: PropsWithChildren<ParloPag
     return (
         <Suspense fallback={<CinementWikiSkeleton title={title.join(' ')} backdrop={false} />}>
             <Page params={awaitedParams}>{children}</Page>
+            <ParloFooter />
         </Suspense>
     )
 }

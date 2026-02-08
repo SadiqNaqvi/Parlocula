@@ -1,5 +1,5 @@
 import { getHandler } from "@lib/helpers/handlers";
-import { convertMatchToLookupExpr } from "@lib/pipelines";
+import { convertMatchToLookupExpr, shelfProjection } from "@lib/pipelines";
 import { User } from "@model";
 
 // Get User by username
@@ -16,9 +16,9 @@ export const GET = getHandler(async (_, params) => {
           convertMatchToLookupExpr({
             user_id: "$$id",
             isPrivate: false,
-            shelf_type: "custom"
+            shelf_type: { $ne: "custom" }
           }),
-          { $project: { _id: 1, name: 1, poster: 1 } }
+          { $project: shelfProjection }
         ],
         as: "predefinedShelves",
       },

@@ -5,10 +5,14 @@ import { getQueryKeys, refineSearchParams } from "@lib/utils";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { ParloPageProps } from "@type/other";
 import ShelfSection from "../tabs/ShelfSection";
+import { getUserFromToken } from "@lib/auth/utils";
+import { cookies } from "next/headers";
 
 const Page = async ({ params, searchParams }: ParloPageProps) => {
 
     const queryClient = getQueryClient();
+
+    const currentUser = await getUserFromToken(await cookies());
 
     const { username } = await params;
     const { f, p } = await searchParams;
@@ -37,7 +41,7 @@ const Page = async ({ params, searchParams }: ParloPageProps) => {
             <div className="my-2">
                 <FilterTiles type="shelves" />
             </div>
-            <ShelfSection user={user} filter={filter} page={page} />
+            <ShelfSection current={Boolean(currentUser && user._id === currentUser.user_id)} user={user} filter={filter} page={page} />
         </HydrationBoundary>
     )
 }

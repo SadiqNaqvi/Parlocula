@@ -23,7 +23,7 @@ const Page = async ({ searchParams }: ParloPageProps) => {
 
     prefetchInfiniteQuery({
         queryClient,
-        queryFn: () => joinedThreadsOfUser(user.user_id, page),
+        queryFn: () => joinedThreadsOfUser(user.user_id, page, jar),
         queryKey: getQueryKeys("joinedThreadsOfUser_uid", { uid: user.user_id }),
         initialPageParam: page,
     });

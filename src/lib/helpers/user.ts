@@ -10,8 +10,8 @@ import { showMessageOptimistically, updateDoc, updateDocInInfiniteQueryResult } 
 
 const setUser = (user: CurrentUser, contentFiltering: boolean) => {
 
-    if (!user) return;
     console.log("USER IN SETUSER FUNC IN LIB/HELPERS/USER", user);
+    if (!user) return;
     const { setUser, setUserMeta, setContentFiltering } = useCurrentUser.getState();
     setContentFiltering(contentFiltering);
     setUserMeta({ user_id: user._id, username: user.username, profile: user.profile });

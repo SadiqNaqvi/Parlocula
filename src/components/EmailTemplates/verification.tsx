@@ -10,8 +10,9 @@ import {
     Section,
     Text
 } from '@react-email/components';
+import { app_production_url } from '@lib/constants';
 
-const logo = "https://lh3.googleusercontent.com/pw/AP1GczN_I3g2XWyPglqNU7GkYnroLYUNTDUyw65s4_6xleNch1O8jO9ItoA-88Wq9NG9l7jUCLlcynt44KIEQnucFHGNgtQDwZokwo9AvtSljHdQaZ_NZK8=w494-h492-no";
+const logo = new URL("/apple-touch-icon", app_production_url).href;
 
 const VerifyEmail = ({ code }: { code: number }) => (
     <Html>
@@ -93,6 +94,7 @@ const header = {
     backgroundColor: '#0f111f',
     display: 'flex',
     padding: '15px 0',
+    width: "100%",
     alignItems: 'center',
     justifyContent: 'center',
 };

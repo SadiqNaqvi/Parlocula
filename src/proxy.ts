@@ -1,6 +1,7 @@
 import { generateToken, getSession, verifyToken } from "@lib/auth";
 import { slidingWindowRateLimit } from "@lib/helpers/redis/rate_limiting";
 import { ErrorCodes } from "@type/other";
+import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
 const getUidAndPath = (req: NextRequest) => {
@@ -28,7 +29,7 @@ const validateUser = async (
 ): Promise<
   { success: true, user_id: string } | { success: false; errCode: ErrorCodes; reason?: "noTokenORSession" | "banned" }
 > => {
-  const jar = rq.cookies;
+  const jar = await cookies();
   const token = jar.get("token")?.value;
   const session_id = jar.get("sid")?.value;
 
@@ -36,6 +37,8 @@ const validateUser = async (
     return { success: false, errCode: "unauthenticated_access", reason: "noTokenORSession" };
 
   const payload = await verifyToken(token);
+
+  console.log("Token Payload in Proxy", !!payload);
 
   const uid = getUidAndPath(rq).user_id;
 
@@ -51,19 +54,24 @@ const validateUser = async (
   if (payload.exp && (payload.exp * 1000) > Date.now())
     return { success: true, user_id };
 
+  // console.log("Now checking session in Proxy");
   // If token is expired, check user session
   const { result, success } = await getSession(session_id);
+
+  console.log("Is session in proxy", success, result);
 
   // If session could not be fetched possibly because of network 
   if (!success) return { success: false, errCode: "unstable_internet" };
 
   // If session is not available, delete cookies
   else if (!result) {
-    rq.cookies.delete("token");
-    rq.cookies.delete("sid");
+    console.log("deleting cookies in proxy");
+    jar.delete("token");
+    jar.delete("sid");
     return { success: false, errCode: "unauthenticated_access" };
   }
 
+  console.log("Generating new token in Proxy");
   // If session is available, refresh token
   const { email, expireOn, ...tokenPayload } = result;
 
@@ -86,14 +94,14 @@ const validateUser = async (
 export const proxy = async (req: NextRequest) => {
   const { pathname } = req.nextUrl;
 
-  console.log("middleware entered for", pathname);
+  console.log("PROXY entered for", pathname);
 
   const response = NextResponse.next();
 
   // Check if there's a current user
   const user = await validateUser(req, response);
 
-  console.log("is User in Middleware:", user.success);
+  console.log("is User in PROXY:", user.success);
 
   // If user does exists and user is trying to perform mutation, check limitation.
   if (user.success && req.method !== "GET") {
@@ -113,13 +121,14 @@ export const proxy = async (req: NextRequest) => {
     if (req.method === "GET" && (pathname.includes("/shelf") || pathname.includes("/item")) && user.reason === "noTokenORSession")
       return response;
 
-    console.log("user", user);
+    console.log("user for", pathname, user);
 
     // If user is a guest and trying to do anything private (which only authenticated users can do)
     if (pathname.includes("/api/v1/private"))
       return NextResponse.json(user, { status: 403 });
 
   }
+
   console.log("PROXY DONE");
   return response;
 };
