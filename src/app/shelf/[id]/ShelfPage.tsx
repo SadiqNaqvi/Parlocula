@@ -1,13 +1,12 @@
 "use client";
 
-import { FancyImage, FilterTiles, GenericWrapper, InfiniteScroller, Navigate, ObserverHeader } from "@components";
-import { ShelfItemBar, MetadataTile } from "@components/ui";
+import { FilterTiles, GenericWrapper, InfiniteScroller, Navigate, ObserverHeader } from "@components";
+import { MetadataTile, MetadataTileContainer, ShelfItemBar, ShelfPoster } from "@components/ui";
 import { getItems, getShelf } from "@lib/helpers/common";
-import { getPoster, getQueryKeys, timeAgo } from "@lib/utils";
+import { getQueryKeys, timeAgo } from "@lib/utils";
 import { FullShelf } from "@type/internal";
 import ActionButton from "./ActionButton";
 import EllipsisButton from "./Ellipsis";
-import ShelfPoster from "@components/ui/ShelfPoster";
 
 type Props = {
     id: string,
@@ -36,17 +35,18 @@ const Component = (data: FullShelf, { filter, page, uid, key }: Props) => {
                 navTitle={name}
                 className="pb-4 border-b border-gray30 px-2">
 
-                <section className="flex gap-4 items-center">
+                <section className="flex gap-2 sm:gap-4 items-center">
                     <ShelfPoster
                         fancy
                         className="min-w-24 size-24 sm:min-w-32 sm:size-32"
                         useClassNameForBoth
+                        iconsClassName="p-4"
                         name={name}
                         poster={poster}
                         shelf_type={shelf_type}
                     />
 
-                    <div className="space-y-2">
+                    <div>
                         <h1 data-observe className="text-lg sm:text-2xl capitalize font-semibold">{name}</h1>
                         <p className="text-sm text-zinc-500 space-x-1">
                             <span>Created by:</span>
@@ -56,14 +56,12 @@ const Component = (data: FullShelf, { filter, page, uid, key }: Props) => {
                 </section>
 
                 <div className="space-y-4 my-4">
-                    <MetadataTile
-                        createdAt={createdAt}
-                        others={[
-                            { value: `Items: ${item_count}`, condition: item_count ?? false },
-                            { value: `Saved by: ${saved_count}`, condition: saved_count ?? false },
-                            { value: `Last Added: ${timeAgo(last_added)}`, condition: last_added ?? false }
-                        ]}
-                    />
+                    <MetadataTileContainer>
+                        <MetadataTile>Created: {timeAgo(createdAt)}</MetadataTile>
+                        <MetadataTile>Items: {item_count}</MetadataTile>
+                        <MetadataTile condition={Boolean(saved_count)}>Saved by: {saved_count}</MetadataTile>
+                        <MetadataTile condition={Boolean(last_added)}>Last Added: {timeAgo(last_added)}</MetadataTile>
+                    </MetadataTileContainer>
                 </div>
 
                 <ActionButton
@@ -76,12 +74,12 @@ const Component = (data: FullShelf, { filter, page, uid, key }: Props) => {
 
             </ObserverHeader>
 
-            <div className="my-2">
+            <div className="my-2 px-2">
                 <FilterTiles type="items" />
             </div>
 
             <InfiniteScroller
-                className="mt-6 space-y-4"
+                className="mt-6 space-y-4 px-2"
                 Component={ShelfItemBar}
                 queryKeys={getQueryKeys("itemsOfShelf_sid_filter", { sid: _id, filter })}
                 fetchData={(p) => getItems(_id, uid, p, filter, key)}

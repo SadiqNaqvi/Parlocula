@@ -120,12 +120,18 @@ const CreateNewThreadPage = () => {
                     <button type="submit" className="primary" onClick={requestSubmit}>Create</button>
                 }
             />
+            <div className="my-4 space-y-2">
+                <p className="text-center text-zinc-500">This is a preview of how the created thread would look like.</p>
+                <p className="text-center text-zinc-500">Click on a field to edit. </p>
+            </div>
             <Form
                 schema={threadSchemaClient}
                 ref={formRef}
                 submit={submit}
                 className="px-2"
                 skipReset
+
+                // 1. User, 2. Post, 3. Thread, 4. Shelf, 
             >
 
                 <section className="flex gap-2 md:gap-4 items-center">
@@ -175,17 +181,12 @@ const CreateNewThreadPage = () => {
 
             </Form>
             <section className="px-2 space-y-4 mt-4">
-                    <LinkInputManager ref={linksRef} />
+                <ConnectionsInput connectionsRef={connectionsRef} />
 
-                <div>
-                    <ConnectionsInput connectionsRef={connectionsRef} />
-                    <p className="text-sm text-gray-500">You can optionally connect this thread to the movies, shows or artists it is based on. If connected, the thread would be shown on these connected wiki page.</p>
-                </div>
+                <LinkInputManager ref={linksRef} />
             </section>
 
-            <div className="flex px-2 mt-4">
-                <MockupButton primary>Follow</MockupButton>
-            </div>
+            <p></p>
 
             <LoginPopupSheet href="/thread/new" sheetRef={loginSheetRef} section="thread details" />
 

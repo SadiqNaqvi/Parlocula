@@ -189,13 +189,13 @@ select:-webkit-autofill {
   position: absolute;
   inset: 0;
   background-image: url("/pattern.svg");
-  background-size: cover;
+  background-size: 200%;
   opacity: 0.8;
   z-index: 0;
 }
 
 html.light .patternBackground {
-  opacity: 0.4;
+  opacity: 0.2;
 }
 
 h1,

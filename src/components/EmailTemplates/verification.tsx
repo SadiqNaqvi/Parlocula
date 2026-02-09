@@ -12,7 +12,7 @@ import {
 } from '@react-email/components';
 import { app_production_url } from '@lib/constants';
 
-const logo = new URL("/apple-touch-icon", app_production_url).href;
+const logo = new URL("/apple-touch-icon.png", app_production_url).href;
 
 const VerifyEmail = ({ code }: { code: number }) => (
     <Html>

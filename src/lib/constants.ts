@@ -245,7 +245,7 @@ export const queryFilters: Record<QueryFilterType, string[]> = {
   comments: ["loved", "latest"],
   userPosts: ["latest", "oldest", "popular"],
   shelves: ["latest", "a_to_z", "z_to_a", "recently_added"],
-  items: ["latest", "year"],
+  items: ["latest", "year", "oldest"],
 };
 
 export const mediaInputConfig: Record<
@@ -285,6 +285,7 @@ export const filterToSort: Record<QueryFilterType, any> = {
   },
   items: {
     latest: { createdAt: -1 },
+    oldest: { createdAt: 1 },
     year: { year: -1 },
   },
   shelves: {

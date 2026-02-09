@@ -1,16 +1,13 @@
 "use client";
 
 import { GenericWrapper, Navbar, Navigate, SaveButton } from "@components";
-import { BreadCrumbs, BreadCrumbTile } from "@components/ui/Breadcrumbs";
-import MetadataTile from "@components/ui/MetaDataTile";
-import { TabContainer, TabList } from "@components/ui/Tabs";
+import { BreadCrumbs, BreadCrumbTile, MetadataTile, MetadataTileContainer, ParloImage, TabContainer, TabList } from "@components/ui";
 import { getCommentById } from "@lib/helpers/common";
-import { getPoster, getQueryKeys } from "@lib/utils";
+import { getQueryKeys, timeAgo } from "@lib/utils";
 import { FullComment } from "@type/internal";
 import Image from "next/image";
 import OptionsButton from "./Ellipsis";
 import LikeButton from "./LikeButton";
-import { ParloImage } from "@components/ui";
 
 type Props = {
     id: string,
@@ -74,7 +71,12 @@ const Component = (data: FullComment, { uid, id }: Props) => {
 
                 </header>
 
-                <MetadataTile createdAt={createdAt} editedAt={edited_at} nsfw={nsfw} spoiler={spoiler} />
+                <MetadataTileContainer>
+                    <MetadataTile>{timeAgo(createdAt)}</MetadataTile>
+                    <MetadataTile className="px-2 py-1 bg-gray10 border-gray20 rounded-md" condition={Boolean(edited_at)}>Edited: {timeAgo(edited_at)}</MetadataTile>
+                    <MetadataTile className="px-2 py-1 bg-gray10 border-purple-500 text-purple-500 rounded-md" condition={nsfw}>NSFW</MetadataTile>
+                    <MetadataTile className="px-2 py-1 bg-gray10 border-orange-500 text-orange-500 rounded-md" condition={spoiler}>Spoiler</MetadataTile>
+                </MetadataTileContainer>
 
                 <section className="flex gap-4 flex-col sm:flex-row py-4 border-t border-gray30">
 

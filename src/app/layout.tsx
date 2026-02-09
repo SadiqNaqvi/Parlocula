@@ -26,7 +26,7 @@ const robotoFont = Roboto({
   subsets: ["latin"],
 });
 
-export const metadata = generateDynamicMetadata({});
+export const metadata = generateDynamicMetadata({title: "Welcome"});
 
 const NotificationFetcher = async ({ children }: PropsWithChildren) => {
 
@@ -35,6 +35,7 @@ const NotificationFetcher = async ({ children }: PropsWithChildren) => {
   const jar = await cookies();
   const payload = await getUserFromToken(jar);
   let currentUser: CurrentUser | null = null;
+  
   if (payload) {
     const { user_id, username } = payload;
 

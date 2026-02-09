@@ -38,7 +38,7 @@ const Page = async ({ params, searchParams }: ParloPageProps) => {
 
     return (
         <HydrationBoundary state={dehydrate(queryClient)}>
-            <div className="my-2">
+            <div className="p-2">
                 <FilterTiles type="userPosts" />
             </div>
             <PostSection allowNsfw={allowNsfw} uid={uid} username={username} filter={filter} page={page} />

@@ -43,34 +43,39 @@ const ConnectionsInput = ({ defaultConnections, connectionsRef }: { defaultConne
     }
 
     return (
-        <div className="flex flex-cntr-between">
-            <OptionalChildren condition={connections.length} fallback={
-                <h4 className="parloHeading">Connect it to Wikis</h4>
-            }>
-                <ul className="flex gap-3 flex-1 overflow-x-auto noScroll">
-                    {connections.map(({ path, name }) => (
-                        <li key={path} className="inline-flex text-sm gap-3 whitespace-nowrap text-nowrap flex-cntr-between px-2 py-1 rounded-md bg-gray10 border border-gray20">
-                            <span>{name}</span>
-                            <button className="p-1 bg-gray20 rounded-md" type="button" onClick={() => removeConnection(path)}>
-                                <XmarkIcon className="size-2" />
-                            </button>
-                        </li>
-                    ))}
-                </ul>
-            </OptionalChildren>
+        <div className="space-y-2">
+            <div className="flex flex-cntr-between">
+                <OptionalChildren condition={connections.length} fallback={(
+                    <h4 className="parloHeading">Connect it to Wikis</h4>
+                )}>
+                    <ul className="flex gap-3 flex-1 overflow-x-auto noScroll">
+                        {connections.map(({ path, name }) => (
+                            <li key={path} className="inline-flex text-sm gap-3 whitespace-nowrap text-nowrap flex-cntr-between px-2 py-1 rounded-md bg-gray10 border border-gray20">
+                                <span>{name}</span>
+                                <button className="p-1 bg-gray20 rounded-md" type="button" onClick={() => removeConnection(path)}>
+                                    <XmarkIcon className="size-2" />
+                                </button>
+                            </li>
+                        ))}
+                    </ul>
+                </OptionalChildren>
 
-            <BottomSheet title={sheetTitle} description={sheetDesc} onClose={getConnections} ref={sheetRef} button={<AddIcon />}>
-                <section className="p-2 sm:p-4">
-                    <ListSelector
-                        queryFn={searchAllContent}
-                        queryKeys={(q) => ["search", "connection", q]}
-                        refiner={refiner}
-                        callbackRef={callbackRef}
-                        className="min-h-[50dvh] my-2 space-y-4"
-                        inputPlaceholder="Search Movies, Shows or Artists"
-                    />
-                </section>
-            </BottomSheet>
+                <BottomSheet title={sheetTitle} description={sheetDesc} onClose={getConnections} ref={sheetRef} button={<AddIcon />}>
+                    <section className="p-2 sm:p-4">
+                        <ListSelector
+                            queryFn={searchAllContent}
+                            queryKeys={(q) => ["search", "connection", q]}
+                            refiner={refiner}
+                            callbackRef={callbackRef}
+                            className="min-h-[50dvh] my-2 space-y-4"
+                            inputPlaceholder="Search Movies, Shows or Artists"
+                        />
+                    </section>
+                </BottomSheet>
+            </div>
+            <OptionalChildren condition={!connections.length}>
+                <p className="text-sm text-gray-500">You can optionally connect this thread to the movies, shows or artists it is based on. If connected, the thread would be shown on these connected wiki page.</p>
+            </OptionalChildren>
         </div>
     )
 }

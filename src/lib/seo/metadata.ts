@@ -133,7 +133,7 @@ const generateDynamicMetadata = (config: Partial<ParloMetadata>): Metadata => {
     return {
         title: config.title ? {
             default: titleForThePage,
-            template: "%s · Parlocula",
+            template: "%s | Parlocula - The Cinematic Planet",
         } : title,
 
         description: descriptionForThePage,

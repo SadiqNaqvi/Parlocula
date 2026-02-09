@@ -1,10 +1,8 @@
-import { BookmarkIcon, CommentIcon, FrameIcon, LinkIcon, RightChevron, ThumbUpIcon } from "@assets/Icons";
+import { BookmarkIcon, CommentIcon, FrameIcon, LinkIcon, ThumbUpIcon } from "@assets/Icons";
 import { FramesCarousel, Navigate } from "@components";
 import { makeUrlSafe, numberConverter, timeAgo } from "@lib/utils";
 import { MerePost } from "@type/internal";
-import ParloImage from "./ParloImage";
-import MetadataTile from "./MetaDataTile";
-import { BreadCrumbs, BreadCrumbTile } from "./Breadcrumbs";
+import { BreadCrumbs, BreadCrumbTile, MetadataTile, MetadataTileContainer, ParloImage } from "./";
 
 type SectionType = "thread" | "user";
 
@@ -73,15 +71,23 @@ const PostBar = ({ _id, comment_count, nsfw, createdAt, editedAt, poster, reacti
 
             <header className="space-y-2">
                 <PostBarHeader poster={poster} profile={profile} thread_id={thread_id} thread_name={thread_name} username={username} section={additional?.section || "all"} />
-                <MetadataTile
-                    others={[
-                        { value: category, className: "bg-gray10 px-3 py-1 color-primary" }
-                    ]}
-                    nsfw={nsfw}
-                    spoiler={spoiler}
-                    createdAt={createdAt}
-                    editedAt={editedAt || undefined}
-                />
+                <MetadataTileContainer>
+                    <MetadataTile>{timeAgo(createdAt)}</MetadataTile>
+
+                    <MetadataTile
+                        condition={category !== "none"}
+                        href={`/thread/${thread_id}?c=${category}`}
+                        className="capitalize">
+                        {category}
+                    </MetadataTile>
+
+                    <MetadataTile className="px-2 py-1 bg-gray10 border-gray20 rounded-md" condition={Boolean(editedAt)}>Edited: {timeAgo(editedAt || 0)}</MetadataTile>
+
+                    <MetadataTile className="px-2 py-1 bg-gray10 border-purple-500 text-purple-500 rounded-md" condition={nsfw}>NSFW</MetadataTile>
+
+                    <MetadataTile className="px-2 py-1 bg-gray10 border-orange-500 text-orange-500 rounded-md" condition={spoiler}>Spoiler</MetadataTile>
+
+                </MetadataTileContainer>
             </header>
 
             <section className="flex gap-2 flex-col sm:flex-row-reverse">

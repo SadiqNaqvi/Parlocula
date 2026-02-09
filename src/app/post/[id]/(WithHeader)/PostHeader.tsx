@@ -2,17 +2,16 @@
 
 import { CommentIcon, QuoteIcon } from "@assets/Icons";
 import { FramesCarousel, GenericWrapper, Navbar, Navigate, SaveButton } from "@components";
-import { MetadataTile, OptionalChildren, ParloImage } from "@components/ui";
+import { MetadataTile, MetadataTileContainer, OptionalChildren, ParloImage } from "@components/ui";
+import { BreadCrumbs, BreadCrumbTile } from "@components/ui/Breadcrumbs";
 import LinksSection from "@components/ui/LinksSection";
 import { getPostById } from "@lib/helpers/common";
-import { getPoster, getQueryKeys, numberConverter, makeUrlSafe } from "@lib/utils";
+import { getQueryKeys, makeUrlSafe, numberConverter, timeAgo } from "@lib/utils";
 import useGlobalStore from "@store/globalStore";
 import { useNavigation } from "@store/historystack";
 import { FullPost } from "@type/internal";
-import Image from "next/image";
 import OptionsButton from "./OptionsButton";
 import ReactionButton from "./ReactionButton";
-import { BreadCrumbs, BreadCrumbTile } from "@components/ui/Breadcrumbs";
 
 type Props = { id: string, uid: string | undefined }
 
@@ -33,7 +32,7 @@ const PostHeader = (props: Props) => {
             navigation.goto("/new");
         }
 
-        const { _id, username, edited_at, user_id, saved_count, poster, thread_name, body, comment_count, quoted_post_frames_count, quoted_post_id, quoted_post_links_count, quoted_post_title, createdAt, frames, links, nsfw, reaction_count, spoiler, category, thread_id, title, } = data;
+        const { _id, username, edited_at, user_id, saved_count, thread_name, body, comment_count, quoted_post_frames_count, quoted_post_id, quoted_post_links_count, quoted_post_title, createdAt, frames, links, nsfw, reaction_count, spoiler, category, thread_id, title, } = data;
 
         return (
             <>
@@ -59,19 +58,17 @@ const PostHeader = (props: Props) => {
                                 alt="Profile Picture of the author of the post"
                             />
                         </Navigate>
-                        {username ?
-                            (
-                                <Navigate
-                                    comp="link"
-                                    type="button"
-                                    goto={`/user/${username}`}
-                                    className="font-semibold">
-                                    {username}
-                                </Navigate>
-                            )
-                            :
-                            <span className="text-gray-500 text-semibold">[Not Found]</span>
-                        }
+                        <OptionalChildren condition={username} fallback={(
+                            <span className="text-gray-500 text-semibold">Parlocula User</span>
+                        )}>
+                            <Navigate
+                                comp="link"
+                                type="button"
+                                goto={`/user/${username}`}
+                                className="font-semibold">
+                                {username}
+                            </Navigate>
+                        </OptionalChildren>
                     </header>
 
                     <OptionalChildren condition={quoted_post_id && quoted_post_title}>
@@ -98,16 +95,25 @@ const PostHeader = (props: Props) => {
 
                     <section className="px-4 mt-2 space-y-4">
 
-                        <div className="flex gap-3">
-                            {category && (
-                                <Navigate comp="link" goto={`/thread/${thread_id}?c=${category}`} className="text-sm p-2 bg-gray20 rounded-full capitalize">
-                                    {category}
-                                </Navigate>
-                            )}
-                            <MetadataTile createdAt={createdAt} editedAt={edited_at} nsfw={nsfw} spoiler={spoiler} />
-                        </div>
+                        <MetadataTileContainer>
+                            <MetadataTile>{timeAgo(createdAt)}</MetadataTile>
 
-                        <h1 className="text-xl font-semibold">{title}</h1>
+                            <MetadataTile
+                                condition={category !== "none"}
+                                href={`/thread/${thread_id}?c=${category}`}
+                                className="capitalize">
+                                {category}
+                            </MetadataTile>
+
+                            <MetadataTile className="px-2 py-1 bg-gray10 border-gray20 rounded-md" condition={Boolean(edited_at)}>Edited: {timeAgo(edited_at)}</MetadataTile>
+
+                            <MetadataTile className="px-2 py-1 bg-gray10 border-purple-500 text-purple-500 rounded-md" condition={nsfw}>NSFW</MetadataTile>
+
+                            <MetadataTile className="px-2 py-1 bg-gray10 border-orange-500 text-orange-500 rounded-md" condition={spoiler}>Spoiler</MetadataTile>
+
+                        </MetadataTileContainer>
+
+                        <h1 className="text-lg sm:text-xl font-semibold">{title}</h1>
 
                         <p className="whitespace-break-spaces">{body}</p>
 

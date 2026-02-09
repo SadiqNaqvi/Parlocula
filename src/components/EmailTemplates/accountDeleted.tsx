@@ -13,7 +13,7 @@ import {
 import { CSSProperties } from 'react';
 import { app_production_url } from '@lib/constants';
 
-const logo = new URL("/apple-touch-icon", app_production_url).href;
+const logo = new URL("/apple-touch-icon.png", app_production_url).href;
 
 const AccountDeleted = ({ username }: { username: string }) => (
     <Html>

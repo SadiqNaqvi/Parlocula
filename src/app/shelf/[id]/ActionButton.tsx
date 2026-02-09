@@ -6,7 +6,7 @@ import { getShelfConnection } from "@lib/helpers/common";
 import { acceptCollaboratorInvitation, rejectCollaboratorInvitation } from "@lib/helpers/mutations";
 import { useQueryHook } from "@lib/hooks";
 import { getQueryKeys } from "@lib/utils";
-import { PropsWithChildren } from "react";
+import { twMerge } from "tailwind-merge";
 
 type Props = {
     id: string;
@@ -16,10 +16,10 @@ type Props = {
     saved_count: number | undefined,
 }
 
-const AddItemButton = ({ sid }: { sid: string }) => (
+const AddItemButton = ({ sid, className }: { sid: string, className?: string }) => (
     <Navigate
         comp="link" goto={`/shelf/${sid}/add`}
-        type="button" className="btn primary"
+        type="button" className={twMerge("btn primary", className)}
     >
         Add Items
     </Navigate>
@@ -75,7 +75,6 @@ const ActionButton = ({ isPrivate, cuid, author, id, saved_count }: Props) => {
 
     if (cuid === author) return (
         <section className={sectionClassName}>
-            <AddItemButton sid={id} />
             <Navigate
                 className="btn secondary gap-2"
                 type="button"
@@ -85,13 +84,14 @@ const ActionButton = ({ isPrivate, cuid, author, id, saved_count }: Props) => {
                 <span>Edit</span>
             </Navigate>
             <Navigate
-                className="btn secondary col-span-2 sm:col-span-1"
+                className="btn secondary"
                 comp="link"
                 goto={`/shelf/${id}/collaborators`}
                 type="button"
             >
                 Manage
             </Navigate>
+            <AddItemButton sid={id} className="col-span-2 sm:col-span-1" />
 
         </section>
     )

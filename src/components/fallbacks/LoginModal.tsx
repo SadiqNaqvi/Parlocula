@@ -34,8 +34,8 @@ const LoginModal = ({ redirectTo, title, skipFullScreen, desc, heading }: Props)
 
                 <OptionalChildren condition={desc?.length} fallback={<DescriptionSection />}>
                     <ul className="space-y-1 text-sm text-zinc-500">
-                        {desc?.map(description => (
-                            <li>{description}</li>
+                        {desc?.map((description, i) => (
+                            <li key={i} className="text-center">{description}</li>
                         ))}
                     </ul>
                 </OptionalChildren>

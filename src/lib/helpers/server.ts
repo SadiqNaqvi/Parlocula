@@ -130,7 +130,7 @@ export const sendVerificationCode = async (
 ): Promise<GeneralGetReturn> => {
   if (!fingerprint) throw new Error("Fingerprint is not passed");
 
-  if (process.env.NODE_ENV === "test") return {
+  if (process.env.NODE_ENV === "test" || process.env.IS_TESTING) return {
     success: true,
     result: null,
   }

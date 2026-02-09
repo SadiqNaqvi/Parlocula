@@ -64,7 +64,7 @@ const Component = (data: RequestedUser, props: Props) => {
                     </div>
                 </section>
                 <section className="mt-4">
-                    <ul className="flex gap-2">
+                    <ul className="flex gap-3">
                         {userMeta.map(({ label, value }) => (
                             <li className="gap-1 flex items-center" key={label}>
                                 <span className="text-base sm:text-xl text-center">{numberConverter(value)}</span>

@@ -39,7 +39,7 @@ const FilterTiles = ({ type, className, filters, onActive }: Props) => {
                     key={id}
                     onClick={() => updateFilter(id)}
                     className={`${className ?? "py-2 px-3 bg-gray20 rounded-2xl"} pointer text-sm capitalize min-w-fit ${currentFilter === id ? `${onActive ?? "bg-secondary color-primary"}` : ""}`}>
-                    {label}
+                    {label.replaceAll('_', ' ')}
                 </li>
             ))}
         </ul>

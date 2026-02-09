@@ -193,12 +193,14 @@ export const registerUserSchemaClient = z.object({
   name: z
     .string()
     .trim()
-    .default(""),
-  // .refine((name) => {
-  //   if (!name) return true;
-  //   else if (name.length > 25)
-  //     return "Name cannot have more than 25 characters";
-  // }),
+    .default("")
+    .refine((name) => {
+      if (!name) return true;
+      else if (name.length > 25)
+        return "Name cannot have more than 25 characters";
+      else if (name.length < 6)
+        return "Name must be 6 characters long";
+    }),
   bio: z
     .string()
     .trim()

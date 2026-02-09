@@ -2,6 +2,7 @@
 
 import { EditIcon } from "@assets/Icons";
 import { DateInput, Form, Input, LinkInputManager, Poster, Textarea } from "@components/form";
+import UserMutationPage from "@components/form/Mutation/UserMutation";
 import Navbar from "@components/Navbar";
 import { MockupButton, UserPageMockup } from "@components/ui/mockup";
 import { urlPattern } from "@lib/constants";
@@ -20,38 +21,31 @@ import z from "zod";
 const Register = ({ email }: { email: string }) => {
 
     const { username, page, dob, setter } = useCustomReducer({ username: "", page: 0, dob: undefined as Date | undefined });
-
-    const profileRef = useRef<InputManagerType<InputFrame>>(null);
-    const linkRef = useRef<InputManagerType<LinkSchema[]>>(null);
-    const formRef = useRef<HTMLFormElement>(null);
     const dobRef = useRef<{ get: () => Date | undefined }>(null);
 
-    const navigation = useNavigation();
-    const urlToRedirect = useSearchParams().get("url");
+    // const submit = async (data: { name: string, bio: string }) => {
+    //     if (!dob) return "Date of birth is required";
+    //     const profile = profileRef.current?.getData();
 
-    const submit = async (data: { name: string, bio: string }) => {
-        if (!dob) return "Date of birth is required";
-        const profile = profileRef.current?.getData();
+    //     const { files, filesData } = await readyFrames(profile ? [profile] : []);
+    //     const bioLinks = linkRef.current?.getData() ?? [];
 
-        const { files, filesData } = await readyFrames(profile ? [profile] : []);
-        const bioLinks = linkRef.current?.getData() ?? [];
+    //     const redirectTo = urlToRedirect && urlPattern.test(urlToRedirect) ? urlToRedirect : "/home";
 
-        const redirectTo = urlToRedirect && urlPattern.test(urlToRedirect) ? urlToRedirect : "/home";
+    //     const error = await registerUserMutation({
+    //         ...data,
+    //         dob: dob.getTime(),
+    //         email,
+    //         username,
+    //         bioLinks,
+    //         filesData,
+    //         files
+    //     });
 
-        const error = await registerUserMutation({
-            ...data,
-            dob: dob.getTime(),
-            email,
-            username,
-            bioLinks,
-            filesData,
-            files
-        });
-
-        if (error) return error;
-        else if (error !== false)
-            navigation.replace(redirectTo);
-    }
+    //     if (error) return error;
+    //     else if (error !== false)
+    //         navigation.replace(redirectTo);
+    // }
 
     const storeDob = () => {
         const dob = dobRef.current?.get();
@@ -74,7 +68,7 @@ const Register = ({ email }: { email: string }) => {
 
     if (page === 0) return (
         <>
-            <Navbar className="p-0 !h-fit mt-4 sm:mt-0" navTitle="Create Account" />
+            <Navbar className="p-0 !h-fit mt-4 sm:mt-0 bg-transparent" navTitle="Create Account" />
 
             <div className="space-y-2 my-4">
                 <label htmlFor="Date">Date of birth</label>
@@ -90,7 +84,7 @@ const Register = ({ email }: { email: string }) => {
         <>
             <Navbar
                 onGoBack={() => setter({ page: 0 })}
-                className="p-0 !h-fit mt-4 sm:mt-0"
+                className="p-0 !h-fit mt-4 sm:mt-0 bg-transparent"
                 navTitle="Create Account" />
 
             <Form
@@ -116,91 +110,9 @@ const Register = ({ email }: { email: string }) => {
     )
 
     return (
-        <>
-
-            <Navbar
-                className="p-0 py-2 sm:pt-0"
-                navTitle="Preview"
-                onGoBack={() => setter({ page: 1 })}
-                OptionButton={
-                    <button
-                        className="primary w-full sm:w-fit sm:mx-auto"
-                        type="submit"
-                        onClick={() => formRef.current?.requestSubmit()}
-                    >
-                        Join
-                    </button>
-                }
-            />
-
-            <p className="text-sm text-center text-zinc-500 my-4">Your profile looks like this. Click on a field to update your profile or skip it for later.</p>
-
-            <section className="h-stretch">
-
-                <Form
-                    ref={formRef}
-                    submit={submit}
-                    schema={registerUserSchemaClient}
-                    skipReset
-                >
-
-                    <div className="flex gap-4 mb-4 items-center">
-                        <Poster className="size-28 min-w-28 m-0" ref={profileRef} />
-                        <div className="space-y-1">
-                            <div className="flex items-center gap-1">
-                                <EditIcon className="text-zinc-500 size-5" />
-                                <Input
-                                    type="text"
-                                    name="name"
-                                    placeholder="Display name"
-                                    autoFocus
-                                    className="border-0 p-0 text-xl font-semibold"
-                                />
-                            </div>
-                            <p className="font-semibold">@{username}</p>
-                        </div>
-                    </div>
-
-                    <div className="flex gap-3">
-                        <div className="space-x-[6px]">
-                            <span className="font-semibold text-center text-lg">X</span>
-                            <span className="">Posts</span>
-                        </div>
-                        <div className="space-x-[6px]">
-                            <span className="font-semibold text-center text-lg">X</span>
-                            <span className="">Followers</span>
-                        </div>
-                        <div className="space-x-[6px]">
-                            <span className="font-semibold text-center text-lg">X</span>
-                            <span className="">Following</span>
-                        </div>
-                    </div>
-
-                    <div className="flex mt-4 gap-1 items-center">
-                        <EditIcon className="text-zinc-500 size-4" />
-                        <Textarea
-                            maxLength={500}
-                            name="bio"
-                            placeholder="About Yourself"
-                            containerClassName="flex-1 border-0 p-0"
-                        />
-                    </div>
-
-                    <div className="my-2">
-                        <LinkInputManager ref={linkRef} />
-                    </div>
-                </Form>
-
-
-                <div className="mt-6 flex gap-2">
-                    <MockupButton primary className="flex-1">Follow</MockupButton>
-                    <MockupButton className="flex-1">Message</MockupButton>
-                </div>
-
-                <UserPageMockup />
-
-            </section>
-        </>
+        <div id="profilePreview" className="bg-primary">
+            <UserMutationPage isEditing={false} dob={dob} email={email} username={username} />
+        </div>
     )
 
 }

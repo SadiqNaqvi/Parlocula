@@ -41,14 +41,14 @@ type Props = {
     fancy?: boolean,
 }
 
-const ShelfPoster = ({ poster, shelf_type, name, className, iconsClassName, useClassNameForBoth }: Props) => {
+const ShelfPoster = ({ fancy, poster, shelf_type, name, className, iconsClassName, useClassNameForBoth }: Props) => {
 
     if (poster) return (
         <ParloImage
-            fancy={{
+            fancy={fancy ? {
                 gallery: "poster",
                 fullSizePath: getPoster({ external: true, path: poster, type: "poster", size: "original" })
-            }}
+            } : undefined}
             className={twMerge("min-w-12 size-12 object-cover rounded-full", className)}
             height={48} width={48}
             alt={`Poster of shelf ${name}`}
