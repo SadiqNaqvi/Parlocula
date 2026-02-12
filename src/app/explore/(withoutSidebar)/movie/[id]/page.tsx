@@ -1,13 +1,13 @@
 import { getUserFromToken } from "@lib/auth/utils";
 import { fetchMovie } from "@lib/contentFetcher";
-import { getAllShelvesOfUser, getShelvesForCinement } from "@lib/helpers/common";
+import { getAllShelvesOfUser, getShelvesForTaleon } from "@lib/helpers/common";
 import { getQueryClient, prefetchInfiniteQuery, prefetchQuery } from "@lib/providers/queryClient";
 import { getPoster, getQueryKeys } from "@lib/utils";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { ParloPageProps } from "@type/other";
 import { Metadata } from "next";
 import { cookies } from "next/headers";
-import CinementPage from "../../components/CinementPage";
+import TaleonPage from "../../components/TaleonPage";
 import generateDynamicMetadata from "@lib/seo/metadata";
 
 export const generateMetadata = async ({ params }: ParloPageProps): Promise<Metadata> => {
@@ -41,8 +41,8 @@ export default async function MoviePage({ params }: ParloPageProps) {
     if (content && user) {
         await Promise.all([
             prefetchQuery({
-                queryFn: () => getShelvesForCinement(content.cinement_id, user.user_id, jar),
-                queryKey: getQueryKeys("shelfsForCinement_cnid", { cnid: content.cinement_id }),
+                queryFn: () => getShelvesForTaleon(content.taleon_id, user.user_id, jar),
+                queryKey: getQueryKeys("shelfsForTaleon_cnid", { cnid: content.taleon_id }),
                 queryClient,
             }),
             prefetchInfiniteQuery({
@@ -55,7 +55,7 @@ export default async function MoviePage({ params }: ParloPageProps) {
 
     return (
         <HydrationBoundary state={dehydrate(queryClient)}>
-            <CinementPage content={content} type="movie" />
+            <TaleonPage content={content} type="movie" />
         </HydrationBoundary>
     )
 };

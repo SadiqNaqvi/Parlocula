@@ -27,12 +27,12 @@ export const DELETE = deleteHandler(
       { session }
     );
 
-    const { thread_id, category } = posts[0];
+    const { thread_id } = posts[0];
 
     return {
       success: true,
-      available: "postMutation_pid_tid_uid_category",
-      options: { pid: id, tid: thread_id, uid: user_id, category },
+      available: "postMutation_pid_tid_uid",
+      options: { pid: id, tid: thread_id, uid: user_id },
       files: [],
     };
   }

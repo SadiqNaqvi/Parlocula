@@ -1,8 +1,8 @@
-import { MembershipModelType, StrictModel } from "@type/models";
-import { Schema, models, model } from "mongoose";
-import { StrictSchema } from "./general";
-import { oneDay } from "@lib/constants";
+import { oneDayInMiliSeconds } from "@lib/constants";
 import { parloId } from "@lib/utils";
+import { MembershipModelType, StrictModel } from "@type/models";
+import { model, models } from "mongoose";
+import { StrictSchema } from "./general";
 
 const memberModel = new StrictSchema<MembershipModelType>({
   _id: { type: String, default: parloId },
@@ -24,7 +24,6 @@ const memberModel = new StrictSchema<MembershipModelType>({
     default: "member",
   },
   actionsTaken: { type: Number, default: 0 },
-  expiresAt: { type: Date, default: Date.now() + oneDay * 7 }
 }, { timestamps: true, _id: false });
 
 memberModel.index({ thread_id: 1, user_id: 1 }, { unique: true });

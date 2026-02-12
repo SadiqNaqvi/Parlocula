@@ -7,7 +7,7 @@ import { getPageParams } from "@lib/utils";
 import { Shelf, User } from "@model";
 import { ShelfSchemaType } from "@type/schemas";
 
-// Fetching only custom + private shelves of the user.
+// Fetching only custom && private shelves of the user.
 export const GET = getHandler(async (r, params) => {
   const { cuid } = params;
   const page = getPageParams(r) - 1;
@@ -48,7 +48,7 @@ export const POST = postHandler<ShelfSchemaType>({
       ], { session, ordered: true })
     )[0];
 
-    const allCinements = await addItemsInShelf(
+    const allTaleons = await addItemsInShelf(
       items,
       "custom",
       shelf._id,
@@ -78,16 +78,13 @@ export const POST = postHandler<ShelfSchemaType>({
 
     return {
       success: true,
-      revalidateQueue: allCinements
-        .map(c => `shelvesForCinement-${c.cinement_id}-user-${user_id}`)
-        .concat(
-          Object.keys(filterToSort.shelves)
-            .map(filter => `shelves-user-${user_id}-filter-${filter}-page-1`)
-            .concat([
-              `private-shelves-user-${user_id}-page-1`,
-              `allShelves-user-${user_id}-page-1`
-            ]),
-        ),
+      revalidateQueue: allTaleons
+        .map(c => `shelvesForTaleon-${c.taleon_id}-user-${user_id}`)
+        .concat([
+          `shelves-user-${user_id}`,
+          `private-shelves-user-${user_id}`,
+          `allShelves-user-${user_id}`
+        ]),
       result: shelf.toObject(),
     };
   },

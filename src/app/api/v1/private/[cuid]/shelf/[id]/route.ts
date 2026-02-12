@@ -138,8 +138,8 @@ export const PATCH = updateHandler<ShelfEditSchemaType>({
       files: [],
       success: true,
       result: null,
-      available: "shelfUpdation_sid_key",
-      options: { sid: id, key },
+      available: "shelfUpdation_sid",
+      options: { sid: id },
     };
   },
   schema: shelfEditSchema,
@@ -165,14 +165,12 @@ export const DELETE = deleteHandler(async ({ params, session, user_id }) => {
     success: false, errCode: "resource_not_found"
   }
 
-  await User.findByIdAndUpdate(user_id, { $inc: { publicShelves: -1 } }, { session })
-
-  const key = shelf[0].shelfKey || "none"
+  await User.findByIdAndUpdate(user_id, { $inc: { publicShelves: -1 } }, { session });
 
   return {
     files: [],
-    available: "shelfMutation_sid_uid_key",
-    options: { lid: id, uid: user_id, key },
+    available: "shelfMutation_sid_uid",
+    options: { sid: id, uid: user_id },
     success: true,
   };
 });

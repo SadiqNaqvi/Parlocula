@@ -16,7 +16,7 @@ const PrivacyPolicyPage = () => {
                         <strong>Last Updated: Sat Nov 23 2025</strong>
                     </p>
                     <p>
-                        This Privacy Policy explains how we collect, use, store, and protect your information when you use our community-based platform built for sharing, discussing, and exploring movies and shows ({'"'}Cinements{'"'}). By creating an account or using any part of the platform, you agree to the practices described below.
+                        This Privacy Policy explains how we collect, use, store, and protect your information when you use our community-based platform built for sharing, discussing, and exploring movies and shows ({'"'}Taleons{'"'}). By creating an account or using any part of the platform, you agree to the practices described below.
                     </p>
                 </BlogSubSection>
             </header>

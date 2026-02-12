@@ -5,9 +5,9 @@ import { StrictSchema } from "./general";
 
 const shelfItemModel = new StrictSchema<ShelfItemModelType>({
   _id: { type: String, default: parloId },
-  cinement_id: {
+  taleon_id: {
     type: String,
-    ref: "Cinement",
+    ref: "Taleon",
     required: true,
   },
   shelf_id: {
@@ -25,8 +25,8 @@ const shelfItemModel = new StrictSchema<ShelfItemModelType>({
   createdAt: { type: Date, default: Date.now },
 });
 
-shelfItemModel.index({ shelf_id: 1, cinement_id: 1 }, { unique: true });
-shelfItemModel.index({ cinement_id: 1, user_id: 1 });
+shelfItemModel.index({ shelf_id: 1, taleon_id: 1 }, { unique: true });
+shelfItemModel.index({ taleon_id: 1, user_id: 1 });
 
 const ShelfItem: StrictModel<ShelfItemModelType> =
   (models.ShelfItem as any) || model("ShelfItem", shelfItemModel);

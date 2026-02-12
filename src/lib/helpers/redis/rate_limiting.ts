@@ -1,3 +1,4 @@
+import { oneDayInSeconds } from "@lib/constants";
 import { getRedis, handlePipelineResponse } from "@lib/providers/redis";
 import { NextRequest } from "next/server";
 
@@ -80,17 +81,15 @@ const QUOTA_BUCKET_MAP: Mapping = {
     "PATCH:user:creds:email": "EMAIL_UPDATE",
 }
 
-const oneDay = 86400;
-
 const QUOTA_LIMITS: LimitBucket = {
-    THREAD_CREATION: { max: 1, window: oneDay },
-    THREAD_UPDATE: { max: 1, window: oneDay },
-    ACCOUNT_CREATION: { max: 2, window: oneDay },
-    POST_CREATION: { max: 10, window: oneDay },
-    ROOM_CREATION: { max: 10, window: oneDay },
-    SHELF_CREATION: { max: 10, window: oneDay },
-    EMAIL_UPDATE: { max: 1, window: oneDay * 7 },
-    USERNAME_UPDATE: { max: 1, window: oneDay * 7 },
+    THREAD_CREATION: { max: 1, window: oneDayInSeconds },
+    THREAD_UPDATE: { max: 1, window: oneDayInSeconds },
+    ACCOUNT_CREATION: { max: 2, window: oneDayInSeconds },
+    POST_CREATION: { max: 10, window: oneDayInSeconds },
+    ROOM_CREATION: { max: 10, window: oneDayInSeconds },
+    SHELF_CREATION: { max: 10, window: oneDayInSeconds },
+    EMAIL_UPDATE: { max: 1, window: oneDayInSeconds * 7 },
+    USERNAME_UPDATE: { max: 1, window: oneDayInSeconds * 7 },
 }
 
 const STATIC_SEGMENTS = new Set([

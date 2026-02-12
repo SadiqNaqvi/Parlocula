@@ -7,8 +7,8 @@ import { cookies } from "next/headers";
 import ShelfList from "../ShelfList";
 
 const CollaborativeShelvesPage = async () => {
-
-    const user = await getUserFromToken(await cookies());
+    const jar = await cookies()
+    const user = await getUserFromToken(jar);
     if (!user) return null;
 
     const { user_id } = user;
@@ -16,7 +16,7 @@ const CollaborativeShelvesPage = async () => {
 
     await prefetchInfiniteQuery({
         queryClient,
-        queryFn: () => getShelvesAsCollaborator(user_id, 1),
+        queryFn: () => getShelvesAsCollaborator(user_id, 1, jar),
         queryKey: getQueryKeys("collaboratedShelvesOfUser_uid", { uid: user_id })
     });
 

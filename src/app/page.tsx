@@ -7,7 +7,7 @@ import { redirect } from "next/navigation";
 
 const title = "Parlocula - Where Stories Bring Us Together";
 const description =
-  "Parlocula is the ultimate community for movie and show lovers. Discover wiki pages for cinements, join discussions, create shelves, share theories, and explore the world of cinema — even as a guest.";
+  "Parlocula is the ultimate community for movie and show lovers. Discover wiki pages for taleons, join discussions, create shelves, share theories, and explore the world of cinema — even as a guest.";
 
 const keywords = [
   // Primary
@@ -17,7 +17,7 @@ const keywords = [
   "TV show community",
   "movie wiki platform",
   // Secondary
-  "cinement wiki",
+  "taleon wiki",
   "fan theories",
   "movie shelves",
   "TV show discussions",

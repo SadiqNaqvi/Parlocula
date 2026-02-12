@@ -19,7 +19,7 @@ const TermsAndConditionsPage = () => {
                 <BlogHeading2>1. Introduction</BlogHeading2>
                 <BlogSubSection>
                     <p>
-                        Welcome to <strong>Parlocula</strong>, a community-based platform for people who love movies and shows (together called <strong>{`"`}Cinements{`"`}</strong>) and enjoy discussing, sharing, reviewing, and collecting them.
+                        Welcome to <strong>Parlocula</strong>, a community-based platform for people who love movies and shows (together called <strong>{`"`}Taleons{`"`}</strong>) and enjoy discussing, sharing, reviewing, and collecting them.
                     </p>
                     <p>
                         By using Parlocula, you agree to follow these Terms & Conditions ({`"`}Terms{`"`}).

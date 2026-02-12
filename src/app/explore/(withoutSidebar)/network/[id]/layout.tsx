@@ -1,11 +1,11 @@
 import { NotFound, TabContainer, TabList } from "@components/ui";
-import CinementWikiSkeleton from "@components/ui/loading/CinementWikiSkeleton";
+import TaleonWikiSkeleton from "@components/ui/loading/TaleonWikiSkeleton";
 import { fetchNetwork } from "@lib/contentFetcher";
 import generateDynamicMetadata from "@lib/seo/metadata";
 import { ParloPageProps } from "@type/other";
 import { Metadata } from "next";
 import { PropsWithChildren, Suspense } from "react";
-import CinementWikiHeader from "../../components/CinementWikiPage";
+import TaleonWikiHeader from "../../components/TaleonWikiPage";
 
 const fetchData = async (params: { id: string }) => {
     const network_id = params.id.split('-')[0];
@@ -46,7 +46,7 @@ const Page = async ({ params, children }: PropsWithChildren<{ params: { id: stri
 
     return (
         <>
-            <CinementWikiHeader
+            <TaleonWikiHeader
                 poster={content.poster}
                 title={content.title}
                 titleSupport={<p className="text-sm md:text-base text-zinc-500">Situated at: {content.headquarters}</p>}
@@ -69,7 +69,7 @@ const NetworkPageLayout = async ({ params, children }: PropsWithChildren<ParloPa
     const [_, ...title] = awaitedParams.id.split('-');
 
     return (
-        <Suspense fallback={<CinementWikiSkeleton backdrop={false} title={title.join(' ')} />}>
+        <Suspense fallback={<TaleonWikiSkeleton backdrop={false} title={title.join(' ')} />}>
             <Page params={awaitedParams}>
                 {children}
             </Page>

@@ -6,7 +6,7 @@ import { ThreadUpdateSchema } from "@type/schemas";
 
 // Making sure that only managers are allowed to update a thread.
 export const PATCH = updateHandler<ThreadUpdateSchema>({
-  handler: async ({ data, frames, params, username, isNsfw }) => {
+  handler: async ({ data, frames, params, username, user_id, isNsfw }) => {
 
     const dataToUpdate = Object({
       ...data,
@@ -20,8 +20,8 @@ export const PATCH = updateHandler<ThreadUpdateSchema>({
 
     return {
       success: true,
-      available: "threadMutation_tid",
-      options: { tid: params.id },
+      available: "threadMutation_tid_uid",
+      options: { tid: params.id, uid: user_id },
       result: doc,
       warnTeamParlocula: doc.nsfw || !isNsfw ? undefined : {
         title: "Possibly NSFW Poster of the Thread with incorrect flags",

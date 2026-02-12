@@ -1,14 +1,14 @@
 "use client";
 
 import { ListSelector, ListSelectorRef, Navbar } from "@components";
-import { searchOnlyMediaItems } from "@lib/contentFetcher";
-import { ExtSearchDataCinementOnly, RefinedSearchData } from "@type/external";
-import { CinementType } from "@type/internal";
+import { searchTaleonsOnly } from "@lib/contentFetcher";
+import { ExtSearchDataTaleonOnly, RefinedSearchData } from "@type/external";
+import { TaleonType } from "@type/internal";
 import { useRef } from "react";
 
 const AddItems = ({ sid, uid }: { sid: string, uid: string }) => {
 
-    const callbackRef = useRef<ListSelectorRef<ExtSearchDataCinementOnly>>(null);
+    const callbackRef = useRef<ListSelectorRef<ExtSearchDataTaleonOnly>>(null);
 
     const handleSubmit = ()=>{
         const items = callbackRef.current?.();
@@ -27,8 +27,8 @@ const AddItems = ({ sid, uid }: { sid: string, uid: string }) => {
             <section className="mt-4">
                 <ListSelector
                     callbackRef={callbackRef}
-                    queryFn={searchOnlyMediaItems}
-                    queryKeys={(q) => ["search", "cinementOnly", q]}
+                    queryFn={searchTaleonsOnly}
+                    queryKeys={(q) => ["search", "taleonOnly", q]}
                     refiner={(data) => ({
                         id: data.tmdb_id,
                         title: data.title,

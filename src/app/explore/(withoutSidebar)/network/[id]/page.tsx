@@ -1,4 +1,4 @@
-import { CinementGrid } from "@app/explore/(withoutSidebar)/components";
+import { TaleonGrid } from "@app/explore/(withoutSidebar)/components";
 import { ParloPageProps } from "@type/other";
 
 const Page = async ({ params }: ParloPageProps) => {
@@ -6,7 +6,7 @@ const Page = async ({ params }: ParloPageProps) => {
     const { id } = await params;
 
     return (
-        <CinementGrid content_id={id} section="movies_network" />
+        <TaleonGrid content_id={id} section="movies_network" />
     )
 }
 

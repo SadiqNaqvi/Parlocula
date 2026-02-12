@@ -1,3 +1,5 @@
+"use client";
+
 import { useNavigation } from "@store/historystack";
 import { usePathname } from "next/navigation";
 

@@ -1,10 +1,10 @@
 import { Comment, Connection, Member, Post, Shelf, Thread, User } from "@model";
 import { GeneralGetReturn } from "@type/internal";
 import { PipelineFunc } from "@type/other";
-import { FilterQuery, PipelineStage, Types } from "mongoose";
+import { FilterQuery, PipelineStage } from "mongoose";
 import { NextRequest } from "next/server";
-import { oneDay, queryLimit } from "./constants";
-import { createArray, getPageParams, getSearchParams } from "./utils";
+import { queryLimit } from "./constants";
+import { createArray, getSearchParams } from "./utils";
 
 type Collections = "users" | "posts" | "threads" | "comments" | "shelves";
 
@@ -364,11 +364,11 @@ export const itemsAggregationPipeline: PipelineFunc<{ shelf_creator: string }> =
     preProjection: [
       {
         $lookup: {
-          from: "cinements",
-          localField: "cinement_id",
+          from: "taleons",
+          localField: "taleon_id",
           foreignField: "_id",
-          pipeline: [{ $project: { title: 1, cinement_type: 1, poster: 1 } }],
-          as: "cinement",
+          pipeline: [{ $project: { title: 1, taleon_type: 1, poster: 1 } }],
+          as: "taleon",
         },
       },
       {
@@ -382,9 +382,9 @@ export const itemsAggregationPipeline: PipelineFunc<{ shelf_creator: string }> =
       },
       {
         $addFields: {
-          title: { $arrayElemAt: ["$cinement.title", 0] },
-          cinement_type: { $arrayElemAt: ["$cinement.cinement_type", 0] },
-          poster: { $arrayElemAt: ["$cinement.poster", 0] },
+          title: { $arrayElemAt: ["$taleon.title", 0] },
+          taleon_type: { $arrayElemAt: ["$taleon.taleon_type", 0] },
+          poster: { $arrayElemAt: ["$taleon.poster", 0] },
           added_by: {
             $cond: {
               if: { $eq: ["$user_id", shelf_creator] },
@@ -395,7 +395,7 @@ export const itemsAggregationPipeline: PipelineFunc<{ shelf_creator: string }> =
         },
       },
     ],
-    projection: { cinement: 0, user: 0 },
+    projection: { taleon: 0, user: 0 },
   });
 
 export const usersAggregationPipeline: PipelineFunc = (

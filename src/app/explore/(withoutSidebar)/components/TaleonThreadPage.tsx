@@ -1,13 +1,13 @@
 import VerticleThreadList from "@app/explore/(withoutSidebar)/components/VerticleThreadList";
 import { getUserFromToken } from "@lib/auth/utils";
-import { getThreadsForCinementOrArtist } from "@lib/helpers/common";
+import { getThreadsForTaleonOrArtist } from "@lib/helpers/common";
 import { getQueryClient, prefetchInfiniteQuery } from "@lib/providers/queryClient";
 import { refineSearchParams } from "@lib/utils";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { ParloPageProps } from "@type/other";
 import { cookies } from "next/headers";
 
-const CinementThreadPage = async ({ params, searchParams }: ParloPageProps) => {
+const TaleonThreadPage = async ({ params, searchParams }: ParloPageProps) => {
 
     const queryClient = getQueryClient();
     const sp = await searchParams;
@@ -21,7 +21,7 @@ const CinementThreadPage = async ({ params, searchParams }: ParloPageProps) => {
 
     await prefetchInfiniteQuery({
         queryKey: ["threads-for-media", id, filter],
-        queryFn: () => getThreadsForCinementOrArtist(id, page, allowNsfw),
+        queryFn: () => getThreadsForTaleonOrArtist(id, page, allowNsfw),
         initialPageParam: page,
         queryClient,
     });
@@ -33,4 +33,4 @@ const CinementThreadPage = async ({ params, searchParams }: ParloPageProps) => {
     )
 }
 
-export default CinementThreadPage;
+export default TaleonThreadPage;

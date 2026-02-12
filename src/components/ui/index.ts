@@ -25,3 +25,4 @@ export { default as ThreadBox } from "./ThreadBox";
 export { default as LinksSection } from "./LinksSection";
 export { default as ShelfPoster } from "./ShelfPoster"
 export { BreadCrumbTile, BreadCrumbs } from "./Breadcrumbs"
+export { default as RoomBar } from "./RoomBar"

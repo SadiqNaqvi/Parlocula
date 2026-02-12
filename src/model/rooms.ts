@@ -1,8 +1,8 @@
-import { RoomModelType, StrictModel } from "@type/models";
-import { Schema, model, models } from "mongoose";
-import { frameModel, numberSchema, StrictSchema } from "./general";
-import { oneDay } from "@lib/constants";
+import { oneWeekInMiliSeconds } from "@lib/constants";
 import { parloId } from "@lib/utils";
+import { RoomModelType, StrictModel } from "@type/models";
+import { model, models, Schema } from "mongoose";
+import { frameModel, numberSchema, StrictSchema } from "./general";
 
 const roomModel = new StrictSchema<RoomModelType>({
   _id: { type: String, default: parloId },
@@ -29,7 +29,7 @@ const roomModel = new StrictSchema<RoomModelType>({
   },
   expiresAt: {
     type: Date,
-    default: Date.now() + (oneDay * 7)
+    default: new Date(Date.now() + oneWeekInMiliSeconds)
   },
   createdAt: {
     type: Date,

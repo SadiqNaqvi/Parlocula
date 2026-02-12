@@ -1,5 +1,5 @@
-import Redis, { ChainableCommander } from "ioredis";
-import { Pipeline, Redis as UpstashRedis } from "@upstash/redis";
+import { ScoreMember, Redis as UpstashRedis, Pipeline, ZAddCommandOptions } from "@upstash/redis";
+import Redis, { ChainableCommander, } from "ioredis";
 
 declare global {
   // allow global `redis` in dev
@@ -49,6 +49,16 @@ export const getUpstashRedis = async () => {
     });
   }
   return global._upstash_redis;
+}
+
+export const zaddInUpstash = async (key: string, items: ScoreMember<any>[], pipeline?: Pipeline, opts?: ZAddCommandOptions) => {
+  const transaction = pipeline ?? (await getUpstashRedis()).multi();
+
+  const [first, ...rest] = items;
+  if (opts)
+    return transaction.zadd(key, opts, first, ...rest);
+
+  return transaction.zadd(key, first, ...rest);
 }
 
 /*

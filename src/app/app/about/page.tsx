@@ -21,7 +21,7 @@ const AppAboutPage = () => {
                     </ul>
                     <p>Together, Parlocula is <strong>{'"'}To speak about motion pictures.{'"'}</strong></p>
                     <p>And that is exactly what this place is.</p>
-                    <p><strong>A home for cinements</strong> — the films, series, characters, artists, and stories that shape our lives.</p>
+                    <p><strong>A home for taleons</strong> — the films, series, characters, artists, and stories that shape our lives.</p>
                 </BlogSubSection>
             </header>
 
@@ -48,7 +48,7 @@ const AppAboutPage = () => {
                 <p className="my-2">Below are the core features designed to make Parlocula the ultimate social home for cine-lovers.</p>
 
                 <BlogSubSection>
-                    <BlogHeading3>1. Cinements Wiki</BlogHeading3>
+                    <BlogHeading3>1. Taleons Wiki</BlogHeading3>
                     <p>A complete, searchable, beautifully structured wiki for:</p>
                     <ul>
                         <BlogList>Movies</BlogList>
@@ -61,7 +61,7 @@ const AppAboutPage = () => {
                         <BlogList>Years</BlogList>
                         <BlogList>And more</BlogList>
                     </ul>
-                    <p>Every cinement has its own dedicated wiki page with details, credits, ratings, genres, release years, related content, and <strong>threads created by the community</strong>.</p>
+                    <p>Every taleon has its own dedicated wiki page with details, credits, ratings, genres, release years, related content, and <strong>threads created by the community</strong>.</p>
                     <p>Wiki pages are the starting point — from there, users dive into discussions, threads, and shelves.</p>
                 </BlogSubSection>
 
@@ -130,13 +130,13 @@ const AppAboutPage = () => {
 
                 <BlogSubSection>
                     <BlogHeading3>5. Shelves</BlogHeading3>
-                    <p>Shelves allow users to collect, organize, and share cinements.</p>
+                    <p>Shelves allow users to collect, organize, and share taleons.</p>
                     <p>They{`'`}re your personal movie diary — refined and social.</p>
 
                     <BlogSubSection>
                         <p>Every user gets three built-in shelves:</p>
                         <ul>
-                            <BlogList>Favorites - Cinements you love</BlogList>
+                            <BlogList>Favorites - Taleons you love</BlogList>
                             <BlogList>Watched - Your watch history</BlogList>
                             <BlogList>Recommended - To share suggestions with others</BlogList>
                         </ul>

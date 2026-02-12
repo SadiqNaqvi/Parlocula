@@ -105,9 +105,9 @@ const listOfReasons: ReasonProps[] = [
         description: {
             preList: "Improve your feed by:",
             descriptions: [
-                "Following threads and cinements you care about",
+                "Following threads and taleons you care about",
                 "Unfollowing content you don't like",
-                "Adding cinements you like in Favourite Shelf",
+                "Adding taleons you like in Favourite Shelf",
                 "Enabling/Disabling Content Filtering",
             ],
             postList: "Your experience becomes more personal with just a few tweaks."

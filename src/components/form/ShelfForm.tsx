@@ -7,11 +7,11 @@ import { createShelfMutation } from "@lib/helpers/mutations";
 import { shelfClientSchema } from "@lib/schemas";
 import { getPoster } from "@lib/utils";
 import useCurrentUser from "@store/user";
-import { CinementSchemaType } from "@type/schemas";
+import { TaleonSchemaType } from "@type/schemas";
 import { Form, Input, ToggleButton } from ".";
 import LoginModal from "../fallbacks/LoginModal";
 
-const ShelfForm = ({ defaultVals, cinements, callback }: { defaultVals?: any, cinements: CinementSchemaType[], callback?: (arg: any) => void }) => {
+const ShelfForm = ({ defaultVals, taleons, callback }: { defaultVals?: any, taleons: TaleonSchemaType[], callback?: (arg: any) => void }) => {
 
     const { meta } = useCurrentUser();
 
@@ -21,9 +21,9 @@ const ShelfForm = ({ defaultVals, cinements, callback }: { defaultVals?: any, ci
 
     const submit = async (formdata: { name: string, isPrivate: boolean }) => {
 
-        if (!cinements.length) return;
+        if (!taleons.length) return;
 
-        const data = { ...formdata, items: cinements }
+        const data = { ...formdata, items: taleons }
 
         callback?.(data);
 
@@ -46,7 +46,7 @@ const ShelfForm = ({ defaultVals, cinements, callback }: { defaultVals?: any, ci
                             width={128}
                             className="object-cover min-w-24 size-24 sm:min-w-32 sm:size-32 rounded-full"
                             alt={`Poster of Shelf`}
-                            frame={getPoster({ external: true, type: "poster", path: cinements[0].poster, size: "w185" })}
+                            frame={getPoster({ external: true, type: "poster", path: taleons[0].poster, size: "w185" })}
                         />
 
                         <div className="space-y-2 flex-1">
@@ -78,7 +78,7 @@ const ShelfForm = ({ defaultVals, cinements, callback }: { defaultVals?: any, ci
                         </li>
                         <li className="w-[2px] h-stretch bg-zinc-500 rounded-md"></li>
                         <li className="text-sm text-zinc-500">Created: Now</li>
-                        <li className="text-sm list-[circle] text-zinc-500">Items: {cinements.length}</li>
+                        <li className="text-sm list-[circle] text-zinc-500">Items: {taleons.length}</li>
                     </ul>
 
                     <div className="mt-4 flex gap-2">
@@ -87,9 +87,9 @@ const ShelfForm = ({ defaultVals, cinements, callback }: { defaultVals?: any, ci
                     </div>
                 </header>
                 <ul>
-                    {cinements.map(cinement => (
-                        <li key={cinement.cinement_id}>
-                            <ShowOnlyShelfItem {...cinement} />
+                    {taleons.map(taleon => (
+                        <li key={taleon.taleon_id}>
+                            <ShowOnlyShelfItem {...taleon} />
                         </li>
                     ))}
                 </ul>

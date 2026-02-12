@@ -1,6 +1,6 @@
 import AccountDeleted from "@components/EmailTemplates/accountDeleted";
 import AccountDeletionWarning from "@components/EmailTemplates/accountDeletion";
-import { oneDay, parloculaAppURL } from "@lib/constants";
+import { oneDayInMiliSeconds, parloculaAppURL } from "@lib/constants";
 import { connectDatabase } from "@lib/database";
 import { deleteUser } from "@lib/helpers/deletion";
 import { sendEmail } from "@lib/helpers/server";
@@ -86,7 +86,7 @@ export const POST = async (req: NextRequest) => {
                 token: process.env.UPSTASH_TOKEN!
             });
 
-            const interval = Date.now() + (6 * oneDay);
+            const interval = Date.now() + (6 * oneDayInMiliSeconds);
 
             const thisTime = times + 1;
 

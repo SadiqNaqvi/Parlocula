@@ -70,7 +70,7 @@ const ThreadDetailSheet = ({ connections, createdAt, creator, description, edite
 
             <Section heading="Connections" condition={connections.length} fallback={(
                 <div className="py-4">
-                    <p>Not connected to any cinement or artist</p>
+                    <p>Not connected to any taleon or artist</p>
                 </div>
             )}>
                 <ul className="space-y-2">

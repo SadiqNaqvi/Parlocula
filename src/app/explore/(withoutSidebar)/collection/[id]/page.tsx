@@ -3,9 +3,9 @@ import ShelfForm from "@components/form/ShelfForm";
 import { NotFound } from "@components/ui";
 import { fetchCollection } from "@lib/contentFetcher";
 import { ParloPageProps } from "@type/other";
-import { CinementSchemaType } from "@type/schemas";
+import { TaleonSchemaType } from "@type/schemas";
 import { Metadata } from "next";
-import { CinementGrid, CinementWikiHeader, CinementWikiSection } from "../../components";
+import { TaleonGrid, TaleonWikiHeader, TaleonWikiSection } from "../../components";
 import generateDynamicMetadata from "@lib/seo/metadata";
 import { getPoster } from "@lib/utils";
 
@@ -41,14 +41,14 @@ const Page = async ({ params }: ParloPageProps) => {
             paras={["Possible Reason: The collection id is incorrect.", "Please try to search the collection in the explore page"]} />
     )
 
-    const cinements = content.parts.map(el => ({
+    const taleons = content.parts.map(el => ({
         title: el.title,
         poster: el.poster,
         year: el.year,
         ext_id: el.id,
-        cinement_type: el.type,
+        taleon_type: el.type,
         isConfirm: false,
-    }) as CinementSchemaType);
+    }) as TaleonSchemaType);
 
     const metadata = [
         { label: "Rating", value: content.rating },
@@ -58,7 +58,7 @@ const Page = async ({ params }: ParloPageProps) => {
     return (
         <>
 
-            <CinementWikiHeader
+            <TaleonWikiHeader
                 backdrop={content.backdrop}
                 overviewOrBio={content.overview}
                 poster={content.poster}
@@ -67,18 +67,18 @@ const Page = async ({ params }: ParloPageProps) => {
                 callToActions={(
                     <div className="mt-6 text-sm flex gap-2">
                         <BottomSheet button="Copy As Shelf" className="primary" >
-                            <ShelfForm defaultVals={{ name: content.title }} cinements={cinements} />
+                            <ShelfForm defaultVals={{ name: content.title }} taleons={taleons} />
                         </BottomSheet>
                     </div>
                 )}
             />
-            <CinementWikiSection heading="movies">
-                <CinementGrid
+            <TaleonWikiSection heading="movies">
+                <TaleonGrid
                     section="collection"
                     content_id=""
                     data={content.parts}
                 />
-            </CinementWikiSection>
+            </TaleonWikiSection>
 
         </>
     )

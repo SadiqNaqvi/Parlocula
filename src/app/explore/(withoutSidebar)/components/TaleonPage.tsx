@@ -3,16 +3,16 @@ import { Navigate } from "@components";
 import { ArtistCard, LinkTile, NotFound, ParloFooter, VerticleMovieCard } from "@components/ui";
 import { checkAndReturn, createArray, makeUrlSafe, numberConverter } from "@lib/utils";
 import { RefinedCast, RefinedMovieData, RefinedShowData } from "@type/external";
-import { FullCinementType, Link } from "@type/internal";
-import { CinementSchemaType } from "@type/schemas";
-import { AddToShelf, ShowTrailerButton, HorizontalThreadList, CinementWikiSection, CinementWikiHeader } from "./";
+import { FullTaleonType, Link } from "@type/internal";
+import { TaleonSchemaType } from "@type/schemas";
+import { AddToShelf, ShowTrailerButton, HorizontalThreadList, TaleonWikiSection, TaleonWikiHeader } from ".";
 
 type Props = {
     type: "movie"
-    content: RefinedMovieData & FullCinementType | undefined
+    content: RefinedMovieData & FullTaleonType | undefined
 } | {
     type: "show"
-    content: RefinedShowData & FullCinementType | undefined
+    content: RefinedShowData & FullTaleonType | undefined
 }
 
 const LinksSection = ({ extLinks, genres }: { genres: string[], extLinks: Link[] }) => (
@@ -31,7 +31,7 @@ const LinksSection = ({ extLinks, genres }: { genres: string[], extLinks: Link[]
     </ul>
 )
 
-const CinementPage = ({ content, type }: Props) => {
+const TaleonPage = ({ content, type }: Props) => {
 
     if (!content) return (
         <NotFound
@@ -50,14 +50,14 @@ const CinementPage = ({ content, type }: Props) => {
         { label: "IMDB", path: `https://imdb.com/title/${content.imdb_id}` },
     ];
 
-    const cinementForShelf: CinementSchemaType = {
+    const taleonForShelf: TaleonSchemaType = {
         title: content.title,
         poster: content.poster,
         ext_id: content.tmdb_id,
         year: content.year,
-        cinement_type: type,
+        taleon_type: type,
         isConfirm: true,
-        cinement_id: content._id,
+        taleon_id: content._id,
     }
 
     const metadata = createArray([
@@ -77,7 +77,7 @@ const CinementPage = ({ content, type }: Props) => {
 
     return (
         <>
-            <CinementWikiHeader
+            <TaleonWikiHeader
                 backdrop={content.backdrop}
                 overviewOrBio={content.overview}
                 poster={content.poster}
@@ -91,17 +91,17 @@ const CinementPage = ({ content, type }: Props) => {
                         <AddToShelf
                             released={new Date(content.release_date) < new Date()}
                             className="secondary flex-1 sm:flex-none"
-                            cinement={cinementForShelf} />
+                            taleon={taleonForShelf} />
                     </section>
                 )}
             />
 
-            <CinementWikiSection heading="Full Plot">
+            <TaleonWikiSection heading="Full Plot">
                 <p className="leading-normal">{content.plot}</p>
-            </CinementWikiSection>
+            </TaleonWikiSection>
 
             {type === "show" && (
-                <CinementWikiSection heading="Seasons">
+                <TaleonWikiSection heading="Seasons">
                     <div className="flex gap-4 overflow-x-auto pb-2">
                         {content.seasons.map(el => (
                             <VerticleMovieCard
@@ -113,10 +113,10 @@ const CinementPage = ({ content, type }: Props) => {
                             />
                         ))}
                     </div>
-                </CinementWikiSection>
+                </TaleonWikiSection>
             )}
 
-            <CinementWikiSection heading="Top Cast">
+            <TaleonWikiSection heading="Top Cast">
                 <div className="overflow-x-auto flex gap-4 pb-2">
                     {content.cast.map((el: RefinedCast) => (
                         <ArtistCard
@@ -127,9 +127,9 @@ const CinementPage = ({ content, type }: Props) => {
                             title={el.name} />
                     ))}
                 </div>
-            </CinementWikiSection>
+            </TaleonWikiSection>
 
-            <CinementWikiSection heading="Deciding Factors">
+            <TaleonWikiSection heading="Deciding Factors">
                 <div className="flex overflow-x-auto gap-4 pb-2">
                     <article className="h-44 lg:h-52 px-4 rounded-lg flex flex-col aspect-video flex-cntr-even border border-[var(--gray40)]">
                         <span className="p-4 rounded-full bg-orange-500 bg-opacity-20">
@@ -156,10 +156,10 @@ const CinementPage = ({ content, type }: Props) => {
                         <p className="text-center">Watched by {numberConverter(content.watched)}</p>
                     </article>
                 </div>
-            </CinementWikiSection>
+            </TaleonWikiSection>
 
             {type === "movie" && content.collection && (
-                <CinementWikiSection heading="Belongs To">
+                <TaleonWikiSection heading="Belongs To">
                     <div className="flex flex-wrap gap-4">
                         <Navigate
                             comp="link"
@@ -171,17 +171,17 @@ const CinementPage = ({ content, type }: Props) => {
                             <span className="text-lg">{content.collection.name}</span>
                         </Navigate>
                     </div>
-                </CinementWikiSection>
+                </TaleonWikiSection>
             )}
 
-            <CinementWikiSection
+            <TaleonWikiSection
                 heading="Connected Threads"
                 hrefForMoreButton={`${content.tmdb_id}/threads`}
             >
                 <HorizontalThreadList id={content.tmdb_id} type="movie" />
-            </CinementWikiSection>
+            </TaleonWikiSection>
 
-            <CinementWikiSection
+            <TaleonWikiSection
                 heading="More Like This"
                 horizontalMovieListProps={{
                     type,
@@ -192,7 +192,7 @@ const CinementPage = ({ content, type }: Props) => {
             />
 
             {content.cast.splice(0, 2).map((el) => (
-                <CinementWikiSection
+                <TaleonWikiSection
                     heading={`More of ${el.name}`}
                     hrefForMoreButton={`/explore/person/${el.id}`}
                     key={el.id}
@@ -210,4 +210,4 @@ const CinementPage = ({ content, type }: Props) => {
     )
 }
 
-export default CinementPage;
+export default TaleonPage;

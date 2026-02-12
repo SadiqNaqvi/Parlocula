@@ -1,4 +1,6 @@
-import { useEffect, useSyncExternalStore } from "react";
+"use client";
+
+import { useEffect } from "react";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 

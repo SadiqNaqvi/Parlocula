@@ -1,8 +1,8 @@
-import { ParticipantModelType, StrictModel } from "@type/models";
-import { StrictSchema } from "./general";
-import { model, models } from "mongoose";
-import { oneDay } from "@lib/constants";
+import { oneWeekInMiliSeconds } from "@lib/constants";
 import { parloId } from "@lib/utils";
+import { ParticipantModelType, StrictModel } from "@type/models";
+import { model, models } from "mongoose";
+import { StrictSchema } from "./general";
 
 const participantModel = new StrictSchema<ParticipantModelType>({
   _id: { type: String, default: parloId },
@@ -28,7 +28,7 @@ const participantModel = new StrictSchema<ParticipantModelType>({
   },
   expiresAt: {
     type: Date,
-    default: new Date(Date.now() + oneDay * 7)
+    default: new Date(Date.now() + oneWeekInMiliSeconds)
   },
 }, { timestamps: true, _id: false });
 

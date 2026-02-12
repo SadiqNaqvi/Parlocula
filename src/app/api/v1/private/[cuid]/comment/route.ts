@@ -41,7 +41,7 @@ const preCheck: PrecheckFunction<CommentSchemaType> = async ({ data, user_id }) 
 
   const isBlocked = Boolean(checks[0].authorOfPost[0] || checks[0].authorOfRepliedComment[0]);
 
-  if (isBlocked) 
+  if (isBlocked)
     return { success: false, errCode: "blocked_by_author" };
 
   return { success: true };
@@ -129,13 +129,14 @@ export const POST = postHandler<CommentSchemaType>({
       success: true,
       result: null,
       revalidateQueue: createArray([
-        `filter-latest-comments-user-${username}-page-1`,
-        `comments-post-${data.post_id}-filter-latest-page-1`,
+        `comments-user-${username}`,
+        `comments-post-${data.post_id}`,
         `notifications-user-${post_author}`,
       ]).concatConditionally(comment_author, (uid) => [
-        `replies-comment-${comment.replied_to}-filter-latest-page-1`,
         `notifications-user-${uid}`,
-      ]),
+      ]).concatConditionally(comment.replied_to, (parent) => [
+        `replies-comment-${parent}`
+      ])
     };
   },
   schema: commentSchema,

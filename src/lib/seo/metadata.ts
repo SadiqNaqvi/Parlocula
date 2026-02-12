@@ -8,8 +8,8 @@ const ogImagePath = "/og-image.png";
 export const title = "Parlocula - The Cinematic Planet";
 export const name = "Parlocula"
 
-export const description = "Parlocula is The Cinematic Planet where movies and shows stay alive through people. Collect cinements into shelves, join meaningful threads, and live the moment after the credits roll."
-const shortDescription = "Where cinema lives beyond the screen. Explore cinements, build shelves, and join conversations that keep stories alive."
+export const description = "Parlocula is The Cinematic Planet where movies and shows stay alive through people. Collect taleons into shelves, join meaningful threads, and live the moment after the credits roll."
+const shortDescription = "Where cinema lives beyond the screen. Explore taleons, build shelves, and join conversations that keep stories alive."
 
 const keywords = [
     "cinema community",
@@ -122,7 +122,7 @@ type ParloMetadata = {
     url: string,
 }
 
-const generateDynamicMetadata = (config: Partial<ParloMetadata>): Metadata => {
+const generateDynamicMetadata = (config: Partial<ParloMetadata>, root?: boolean): Metadata => {
 
     const titleForThePage = config.title || title;
     const descriptionForThePage = config.description || description;
@@ -131,7 +131,7 @@ const generateDynamicMetadata = (config: Partial<ParloMetadata>): Metadata => {
     const canonical = new URL(config.url || '', appURL);
 
     return {
-        title: config.title ? {
+        title: root || config.title ? {
             default: titleForThePage,
             template: "%s | Parlocula - The Cinematic Planet",
         } : title,

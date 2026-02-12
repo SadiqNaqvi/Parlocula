@@ -46,8 +46,8 @@ export const POST = postHandler<ThreadSchemaServer>({
       result,
       success: true,
       errCode: null,
-      available: "threadMutation_tid",
-      options: { tid: result._id },
+      available: "threadMutation_tid_uid",
+      options: { tid: result._id, uid: user_id },
       warnTeamParlocula: nsfw || !isNsfw ? undefined : {
         title: "Possibly NSFW Poster of the Thread with incorrect flags",
         desc: "This poster of the thread may be NSFW ",

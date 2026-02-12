@@ -60,15 +60,12 @@ export default function InfiniteScroller({ Loading, showFooter, onSuccess, place
 
     const { data, refetch, isLoading, error, isFetchingNextPage, hasNextPage, fetchNextPage, isFetched } = useInfiniteQueryHook({
         queryKeys: queryKeys,
-        queryFn: (p) => {
-            console.log("page in infinite scroller", p);
-            return fetchData(p)
-                .then(res => {
-                    if (paginate && res.success && (("results" in res.result && res.result?.results?.length) || ("data" in res.result && res.result?.data?.length)) && p > 1)
-                        updateSearchParams(p)
-                    return res;
-                })
-        },
+        queryFn: (p) => fetchData(p)
+            .then(res => {
+                if (paginate && res.success && (("results" in res.result && res.result?.results?.length) || ("data" in res.result && res.result?.data?.length)) && p > 1)
+                    updateSearchParams(p)
+                return res;
+            }),
         initialData,
         initialPage,
         placeholderData,
@@ -113,7 +110,7 @@ export default function InfiniteScroller({ Loading, showFooter, onSuccess, place
         else return NotFoundSection;
     }
 
-    if (isLoading || !isFetched) return <LoadingComponent />
+    if (isLoading) return <LoadingComponent />
 
     else if (error) return (
         <ShowError

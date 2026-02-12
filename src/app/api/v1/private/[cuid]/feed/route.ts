@@ -1,14 +1,14 @@
-import { oneDay, queryLimit } from "@lib/constants";
+import { oneDayInSeconds, queryLimit } from "@lib/constants";
 import { getHandler } from "@lib/helpers/handlers";
 import { attachNsfwInPipeline, createPipeline, postsAggregationPipeline } from "@lib/pipelines";
-import { getRedis } from "@lib/providers/redis";
+import { getUpstashRedis, zaddInUpstash } from "@lib/providers/redis";
 import { createArray, getPageParams } from "@lib/utils";
 import { Connection, Member, Post } from "@model";
 import { AggregatedResponse, MerePost } from "@type/internal";
 
 const getFollowedThreadIds = async (userId: string) => {
 
-    const redis = await getRedis();
+    const redis = await getUpstashRedis();
     const key = `followed:${userId}:thread`;
     const threadIds = redis.smembers(key);
     if (threadIds) return threadIds;
@@ -19,12 +19,12 @@ const getFollowedThreadIds = async (userId: string) => {
         .toArray();
 
     const ids = memberships.map((m: { thread_id: string }) => m.thread_id);
-    await getRedis().then(r => r.zadd(key, "NX", ids));
+    await zaddInUpstash(key, ids, undefined, { nx: true });
     return ids;
 }
 
 const getFollowedUserIds = async (userId: string) => {
-    const redis = await getRedis();
+    const redis = await getUpstashRedis();
     const key = `followed:${userId}:users`;
     const userIds = redis.smembers(key);
     if (userIds) return userIds;
@@ -35,12 +35,12 @@ const getFollowedUserIds = async (userId: string) => {
         .toArray();
 
     const ids = connections.map((c: { followee: string }) => c.followee);
-    await getRedis().then(r => r.zadd(key, "NX", ids));
+    await zaddInUpstash(key, ids, undefined, { nx: true });
     return ids;
 }
 
 const getViewedPostIds = async (uid: string) => {
-    const redis = await getRedis();
+    const redis = await getUpstashRedis();
     return await redis.zrange(`feed:${uid}:viewed`, 0, -1);
 }
 
@@ -146,11 +146,11 @@ const getPostsFromDatabase = async (cuid: string, page: number, nsfw: boolean) =
 }
 
 const getPostsFromRedis = async (cuid: string, page: number, nsfw: boolean) => {
-    const redis = await getRedis();
+    const redis = await getUpstashRedis();
     const start = page * queryLimit;
     const stop = start + queryLimit - 1;
 
-    const postFeed = await redis.zrevrange(`feed:${cuid}`, start, stop);
+    const postFeed = await redis.zrange(`feed:${cuid}`, start, stop, { rev: true });
 
     const response = await Post.aggregate<AggregatedResponse<MerePost>>(
         postsAggregationPipeline({
@@ -168,11 +168,12 @@ const getPostsFromRedis = async (cuid: string, page: number, nsfw: boolean) => {
 
 const storePostsInRedis = async (cuid: string, posts: { score: number, _id: string, [key: string]: any }[]) => {
 
-    const pipeline = (await getRedis()).multi();
+    const pipeline = (await getUpstashRedis()).multi();
     const key = `feed:${cuid}`;
-    pipeline.zadd(key, "NX", ...posts.flatMap(({ score, _id }) => [score, _id]));
+
+    zaddInUpstash(key, posts.flatMap(({ score, _id }) => ({ score, member: _id })), pipeline, { nx: true });
     pipeline.zremrangebyrank(key, 0, -(queryLimit * 5));
-    pipeline.expire(key, oneDay / 1000);
+    pipeline.expire(key, oneDayInSeconds);
 
     await pipeline.exec();
 }
@@ -234,7 +235,7 @@ export const GET = getHandler(async (r, { cuid }) => {
 
     const page = getPageParams(r) - 1;
     const nsfw = Boolean(r.nextUrl.searchParams.get("nsfw") === "true");
-    const redis = await getRedis();
+    const redis = await getUpstashRedis();
 
     const postIdsInRedisCount = await redis.zcount(`feed:${cuid}`, "-inf", "+inf");
 

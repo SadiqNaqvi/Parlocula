@@ -254,17 +254,18 @@ export type FullComment = MereComment & {
   thread_id: string;
 };
 
-export type CinementType = {
+export type TaleonType = {
   title: string;
   poster: string;
   year: number;
-  cinement_type: "movie" | "show";
+  taleon_type: "movie" | "show";
   ext_id: string;
 };
 
-export type FullCinementType = CinementType & {
+export type FullTaleonType = TaleonType & {
   _id: string;
-  cinement_id: string;
+  taleon_id: string;
+  editedAt: GenericDate;
 } & Record<PredefinedShelves, number>;
 
 export type MereShelf = {
@@ -288,7 +289,7 @@ export type FullShelf = MereShelf &
     createdAt: GenericDate,
   };
 
-export type ShelvesForCinement = {
+export type ShelvesForTaleon = {
   shelves: string[]
 }
 
@@ -300,7 +301,7 @@ export type ShelfCollaborators = {
 
 export type ShelfItemType = {
   _id: string;
-  cinement_id: string;
+  taleon_id: string;
   shelf_id: string;
   user_id: string;
   ext_id: string;
@@ -308,7 +309,7 @@ export type ShelfItemType = {
   createdAt: GenericDate;
   title: string;
   poster: string | undefined;
-  cinement_type: "movie" | "show";
+  taleon_type: "movie" | "show";
   added_by: string | undefined;
 };
 

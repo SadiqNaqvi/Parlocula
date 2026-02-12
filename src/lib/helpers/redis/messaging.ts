@@ -1,11 +1,10 @@
-import { oneDay, oneHour, queryLimit } from "@lib/constants";
-import { getUpstashRedis, handleParsing, handlePipelineResponse, redisAggregator, RedisJson, RedisStage, Stage } from "@lib/providers/redis";
+import { oneDayInSeconds, oneHourInSeconds, queryLimit } from "@lib/constants";
+import { getUpstashRedis, handleParsing, handlePipelineResponse, redisAggregator, RedisJson, RedisStage, Stage, zaddInUpstash } from "@lib/providers/redis";
 import { createArray, getTimeInFuture } from "@lib/utils";
 import { Message, Participant } from "@model";
 import { CachedFullRoomType, CachedParticipantType, FullRoomType, MereMessage, MereRoomType, MereUser, ParticipantEnumType, ParticipantType, RoomListResponse } from "@type/internal";
 import { MessageModelType, ParticipantModelType, RoomModelType } from "@type/models";
 import { Pipeline, ScoreMember } from "@upstash/redis";
-import { ChainableCommander } from "ioredis";
 import { ClientSession } from "mongoose";
 
 /*
@@ -23,19 +22,16 @@ import { ClientSession } from "mongoose";
 * user:{user_id}:invitations:total - get - ex 1d
 */
 
-type ItemParamForSortedSet = { value: any, score: number };
-
 // Helper functions for multiple use
 
 const addRoomsInList = async ({ items, user_id, pipeline, total }: { pipeline?: Pipeline, user_id: string, items: ScoreMember<any>[], total?: number }) => {
     const transaction = pipeline ?? (await getUpstashRedis()).multi();
 
-    const [first, ...rest] = items;
-    transaction.zadd(`rooms:${user_id}`, first, ...rest);
+    zaddInUpstash(`rooms:${user_id}`, items, transaction);
     transaction.zremrangebyrank(`rooms:${user_id}`, 0, -(queryLimit * 2));
     transaction.incrby(`rooms:${user_id}:total`, total || items.length);
-    transaction.expire(`rooms:${user_id}`, oneDay, "NX");
-    transaction.expire(`rooms:${user_id}:total`, oneDay, "NX");
+    transaction.expire(`rooms:${user_id}`, oneDayInSeconds, "NX");
+    transaction.expire(`rooms:${user_id}:total`, oneDayInSeconds, "NX");
 
     if (pipeline) return pipeline;
     return await transaction.exec().then(handlePipelineResponse);
@@ -54,12 +50,11 @@ export const removeRoomFromList = async (user_id: string, rmid: string, pipeline
 const addMessageInList = async ({ items, room_id, total, pipeline }: { pipeline?: Pipeline<[]>, room_id: string, items: ScoreMember<any>[], total?: number }) => {
     const transaction = pipeline ?? (await getUpstashRedis()).multi();
 
-    const [first, ...rest] = items;
-    transaction.zadd(`room:${room_id}:messages`, first, ...rest);
+    zaddInUpstash(`room:${room_id}:messages`, items, transaction);
     transaction.zremrangebyrank(`room:${room_id}:messages`, 0, -(queryLimit * 5));
     transaction.incrby(`room:${room_id}:messages:total`, total || items.length);
-    transaction.expire(`room:${room_id}:messages`, oneDay);
-    transaction.expire(`room:${room_id}:messages:total`, oneDay);
+    transaction.expire(`room:${room_id}:messages`, oneDayInSeconds);
+    transaction.expire(`room:${room_id}:messages:total`, oneDayInSeconds);
 
     if (pipeline) return pipeline;
     return await transaction.exec().then(handlePipelineResponse);
@@ -69,12 +64,11 @@ const addInvitationInList = async ({ items, pipeline, user_id, total }: { pipeli
 
     const transaction = pipeline ?? (await getUpstashRedis()).multi();
 
-    const [first, ...rest] = items;
-    transaction.zadd(`user:${user_id}:invitations`, first, ...rest);
+    zaddInUpstash(`user:${user_id}:invitations`, items, transaction);
     transaction.zremrangebyrank(`user:${user_id}:invitations`, 0, -queryLimit);
     transaction.incrby(`user:${user_id}:invitations:total`, total || items.length);
-    transaction.expire(`user:${user_id}:invitations`, oneDay, "NX");
-    transaction.expire(`user:${user_id}:invitations:total`, oneDay, "NX");
+    transaction.expire(`user:${user_id}:invitations`, oneDayInSeconds, "NX");
+    transaction.expire(`user:${user_id}:invitations:total`, oneDayInSeconds, "NX");
 
     if (pipeline) return pipeline;
     return await transaction.exec().then(handlePipelineResponse);
@@ -744,8 +738,8 @@ const storeNewMessageInList = async (room_id: string, message: MessageModelType)
         }]
     });
 
-    // pipeline.setex(`message:${message._id}`, oneDay, JSON.stringify(message));
-    pipeline.setex(`message:${message._id}`, oneDay, message);
+    // pipeline.setex(`message:${message._id}`, oneDayInSeconds, JSON.stringify(message));
+    pipeline.setex(`message:${message._id}`, oneDayInSeconds, message);
 
     console.log("updating last message fields");
     await updateLastMessageFieldsOfRoom(room_id, message);
@@ -769,7 +763,7 @@ export const updateParticipantSeenAt = async (rmid: string, uid: string) => {
 
     const now = Date.now()
 
-    const isTimeToSync = Boolean(!participant.lastSync || (new Date(participant.lastSync).getTime() + oneHour) < Date.now());
+    const isTimeToSync = Boolean(!participant.lastSync || (new Date(participant.lastSync).getTime() + oneHourInSeconds) < Date.now());
     if (isTimeToSync) {
         await Participant.findOneAndUpdate(
             { room_id: rmid, user_id: uid },

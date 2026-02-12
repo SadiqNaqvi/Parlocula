@@ -1,4 +1,4 @@
-import CinementWikiHeader, { CinementWikiSection } from "@app/explore/(withoutSidebar)/components/CinementWikiPage";
+import { TaleonWikiHeader, TaleonWikiSection } from "@app/explore/(withoutSidebar)/components";
 import { ArtistCard, NotFound, ParloFooter } from "@components/ui";
 import { fetchEpisodeForSeason, fetchShow } from "@lib/contentFetcher";
 import { makeUrlSafe } from "@lib/utils";
@@ -57,7 +57,7 @@ const EpisodePage = async ({ params }: ParloPageProps<Ids>) => {
 
     return <>
 
-        <CinementWikiHeader
+        <TaleonWikiHeader
             backdrop={show.backdrop}
             overviewOrBio={episode.overview}
             poster={episode.poster}
@@ -66,15 +66,15 @@ const EpisodePage = async ({ params }: ParloPageProps<Ids>) => {
             wikiMeta={metadata}
         />
 
-        <CinementWikiSection heading="Top Cast">
+        <TaleonWikiSection heading="Top Cast">
             <div className="flex gap-4 overflow-x-auto pb-2">
                 {episode.cast.map(el => (
                     <ArtistCard key={el.id} title={el.name} detail={el.character} img={el.poster} link={`/explore/person/${el.id}-${makeUrlSafe(el.name)}`} />
                 ))}
             </div>
-        </CinementWikiSection>
+        </TaleonWikiSection>
 
-        <CinementWikiSection
+        <TaleonWikiSection
             heading="More Like This"
             horizontalMovieListProps={{
                 type: "show",
@@ -85,7 +85,7 @@ const EpisodePage = async ({ params }: ParloPageProps<Ids>) => {
         />
 
         {episode.cast.splice(0, 2).map((el) => (
-            <CinementWikiSection
+            <TaleonWikiSection
                 heading={`More of ${el.name}`}
                 hrefForMoreButton={`/explore/person/${el.id}`}
                 key={el.id}

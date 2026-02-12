@@ -1,4 +1,4 @@
-import CinementWikiHeader, { CinementWikiSection } from "@app/explore/(withoutSidebar)/components/CinementWikiPage";
+import TaleonWikiHeader, { TaleonWikiSection } from "@app/explore/(withoutSidebar)/components/TaleonWikiPage";
 import { ArtistCard, NotFound, ParloFooter, VerticleMovieCard } from "@components/ui";
 import { fetchSeasonForShow, fetchShow } from "@lib/contentFetcher";
 import { makeUrlSafe } from "@lib/utils";
@@ -53,7 +53,7 @@ const SeasonPage = async ({ params }: Props) => {
     return (
         <>
 
-            <CinementWikiHeader
+            <TaleonWikiHeader
                 backdrop={show.backdrop}
                 overviewOrBio={season.overview}
                 poster={season.poster}
@@ -61,14 +61,14 @@ const SeasonPage = async ({ params }: Props) => {
                 titleSupport={<p className="text-sm md:text-base text-zinc-500">{show.tagline}</p>}
                 wikiMeta={metadata}
             />
-            <CinementWikiSection heading="Top Cast">
+            <TaleonWikiSection heading="Top Cast">
                 <div className="flex gap-4 overflow-x-auto pb-2">
                     {season.cast.map(el => (
                         <ArtistCard key={el.id} title={el.name} detail={el.character} img={el.poster} link={`/explore/person/${el.id}-${makeUrlSafe(el.name)}`} />
                     ))}
                 </div>
-            </CinementWikiSection>
-            <CinementWikiSection heading="Episodes">
+            </TaleonWikiSection>
+            <TaleonWikiSection heading="Episodes">
                 <ul className="flex gap-4 overflow-x-auto pb-2">
                     {season.episodes.map(el => (
                         <VerticleMovieCard
@@ -80,9 +80,9 @@ const SeasonPage = async ({ params }: Props) => {
                         />
                     ))}
                 </ul>
-            </CinementWikiSection>
+            </TaleonWikiSection>
 
-            <CinementWikiSection
+            <TaleonWikiSection
                 heading="More Like this"
                 horizontalMovieListProps={{
                     type: "show",
@@ -93,7 +93,7 @@ const SeasonPage = async ({ params }: Props) => {
             />
 
             {season.cast.splice(0, 2).map((el) => (
-                <CinementWikiSection
+                <TaleonWikiSection
                     key={el.id}
                     heading={`More of ${el.name}`}
                     hrefForMoreButton={`/explore/person/${el.id}`}

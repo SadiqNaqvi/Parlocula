@@ -27,7 +27,7 @@ const Component = (data: RefinedGeneralData) => (
     <VerticleMovieCard {...data} className="w-auto min-w-auto" />
 )
 
-const CinementGrid = ({ section, data, content_id }: Props) => {
+const TaleonGrid = ({ section, data, content_id }: Props) => {
 
     const functionToFetch = async (p: number): Promise<GeneralGetReturn> => {
         if (section === "cast" || section === "crew" || section === "collection")
@@ -63,7 +63,7 @@ const CinementGrid = ({ section, data, content_id }: Props) => {
                 className="grid grid-cols-2 sm:grid-cols-4 xs:grid-cols-3 gap-2 sm:gap-4 px-2 sm:px-4"
                 Component={Component}
                 fetchData={functionToFetch}
-                queryKeys={["CinementGrid", "explore", section, content_id]}
+                queryKeys={["TaleonGrid", "explore", section, content_id]}
                 initialData={data ? { data, total: data.length } : undefined}
                 initialPage={1}
                 NotFoundSection={NotFoundSection}
@@ -72,4 +72,4 @@ const CinementGrid = ({ section, data, content_id }: Props) => {
     )
 }
 
-export default CinementGrid;
+export default TaleonGrid;

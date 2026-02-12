@@ -1,10 +1,10 @@
 import { filterToSort } from "@lib/constants";
 import { getHandler, postHandler } from "@lib/helpers/handlers";
 import { itemsAggregationPipeline } from "@lib/pipelines";
-import { cinementToAddAndRemove } from "@lib/schemas";
+import { taleonToAddAndRemove } from "@lib/schemas";
 import { getSearchParams } from "@lib/utils";
-import { Cinement, Shelf, ShelfItem } from "@model";
-import { CinementToAddAndRemoveType } from "@type/schemas";
+import { Taleon, Shelf, ShelfItem } from "@model";
+import { TaleonToAddAndRemoveType } from "@type/schemas";
 
 // Getting items for a shelf (public or private), id = shelf_id
 export const GET = getHandler(async (r, params) => {
@@ -45,9 +45,9 @@ export const GET = getHandler(async (r, params) => {
 }
 );
 
-// Adding/Removing a cinement to/from multiple shelves, id = cinement_id
+// Adding/Removing a taleon to/from multiple shelves, id = taleon_id
 // Must only be done by the creator
-export const POST = postHandler<CinementToAddAndRemoveType>({
+export const POST = postHandler<TaleonToAddAndRemoveType>({
   handler: async ({ data, params, session }) => {
 
     const { id, cuid } = params;
@@ -58,7 +58,7 @@ export const POST = postHandler<CinementToAddAndRemoveType>({
       shelf_id,
       year,
       ext_id,
-      cinement_id: id,
+      taleon_id: id,
       user_id: cuid,
     }));
 
@@ -76,7 +76,7 @@ export const POST = postHandler<CinementToAddAndRemoveType>({
 
     if (remove.length) {
 
-      await ShelfItem.deleteMany({ cinement_id: id, shelf_id: { $in: remove } }, { session });
+      await ShelfItem.deleteMany({ taleon_id: id, shelf_id: { $in: remove } }, { session });
 
       await Shelf.updateMany(
         { _id: { $in: remove } },
@@ -90,7 +90,7 @@ export const POST = postHandler<CinementToAddAndRemoveType>({
 
     if (favourite !== "none" || recommended !== "none" || watched !== "none") {
 
-      await Cinement.findOneAndUpdate(
+      await Taleon.findOneAndUpdate(
         { _id: id },
         {
           $inc: {
@@ -104,15 +104,15 @@ export const POST = postHandler<CinementToAddAndRemoveType>({
         { session }
       );
 
-      idsToRevalidate.push(`cinement-${ext_id}`);
+      idsToRevalidate.push(`taleon-${ext_id}`);
     }
 
     return {
       success: true,
       result: null,
       revalidateQueue: idsToRevalidate
-        .concat(add.concat(remove).map(id => `items-${id}-1-latest`))
-        .concat([`shelvesForCinement-${id}-user-${cuid}`])
+        .concat(add.concat(remove).map(id => `itemsOfShelf-${id}`))
+        .concat([`shelvesForTaleon-${id}-user-${cuid}`])
     }
   },
   preCheck: async ({ data, user_id }) => {
@@ -136,5 +136,5 @@ export const POST = postHandler<CinementToAddAndRemoveType>({
     return { success: true }
 
   },
-  schema: cinementToAddAndRemove,
+  schema: taleonToAddAndRemove,
 });

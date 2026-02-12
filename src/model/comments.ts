@@ -1,4 +1,3 @@
-import { oneDay } from "@lib/constants";
 import { parloId } from "@lib/utils";
 import { CommentModelType, StrictModel } from "@type/models";
 import { model, models } from "mongoose";

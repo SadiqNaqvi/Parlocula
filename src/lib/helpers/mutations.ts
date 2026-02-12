@@ -1,7 +1,6 @@
-
 import LinkToast from "@components/toasts/LinkToast"
 import { generateFingerprint } from "@lib/auth"
-import { oneHour, parloculaAppURL } from "@lib/constants"
+import { oneDayInSeconds, oneHourInMiliSeconds, parloculaAppURL } from "@lib/constants"
 import { getQueryClient } from "@lib/providers/queryClient"
 import appToast from "@lib/providers/toast"
 import { codetoError, getQueryKeys, objectToFormData, parloId, trycatch } from "@lib/utils"
@@ -9,12 +8,13 @@ import { AppNavigationInstance } from "@store/historystack"
 import { offlineStore } from "@store/offlineStore"
 import useRoomStore from "@store/roomStore"
 import useCurrentUser from "@store/user"
-import { CommentReplyType, CurrentUser, Frame, FullComment, FullPost, FullRoomType, FullShelf, GeneralGetReturn, GeneralPostReturn, MereComment, MereMessage, MereRoomType, MereShelf, MereUser, ModeratorType, ShelfCollaborator, ShelfCollaborators, ShelfItemType, ShelvesForCinement, ThreadModType, UserConnectionType } from "@type/internal"
+import { CommentReplyType, CurrentUser, Frame, FullComment, FullPost, FullRoomType, FullShelf, FullTaleonType, GeneralGetReturn, GeneralPostReturn, MereComment, MereMessage, MereRoomType, MereShelf, MereUser, ModeratorType, ShelfCollaborator, ShelfCollaborators, ShelfItemType, ShelvesForTaleon, ThreadModType, UserConnectionType } from "@type/internal"
 import { NotificationModelType } from "@type/models"
 import { ErrorCodes, InfiniteScrollerDataType } from "@type/other"
-import { BookmarkSchemaType, CinementSchemaType, CinementToAddAndRemoveType, CommentSchemaType, CommentSchemaUpdateType, EmailUpdateSchemaType, LikeSchemaType, MessageSchemaType, PostSchemaType, PostUpdateSchemaType, ReportActionSchemaType, ReportSchemaType, ReportTypeEnum, RoomSchemaType, SessionInvalidationServerSchemaType, ShelfEditSchemaType, ShelfSchemaType, ThreadSchemaServer, ThreadUpdateSchema, UsernameUpdateSchemaType, UserSchemaType, UserUpdateSchemaType } from "@type/schemas"
+import { BookmarkSchemaType, CommentSchemaType, CommentSchemaUpdateType, EmailUpdateSchemaType, LikeSchemaType, MessageSchemaType, PostSchemaType, PostUpdateSchemaType, ReportActionSchemaType, ReportSchemaType, ReportTypeEnum, RoomSchemaType, SessionInvalidationServerSchemaType, ShelfEditSchemaType, ShelfSchemaType, TaleonSchemaType, TaleonToAddAndRemoveType, ThreadSchemaServer, ThreadUpdateSchema, UsernameUpdateSchemaType, UserSchemaType, UserUpdateSchemaType } from "@type/schemas"
 import axios from "axios"
 import { setUserOnRefreshOrLogin } from "./user"
+import { GeneralExtReturn, RefinedMovieData, RefinedShowData } from "@type/external"
 
 type MutationFunction<R> = () => Promise<GeneralPostReturn<R>>
 
@@ -329,6 +329,35 @@ export const loginUserMutation = async (data: { email: string, code: number }) =
     });
 
 };
+
+export const createUpdateTaleon = async (ext_id: string, type: "movie" | "show"): Promise<FullTaleonType | null> => {
+
+    const data: GeneralExtReturn<RefinedShowData | RefinedMovieData> = await fetch(
+        `https://testlalaapp.vercel.app/api/${type}?id=${ext_id}`,
+        { next: { revalidate: oneDayInSeconds * 3 } }
+    ).then((r) => r.json());
+
+    if (!data.status) return null;
+
+    const { title, year, poster } = data.response;
+
+    const dataToPost = {
+        title: title,
+        poster: poster || "",
+        year,
+        taleon_type: type,
+        ext_id,
+    };
+
+    const resp = await axios
+        .post(`${parloculaAppURL}/api/v1/taleon/${ext_id}`, objectToFormData(dataToPost))
+        .then((r) => r.data)
+        .catch(r => r.response.data);
+
+    const { result } = resp;
+
+    return result;
+}
 
 export const createCommentMutation = async (comment: CommentSchemaType & { parent: CommentReplyType | undefined }, uid: string, section: "replies" | "comments") => {
 
@@ -816,23 +845,23 @@ export const removeCollaboratorsMutation = async (sid: string, uid: string, data
 }
 
 export const updateShelvesWithItem = async (
-    cinement_id: string,
-    cinement_type: "movie" | "show",
+    taleon_id: string,
+    taleon_type: "movie" | "show",
     uid: string,
-    data: CinementToAddAndRemoveType,
+    data: TaleonToAddAndRemoveType,
 ) => {
 
     const removedShelvesMap = new Map<string, boolean>(data.remove.map(id => [id, false]));
 
     const queryClient = getQueryClient();
-    const key = getQueryKeys("shelfsForCinement_cnid", { cnid: cinement_id });
+    const key = getQueryKeys("shelfsForTaleon_cnid", { cnid: taleon_id });
 
     await performMutation({
-        mutationFn: () => ppPostData({ url: `item/${cinement_id}`, data, uid }),
+        mutationFn: () => ppPostData({ url: `item/${taleon_id}`, data, uid }),
         onMutate: () => {
             const prevData = queryClient.getQueryData(key);
 
-            queryClient.setQueryData<ShelvesForCinement>(key, (old) => {
+            queryClient.setQueryData<ShelvesForTaleon>(key, (old) => {
                 if (!old) return { shelves: data.add };
 
                 return {
@@ -849,7 +878,7 @@ export const updateShelvesWithItem = async (
         onError: ({ context }) => {
 
             appToast.error(
-                () => LinkToast({ title: `Failed to add cinement in shelves`, href: `/explore/${cinement_type}/${cinement_id}` })
+                () => LinkToast({ title: `Failed to add taleon in shelves`, href: `/explore/${taleon_type}/${taleon_id}` })
             )
 
             if (!context) return;
@@ -858,7 +887,7 @@ export const updateShelvesWithItem = async (
     });
 }
 
-export const addItemsInShelf = async (sid: string, uid: string, items: CinementSchemaType[]) => {
+export const addItemsInShelf = async (sid: string, uid: string, items: TaleonSchemaType[]) => {
 
     const { meta } = useCurrentUser.getState();
     if (!meta) throw new Error("Guest is trying to add items in a shelf");
@@ -867,7 +896,7 @@ export const addItemsInShelf = async (sid: string, uid: string, items: CinementS
         const { isConfirm, ...rest } = item;
         return {
             ...rest,
-            _id: item.cinement_id,
+            _id: item.taleon_id,
             shelf_id: sid,
             user_id: uid,
             createdAt: Date.now(),
@@ -882,7 +911,7 @@ export const addItemsInShelf = async (sid: string, uid: string, items: CinementS
         onMutate: () => addDocsInInfiniteQueryResult<ShelfItemType[]>(shelfItemsKey, shelfItems),
         onError: ({ context }) => {
             appToast.error(
-                () => LinkToast({ title: `Failed to add cinements in Shelf`, href: `/shelf/${sid}` })
+                () => LinkToast({ title: `Failed to add taleons in Shelf`, href: `/shelf/${sid}` })
             )
 
             if (context) setDoc(shelfItemsKey, context);
@@ -890,17 +919,17 @@ export const addItemsInShelf = async (sid: string, uid: string, items: CinementS
     })
 }
 
-export const addItemInCollaborativeShelf = async (sid: string, uid: string, cinement: { id: string, type: "movie" | "show", ext_id: string }, isPrivate: boolean, shelfKey: string | undefined) => {
+export const addItemInCollaborativeShelf = async (sid: string, uid: string, taleon: { id: string, type: "movie" | "show", ext_id: string }, isPrivate: boolean, shelfKey: string | undefined) => {
     await performMutation({
-        mutationFn: () => ppPostData({ url: `shelf/${sid}/collaborate`, data: { cinement_id: cinement.id }, uid }),
+        mutationFn: () => ppPostData({ url: `shelf/${sid}/collaborate`, data: { taleon_id: taleon.id }, uid }),
         onSuccess: () => {
             if (isPrivate) refetchQueries(getQueryKeys("itemsOfPrivateShelf_sid_key_filter", { sid, key: shelfKey || "none", filter: "latest" }))
             else refetchQueries(getQueryKeys("itemsOfShelf_sid_filter", { sid, filter: "latest" }))
-            appToast.success("Cinement added in shelf successfully.")
+            appToast.success("Taleon added in shelf successfully.")
         },
-        onError: ({ context }) => {
+        onError: () => {
             appToast.error(
-                () => LinkToast({ title: `Failed to add cinements in Shelf`, href: `/explore/${cinement.type}/${cinement.ext_id}` })
+                () => LinkToast({ title: `Failed to add taleons in Shelf`, href: `/explore/${taleon.type}/${taleon.ext_id}` })
             );
         }
     })
@@ -914,7 +943,7 @@ export const createShelfMutation = async (uid: string, shelf: ShelfSchemaType) =
             const publicShelvesOfUser = getQueryKeys("shelvesOfUser_uid_filter", { uid, filter: "latest" });
             const privateShelvesOfUser = getQueryKeys("privateShelvesOfUser_uid", { uid });
             const allShelvesOfUser = getQueryKeys("allShelvesOfUser_uid", { uid });
-            const cinements = shelf.items.map(item => item.cinement_id);
+            const taleons = shelf.items.map(item => item.taleon_id);
             const queryClient = getQueryClient();
 
             queryClient.setQueryData(shelfKey, data);
@@ -932,11 +961,11 @@ export const createShelfMutation = async (uid: string, shelf: ShelfSchemaType) =
                 saved_count: 0,
             });
 
-            cinements.forEach(cinement_id => {
-                if (!cinement_id) return;
-                const cinementKey = getQueryKeys("shelfsForCinement_cnid", { cnid: cinement_id })
+            taleons.forEach(taleon_id => {
+                if (!taleon_id) return;
+                const taleonKey = getQueryKeys("shelfsForTaleon_cnid", { cnid: taleon_id })
 
-                queryClient.setQueryData<ShelvesForCinement>(cinementKey, (old) => {
+                queryClient.setQueryData<ShelvesForTaleon>(taleonKey, (old) => {
                     if (!old) return { shelves: [data._id] };
 
                     return {
@@ -1303,7 +1332,7 @@ export const showMessageOptimistically = ({ message, room, uid }: {
             otherParticipant_seenAt: message.createdAt,
             room_id,
             type: "participant",
-            seenAt: Date.now() - oneHour,
+            seenAt: Date.now() - oneHourInMiliSeconds,
             mute: room.mute,
         }, room_id)
     }

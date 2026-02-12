@@ -22,8 +22,8 @@ export const PATCH = updateHandler({
         return {
             success: true,
             result: newShelfKey,
-            available: "shelfUpdation_sid_key",
-            options: { sid: id, key: shelf.shelfKey || "none" }
+            available: "shelfUpdation_sid",
+            options: { sid: id }
         }
 
 

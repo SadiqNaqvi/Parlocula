@@ -1,5 +1,5 @@
 import Navbar from "@components/Navbar";
-import { OptionalChildren, VerticleMovieCardSkeleton } from "../";
+import { OptionalChildren, VerticleMovieCardSkeleton } from "..";
 
 type Props = {
     title?: string;
@@ -27,7 +27,7 @@ const ButtonSkeleton = ({ primary, secondary }: { primary?: boolean, secondary?:
     <div className={`flex-1 sm:max-w-32 h-12 rounded-md ${primary ? animationClasses : ''} ${secondary ? secondaryButtoClasses : ''}`}></div>
 )
 
-const CinementWikiSectionSkeleton = () => (
+const TaleonWikiSectionSkeleton = () => (
     <section className="my-4 py-4 px-2 sm:px-4 space-y-3">
         <div className="flex flex-cntr-between">
             <span className={`rounded-md w-24 h-4 ${animationClasses}`}></span>
@@ -42,7 +42,7 @@ const CinementWikiSectionSkeleton = () => (
     </section>
 )
 
-const CinementWikiSkeleton = ({ backdrop, title }: Props) => (
+const TaleonWikiSkeleton = ({ backdrop, title }: Props) => (
     <>
         <Navbar />
         <header className="mt-2 pb-4 border-b px-2 sm:px-4 border-gray30">
@@ -73,9 +73,9 @@ const CinementWikiSkeleton = ({ backdrop, title }: Props) => (
                 <ButtonSkeleton secondary />
             </section>
         </header>
-        <CinementWikiSectionSkeleton />
-        <CinementWikiSectionSkeleton />
+        <TaleonWikiSectionSkeleton />
+        <TaleonWikiSectionSkeleton />
     </>
 )
 
-export default CinementWikiSkeleton;
+export default TaleonWikiSkeleton;

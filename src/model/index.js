@@ -8,7 +8,7 @@ export { default as Comment } from "./comments";
 export { default as Reaction } from "./reactions";
 export { default as Like } from "./likes";
 export { default as Connection } from "./connection";
-export { default as Cinement } from "./cinements";
+export { default as Taleon } from "./taleons";
 export { default as Shelf } from "./shelves";
 export { default as ShelfItem } from "./shelf_items";
 export { default as Bookmark } from "./bookmarks";

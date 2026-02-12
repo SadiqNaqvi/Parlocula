@@ -139,8 +139,8 @@ export const POST = postHandler<PostSchemaType>({
     return {
       result: post,
       success: true,
-      available: "postMutation_pid_tid_uid_category",
-      options: { pid: post._id, tid, category: data.category, uid: user_id },
+      available: "postMutation_pid_tid_uid",
+      options: { pid: post._id, tid, uid: user_id },
       warnTeamParlocula: rest.nsfw || !isNsfw ? undefined : {
         title: "Possibly NSFW Post with incorrect flags",
         desc: "This Post may contain NSFW Frames while nsfw is set to false.",

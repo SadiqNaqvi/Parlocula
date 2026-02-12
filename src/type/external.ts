@@ -496,7 +496,7 @@ export type RefinedSearchData = {
   media_type: string;
 };
 
-export type ExtSearchDataCinementOnly = {
+export type ExtSearchDataTaleonOnly = {
   title: string;
   poster: string;
   year: number;

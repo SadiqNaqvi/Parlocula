@@ -1,8 +1,8 @@
+import { oneWeekInSeconds } from "@lib/constants";
+import { parloId } from "@lib/utils";
+import { NotificationModelType, StrictModel } from "@type/models";
 import { Schema, model, models } from "mongoose";
 import { StrictSchema } from "./general";
-import { NotificationModelType, StrictModel } from "@type/models";
-import { oneDay } from "@lib/constants";
-import { parloId } from "@lib/utils";
 
 const messageItemSchema = new Schema(
   {
@@ -61,14 +61,10 @@ const notificationModel = new StrictSchema<NotificationModelType>({
     type: Date,
     default: new Date(),
   },
-  expiresAt: {
-    type: Date,
-    default: new Date(oneDay * 3)
-  }
 });
 
 notificationModel.index({ user_id: 1, type: 1 });
-notificationModel.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+notificationModel.index({ createdAt: 1 }, { expireAfterSeconds: oneWeekInSeconds });
 
 const Notification: StrictModel<NotificationModelType> =
   (models.Notification as any) || model("Notification", notificationModel);

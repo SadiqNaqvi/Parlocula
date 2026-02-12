@@ -1,9 +1,9 @@
 import Navigate from "@components/Navigate";
 import { acceptCollaboratorInvitation, acceptManagerInvitation, rejectCollaboratorInvitation } from "@lib/helpers/mutations";
-import { getPoster, timeAgo } from "@lib/utils";
+import { timeAgo } from "@lib/utils";
 import { NotificationModelType } from "@type/models";
-import Image from "next/image";
 import ParloImage from "./ParloImage";
+import OptionalChildren from "./OptionalChildren";
 
 const RequestBar = ({ type, status, request_type, metadata }: Required<Pick<NotificationModelType, "type" | "status" | "request_type" | "metadata">>) => {
     if (type === "informative") return;
@@ -29,7 +29,7 @@ const RequestBar = ({ type, status, request_type, metadata }: Required<Pick<Noti
     )
 }
 
-const NotificationTile = ({ message, type, request_type, status, poster, createdAt, expiresAt, metadata }: Required<NotificationModelType>) => {
+const NotificationTile = ({ message, type, request_type, status, poster, createdAt, metadata }: Required<NotificationModelType>) => {
     return (
         <article className="px-2 py-4 space-y-3 wrap-anywhere">
 
@@ -42,24 +42,19 @@ const NotificationTile = ({ message, type, request_type, status, poster, created
                         })}
                     </p>
                 </section>
-                {poster && (
-                    <section>
-                        <ParloImage
-                            size={50}
-                            className="h-full aspect-square max-h-12 rounded-md"
-                            alt="Poster of the notification"
-                            frame={poster}
-                        />
-                    </section>
-                )}
+                <OptionalChildren condition={poster}>
+                    <ParloImage
+                        size={50}
+                        className="h-full aspect-square max-h-12 rounded-md"
+                        alt="Poster of the notification"
+                        frame={poster}
+                    />
+                </OptionalChildren>
             </div>
 
             <RequestBar metadata={metadata} status={status} type={type} request_type={request_type} />
 
-            <ul className="flex text-sm text-zinc-500 gap-2">
-                <li>{timeAgo(createdAt)}</li>
-                <li>Expires: {new Date(expiresAt).toDateString()}</li>
-            </ul>
+            <p className="text-sm text-zinc-500">{timeAgo(createdAt)}</p>
 
         </article>
     )

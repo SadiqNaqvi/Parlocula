@@ -1,4 +1,4 @@
-import { CinementWikiSection } from "@app/explore/(withoutSidebar)/components";
+import { TaleonWikiSection } from "@app/explore/(withoutSidebar)/components";
 import { Navbar, Navigate } from "@components";
 
 export default function Page() {
@@ -34,7 +34,7 @@ export default function Page() {
 
             {genresToDisplay.map(el => (
 
-                <CinementWikiSection
+                <TaleonWikiSection
                     heading={`${el.value} ${el.type}s`}
                     hrefForMoreButton={`genres/${el.value}`}
                     horizontalMovieListProps={{

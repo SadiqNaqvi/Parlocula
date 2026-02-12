@@ -3,7 +3,7 @@
 import { InfiniteScroller } from "@components";
 import FilterDropdown from "@components/FiltersDropdown";
 import { ThreadTile } from "@components/ui";
-import { getThreadsForCinementOrArtist } from "@lib/helpers/common";
+import { getThreadsForTaleonOrArtist } from "@lib/helpers/common";
 import useCurrentUser from "@store/user";
 
 const VerticleThreadList = ({ id, filter, page }: { id: string, filter: string, page: number }) => {
@@ -19,7 +19,7 @@ const VerticleThreadList = ({ id, filter, page }: { id: string, filter: string, 
             <section className="mt-4">
                 <InfiniteScroller
                     Component={ThreadTile}
-                    fetchData={() => getThreadsForCinementOrArtist(id, page, !filterContent, filter)}
+                    fetchData={() => getThreadsForTaleonOrArtist(id, page, !filterContent, filter)}
                     queryKeys={["threads-for-media", id, filter]}
                 />
             </section>

@@ -1,8 +1,8 @@
-import { MessageModelType, StrictModel } from "@type/models";
-import { Schema, model, models } from "mongoose";
-import { StrictSchema } from "./general";
-import { oneDay } from "@lib/constants";
+import { oneDayInSeconds } from "@lib/constants";
 import { parloId } from "@lib/utils";
+import { MessageModelType, StrictModel } from "@type/models";
+import { model, models } from "mongoose";
+import { StrictSchema } from "./general";
 
 export const messageModel = new StrictSchema<MessageModelType>({
   _id: { type: String, default: parloId },
@@ -22,7 +22,7 @@ export const messageModel = new StrictSchema<MessageModelType>({
   replied_to: { type: String, ref: 'Message', required: false, default: undefined },
   replied_content: { type: String, ref: 'Message', required: false, default: undefined },
 });
-messageModel.index({ createdAt: 1 }, { expireAfterSeconds: oneDay * 3 });
+messageModel.index({ createdAt: 1 }, { expireAfterSeconds: oneDayInSeconds * 3 });
 messageModel.index({ room_id: 1, createdAt: 1 });
 
 const Message: StrictModel<MessageModelType> =

@@ -1,9 +1,9 @@
 import { parloId } from "@lib/utils";
-import { CinementModelType, StrictModel } from "@type/models";
+import { TaleonModelType, StrictModel } from "@type/models";
 import { model, models } from "mongoose";
 import { numberSchema, StrictSchema } from "./general";
 
-export const cinementModel = new StrictSchema<CinementModelType>({
+export const taleonModel = new StrictSchema<TaleonModelType>({
   _id: {
     type: String,
     default: parloId
@@ -20,7 +20,7 @@ export const cinementModel = new StrictSchema<CinementModelType>({
     type: Number,
     required: true,
   },
-  cinement_type: {
+  taleon_type: {
     type: String,
     enum: ["movie", "show"],
     required: true,
@@ -32,11 +32,12 @@ export const cinementModel = new StrictSchema<CinementModelType>({
   favourite: numberSchema,
   watched: numberSchema,
   recommended: numberSchema,
+  editedAt: { type: Date, default: Date.now }
 });
 
-cinementModel.index({ ext_id: 1 }, { unique: true });
+taleonModel.index({ ext_id: 1 }, { unique: true });
 
-const Cinement: StrictModel<CinementModelType> =
-  (models.Cinement as any) || model("Cinement", cinementModel);
+const Taleon: StrictModel<TaleonModelType> =
+  (models.Taleon as any) || model("Taleon", taleonModel);
 
-export default Cinement;
+export default Taleon;

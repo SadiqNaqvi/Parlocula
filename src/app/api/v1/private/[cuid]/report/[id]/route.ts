@@ -192,7 +192,7 @@ export const PATCH = updateHandler<ReportActionSchemaType>({
       result: null,
       revalidateQueue: forWarning
         .concat(forDeletion)
-        .map(el => `notifications-user-${el.user_id}-page-1`)
+        .map(el => `notifications-user-${el.user_id}`)
         .concat(contentsToKeep.map(el => `reports-${el}`)),
     }
   },

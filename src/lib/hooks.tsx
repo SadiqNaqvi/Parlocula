@@ -1,19 +1,18 @@
 "use client";
 
+import useOfflineStore from "@store/offlineStore";
+import useCurrentUser from "@store/user";
 import { InfiniteData, useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { PaginatedData, RefinedGeneralData } from "@type/external";
 import { AggregatedResponse, GeneralGetReturn, GeneralMultipleReturn, InfiniteQueryResponse, MerePost } from "@type/internal";
 import { PresenceMessage } from "ably";
 import axios from "axios";
 import { useEffect, useReducer, useRef, useState } from "react";
-import { oneDay, oneHour } from "./constants";
-import { getAblyOnClient } from "./providers/ably";
-import { createArray, infiniteScrollerResponse, refineResponseForInfiniteQuery, refineResponseForQuery } from "./utils";
-import useCurrentUser from "@store/user";
-import useOfflineStore from "@store/offlineStore";
+import { oneDayInSeconds, oneHourInMiliSeconds, oneHourInSeconds } from "./constants";
+import { fetchTrendingMovies, fetchTrendingShows } from "./contentFetcher";
 import { ppGetData } from "./helpers/common";
-import { DataFetcher } from "@components";
-import { fetchMoviesWithGenres, fetchMoviesWithYear, fetchShowsWithGenres, fetchTrendingContent, fetchTrendingMovies, fetchTrendingPerson, fetchTrendingShows } from "./contentFetcher";
+import { getAblyOnClient } from "./providers/ably";
+import { infiniteScrollerResponse, refineResponseForInfiniteQuery, refineResponseForQuery } from "./utils";
 
 type InfiniteQueryProps<T> = {
     queryFn: (pageParams: number) => Promise<GeneralMultipleReturn<T> | GeneralGetReturn<PaginatedData>>,
@@ -26,7 +25,7 @@ type InfiniteQueryProps<T> = {
     onSuccess?: (data: InfiniteData<InfiniteQueryResponse<T>, number>) => void,
 }
 
-export const useInfiniteQueryHook = <T,>({ queryKeys, queryFn, onSuccess, placeholderData, initialData, initialPage = 1, enable = true, staleTimeInSec = oneHour }: InfiniteQueryProps<T>) => {
+export const useInfiniteQueryHook = <T,>({ queryKeys, queryFn, onSuccess, placeholderData, initialData, initialPage = 1, enable = true, staleTimeInSec = oneHourInSeconds }: InfiniteQueryProps<T>) => {
     const response = useInfiniteQuery<
         InfiniteQueryResponse<T>, Error, InfiniteData<InfiniteQueryResponse<T>, number>, (string | number)[], number
     >({
@@ -49,7 +48,6 @@ export const useInfiniteQueryHook = <T,>({ queryKeys, queryFn, onSuccess, placeh
 
     const { data, isError } = response;
 
-
     useEffect(() => {
 
         if (data && !isError) onSuccess?.(data)
@@ -59,6 +57,7 @@ export const useInfiniteQueryHook = <T,>({ queryKeys, queryFn, onSuccess, placeh
     return response;
 
 }
+
 type NonFunctionGuard<T> = T extends Function ? never : T
 
 type QueryFn<T> = () => Promise<GeneralGetReturn<T>>
@@ -74,12 +73,12 @@ type UseQueryProps<T,> = {
 
 
 export const useQueryHook = <T,>({ queryKeys, onSuccess, queryFn, initialData, placeholderData, staleTime, enabled = true }: UseQueryProps<T>) => {
-    const defaultStaleTime = Date.now()+oneHour*1000;
+    const defaultStaleTime = Date.now() + oneHourInMiliSeconds;
     const response = useQuery<T | null>({
         queryKey: queryKeys,
         queryFn: () => refineResponseForQuery(queryFn),
         enabled,
-        staleTime: staleTime||defaultStaleTime,
+        staleTime: staleTime || defaultStaleTime,
         gcTime: defaultStaleTime,
         placeholderData: placeholderData as NonFunctionGuard<T>,
         initialData,
@@ -324,7 +323,7 @@ export const useFeedHook = () => {
     const queryFn = async (p: number): Promise<GeneralMultipleReturn<FeedPost>> => {
         const [slides, trending, curated] = await Promise.all([
             getTmdbSlides(p),
-            ppGetData<AggregatedResponse<AggregatedPost>>({ url: "post/trending", revalidate: oneDay, searchParams: { p } }),
+            ppGetData<AggregatedResponse<AggregatedPost>>({ url: "post/trending", revalidate: oneDayInSeconds, searchParams: { p } }),
             ...(uid ? [
                 ppGetData<AggregatedResponse<AggregatedPost>>({ url: `post/user/${uid}`, searchParams: { p } })
             ] : []),

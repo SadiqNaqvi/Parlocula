@@ -4,7 +4,7 @@ import { attachNsfwInPipeline, threadsAggregationPipeline } from "@lib/pipelines
 import { getSearchParams } from "@lib/utils";
 import { Thread } from "@model";
 
-// Get the threads based upon the cinement, here id = cinement id
+// Get the threads based upon the taleon, here id = taleon id
 export const GET = getHandler(async (r, { id }) => {
 
   const { filter, nsfw, page } = getSearchParams(r.nextUrl, 0, "latest");

@@ -1,26 +1,26 @@
 "use server";
 
 import VerifyEmail from "@components/EmailTemplates/verification";
-import { oneHour } from "@lib/constants";
+import { oneHourInSeconds } from "@lib/constants";
 import { getRedis } from "@lib/providers/redis";
 import { verificationCodeSchema } from "@lib/schemas";
 import { getTimeInFuture } from "@lib/utils";
-import { Cinement, Notification, ShelfItem } from "@model";
+import { Notification, ShelfItem, Taleon } from "@model";
 import { render } from "@react-email/components";
 import { GeneralGetReturn, GeneralPostReturn } from "@type/internal";
-import { CinementModelType, NotificationModelType, ShelfItemModelType } from "@type/models";
+import { NotificationModelType, ShelfItemModelType, TaleonModelType } from "@type/models";
 import { PushNotificationType } from "@type/other";
-import { CinementSchemaType } from "@type/schemas";
+import { TaleonSchemaType } from "@type/schemas";
 import Ably from "ably";
 import { randomInt } from "crypto";
 import { ClientSession } from "mongoose";
 import { cookies } from "next/headers";
 import { createTransport } from "nodemailer";
 
-type CinementDocType = CinementModelType & { _id: string }
+type TaleonDocType = TaleonModelType & { _id: string }
 
 export const addItemsInShelf = async (
-  items: CinementSchemaType[],
+  items: TaleonSchemaType[],
   shelf_type: "custom" | "favourite" | "recommended" | "watched",
   id: string,
   user_id: string,
@@ -29,14 +29,14 @@ export const addItemsInShelf = async (
   if (!items || !items.length)
     throw new Error("shelf items array, which is to be added in shelf, is empty");
 
-  // Step 1: Separate confirmed and unconfirmed cinements
+  // Step 1: Separate confirmed and unconfirmed taleons
   const confirmedItems = items.filter((item) => item.isConfirm === true);
   const unconfirmedItems = items.filter((item) => item.isConfirm === false);
 
   // Step 2: Find existing items for unconfirmed items
   const extIds = unconfirmedItems.map((item) => item.ext_id);
-  const existingItems: CinementDocType[] = extIds.length
-    ? await Cinement.find({ ext_id: { $in: extIds } })
+  const existingItems: TaleonDocType[] = extIds.length
+    ? await Taleon.find({ ext_id: { $in: extIds } })
     : [];
 
   // Step 3: Create missing items and get all item IDs
@@ -45,21 +45,21 @@ export const addItemsInShelf = async (
       !existingItems.some((existing) => existing.ext_id === item.ext_id)
   );
 
-  let createdItems: CinementDocType[] = [];
+  let createdItems: TaleonDocType[] = [];
   if (itemsToCreate.length > 0) {
-    createdItems = await Cinement.create(
+    createdItems = await Taleon.create(
       itemsToCreate.map(
         (item) =>
           ({
             ext_id: item.ext_id,
             year: item.year,
-            cinement_type: item.cinement_type,
+            taleon_type: item.taleon_type,
             title: item.title,
             poster: item.poster,
             favourite: shelf_type === "favourite" ? 1 : 0,
             watched: shelf_type === "watched" ? 1 : 0,
             recommended: shelf_type === "recommended" ? 1 : 0,
-          }) as CinementDocType
+          }) as TaleonDocType
       ),
       { session, ordered: true }
     );
@@ -74,15 +74,15 @@ export const addItemsInShelf = async (
   });
 
   //Add Confirmed items to the map
-  confirmedItems.forEach(({ ext_id, cinement_id }) => {
-    itemIdMap.set(ext_id, cinement_id);
+  confirmedItems.forEach(({ ext_id, taleon_id }) => {
+    itemIdMap.set(ext_id, taleon_id);
   });
 
   // Step 5: Create shelf items
   const itemsArr: ShelfItemModelType[] = items.map((item) => ({
     shelf_id: id,
     user_id: user_id,
-    cinement_id: itemIdMap.get(item.ext_id) as string,
+    taleon_id: itemIdMap.get(item.ext_id) as string,
     ext_id: item.ext_id,
     year: item.year,
     createdAt: new Date(),
@@ -163,7 +163,7 @@ export const sendVerificationCode = async (
 
     await redis.setex(
       `limits:email:${fingerprint}`,
-      oneHour / 1000,
+      oneHourInSeconds,
       JSON.stringify(updatedPayload));
 
     return { success: true, result: null };

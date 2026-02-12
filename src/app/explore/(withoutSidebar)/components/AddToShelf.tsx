@@ -4,14 +4,14 @@ import { RightChevron } from "@assets/Icons";
 import { BottomSheet, BottomSheetRef, InfiniteScroller, LoadingButton, NestedSheet } from "@components";
 import { LoginModal } from "@components/fallbacks";
 import { Form, ShelfForm, ShelfSelector } from "@components/form";
-import { getAllShelvesOfUser, getShelvesForCinement } from "@lib/helpers/common";
+import { getAllShelvesOfUser, getShelvesForTaleon } from "@lib/helpers/common";
 import { updateShelvesWithItem } from "@lib/helpers/mutations";
 import { useQueryHook } from "@lib/hooks";
 import { getQueryKeys } from "@lib/utils";
 import useCurrentUser from "@store/user";
 import { MereShelf } from "@type/internal";
 import { PredefinedShelves } from "@type/models";
-import { CinementSchemaType } from "@type/schemas";
+import { TaleonSchemaType } from "@type/schemas";
 import { useEffect, useRef, useState } from "react";
 import AddToCollaborativeShelf from "./AddToCollaborativeShelf";
 
@@ -19,14 +19,14 @@ const buttonClassName = "w-full py-2 flex flex-cntr-between";
 
 type ShelfClickActions = "added" | "removed" | "none"
 
-const AddToShelf = ({ className, cinement, released }: { className?: string, cinement: CinementSchemaType, released: boolean }) => {
+const AddToShelf = ({ className, taleon, released }: { className?: string, taleon: TaleonSchemaType, released: boolean }) => {
 
     const { meta, user } = useCurrentUser();
     const sheetRef = useRef<BottomSheetRef>(null);
 
     const { data, isFetching, isError, isRefetching, refetch } = useQueryHook({
-        queryFn: () => getShelvesForCinement(cinement.cinement_id, meta?.user_id || ""),
-        queryKeys: getQueryKeys("shelfsForCinement_cnid", { cnid: cinement.cinement_id }),
+        queryFn: () => getShelvesForTaleon(taleon.taleon_id, meta?.user_id || ""),
+        queryKeys: getQueryKeys("shelfsForTaleon_cnid", { cnid: taleon.taleon_id }),
         enabled: Boolean(meta)
     });
 
@@ -97,8 +97,8 @@ const AddToShelf = ({ className, cinement, released }: { className?: string, cin
         const add: string[] = [];
         const remove: string[] = [];
 
-        if (!cinement.cinement_id)
-            return "Cinement id is required"
+        if (!taleon.taleon_id)
+            return "Taleon id is required"
 
         let shelfStatus: Record<PredefinedShelves, ShelfClickActions> = {
             favourite: "none", recommended: "none", watched: "none"
@@ -115,12 +115,12 @@ const AddToShelf = ({ className, cinement, released }: { className?: string, cin
 
         if (add.length || remove.length || Object.entries(shelfStatus).some(([k, v]) => v !== "none")) {
             await updateShelvesWithItem(
-                cinement.cinement_id,
-                cinement.cinement_type,
+                taleon.taleon_id,
+                taleon.taleon_type,
                 user._id,
                 {
-                    ext_id: cinement.ext_id,
-                    year: cinement.year,
+                    ext_id: taleon.ext_id,
+                    year: taleon.year,
                     add,
                     remove,
                     ...shelfStatus
@@ -143,7 +143,7 @@ const AddToShelf = ({ className, cinement, released }: { className?: string, cin
                                     <RightChevron />
                                 </>
                             )}>
-                            <ShelfForm cinements={[cinement]} />
+                            <ShelfForm taleons={[taleon]} />
                         </NestedSheet>
                     </div>
                     <NestedSheet
@@ -155,10 +155,10 @@ const AddToShelf = ({ className, cinement, released }: { className?: string, cin
                         )}
                         className={buttonClassName}>
                         <AddToCollaborativeShelf
-                            cinement={{
-                                id: cinement.cinement_id,
-                                ext_id: cinement.ext_id,
-                                type: cinement.cinement_type
+                            taleon={{
+                                id: taleon.taleon_id,
+                                ext_id: taleon.ext_id,
+                                type: taleon.taleon_type
                             }}
                             uid={meta.user_id} />
                     </NestedSheet>

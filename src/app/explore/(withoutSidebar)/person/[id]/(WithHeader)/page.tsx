@@ -1,4 +1,4 @@
-import { CinementGrid } from "@app/explore/(withoutSidebar)/components";
+import { TaleonGrid } from "@app/explore/(withoutSidebar)/components";
 import { fetchPerson } from "@lib/contentFetcher";
 import { ParloPageProps } from "@type/other";
 
@@ -14,7 +14,7 @@ const ArtistAsCastPage = async ({ params }: ParloPageProps) => {
     if (!content) return null;
 
     return (
-        <CinementGrid content_id={content.tmdb_id} section="cast" data={content.credits.cast} />
+        <TaleonGrid content_id={content.tmdb_id} section="cast" data={content.credits.cast} />
     )
 }
 

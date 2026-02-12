@@ -289,9 +289,9 @@ const itemBaseSchema = z.object({
   title: z.string(),
   poster: z.string(),
   year: z.number(),
-  cinement_type: z.enum(["movie", "show"]),
+  taleon_type: z.enum(["movie", "show"]),
   ext_id: z.string(),
-  cinement_id: z.string(),
+  taleon_id: z.string(),
 })
 
 const confirmedItemExt = z.object({
@@ -333,7 +333,7 @@ export const itemsForShelfSchema = z.object({
   shelf_type: z.enum(["custom", "favourite", "recommended", "watched"]),
 });
 
-export const cinementToAddAndRemove = z.object({
+export const taleonToAddAndRemove = z.object({
   ext_id: z.string(),
   year: z.number(),
   add: z.array(z.string()),

@@ -1,32 +1,24 @@
 "use client";
 
 import { AddIcon, SearchIcon } from "@assets/Icons";
-import { InfiniteScroller, Navbar } from "@components";
-import RoomBar from "@components/ui/RoomBar";
+import { Navbar } from "@components";
+import { LoadingSpinner, RoomBar, ShowError } from "@components/ui";
 import { getInvitedRooms, getRooms } from "@lib/helpers/common";
 import { useInfiniteQueryHook } from "@lib/hooks";
 import { getQueryKeys, infiniteScrollerResponse } from "@lib/utils";
 import useOfflineStore from "@store/offlineStore";
+import useRoomStore from "@store/roomStore";
+import useCurrentUser from "@store/user";
 import { InfiniteQueryResponse } from "@type/internal";
 import { TypedFunction } from "@type/other";
 import { useParams } from "next/navigation";
 import React, { PropsWithChildren, useEffect, useRef, useState } from "react";
+import { twMerge } from "tailwind-merge";
 import CreateGroup from "./CreateGroup";
 import InvitationRoomsList from "./InvitationRoomList";
 import RoomSearchList from "./RoomSearchList";
-import useRoomStore from "@store/roomStore";
-import useCurrentUser from "@store/user";
-import { LoadingSpinner, ShowError } from "@components/ui";
-import { storeRoomList } from "@lib/helpers/redis/messaging";
 
 type PageType = "rooms" | "invitations" | "search" | "create";
-
-const NoRoomSection = () => (
-    <div className="mt-8">
-        <h2 className="text-center text-xl font-semibold">No chats yet?</h2>
-        <p className="text-center mt-2">Click on the + icon and start chatting</p>
-    </div>
-)
 
 const InvitationsCount = ({ uid }: { uid: string }) => {
     const { data } = useInfiniteQueryHook({
@@ -39,13 +31,37 @@ const InvitationsCount = ({ uid }: { uid: string }) => {
     return `Invitations ${data.pages[0].total_results || ''}`
 }
 
-const RoomListWrapper = ({ id, children }: PropsWithChildren<{ id: string | string[] | undefined }>) => (
-    <div className={id ? "hidden sm:block" : ''}>
-        {children}
-    </div>
+type RoomListProps = { uid: string, changeRoom: TypedFunction<PageType> };
+
+const RoomListHeader = ({ changeRoom, uid }: RoomListProps) => (
+    <>
+        <Navbar
+            OptionButton={
+                <div className="flex gap-3">
+                    <button
+                        onClick={() => changeRoom("search")}
+                        className="p-2 rounded-full bg-gray40">
+                        <SearchIcon />
+                    </button>
+                    <button
+                        onClick={() => changeRoom("create")}
+                        className="rounded-full p-2 bg-gray40">
+                        <AddIcon />
+                    </button>
+                </div>
+            }
+            navTitle="Inbox"
+        />
+        <header className="mt-4 flex flex-cntr-between">
+            <h2>Rooms</h2>
+            <button className="text-sm" onClick={() => changeRoom("invitations")}>
+                <InvitationsCount uid={uid} />
+            </button>
+        </header>
+    </>
 )
 
-const RoomsList = ({ uid, changeRoom }: { uid: string, changeRoom: TypedFunction<PageType> }) => {
+const RoomsList = ({ uid, changeRoom }: RoomListProps) => {
 
     const qkeys = getQueryKeys("rooms_uid", { uid });
     const { room, setRooms } = useRoomStore();
@@ -100,51 +116,39 @@ const RoomsList = ({ uid, changeRoom }: { uid: string, changeRoom: TypedFunction
         fetchNextPage();
     }
 
-    if (isLoading) return <LoadingSpinner />
+    if (isLoading) return (
+        <>
+            <RoomListHeader uid={uid} changeRoom={changeRoom} />
+            <LoadingSpinner />
+        </>
+    )
 
     else if (isError) return (
-        <ShowError
-            retry={refetch}
-            heading="Unable to fetch the resource you're looking for"
-        />
+        <>
+            <RoomListHeader uid={uid} changeRoom={changeRoom} />
+
+            <ShowError
+                retry={refetch}
+                heading="Unable to fetch the resource you're looking for"
+            />
+        </>
     )
 
     else if (!rooms.length) return (
-        <div className="forceCenter space-y-2">
-            <h2>No rooms yet</h2>
-            <p>Click on the + icon and start chatting</p>
-        </div>
+        <>
+            <RoomListHeader uid={uid} changeRoom={changeRoom} />
+            <div className="forceCenter space-y-2">
+                <h2>No rooms yet</h2>
+                <p>Click on the + icon and start chatting</p>
+            </div>
+        </>
     )
 
     return (
         <>
-            <Navbar
-                OptionButton={
-                    <div className="flex gap-3">
-                        <button
-                            onClick={() => changeRoom("search")}
-                            className="p-2 rounded-full bg-gray40">
-                            <SearchIcon />
-                        </button>
-                        <button
-                            onClick={() => changeRoom("create")}
-                            className="rounded-full p-2 bg-gray40">
-                            <AddIcon />
-                        </button>
-                    </div>
-                }
-                navTitle="Inbox"
-            />
+            <RoomListHeader uid={uid} changeRoom={changeRoom} />
 
             <section className="h-full mt-2 sm:w-60 md:w-80 px-2">
-
-                <div className="mt-4 flex flex-cntr-between">
-                    <h2>Rooms</h2>
-                    <button className="text-sm" onClick={() => changeRoom("invitations")}>
-                        <InvitationsCount uid={uid} />
-                    </button>
-                </div>
-
                 <ul>
                     {rooms.map(room => (
                         <li key={room.room_id}>
@@ -169,7 +173,13 @@ const RoomsList = ({ uid, changeRoom }: { uid: string, changeRoom: TypedFunction
     )
 }
 
-const RoomList = ({ uid }: { uid: string }) => {
+const RoomListWrapper = ({ id, children }: PropsWithChildren<{ id: string | string[] | undefined }>) => (
+    <div className={twMerge("w-full md:max-w-96 border-right border-gray30", id ? "hidden md:block" : '')}>
+        {children}
+    </div>
+)
+
+const RoomListSection = ({ uid }: { uid: string }) => {
 
     const { id } = useParams();
 
@@ -203,4 +213,4 @@ const RoomList = ({ uid }: { uid: string }) => {
 
 }
 
-export default RoomList;
+export default RoomListSection;

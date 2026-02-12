@@ -189,7 +189,8 @@ select:-webkit-autofill {
   position: absolute;
   inset: 0;
   background-image: url("/pattern.svg");
-  background-size: 200%;
+  background-size: cover;
+  background-attachment: fixed;
   opacity: 0.8;
   z-index: 0;
 }

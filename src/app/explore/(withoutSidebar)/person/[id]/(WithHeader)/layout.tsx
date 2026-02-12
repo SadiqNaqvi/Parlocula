@@ -1,6 +1,6 @@
-import { CinementWikiHeader, CinementWikiSection, HorizontalThreadList } from "@app/explore/(withoutSidebar)/components";
+import { TaleonWikiHeader, TaleonWikiSection, HorizontalThreadList } from "@app/explore/(withoutSidebar)/components";
 import { NotFound, OptionalChildren, ParloFooter, TabContainer, TabList } from "@components/ui";
-import { CinementWikiSkeleton } from "@components/ui/loading";
+import { TaleonWikiSkeleton } from "@components/ui/loading";
 import { fetchPerson } from "@lib/contentFetcher";
 import generateDynamicMetadata from "@lib/seo/metadata";
 import { ParloPageProps } from "@type/other";
@@ -46,7 +46,7 @@ const Page = async ({ params, children }: PropsWithChildren<{ params: { id: stri
 
     return (
         <>
-            <CinementWikiHeader
+            <TaleonWikiHeader
                 poster={content.profile}
                 title={content.name}
                 titleSupport={<p className="text-sm md:text-base text-zinc-500">Profession: {content.department}</p>}
@@ -71,13 +71,13 @@ const Page = async ({ params, children }: PropsWithChildren<{ params: { id: stri
                 )}
             />
 
-            <CinementWikiSection
+            <TaleonWikiSection
 
                 heading="Connected Threads"
                 hrefForMoreButton={`${content.tmdb_id}/threads`}
             >
                 <HorizontalThreadList id={content.tmdb_id} type="person" />
-            </CinementWikiSection>
+            </TaleonWikiSection>
 
             <TabContainer>
                 <TabList className="" href={currentPage}>As Cast</TabList>
@@ -95,7 +95,7 @@ const ArtistPageLayout = async ({ children, params }: PropsWithChildren<ParloPag
     const [_, ...title] = awaitedParams.id.split('-');
 
     return (
-        <Suspense fallback={<CinementWikiSkeleton title={title.join(' ')} backdrop={false} />}>
+        <Suspense fallback={<TaleonWikiSkeleton title={title.join(' ')} backdrop={false} />}>
             <Page params={awaitedParams}>{children}</Page>
             <ParloFooter />
         </Suspense>

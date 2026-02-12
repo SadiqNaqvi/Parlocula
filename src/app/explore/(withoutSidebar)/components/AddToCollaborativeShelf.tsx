@@ -6,10 +6,10 @@ import { addItemInCollaborativeShelf } from "@lib/helpers/mutations";
 import { getQueryKeys } from "@lib/utils";
 import { MereShelf } from "@type/internal";
 
-const AddToCollaborativeShelf = ({ uid, cinement }: { uid: string, cinement: { id: string; type: "movie" | "show"; ext_id: string } }) => {
+const AddToCollaborativeShelf = ({ uid, taleon }: { uid: string, taleon: { id: string; type: "movie" | "show"; ext_id: string } }) => {
 
     const handleAdding = async (sid: string, isPrivate: boolean, shelfKey: string | undefined) => {
-        await addItemInCollaborativeShelf(sid, uid, cinement, isPrivate, shelfKey);
+        await addItemInCollaborativeShelf(sid, uid, taleon, isPrivate, shelfKey);
     }
 
     const Component = ({ _id, name, poster, isPrivate, shelfKey }: MereShelf) => {

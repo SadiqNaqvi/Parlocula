@@ -6,6 +6,7 @@ import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { ParloPageProps } from "@type/other";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import ParticipantsPage from "./ParticipantsPage";
 
 const RoomMembersPage = async ({ params }: ParloPageProps) => {
 
@@ -40,11 +41,9 @@ const RoomMembersPage = async ({ params }: ParloPageProps) => {
 
     return (
         <HydrationBoundary state={dehydrate(queryClient)}>
-
+            <ParticipantsPage participantType={room.participantType} rmid={rmid} uid={uid} />
         </HydrationBoundary>
     )
-
-
 }
 
 export default RoomMembersPage;

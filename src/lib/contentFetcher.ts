@@ -1,58 +1,55 @@
-import { FullCinementType, GeneralGetReturn, GeneralMultipleReturn } from "@type/internal";
+import { FullTaleonType, GeneralGetReturn } from "@type/internal";
 import {
   ExtGeneralPaginatedData,
   ExtPaginatedSearchData,
-  ExtSearchDataCinementOnly,
+  ExtSearchDataTaleonOnly,
   GeneralExtReturn,
-  GeneralPersonData,
   PaginatedData,
   RefinedCollectionData,
   RefinedCompanyData,
   RefinedEpisodeData,
-  RefinedGeneralData,
   RefinedMovieData,
   RefinedPersonData,
-  RefinedSearchData,
   RefinedSeasonData,
   RefinedShowData,
   SortOptions
 } from "../type/external";
-import { oneDay } from "./constants";
-import { getCinement } from "./helpers/common";
+import { oneDayInSeconds } from "./constants";
+import { getTaleon } from "./helpers/common";
 
 export const fetchExt = async <T = unknown>(url: string, revalidate?: number): Promise<GeneralExtReturn<T>> => {
   try {
     return await fetch(
       `https://testlalaapp.vercel.app/api/${url}`,
-      { next: { revalidate: revalidate || oneDay * 7 } }
+      { next: { revalidate: revalidate || oneDayInSeconds * 3 } }
     ).then((r) => r.json());
   } catch {
     return { status: false, response: "" }
   }
 }
 
-export type CinementReturnType<T extends boolean, D> = T extends true ? D & FullCinementType : D
-export type MovieReturnType<T extends boolean> = CinementReturnType<T, RefinedMovieData>
-export type ShowReturnType<T extends boolean> = CinementReturnType<T, RefinedShowData>
+export type TaleonReturnType<T extends boolean, D> = T extends true ? D & FullTaleonType : D
+export type MovieReturnType<T extends boolean> = TaleonReturnType<T, RefinedMovieData>
+export type ShowReturnType<T extends boolean> = TaleonReturnType<T, RefinedShowData>
 
-export const fetchMovie = async<T extends boolean>(id: string, getInternalData: T): Promise<CinementReturnType<T, RefinedMovieData> | undefined> => {
+export const fetchMovie = async<T extends boolean>(id: string, getInternalData: T): Promise<TaleonReturnType<T, RefinedMovieData> | undefined> => {
   if (!id) return;
 
   const [ext_id] = id.split('-');
 
-  const [data, cinement] = await Promise.all([
+  const [data, taleon] = await Promise.all([
     fetchExt<RefinedMovieData>(`movie?id=${ext_id}`),
-    ...(getInternalData ? [getCinement(ext_id, "movie")] : []),
+    ...(getInternalData ? [getTaleon(ext_id, "movie")] : []),
   ]);
 
-  if (getInternalData && !cinement)
-    throw new Error("Error occured while fetching cinement for the movie")
+  if (getInternalData && !taleon)
+    throw new Error("Error occured while fetching taleon for the movie")
 
   else if (!data || !data.status) return;
   else if (!getInternalData) return data.response as MovieReturnType<T>;
   return {
     ...data.response,
-    ...cinement
+    ...taleon
   } as MovieReturnType<T>
 };
 
@@ -227,16 +224,16 @@ export const fetchShow = async <T extends boolean>(id: string, getInternalData: 
 
   const [ext_id] = id.split('-');
 
-  const [data, cinement] = await Promise.all([
+  const [data, taleon] = await Promise.all([
     fetchExt<RefinedShowData>(`show?id=${ext_id}`),
-    ...(getInternalData ? [getCinement(ext_id, "show")] : []),
+    ...(getInternalData ? [getTaleon(ext_id, "show")] : []),
   ]);
 
-  if (!data || !data.status || (getInternalData && !cinement)) return;
+  if (!data || !data.status || (getInternalData && !taleon)) return;
   else if (!getInternalData) return data.response as ShowReturnType<T>;
   return {
     ...data.response,
-    ...cinement
+    ...taleon
   } as ShowReturnType<T>
 
 };
@@ -436,8 +433,8 @@ export const searchAllContent = async (query: string, page: number = 1): Promise
 
 };
 
-export const searchOnlyMediaItems = async (query: string, page = 1): Promise<GeneralGetReturn<PaginatedData<ExtSearchDataCinementOnly>>> => {
-  const data = await fetchExt<PaginatedData<ExtSearchDataCinementOnly>>(`search?q=${query}&t=cinements&p=${page}`)
+export const searchTaleonsOnly = async (query: string, page = 1): Promise<GeneralGetReturn<PaginatedData<ExtSearchDataTaleonOnly>>> => {
+  const data = await fetchExt<PaginatedData<ExtSearchDataTaleonOnly>>(`search?q=${query}&t=taleons&p=${page}`)
 
   if (data.status) return {
     success: true,

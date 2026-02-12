@@ -1,6 +1,6 @@
 import AccountDeletionWarning from "@components/EmailTemplates/accountDeletion";
 import { deleteSession } from "@lib/auth";
-import { oneDay, parloculaAppURL } from "@lib/constants";
+import { oneDayInMiliSeconds, parloculaAppURL } from "@lib/constants";
 import { updateHandler } from "@lib/helpers/handlers";
 import { sendEmail } from "@lib/helpers/server";
 import { User } from "@model";
@@ -23,10 +23,10 @@ export const PATCH = updateHandler<{ passkey: string }>({
             return { success: false, errCode: "unauthorized_access" }
 
         const now = Date.now();
-        const deleteOn = now + (30 * oneDay);
+        const deleteOn = now + (30 * oneDayInMiliSeconds);
 
         // It is scheduled to run on every 6 days, until day 30, to warn user about their account deletion;
-        const interval = now + (6 * oneDay);
+        const interval = now + (6 * oneDayInMiliSeconds);
 
         const job = await client.publishJSON({
             url: `${parloculaAppURL}/api/v1/user/account_deletion`,

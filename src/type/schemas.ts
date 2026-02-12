@@ -1,6 +1,6 @@
 import {
   bookmarkSchema,
-  cinementToAddAndRemove,
+  taleonToAddAndRemove,
   commentSchema,
   commentSchemaUpdate,
   emailUpdateSchema,
@@ -43,7 +43,7 @@ export type CommentSchemaType = z.infer<typeof commentSchema>;
 
 export type ShelfSchemaType = z.infer<typeof shelfServerSchema>;
 export type ShelfEditSchemaType = z.infer<typeof shelfEditSchema>;
-export type CinementToAddAndRemoveType = z.infer<typeof cinementToAddAndRemove>;
+export type TaleonToAddAndRemoveType = z.infer<typeof taleonToAddAndRemove>;
 export type itemsForShelfSchemaType = z.infer<typeof itemsForShelfSchema>;
 
 export type BookmarkSchemaType = z.infer<typeof bookmarkSchema>;
@@ -82,7 +82,7 @@ export type ThreadConnectionType = {
 export type InputFrame = CommanInputFrame &
   ({ blob: null; isExternal: true } | { blob: Blob; isExternal: false });
 
-export type CinementSchemaType = z.infer<typeof itemSchema>
+export type TaleonSchemaType = z.infer<typeof itemSchema>
 
 export type AvailableActionsForReport = "keep" | "delete" | "warn"
 

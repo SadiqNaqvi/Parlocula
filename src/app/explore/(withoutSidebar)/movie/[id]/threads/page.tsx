@@ -1,4 +1,4 @@
-import CinementThreadPage from "@app/explore/(withoutSidebar)/components/CinementThreadPage";
+import TaleonThreadPage from "@app/explore/(withoutSidebar)/components/TaleonThreadPage";
 import { fetchMovie } from "@lib/contentFetcher";
 import { ParloPageProps } from "@type/other";
 import { Metadata } from "next";
@@ -14,6 +14,6 @@ export const generateMetadata = async ({ params }: ParloPageProps): Promise<Meta
     }
 }
 
-const Page = CinementThreadPage;
+const Page = TaleonThreadPage;
 
 export default Page;

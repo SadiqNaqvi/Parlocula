@@ -2,7 +2,7 @@ import { getCacheTags, objectToFormData } from "@lib/utils";
 import {
   AggregatedResponse,
   CurrentUser,
-  FullCinementType,
+  FullTaleonType,
   FullComment,
   FullPost,
   FullRoomType,
@@ -21,15 +21,17 @@ import {
   SearchedRoom,
   ShelfCollaborators,
   ShelfItemType,
-  ShelvesForCinement,
+  ShelvesForTaleon,
   Thread,
   ThreadModType,
+  ParticipantType,
 } from "@type/internal";
 import { CollaboratorModelType, NotificationModelType, ReportModelType } from "@type/models";
 import { AvailableCacheTags, CookiesType, PPGetDataProps } from "@type/other";
 import axios from "axios";
-import { oneDay, parloculaAppURL, queryFilters } from "../constants";
+import { oneDayInMiliSeconds, oneDayInSeconds, oneHourInSeconds, parloculaAppURL, queryFilters } from "../constants";
 import { GeneralExtReturn, RefinedMovieData, RefinedShowData } from "@type/external";
+import { createUpdateTaleon } from "./mutations";
 
 export const ppGetData = async <T, K extends AvailableCacheTags = any>(
   { url, revalidate, tag, options, cookies, searchParams }: PPGetDataProps<K>
@@ -65,22 +67,24 @@ export const ppGetData = async <T, K extends AvailableCacheTags = any>(
 export const getCurrentUser = async (id: string, cookies?: CookiesType) =>
   await ppGetData<CurrentUser>({
     url: `private/${id}/user`,
-    revalidate: oneDay * 2,
+    revalidate: oneHourInSeconds,
     tag: "currentUser_uid",
     options: { uid: id },
     cookies,
   });
 
 export const getUserFeed = async (cuid: string, page: string, cookies?: CookiesType) =>
-  await ppGetData({
-    url: `private/${cuid}/feed`
+  await ppGetData<AggregatedResponse<MerePost>>({
+    url: `private/${cuid}/feed`,
+    searchParams: { p: page },
+    cookies,
   })
 
 export const isUsernameAvailable = async (username: string) =>
   await ppGetData({
     url: "user/isUsernameAvailable",
     searchParams: { username },
-    revalidate: oneDay * 2,
+    revalidate: oneDayInSeconds * 7,
     tag: "usernameAvailability_username",
     options: { username },
   });
@@ -88,14 +92,14 @@ export const isUsernameAvailable = async (username: string) =>
 export const checkIfUserExist = async (email: string) => await ppGetData({
   url: "user/ifUserExist",
   searchParams: { email },
-  revalidate: oneDay * 2,
+  revalidate: oneDayInSeconds * 7,
   tag: "userExistence_email",
   options: { email },
 });
 
 export const getThreadById = async (id: string) => await ppGetData<Thread>({
   url: `thread/${id}`,
-  revalidate: oneDay * 3,
+  revalidate: oneHourInSeconds * 3,
   tag: "thread_tid",
   options: { tid: id },
 });
@@ -104,18 +108,18 @@ export const getThreads = async (page: number, nsfw: boolean, filter = queryFilt
   await ppGetData<AggregatedResponse<MereThread>>({
     url: "thread",
     searchParams: { f: filter, p: page, nsfw },
-    revalidate: oneDay,
-    tag: "threads_filter_page_nsfw",
-    options: { filter: filter, nsfw },
+    revalidate: oneHourInSeconds,
+    tag: "threadList_filter",
+    options: { filter: filter },
   });
 
 export const getMembers = async (tid: string, page: number) =>
   await ppGetData<AggregatedResponse<MereUser>>({
     url: `thread/${tid}/members`,
     searchParams: { p: page },
-    revalidate: oneDay,
-    tag: "membersOfThread_tid_page",
-    options: { page: String(page), tid },
+    revalidate: oneHourInSeconds * 3,
+    tag: "membersOfThread_tid",
+    options: { tid },
   });
 
 export const isMember = async (
@@ -124,15 +128,13 @@ export const isMember = async (
   cookies?: CookiesType
 ): Promise<GeneralGetReturn> => {
   if (!uid) return { success: false, errCode: "unauthenticated_access" };
-  const response = await ppGetData({
+  return await ppGetData({
     url: `private/${uid}/thread/${tid}/member`,
-    revalidate: oneDay * 2,
+    revalidate: oneDayInSeconds * 3,
     tag: "member_tid_uid",
     options: { tid, uid },
     cookies,
   });
-
-  return response;
 };
 
 export const searchMembers = async (tid: string, query: string, page: number) =>
@@ -149,9 +151,9 @@ export const joinedThreadsOfUser = async (
   await ppGetData<AggregatedResponse<MereThread>>({
     url: `private/${uid}/thread/user/joined`,
     searchParams: { p: page },
-    revalidate: oneDay * 2,
-    tag: "joinedThreadsOfUser_uid_page",
-    options: { uid, page },
+    revalidate: oneHourInSeconds,
+    tag: "joinedThreadsOfUser_uid",
+    options: { uid },
     cookies,
   });
 
@@ -159,7 +161,9 @@ export const createdThreadsOfUser = async (uid: string, page = 1, cookies?: Cook
   await ppGetData<AggregatedResponse<MereThread>>({
     url: `private/${uid}/thread/user/created`,
     searchParams: { p: page },
-    revalidate: oneDay * 2,
+    revalidate: oneDayInSeconds,
+    tag: "createdThreadsOfUser_uid",
+    options: { uid },
     cookies,
   });
 
@@ -167,7 +171,9 @@ export const threadsManageByUser = async (uid: string, page = 1, cookies?: Cooki
   await ppGetData<AggregatedResponse<MereThread>>({
     url: `private/${uid}/thread/user/manages`,
     searchParams: { p: page },
-    revalidate: oneDay * 2,
+    revalidate: oneDayInSeconds,
+    tag: "threadsManageByUser_uid",
+    options: { uid },
     cookies,
   });
 
@@ -178,8 +184,8 @@ export const getPostsOfThread = async (
   filter = queryFilters.posts[0],
   type: "posts" | "frames" | "links",
   category = "",
-): Promise<GeneralMultipleReturn> =>
-  await ppGetData({
+) =>
+  await ppGetData<AggregatedResponse<MerePost>>({
     url: "post/thread",
     searchParams: {
       p: page,
@@ -188,9 +194,9 @@ export const getPostsOfThread = async (
       t: type,
       nsfw,
     },
-    revalidate: oneDay,
-    tag: "postsOfThread_filter_tid_page_category_nsfw",
-    options: { filter, tid, page, category, nsfw },
+    revalidate: oneHourInSeconds,
+    tag: "postsOfThread_tid",
+    options: { tid },
   });
 
 export const getPostsOfUser = async (
@@ -202,15 +208,15 @@ export const getPostsOfUser = async (
   await ppGetData<AggregatedResponse<MerePost>>({
     url: `post/user/${uid}`,
     searchParams: { p: page, f: filter, nsfw },
-    revalidate: oneDay * 3,
-    tag: "postsOfUser_uid_filter_page_nsfw",
-    options: { filter, uid, page },
+    revalidate: oneHourInSeconds * 3,
+    tag: "postsOfUser_uid",
+    options: { uid },
   });
 
 export const getReactionOnPost = async (pid: string, uid: string, cookies?: CookiesType) =>
   await ppGetData({
     url: `private/${uid}/post/${pid}/reaction`,
-    revalidate: oneDay * 2,
+    revalidate: oneDayInSeconds * 3,
     tag: "reaction_pid_uid",
     options: { pid, uid },
     cookies,
@@ -225,9 +231,9 @@ export const getCommentsOfUser = async (
   await ppGetData<AggregatedResponse<MereComment>>({
     url: `comment/user/${uid}`,
     searchParams: { p: page, f: filter, nsfw },
-    revalidate: oneDay * 3,
-    tag: "commentsOfUser_uid_filter_page_nsfw",
-    options: { filter, uid, page, nsfw },
+    revalidate: oneHourInSeconds * 3,
+    tag: "commentsOfUser_uid",
+    options: { uid },
   });
 
 export const getShelvesOfUser = async (
@@ -238,9 +244,9 @@ export const getShelvesOfUser = async (
   await ppGetData<AggregatedResponse<MereShelf>>({
     url: `shelf/${uid}`,
     searchParams: { p: page, f: filter },
-    revalidate: oneDay * 3,
-    tag: "shelvesOfUser_filter_username_page",
-    options: { filter, uid, page },
+    revalidate: oneHourInSeconds,
+    tag: "shelvesOfUser_uid",
+    options: { uid },
   });
 
 export const getPrivateShelvesOfUser = async (
@@ -251,9 +257,9 @@ export const getPrivateShelvesOfUser = async (
   await ppGetData<AggregatedResponse<MereShelf>>({
     url: `private/${uid}/shelf`,
     searchParams: { p: page },
-    revalidate: oneDay * 3,
-    tag: "privateShelvesOfUser_uid_filter_page",
-    options: { uid, page },
+    revalidate: oneHourInSeconds * 3,
+    tag: "privateShelvesOfUser_uid",
+    options: { uid },
     cookies,
   });
 
@@ -265,36 +271,35 @@ export const getAllShelvesOfUser = async (
   await ppGetData<AggregatedResponse<MereShelf>>({
     url: `private/${uid}/shelf/all`,
     searchParams: { p: page },
-    revalidate: oneDay * 3,
-    tag: "allShelvesOfUser_uid_page",
-    options: { uid, page },
+    revalidate: oneHourInSeconds,
+    tag: "allShelvesOfUser_uid",
+    options: { uid },
     cookies,
   });
 
-export const getShelvesAsCollaborator = async (uid: string, page: number) =>
+export const getShelvesAsCollaborator = async (uid: string, page: number, cookies?: CookiesType) =>
   await ppGetData<AggregatedResponse<MereShelf>>({
     url: `private/${uid}/shelf/collaborative`,
     searchParams: { p: page },
-    revalidate: oneDay * 3,
-    tag: "collaborativeShelvesOfUser_uid_page",
-    options: { uid, page },
+    revalidate: oneDayInSeconds,
+    tag: "collaborativeShelvesOfUser_uid",
+    options: { uid },
+    cookies
   });
 
 export const getShelvesAsInvitee = async (uid: string, page: number) =>
   await ppGetData<AggregatedResponse<MereShelf>>({
     url: `private/${uid}/shelf/invited`,
     searchParams: { p: page },
-    revalidate: oneDay * 3,
-    tag: "invitedShelvesOfUser_uid_page",
-    options: { uid, page },
+    revalidate: oneDayInSeconds,
+    tag: "invitedShelvesOfUser_uid",
+    options: { uid },
   });
 
-export const getPostById = async (
-  id: string
-): Promise<GeneralGetReturn<FullPost>> =>
-  await ppGetData({
+export const getPostById = async (id: string) =>
+  await ppGetData<FullPost>({
     url: `post/${id}`,
-    revalidate: oneDay,
+    revalidate: oneDayInSeconds,
     tag: "post_pid",
     options: { pid: id },
   });
@@ -303,9 +308,9 @@ export const getQuotesOfPost = async (id: string, page = 1, nsfw: boolean) =>
   await ppGetData<AggregatedResponse<MerePost>>({
     url: `post/${id}/quotes`,
     searchParams: { p: page, nsfw },
-    revalidate: oneDay,
-    tag: "quotedPosts_pid_page_nsfw",
-    options: { pid: id, page, nsfw },
+    revalidate: oneHourInSeconds * 3,
+    tag: "quotedPosts_pid",
+    options: { pid: id },
   });
 
 export const getCommentsOnPost = async (
@@ -317,15 +322,15 @@ export const getCommentsOnPost = async (
   await ppGetData<AggregatedResponse<MereComment>>({
     url: `comment/post/${id}`,
     searchParams: { p: page, f: filter, nsfw },
-    revalidate: oneDay,
-    tag: "commentsOfPost_pid_filter_page_nsfw",
-    options: { filter, pid: id, page, nsfw },
+    revalidate: oneHourInSeconds * 3,
+    tag: "commentsOfPost_pid",
+    options: { pid: id },
   });
 
 export const getCommentById = async (id: string) =>
   await ppGetData<FullComment>({
     url: `comment/${id}`,
-    revalidate: oneDay,
+    revalidate: oneDayInSeconds,
     tag: "comment_cid",
     options: { cid: id },
   });
@@ -333,7 +338,7 @@ export const getCommentById = async (id: string) =>
 export const checkLikeOnComment = async (cid: string, uid: string, cookies?: CookiesType) =>
   await ppGetData({
     url: `private/${uid}/comment/${cid}/like`,
-    revalidate: oneDay * 2,
+    revalidate: oneDayInSeconds * 3,
     tag: "like_cid_uid",
     options: { cid, uid },
     cookies,
@@ -348,27 +353,27 @@ export const getRepliesOnComment = async (
   await ppGetData<AggregatedResponse<MereComment>>({
     url: `comment/${id}/replies`,
     searchParams: { p: page, f: filter, nsfw },
-    revalidate: oneDay,
-    tag: "replies_cid_filter_page_nsfw",
-    options: { cid: id, filter, page, nsfw },
+    revalidate: oneHourInSeconds,
+    tag: "replies_cid",
+    options: { cid: id },
   });
 
-export const getThreadsForCinementOrArtist = async (
+export const getThreadsForTaleonOrArtist = async (
   id: string,
   page: number,
   nsfw: boolean,
   filter = queryFilters.threads[0],
 ) =>
   await ppGetData<AggregatedResponse<MereThread>>({
-    url: `thread/cinement/${id}`,
+    url: `thread/taleon/${id}`,
     searchParams: { p: page, f: filter, nsfw },
-    revalidate: oneDay,
+    revalidate: oneHourInSeconds,
   });
 
 export const getUserByUsername = async (username: string) =>
   await ppGetData<RequestedUser>({
     url: `user/${username}`,
-    revalidate: oneDay * 2,
+    revalidate: oneDayInSeconds,
     tag: "user_username",
     options: { username },
   });
@@ -376,81 +381,63 @@ export const getUserByUsername = async (username: string) =>
 export const getFollowers = async (uid: string, page = 1, cookies?: CookiesType) =>
   await ppGetData<AggregatedResponse<MereUser>>({
     url: `private/${uid}/user/followers`,
-    revalidate: oneDay * 2,
-    tag: "followersOfUser_uid_page",
-    options: { uid, page },
+    searchParams: { p: page },
+    revalidate: oneHourInSeconds * 3,
+    tag: "followersOfUser_uid",
+    options: { uid },
     cookies,
   });
 
 export const getFollowing = async (uid: string, page = 1, cookies?: CookiesType) =>
   await ppGetData<AggregatedResponse<MereUser>>({
     url: `private/${uid}/user/following`,
-    revalidate: oneDay * 2,
-    tag: "followingOfUser_uid_page",
-    options: { uid, page },
+    searchParams: { p: page },
+    revalidate: oneHourInSeconds * 3,
+    tag: "followingOfUser_uid",
+    options: { uid },
     cookies,
   });
 
 export const getBlockedUsers = async (uid: string, page = 1, cookies?: CookiesType) =>
   await ppGetData<AggregatedResponse<MereUser>>({
     url: `private/${uid}/user/blocked`,
-    revalidate: oneDay * 2,
-    tag: "blockedByUser_uid_page",
-    options: { uid, page },
+    searchParams: { p: page },
+    revalidate: oneHourInSeconds * 3,
+    tag: "blockedByUser_uid",
+    options: { uid },
     cookies,
   });
 
-export const getCinement = async (ext_id: string, type: "movie" | "show"): Promise<FullCinementType | null> => {
+export const getTaleon = async (ext_id: string, type: "movie" | "show"): Promise<FullTaleonType | null> => {
   if (!ext_id) return null;
 
   const id = ext_id.split("-")[0];
 
-  const item = await ppGetData<FullCinementType>({
-    url: `cinement/${id}`,
-    revalidate: oneDay * 2,
-    tag: "cinement_extid",
+  const item = await ppGetData<FullTaleonType>({
+    url: `taleon/${id}`,
+    revalidate: oneDayInSeconds * 3,
+    tag: "taleon_extid",
     options: { extid: id },
   });
 
-  if (item.success) return { ...item.result, cinement_id: item.result._id };
+  if (item.success) {
+    // Updating taleon after 3 days of editing
+    if (new Date(item.result.editedAt) < new Date(Date.now() + (oneDayInMiliSeconds * 3)))
+      createUpdateTaleon(ext_id, type);
 
-  const data: GeneralExtReturn<RefinedShowData | RefinedMovieData> = await fetch(
-    `https://testlalaapp.vercel.app/api/${type}?id=${ext_id}`,
-    { next: { revalidate: oneDay * 2 } }
-  ).then((r) => r.json());
+    return { ...item.result, taleon_id: item.result._id };
+  }
 
-  if (!data.status) return null;
+  return await createUpdateTaleon(ext_id, type);
 
-  const { title, year, poster } = data.response;
-
-  const dataToPost = {
-    title: title,
-    poster: poster || "",
-    year,
-    cinement_type: type,
-    ext_id: id,
-  };
-
-  // console.log("data to post", data);
-
-  const resp = await axios
-    .post(`${parloculaAppURL}/api/v1/cinement/${id}`, objectToFormData(dataToPost))
-    .then((r) => r.data)
-    .catch(r => r.response.data);
-
-  // console.log("response of post in getCinement", resp);
-
-  const { result } = resp;
-
-  return result;
 };
 
-export const getShelvesForCinement = async (id: string, uid: string, cookies?: CookiesType) =>
-  await ppGetData<ShelvesForCinement>({
-    url: `private/${uid}/cinement/${id}`,
-    tag: "shelvesForCinement_cid_uid",
-    options: { cid: id, uid },
-    revalidate: oneDay,
+export const getShelvesForTaleon = async (id: string, uid: string, cookies?: CookiesType) =>
+  await ppGetData<ShelvesForTaleon>({
+    url: `private/${uid}/taleon/${id}`,
+    tag: "shelvesForTaleon_tid_uid",
+    options: { tid: id, uid },
+    revalidate: oneHourInSeconds,
     cookies,
   });
 
@@ -462,12 +449,13 @@ export const getShelf = async (
   const { success, errCode, result } = await ppGetData<FullShelf>({
     url: `private/${uid}/shelf/${id}`,
     searchParams: { k: key },
-    revalidate: oneDay * 2,
-    tag: "shelf_sid_key",
-    options: { lid: id, key },
+    revalidate: oneDayInSeconds,
+    tag: "shelf_sid",
+    options: { sid: id },
   });
 
-  if (!success || !result) return { success, errCode, result };
+  if (!success || !result)
+    return { success, errCode, result };
 
   if (result.isPrivate) {
     if (!uid) return { success: false, errCode: "unauthenticated_access" };
@@ -486,7 +474,7 @@ export const getShelf = async (
 export const getShelfConnection = async (uid: string, sid: string, cookies?: CookiesType) =>
   await ppGetData<Required<CollaboratorModelType>>({
     url: `private/${uid}/shelf/${sid}/isCollaborator`,
-    revalidate: oneDay * 3,
+    revalidate: oneDayInSeconds * 3,
     tag: "isShelfCollaborator_uid_sid",
     options: { sid, uid },
     cookies,
@@ -496,7 +484,7 @@ export const getCollaboratorsOfShelf = async (uid: string, sid: string, cookies:
   await ppGetData<ShelfCollaborators>({
     url: `private/${uid}/shelf/${sid}/collaborators`,
     cookies,
-    revalidate: oneDay * 3,
+    revalidate: oneDayInSeconds * 3,
     tag: "shelfCollaborators_sid",
     options: { sid },
   });
@@ -511,9 +499,9 @@ export const getItems = async (
   await ppGetData<AggregatedResponse<ShelfItemType>>({
     url: `private/${uid}/item/${id}`,
     searchParams: { k: key, f: filter, p: page },
-    revalidate: oneDay,
-    tag: "items_sid_filter_page_key",
-    options: { sid: id, filter, page, key },
+    revalidate: oneHourInSeconds,
+    tag: "itemsOfShelf_sid",
+    options: { sid: id },
   });
 
 export const searchPosts = async (query: string, nsfw: boolean, page = 1) =>
@@ -577,7 +565,7 @@ export const checkIfItemSaved = async (
 ) =>
   await ppGetData({
     url: `private/${uid}/bookmark/${id}`,
-    revalidate: oneDay * 2,
+    revalidate: oneDayInSeconds * 3,
     tag: "isSaved_uid_id",
     options: { uid, id },
     cookies,
@@ -592,9 +580,9 @@ export const getSavedContent = async (
   await ppGetData<AggregatedResponse>({
     url: `private/${uid}/bookmark/${type}`,
     searchParams: { p: page },
-    revalidate: oneDay * 2,
-    tag: `saved-${type}s_uid_page`,
-    options: { uid, page },
+    revalidate: oneDayInSeconds,
+    tag: `saved-${type}s_uid`,
+    options: { uid },
     cookies,
   });
 
@@ -605,7 +593,7 @@ export const checkUserConnection = async (
 ): Promise<GeneralGetReturn> =>
   await ppGetData({
     url: `private/${uid}/user/${rid}/follow`,
-    revalidate: oneDay * 2,
+    revalidate: oneDayInSeconds * 2,
     tag: "connection_rid_uid",
     options: { uid, rid },
     cookies,
@@ -619,9 +607,9 @@ export const getNotificationsOfUser = async (
   await ppGetData<AggregatedResponse<NotificationModelType>>({
     url: `private/${uid}/notification`,
     searchParams: { p: page },
-    revalidate: oneDay,
-    tag: "notifications_uid_page",
-    options: { uid, page },
+    revalidate: oneHourInSeconds,
+    tag: "notifications_uid",
+    options: { uid },
     cookies,
   });
 
@@ -637,7 +625,7 @@ export const getManagers = async (tid: string, uid: string, cookies?: CookiesTyp
     url: `private/${uid}/thread/${tid}/managers`,
     tag: "threadManagers_tid",
     options: { tid },
-    revalidate: oneDay * 3,
+    revalidate: oneDayInSeconds * 3,
     cookies,
   });
 
@@ -663,8 +651,8 @@ export const getRoomById = async (
   uid: string,
   rmid: string,
   cookies?: CookiesType
-): Promise<GeneralGetReturn<FullRoomType>> =>
-  await ppGetData({
+) =>
+  await ppGetData<FullRoomType>({
     url: `private/${uid}/room/${rmid}`,
     cookies,
   });
@@ -696,8 +684,8 @@ export const getMessages = async (
   rmid: string,
   page = 1,
   cookies?: CookiesType
-): Promise<GeneralMultipleReturn<MereMessage>> =>
-  await ppGetData({
+) =>
+  await ppGetData<AggregatedResponse<MereMessage>>({
     url: `private/${uid}/room/${rmid}/message`,
     searchParams: { p: page },
     cookies,
@@ -706,29 +694,30 @@ export const getMessages = async (
 export const getUserMeta = async (uid: string) =>
   await ppGetData<MereUser>({ url: `user/meta/${uid}` });
 
-export const getReportsOnContent = (content_id: string) =>
-  ppGetData<{ reports: ReportsType[] }>({
+
+export const getReportsOnContent = async (content_id: string) =>
+  await ppGetData<{ reports: ReportsType[] }>({
     url: `report/${content_id}`,
-    revalidate: oneDay,
+    revalidate: oneDayInSeconds,
     tag: "reports_cnid",
     options: { cnid: content_id }
   });
 
-export const checkIfReportExists = (cnid: string, uid: string, type: "post" | "comment" | "thread" | "user", cookies?: CookiesType) =>
-  ppGetData<ReportModelType>({
+export const checkIfReportExists = async (cnid: string, uid: string, type: "post" | "comment" | "thread" | "user", cookies?: CookiesType) =>
+  await ppGetData<ReportModelType>({
     url: `private/${uid}/report/${cnid}`,
     searchParams: { t: type },
     cookies,
-    revalidate: oneDay * 3
+    revalidate: oneDayInSeconds * 3
   })
 
-export const getReportsOnThread = (tid: string, uid: string) =>
-  ppGetData<{ reports: ReportsType[] }>({
+export const getReportsOnThread = async (tid: string, uid: string) =>
+  await ppGetData<{ reports: ReportsType[] }>({
     url: `private/${uid}/report/${tid}/thread`
   });
 
-export const getReportedContents = (tid: string, uid: string, type: "post" | "comment", page = 1) =>
-  ppGetData<AggregatedResponse<ReportsType>>({
+export const getReportedContents = async (tid: string, uid: string, type: "post" | "comment", page = 1) =>
+  await ppGetData<AggregatedResponse<ReportsType>>({
     url: `private/${uid}/report/${tid}/${type}s`,
     searchParams: { p: page },
   });
@@ -739,8 +728,9 @@ export const searchRooms = async (uid: string, query: string, page = 1) =>
     searchParams: { q: query, p: page },
   });
 
-export const searchNonBlockedUsers = async (uid: string, query: string, page = 1): Promise<GeneralMultipleReturn<MereUser>> =>
-  await ppGetData({
+export const searchNonBlockedUsers = async (uid: string, query: string, page = 1) =>
+  await ppGetData<AggregatedResponse<MereUser>>({
+
     url: `private/${uid}/search/users`,
     searchParams: { q: query, p: page }
   });

@@ -26,7 +26,7 @@ const robotoFont = Roboto({
   subsets: ["latin"],
 });
 
-export const metadata = generateDynamicMetadata({title: "Welcome"});
+export const metadata = generateDynamicMetadata({}, true);
 
 const NotificationFetcher = async ({ children }: PropsWithChildren) => {
 
@@ -35,7 +35,7 @@ const NotificationFetcher = async ({ children }: PropsWithChildren) => {
   const jar = await cookies();
   const payload = await getUserFromToken(jar);
   let currentUser: CurrentUser | null = null;
-  
+
   if (payload) {
     const { user_id, username } = payload;
 
@@ -73,7 +73,6 @@ const NotificationFetcher = async ({ children }: PropsWithChildren) => {
 const RootLayout = async ({ children }: PropsWithChildren) => {
   return (
     <html lang="en" suppressHydrationWarning>
-      {/* {*<body className={`${fontFam.className}`}>} */}
       <body className={`${robotoFont.variable} ${montserratFont.variable} antialiased`}>
         <Toaster swipeDirections={["bottom", "left", "right"]} />
         <ReactQueryProvider>

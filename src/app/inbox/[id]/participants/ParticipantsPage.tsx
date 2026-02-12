@@ -1,3 +1,5 @@
+"use client";
+
 import { CheckIcon } from "@assets/Icons";
 import { InfiniteScroller, ListSelector, ListSelectorRef, Navbar } from "@components";
 import { UserBar } from "@components/ui";
@@ -67,8 +69,6 @@ const RemoveSection = ({ rmid, uid }: Props & { back: TypedFunction }) => {
             />
             <ListSelector
                 callbackRef={callbackRef}
-                queryKeys={undefined}
-                queryFn={undefined}
                 queryFnForList={(p) => getParticipantsOfRoom(uid, rmid, p)}
                 queryKeysForList={getQueryKeys("participantsOfRoom_rmid_uid", { rmid, uid })}
                 refiner={(user) => ({

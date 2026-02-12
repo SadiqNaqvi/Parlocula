@@ -149,7 +149,7 @@ export type MembershipModelType = {
   actionsTaken?: number,
   notification?: boolean;
   banned?: boolean;
-} & DocumentExpiration;
+};
 
 export type ReactionModelType = {
   _id?: Nanoid;
@@ -172,16 +172,17 @@ export type ConnectionModelType = {
   notification: boolean;
 };
 
-export type CinementModelType = {
+export type TaleonModelType = {
   _id?: Nanoid;
   title: string;
   poster: string;
   year: number;
-  cinement_type: "movie" | "show";
+  taleon_type: "movie" | "show";
   ext_id: string;
   favourite?: number;
   watched?: number;
   recommended?: number;
+  editedAt: GenericDate;
 };
 
 export type PredefinedShelves = "favourite" | "recommended" | "watched";
@@ -202,7 +203,7 @@ export type ShelfModelType = {
 
 export type ShelfItemModelType = {
   _id?: Nanoid;
-  cinement_id: Nanoid;
+  taleon_id: Nanoid;
   shelf_id: Nanoid;
   user_id: Nanoid;
   ext_id: string;
@@ -240,7 +241,7 @@ export type NotificationModelType = {
   status?: "pending" | "accepted" | "denied";
   request_type?: "manager_invitation" | "collaborator_invitation";
   createdAt?: GenericDate;
-} & DocumentExpiration;
+};
 
 export type SanctionModelType = {
   _id: Nanoid,

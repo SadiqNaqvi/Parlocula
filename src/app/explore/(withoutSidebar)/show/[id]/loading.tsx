@@ -1,5 +1,5 @@
-import CinementWikiSkeleton from "@components/ui/loading/CinementWikiSkeleton";
+import TaleonWikiSkeleton from "@components/ui/loading/TaleonWikiSkeleton";
 
-const Loading = () => <CinementWikiSkeleton backdrop />
+const Loading = () => <TaleonWikiSkeleton backdrop />
 
 export default Loading;

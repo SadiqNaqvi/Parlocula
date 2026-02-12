@@ -1,31 +1,31 @@
 import { postHandler } from "@lib/helpers/handlers";
-import { Cinement, Shelf, ShelfItem } from "@model";
+import { Taleon, Shelf, ShelfItem } from "@model";
 import Collaborator from "@model/collaborators";
 
 // Add item in collaborative list
-export const POST = postHandler<{ cinement_id: string }>({
+export const POST = postHandler<{ taleon_id: string }>({
     handler: async ({ data, params, user_id, session }) => {
 
         const { id } = params;
-        const { cinement_id } = data;
+        const { taleon_id } = data;
 
-        const exists = await ShelfItem.exists({ shelf_id: id, cinement_id });
+        const exists = await ShelfItem.exists({ shelf_id: id, taleon_id });
 
         if (exists)
             return { success: true, result: null, revalidateQueue: [] }
 
-        const cinement = await Cinement.findById(cinement_id);
+        const taleon = await Taleon.findById(taleon_id);
 
-        if (!cinement) return {
+        if (!taleon) return {
             success: false, errCode: "resource_not_found"
         }
 
         await ShelfItem.insertOne({
-            cinement_id,
-            ext_id: cinement.ext_id,
+            taleon_id,
+            ext_id: taleon.ext_id,
             shelf_id: id,
             user_id,
-            year: cinement.year,
+            year: taleon.year,
         }, { session });
 
         const shelf = await Shelf.findByIdAndUpdate(id, {

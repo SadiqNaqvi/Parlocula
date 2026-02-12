@@ -1,14 +1,10 @@
 "use server";
 
-import { oneDay } from "@lib/constants";
+import { oneDayInSeconds } from "@lib/constants";
 import { getRedis, handleParsing } from "@lib/providers/redis";
 import { Session } from "@type/internal";
 
-export const storeToRedis = async (
-  id: string,
-  exp: number,
-  obj: Record<string, any>
-) => {
+export const storeToRedis = async (id: string, exp: number, obj: Session) => {
   try {
     const redis = await getRedis();
     const resp = await redis.setex(`session:${id}`, exp, JSON.stringify(obj));
@@ -20,9 +16,9 @@ export const storeToRedis = async (
 };
 
 export const storeSession = async (id: string, object: Omit<Session, "expireOn">) => {
-  return await storeToRedis(id, oneDay * 30, {
+  return await storeToRedis(id, oneDayInSeconds * 30, {
     ...object,
-    expiresOn: Date.now() + oneDay * 30,
+    expireOn: Date.now() + (oneDayInSeconds * 30 * 1000),
   });
 };
 

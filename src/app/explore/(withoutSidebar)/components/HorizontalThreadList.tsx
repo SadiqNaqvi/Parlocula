@@ -2,7 +2,7 @@
 
 import { OptionalChildren, ShowError, ThreadBox } from "@components/ui";
 import { ThreadBoxSkeleton } from "@components/ui/loading";
-import { getThreadsForCinementOrArtist } from "@lib/helpers/common";
+import { getThreadsForTaleonOrArtist } from "@lib/helpers/common";
 import { useQueryHook } from "@lib/hooks";
 import { getQueryKeys } from "@lib/utils";
 import useCurrentUser from "@store/user";
@@ -41,8 +41,8 @@ const HorizontalThreadList = ({ id, type }: { id: string, type: string }) => {
 
     const { refetch, isFetching, error, data } = useQueryHook<{ data: MereThread[] }>({
         enabled: isVisible,
-        queryKeys: getQueryKeys("threadsOnCinementOrArtist_id", { id }),
-        queryFn: () => getThreadsForCinementOrArtist(id, 1, !filterContent),
+        queryKeys: getQueryKeys("threadsOnTaleonOrArtist_id", { id }),
+        queryFn: () => getThreadsForTaleonOrArtist(id, 1, !filterContent),
     });
 
     if (isFetching || !isVisible) return (

@@ -19,7 +19,7 @@ type HeaderProps = {
     titleToShare?: string;
 }
 
-const CinementWikiHeader = ({ className, posterClassName, title, titleToShare, poster, backdrop, descriptionSupport, titleSupport, overviewOrBio, wikiMeta, callToActions }: HeaderProps) => (
+const TaleonWikiHeader = ({ className, posterClassName, title, titleToShare, poster, backdrop, descriptionSupport, titleSupport, overviewOrBio, wikiMeta, callToActions }: HeaderProps) => (
     <>
         <ObserverHeader
             titleToShare={titleToShare || `Check out ${title} on Parlocula`}
@@ -39,7 +39,7 @@ const CinementWikiHeader = ({ className, posterClassName, title, titleToShare, p
                         width={768}
                         height={300}
                         prioritize
-                        className={twMerge("w-full rounded-md aspect-[16/9] h-auto max-h-[250px] object-cover object-top", posterClassName)}
+                        className={twMerge("w-full rounded-md aspect-[16/9] h-auto max-h-[250px] object-cover object-top")}
                         alt="Backdrop"
                         frame={getPoster({ external: true, type: "backdrop", path: backdrop, size: "w780" })}
                     />
@@ -50,13 +50,13 @@ const CinementWikiHeader = ({ className, posterClassName, title, titleToShare, p
 
                 <ParloImage
                     fancy={{
-                        gallery: "cinement_poster",
+                        gallery: "taleon_poster",
                         fullSizePath: getPoster({ external: true, type: "poster", path: poster, size: "original" }),
                         fileNameToDownload: `Poster of ${title} - Parlocula`,
                     }}
                     height={160}
                     width={160}
-                    className={`${backdrop ? "absolute -translate-y-[50%] top-0 border-4 border-primary" : ''} object-cover min-w-24 size-24 sm:min-w-40 sm:size-40 rounded-full`}
+                    className={twMerge(`${backdrop ? "absolute -translate-y-[50%] top-0 border-4 border-primary" : ''} object-cover min-w-24 size-24 sm:min-w-40 sm:size-40 rounded-full`, posterClassName)}
                     alt={`Poster of ${title}`}
                     frame={getPoster({ external: true, type: "poster", path: poster, size: "w185" })}
                 />
@@ -101,7 +101,7 @@ type SectionProps<T extends AllowedFunctionsForHorizontalList> = {
     className?: string;
 }
 
-export const CinementWikiSection = <T extends AllowedFunctionsForHorizontalList>({ className, heading, hrefForMoreButton, children, horizontalMovieListProps }: PropsWithChildren<SectionProps<T>>) => (
+export const TaleonWikiSection = <T extends AllowedFunctionsForHorizontalList>({ className, heading, hrefForMoreButton, children, horizontalMovieListProps }: PropsWithChildren<SectionProps<T>>) => (
 
     <section className={twMerge("space-y-2 px-2 sm:px-4 border-b last:border-b-0 border-gray30 xs:border-0 my-4 py-4", className)}>
         <div className={`${hrefForMoreButton ? "flex flex-cntr-between" : ''}`}>
@@ -119,4 +119,4 @@ export const CinementWikiSection = <T extends AllowedFunctionsForHorizontalList>
     </section >
 )
 
-export default CinementWikiHeader;
+export default TaleonWikiHeader;
