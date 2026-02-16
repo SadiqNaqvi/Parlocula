@@ -58,6 +58,7 @@ export const POST = postHandler<ShelfSchemaType>({
 
     if (!data.isPrivate) {
       const followers = await getFollowersToNotify(user_id, 100);
+
       await sendNotification(
         followers.map(({ follower }) => ({
           title: `${username} has created a new shelf`,
@@ -72,9 +73,9 @@ export const POST = postHandler<ShelfSchemaType>({
         })),
         session
       );
-    }
 
-    await User.findByIdAndUpdate(user_id, { $inc: { publicShelves: 1 } }, { session })
+      await User.findByIdAndUpdate(user_id, { $inc: { publicShelves: 1 } }, { session })
+    }
 
     return {
       success: true,

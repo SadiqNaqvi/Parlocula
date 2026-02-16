@@ -220,7 +220,7 @@ export const POST = postHandler<RoomSchemaType>({
 });
 
 export const PATCH = updateHandler<RoomUpdateSchemaType>({
-  handler: async ({ data, frames, params, isNsfw, session, user_id, username }) => {
+  handler: async ({ data, frames, params, isNsfw, session, user_id, username, areFilesToDelete }) => {
     const { id } = params;
     const room = await Room.findById(id, { type: 1 });
 
@@ -230,10 +230,12 @@ export const PATCH = updateHandler<RoomUpdateSchemaType>({
       return { success: false, errCode: "unauthorized_access" }
 
     const poster = frames.length ? frames[0] : undefined;
+
     const { name } = data;
+
     const fieldsToUpdate = {
       ...(name && { name }),
-      ...(poster && { poster }),
+      ...(frames.length ? { poster: frames[0] } : areFilesToDelete && { poster: undefined }),
     }
 
     await Room.findByIdAndUpdate(id, {

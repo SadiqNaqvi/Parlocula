@@ -36,6 +36,7 @@ const FancyImage = ({ id, download, caption, alt, src, height, width, type = "im
             data-caption={caption}>
             {type === "image" ?
                 <ParloImage
+                    frameType="poster"
                     data-lazy-src={thumbnail ?? source}
                     frame={thumbnail ?? source}
                     alt={alt}

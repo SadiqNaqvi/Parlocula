@@ -1,9 +1,9 @@
 "use client";
 
 import { RightChevron } from "@assets/Icons";
-import { BottomSheet, BottomSheetRef, InfiniteScroller, LoadingButton, NestedSheet } from "@components";
+import { BottomSheet, BottomSheetRef, InfiniteScroller, LoadingButton, Navigate, NestedSheet } from "@components";
 import { LoginModal } from "@components/fallbacks";
-import { Form, ShelfForm, ShelfSelector } from "@components/form";
+import { ShelfSelector } from "@components/form";
 import { getAllShelvesOfUser, getShelvesForTaleon } from "@lib/helpers/common";
 import { updateShelvesWithItem } from "@lib/helpers/mutations";
 import { useQueryHook } from "@lib/hooks";
@@ -11,15 +11,16 @@ import { getQueryKeys } from "@lib/utils";
 import useCurrentUser from "@store/user";
 import { MereShelf } from "@type/internal";
 import { PredefinedShelves } from "@type/models";
-import { TaleonSchemaType } from "@type/schemas";
+import { ConfirmedTaleon } from "@type/schemas";
 import { useEffect, useRef, useState } from "react";
 import AddToCollaborativeShelf from "./AddToCollaborativeShelf";
 
 const buttonClassName = "w-full py-2 flex flex-cntr-between";
 
-type ShelfClickActions = "added" | "removed" | "none"
+type ShelfClickActions = "added" | "removed" | "none";
 
-const AddToShelf = ({ className, taleon, released }: { className?: string, taleon: TaleonSchemaType, released: boolean }) => {
+
+const AddToShelf = ({ className, taleon, released }: { className?: string, taleon: ConfirmedTaleon, released: boolean }) => {
 
     const { meta, user } = useCurrentUser();
     const sheetRef = useRef<BottomSheetRef>(null);
@@ -132,20 +133,16 @@ const AddToShelf = ({ className, taleon, released }: { className?: string, taleo
     return (
         <BottomSheet onClose={submit} ref={sheetRef} button="Add To Shelf" className={className}>
             <>
+                <header className="px-2 sticky bottom-0 space-y-2 w-full pb-4 border-b border-gray30">
 
-                <header className="px-2 sticky bottom-0 space-y-2 bg-primary w-full pb-4 border-b border-gray30">
-                    <div onClick={submit}>
-                        <NestedSheet
-                            className={buttonClassName}
-                            button={(
-                                <>
-                                    <span>Create New Shelf</span>
-                                    <RightChevron />
-                                </>
-                            )}>
-                            <ShelfForm taleons={[taleon]} />
-                        </NestedSheet>
-                    </div>
+                    <Navigate
+                        goto={`/new/shelf?extid=${taleon.ext_id}&type=${taleon.taleon_type}`}
+                        comp="link" className="w-full flex flex-cntr-between"
+                    >
+                        <span>Create New Shelf</span>
+                        <RightChevron />
+                    </Navigate>
+
                     <NestedSheet
                         button={(
                             <>
@@ -165,7 +162,6 @@ const AddToShelf = ({ className, taleon, released }: { className?: string, taleo
                 </header>
 
                 <section className="px-2 space-y-1 my-4">
-                    <h4 className="text-xs uppercase">For Others</h4>
                     <ul className="space-y-2">
                         {user.predefinedShelves.map(s => (
                             <li key={s._id}>
@@ -180,7 +176,11 @@ const AddToShelf = ({ className, taleon, released }: { className?: string, taleo
                         Component={ShelfSelectorBar}
                         fetchData={(p) => getAllShelvesOfUser(meta.user_id, p)}
                         queryKeys={getQueryKeys("allShelvesOfUser_uid", { uid: meta.user_id })}
-                        NotFoundSection={<></>}
+                        NotFoundSection={(
+                            <div className="my-4">
+                                <p>Uh oh! Looks like it{"'"}s time to create a new shelf.</p>
+                            </div>
+                        )}
                         className="space-y-2"
                     />
                 </section>

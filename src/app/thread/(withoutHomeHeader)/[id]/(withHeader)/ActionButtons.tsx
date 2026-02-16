@@ -46,14 +46,6 @@ const className = "primary w-full sm:w-fit";
 
 const JoinButton = ({ thread, uid }: { thread: MereThread, uid?: string }) => {
 
-    const navigation = useNavigation();
-    const [, setThreadToPost] = useGlobalStore("chosenThreadToPost");
-
-    const handleNewPostRedirect = () => {
-        setThreadToPost(thread);
-        navigation.goto("/post/new");
-    }
-
     const Button = ({ onClick, state, user_id }: UserBasedButtonProps<ThreadMembership>) => {
 
         if (state?.banned) return (
@@ -91,9 +83,15 @@ const JoinButton = ({ thread, uid }: { thread: MereThread, uid?: string }) => {
                     <OptionList onClick={() => handleClick("leave_thread")}>Leave Thread</OptionList>
                     <OptionList onClick={() => handleClick("update_thread_notification")}>{state.notification ? "Disable" : "Enable"} Notification</OptionList>
                 </OptionMenu>
-                
-                <button className="secondary flex-1 sm:flex-0" onClick={handleNewPostRedirect}>Create Post</button>
-                
+
+                <Navigate
+                    comp="link"
+                    goto={`/new/post?tid=${thread._id}`}
+                    className="btn secondary flex-1 sm:flex-0"
+                >
+                    Create Post
+                </Navigate>
+
                 <RoleBasedActionButtons role={state.role} tid={thread._id} />
             </div>
         )

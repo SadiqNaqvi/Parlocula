@@ -11,7 +11,7 @@ const DescriptiveSheet = ({ children, title, descriptions, className }: PropsWit
 
     return (
         <BottomSheet button={children} className={className}>
-            <div className="py-4">
+            <div className="py-4 space-y-4">
                 {title && <h4 className="text-xl capitalize">{title}</h4>}
                 <ul className="space-y-2">
                     {descriptions.map(desc => (

@@ -6,7 +6,7 @@ import { getThreadById } from "@lib/helpers/common";
 import { getQueryKeys } from "@lib/utils";
 import { Thread as ThreadType } from "@type/internal";
 import { ActionsButton, EllipsisButton, ThreadDetailsSheet } from "./";
-import { ParloImage } from "@components/ui";
+import { OptionalChildren, ParloImage } from "@components/ui";
 
 type Props = { id: string, uid?: string }
 
@@ -30,12 +30,11 @@ const Component = (data: ThreadType, { id, uid }: Props) => {
 
                 <section className="flex gap-2 sm:gap-4 items-center">
                     <ParloImage
-                        fancy={{
-                            fileNameToDownload: `Poster of thread "${name}" - Parlocula`,
-                            gallery: "thread-poster",
-                        }}
                         className="min-w-24 size-24 sm:min-w-32 sm:size-32 object-cover rounded-full"
                         frame={poster}
+                        frameType="threadPoster"
+                        fancyGallery="thread-poster"
+                        fileNameToDownload={`Poster of thread "${name}" - Parlocula`}
                         height={128} width={128}
                         alt="Poster"
                         prioritize
@@ -52,6 +51,12 @@ const Component = (data: ThreadType, { id, uid }: Props) => {
                 </section>
                 <section className="mt-4">
 
+                    <OptionalChildren condition={nsfw}>
+                        <div className="my-4">
+                            <span className="py-1 px-2 rounded-md border border-purple-500 bg-purple-500/30">NSFW</span>
+                        </div>
+                    </OptionalChildren>
+                    
                     <BottomSheet className="text-sm line-clamp-2 whitespace-break-spaces text-left" button={description}>
                         <ThreadDetailsSheet
                             connections={connections}

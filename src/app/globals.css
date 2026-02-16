@@ -310,10 +310,6 @@ h6 {
   border-radius: 25px;
 }
 
-li {
-  list-style-position: inside;
-}
-
 .size-screen {
   height: 100dvh;
   width: 100dvw;
@@ -569,11 +565,8 @@ button.disable {
 textarea {
   outline: none;
   background-color: transparent;
-  border-radius: var(--globalRadius);
   display: inline-table;
   height: 1.3rem;
-  font-size: 1rem;
-  line-height: 1rem;
 }
 
 .nav-active {

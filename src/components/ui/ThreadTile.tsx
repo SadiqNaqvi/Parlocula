@@ -1,14 +1,14 @@
 import { makeUrlSafe, numberConverter } from "@lib/utils"
 import { MereThread } from "@type/internal"
-import Navigate from "../Navigate"
-import OptionalChildren from "./OptionalChildren"
-import ParloImage from "./ParloImage"
+import { Navigate } from "@components"
+import { OptionalChildren, ParloImage } from "@components/ui"
 
 const ThreadTile = ({ name, poster, _id, member_count, post_count }: MereThread) => {
     return (
         <Navigate role="button" comp="link" goto={`/thread/${_id}-${makeUrlSafe(name)}`}>
             <article className="flex gap-2 items-center p-2 sm:px-4">
                 <ParloImage
+                    frameType="threadPoster"
                     className="min-w-10 size-10 rounded-full object-cover"
                     frame={poster}
                     alt="Poster"

@@ -1,87 +1,58 @@
-"use client";
-
-import { CreateEditPost, GenericWrapper } from "@components";
-import { CreateEditPostReturn } from "@components/CreateEditPost";
+import { CreateEditPost } from "@components";
 import LoginModal from "@components/fallbacks/LoginModal";
-import { NotFound } from "@components/ui";
+import { NotFound, ShowError } from "@components/ui";
+import { getUserFromToken } from "@lib/auth/utils";
 import { getPostById } from "@lib/helpers/common";
-import { updatePostMutation } from "@lib/helpers/mutations";
-import { checkEditedFields, getQueryKeys, readyFrames } from "@lib/utils";
-import { useNavigation } from "@store/historystack";
-import useCurrentUser from "@store/user";
-import { FullPost } from "@type/internal";
+import { fetchQuery, getQueryClient } from "@lib/providers/queryClient";
+import { getQueryKeys } from "@lib/utils";
 import { ParloPageProps } from "@type/other";
-import { InputFrame } from "@type/schemas";
-import { useParams } from "next/navigation";
+import { cookies } from "next/headers";
 
-type Props = { id: string }
+const Page = async ({ params }: ParloPageProps) => {
 
-const getQueryProps = ({ id }: Props) => ({
-    queryKeys: getQueryKeys("post_id", { id }),
-    queryFn: getPostById,
-    args: [id],
-});
+    const { id } = await params;
 
-const Page = () => {
+    const queryClient = getQueryClient();
+    const jar = await cookies();
+    const user = await getUserFromToken(jar);
 
-    const { id } = useParams() as { id: string };
+    const post = await fetchQuery({
+        queryClient,
+        queryKey: getQueryKeys("post_id", { id }),
+        queryFn: () => getPostById(id),
+    });
 
-    const { meta } = useCurrentUser();
-    const navigation = useNavigation();
+    if (!user) return <LoginModal />
 
-    const Component = (data: FullPost) => {
-
-        if (!meta) return (
-            <LoginModal />
-        )
-
-        else if (meta.user_id !== data.user_id) return (
-            <NotFound
-                title="The Parlocula Guards Stopped You"
-                paras={[
-                    "Seems like you are not the author of the post."
-                ]}
-            />
-        )
-
-        const frames: InputFrame[] = data.frames.map((frame) => ({
-            ...frame,
-            isExternal: true,
-            blob: null,
-            shouldUpload: false,
-        }));
-
-        const callback = async (updatedData: CreateEditPostReturn) => {
-            const { frames, ...others } = updatedData;
-
-            const editedFields = checkEditedFields(others, updatedData);
-
-            const removedFrames = data.frames.filter(
-                ({ isExternal, path }) => !Boolean(frames.find(frame => frame.path === path) || isExternal)
-            ).map(({ path, type }) => ({ path, type }));
-
-            const { files, filesData } = await readyFrames(frames);
-
-            updatePostMutation(
-                id,
-                meta.user_id,
-                { ...editedFields, files, filesData, filesToRemove: removedFrames },
-                data.thread_id,
-            );
-            navigation.replace(`/post/${id}`);
-        };
-
-        return <CreateEditPost
-            callback={callback}
-            isEditing={true}
-            defaultVal={{ ...data, frames }}
-            defaultThread={undefined}
-            titleOfQuotedPost={undefined}
+    else if (!post) return (
+        <NotFound
+            title="Uh oh! The Parlocula Explorers came empty handed"
+            paras={[
+                "No post could be found with the provided id", "Please visit the post or search by title in the search page"
+            ]}
+            fullScreen
+            redirectToExplore
         />
+    )
 
-    }
+    else if (user.user_id !== post.user_id) return (
+        <ShowError
+            heading="Uh oh! The Parlocula Guards detained you"
+            messages={[
+                "Seems like you are not the author of the post."
+            ]}
+            fullScreen
+        />
+    )
 
-    return <GenericWrapper props={{ id }} component={Component} getQueryProps={getQueryProps} />
-};
+    return (
+        <CreateEditPost
+            isEditing={true}
+            defaultVal={post}
+            defaultThread={undefined}
+            quotedPost={undefined}
+        />
+    )
+}
 
 export default Page;

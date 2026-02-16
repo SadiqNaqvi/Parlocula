@@ -71,6 +71,7 @@ export const useNavigation = (): AppNavigationInstance => {
     // Check if user navigated backwards
     if (pathname === prevPage) {
       popHistory();
+      console.log("user went backwards", recentlyOpened, prevPage, historyStack);
     }
 
   }, [pathname]);

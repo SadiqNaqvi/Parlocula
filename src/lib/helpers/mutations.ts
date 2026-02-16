@@ -330,7 +330,7 @@ export const loginUserMutation = async (data: { email: string, code: number }) =
 
 };
 
-export const createUpdateTaleon = async (ext_id: string, type: "movie" | "show"): Promise<FullTaleonType | null> => {
+export const createUpdateTaleon = async (ext_id: string, type: "movie" | "show", update: boolean): Promise<FullTaleonType | null> => {
 
     const data: GeneralExtReturn<RefinedShowData | RefinedMovieData> = await fetch(
         `https://testlalaapp.vercel.app/api/${type}?id=${ext_id}`,
@@ -348,6 +348,18 @@ export const createUpdateTaleon = async (ext_id: string, type: "movie" | "show")
         taleon_type: type,
         ext_id,
     };
+    
+    if (update) {
+
+        const resp = await axios
+            .patch(`${parloculaAppURL}/api/v1/taleon/${ext_id}`, objectToFormData(dataToPost))
+            .then((r) => r.data)
+            .catch(r => r.response.data);
+
+        const { result } = resp;
+
+        return result;
+    }
 
     const resp = await axios
         .post(`${parloculaAppURL}/api/v1/taleon/${ext_id}`, objectToFormData(dataToPost))
@@ -893,10 +905,10 @@ export const addItemsInShelf = async (sid: string, uid: string, items: TaleonSch
     if (!meta) throw new Error("Guest is trying to add items in a shelf");
 
     const shelfItems: ShelfItemType[] = items.map(item => {
-        const { isConfirm, ...rest } = item;
         return {
-            ...rest,
-            _id: item.taleon_id,
+            ...item,
+            _id: item.taleon_id || '',
+            taleon_id: item.taleon_id || '',
             shelf_id: sid,
             user_id: uid,
             createdAt: Date.now(),
@@ -935,7 +947,7 @@ export const addItemInCollaborativeShelf = async (sid: string, uid: string, tale
     })
 }
 
-export const createShelfMutation = async (uid: string, shelf: ShelfSchemaType) => {
+export const createShelfMutation = async (uid: string, shelf: ShelfSchemaType, navigation?: AppNavigationInstance) => {
     return await performMutation({
         mutationFn: () => ppPostData<FullShelf>({ url: "shelf", data: shelf, uid }),
         onSuccess: ({ data }) => {
@@ -975,6 +987,8 @@ export const createShelfMutation = async (uid: string, shelf: ShelfSchemaType) =
                 });
 
             });
+
+            if (navigation) navigation.replace(`/shelf/${data._id}`);
         }
     })
 }

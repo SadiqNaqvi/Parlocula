@@ -14,7 +14,7 @@ const Page = async ({ searchParams }: ParloPageProps) => {
     const user = await getUserFromToken(jar);
 
     if (!user) return (
-        <LoginModal redirectTo="/thread/joined" />
+        <LoginModal skipFullScreen redirectTo="/thread/joined" />
     );
 
     const queryClient = getQueryClient();

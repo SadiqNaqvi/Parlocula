@@ -8,25 +8,25 @@ const ShelfPosterIcons = ({ type, className }: { type: AllShelves, className?: s
 
     if (type === "favourite") return (
         <div className={twMerge("rounded-full size-full flex flex-cntr-all bg-gray10", className)}>
-            <HeartIcon className="text-pink-500 size-full max-w-20" />
+            <HeartIcon className="text-pink-500 size-full max-w-16" />
         </div>
     );
 
     else if (type === "recommended") return (
         <div className={twMerge("rounded-full size-full flex flex-cntr-all bg-gray10", className)}>
-            <StarIcon className="text-purple-500 size-full max-w-20" />
+            <StarIcon className="text-purple-500 size-full max-w-16" />
         </div>
     );
 
     else if (type === "watched") return (
         <div className={twMerge("rounded-full size-full flex flex-cntr-all bg-gray10", className)}>
-            <EyesIcon className="text-orange-500 size-full max-w-20" />
+            <EyesIcon className="text-orange-500 size-full max-w-16" />
         </div>
     );
 
     else return (
         <div className={twMerge("rounded-full size-full flex flex-cntr-all bg-gray10", className)}>
-            <CollectionIcon className="text-sky-500 size-full max-w-20" />
+            <CollectionIcon className="text-sky-500 size-full max-w-16" />
         </div>
     );
 };
@@ -45,14 +45,11 @@ const ShelfPoster = ({ fancy, poster, shelf_type, name, className, iconsClassNam
 
     if (poster) return (
         <ParloImage
-            fancy={fancy ? {
-                gallery: "poster",
-                fullSizePath: getPoster({ external: true, path: poster, type: "poster", size: "original" })
-            } : undefined}
+            fancyGallery={fancy ? "poster" : undefined}
+            frameType="shelfPoster"
             className={twMerge("min-w-12 size-12 object-cover rounded-full", className)}
             height={48} width={48}
             alt={`Poster of shelf ${name}`}
-            loader={({ src }) => src}
             frame={getPoster({ external: true, path: poster, type: "poster", size: "w342" })}
         />
     )

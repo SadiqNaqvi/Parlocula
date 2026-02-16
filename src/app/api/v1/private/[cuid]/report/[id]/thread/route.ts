@@ -13,7 +13,7 @@ export const GET = getHandler(async (r, params) => {
     const isManager = await Member.exists({
         thread_id: id,
         user_id: cuid,
-        role: { $or: ["moderator", "creator"] }
+        role: { $in: ["moderator", "creator"] }
     });
 
     if (!isManager)

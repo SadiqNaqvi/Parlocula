@@ -1,21 +1,23 @@
-import MetadataTile, { MetadataTileContainer } from "@components/ui/MetaDataTile"
+"use client";
+
+import { AddIcon } from "@assets/Icons"
+import { BottomSheetRef, Navbar, OptionMenu } from "@components";
+import { OptionalChildren, OptionList, MetadataTile, MetadataTileContainer } from "@components/ui"
 import { UserPageMockup } from "@components/ui/mockup"
-import { registerUserSchemaClient } from "@lib/schemas"
-import { InputManagerType } from "@type/other"
-import { InputFrame, LinkSchema, RegisterSchemaClientType, UserSchemaType } from "@type/schemas"
-import { RefObject, useRef } from "react"
-import { DisplayNameInput, TextAreaInput } from "."
-import Form from "../Form"
-import LinkInputManager from "../LinkInputManager"
-import Poster from "../Poster"
-import { OptionalChildren } from "@components/ui"
-import { CurrentUser } from "@type/internal"
-import { checkEditedFields, readyFrames } from "@lib/utils"
 import { parloculaAppURL, urlPattern } from "@lib/constants"
-import { useNavigation } from "@store/historystack"
-import { useSearchParams } from "next/navigation"
 import { registerUserMutation, updateUser } from "@lib/helpers/mutations"
-import Navbar from "@components/Navbar"
+import appToast from "@lib/providers/toast"
+import { registerUserSchemaClient, registerUserSchemaServer, userUpdateSchema } from "@lib/schemas"
+import { checkEditedFields, readyFrames } from "@lib/utils"
+import { useNavigation } from "@store/historystack"
+import useCurrentUser from "@store/user"
+import { CurrentUser } from "@type/internal"
+import { InputManagerType } from "@type/other"
+import { InputFrame, LinkSchema, RegisterSchemaClientType } from "@type/schemas"
+import { useSearchParams } from "next/navigation"
+import { useRef } from "react"
+import { DisplayNameInput, IDS_Heading, IDS_Section, InitialDescriptionSheet, TextAreaInput } from "."
+import { Form, LinkInputManager, Poster } from "../"
 
 type CreationProps = {
     username: string;
@@ -39,12 +41,19 @@ const UserMutationPage = ({ username, isEditing, defaultValues, dob, email }: Pr
     const linkRef = useRef<InputManagerType<LinkSchema[]>>(null);
     const formRef = useRef<HTMLFormElement>(null);
 
+    const linkPromptRef = useRef<BottomSheetRef>(null);
+
     const navigation = useNavigation();
     const urlToRedirect = useSearchParams().get("url");
 
+    const { meta } = useCurrentUser();
+
     const submitCreation = async (data: { name: string, bio: string }) => {
+        
         if (!dob) return "Date of birth is required";
+        
         else if (!email) throw new Error(`Email is required but got ${email}`);
+        
         else if (!username) throw new Error(`Username is required but got ${username}`);
 
         const profile = profileRef.current?.getData();
@@ -70,6 +79,12 @@ const UserMutationPage = ({ username, isEditing, defaultValues, dob, email }: Pr
     }
 
     const submitUpdation = async (data: RegisterSchemaClientType) => {
+
+        if (!meta) {
+            appToast.error("You need to log in to perform this action.");
+            return;
+        }
+
         const bioLinks = linkRef.current?.getData();
         const profile = profileRef.current?.getData();
 
@@ -88,7 +103,7 @@ const UserMutationPage = ({ username, isEditing, defaultValues, dob, email }: Pr
         if (profile?.path !== user.profile?.path) {
 
             // If user had a profile, it is likely removed or changed now. Hence remove the old file from the media host.
-            if (user.profile) profileUpdate = { filesToRemove: [{ type: "image", path: user.profile }] };
+            if (user.profile) profileUpdate = { filesToRemove: [{ type: "image", path: user.profile.path }] };
 
             // If user have chosen a new profile, upload it on the media host.
             if (profile) profileUpdate = { ...profileUpdate, ...(await readyFrames([profile])) }
@@ -122,7 +137,6 @@ const UserMutationPage = ({ username, isEditing, defaultValues, dob, email }: Pr
                         {isEditing ? "Update" : "Join"}
                     </button>
                 )}
-
             />
 
             <OptionalChildren condition={!isEditing}>
@@ -136,7 +150,9 @@ const UserMutationPage = ({ username, isEditing, defaultValues, dob, email }: Pr
                 ref={formRef}
                 submit={submit}
                 schema={registerUserSchemaClient}
+                defaultVals={defaultValues}
                 skipReset
+                className="px-2"
             >
 
                 <section className="flex gap-4 mb-4 items-center">
@@ -146,46 +162,73 @@ const UserMutationPage = ({ username, isEditing, defaultValues, dob, email }: Pr
                     <div className="space-y-2">
                         <DisplayNameInput
                             maxLength={25}
-                            minLength={6}
                             name="name"
                             placeholder="Display Name"
                             required={false}
                             className="text-lg xs:text-xl sm:text-2xl"
                             defaultVal={defaultValues?.name}
                         />
-                        <p className="text-sm">@{username}</p>
+                        <p className="text-sm">@{username || meta?.username}</p>
                     </div>
                 </section>
 
-                <MetadataTileContainer>
-                    <MetadataTile skipDisc className="space-x-[6px]">
-                        <span className="font-semibold text-center text-lg">X</span>
-                        <span>Posts</span>
+                <MetadataTileContainer className="my-4 gap-3">
+                    <MetadataTile skipDisc className="gap-1">
+                        <span className="font-semibold">{defaultValues?.posts ?? 'X'}</span>
+                        <span className="text-sm">Posts</span>
                     </MetadataTile>
-                    <MetadataTile skipDisc className="space-x-[6px]">
-                        <span className="font-semibold text-center text-lg">X</span>
-                        <span>Followers</span>
+                    <MetadataTile skipDisc className="gap-1">
+                        <span className="font-semibold">{defaultValues?.followers ?? 'X'}</span>
+                        <span className="text-sm">Followers</span>
                     </MetadataTile>
-                    <MetadataTile skipDisc className="space-x-[6px]">
-                        <span className="font-semibold text-center text-lg">X</span>
-                        <span>Following</span>
+                    <MetadataTile skipDisc className="gap-1">
+                        <span className="font-semibold">{defaultValues?.following ?? 'X'}</span>
+                        <span className="text-sm">Following</span>
                     </MetadataTile>
                 </MetadataTileContainer>
 
-                <section className="my-4 space-y-2">
-                    <TextAreaInput
-                        defaultVal={defaultValues?.bio}
-                        maxLength={500}
-                        name="bio"
-                        placeholder="About Yourself"
-                        required={false}
-                    />
-
-                    <LinkInputManager ref={linkRef} defaultLinks={defaultValues?.bioLinks} />
-                </section>
+                <TextAreaInput
+                    defaultVal={defaultValues?.bio}
+                    maxLength={500}
+                    name="bio"
+                    placeholder="About Yourself"
+                    required={false}
+                />
             </Form>
 
+            <OptionMenu ButtonElement={<AddIcon className="size-5 sm:size-7" />} heading="Attach" className="fixed bottom-4 right-4 p-2 bg-secondary color-primary rounded-full">
+                <OptionList
+                    disable={(linkRef.current?.length || 0) >= 5}
+                    onClick={() => linkPromptRef.current?.open()}>Bio Links</OptionList>
+            </OptionMenu>
+
+            <LinkInputManager
+                defaultLinks={defaultValues?.bioLinks}
+                getterRef={linkRef}
+                className="mt-2 px-2 sm:px-4"
+                promptRef={linkPromptRef}
+            />
+
             <UserPageMockup />
+
+            <InitialDescriptionSheet>
+                <OptionalChildren condition={!isEditing}>
+                    <IDS_Section>
+                        <IDS_Heading>Before We Continue</IDS_Heading>
+                        <div className="space-y-2">
+                            <p>This page is designed in such a way that you have the preview of the created profile while you fill it.</p>
+                            <p> Click on a field to edit it or you can skip it for now and update your profile later.</p>
+                        </div>
+                    </IDS_Section>
+                </OptionalChildren>
+                <IDS_Section>
+                    <IDS_Heading>Rules</IDS_Heading>
+                    <div className="space-y-2">
+                        <p>Do not choose a NSFW Display name as it may get you banned.</p>
+                        <p>Do not choose a NSFW image for your profile picture.</p>
+                    </div>
+                </IDS_Section>
+            </InitialDescriptionSheet>
 
         </>
     )

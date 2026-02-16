@@ -8,10 +8,11 @@ type NavigateType = {
     children: React.ReactNode;
     comp: "button" | "link";
     goto: string;
+    preload?: boolean;
 } & React.ButtonHTMLAttributes<HTMLButtonElement> & React.AnchorHTMLAttributes<HTMLAnchorElement>
 
 
-const Navigate = ({ children, comp, goto, type, className, ...args }: NavigateType) => {
+const Navigate = ({ children, comp, goto, type, className, preload, ...args }: NavigateType) => {
 
     const navigator = useNavigation();
     const pathname = usePathname();
@@ -33,8 +34,12 @@ const Navigate = ({ children, comp, goto, type, className, ...args }: NavigateTy
     )
 
     else return (
-        <Link {...args} href={goto} onClick={handleNavigation}
-            className={(className || '') + (type === "button" ? " no-underline" : '')}
+        <Link
+            prefetch={preload ?? false}
+            href={goto}
+            onClick={handleNavigation}
+            className={className}
+            {...args}
         >
             {children}
         </Link>

@@ -4,8 +4,10 @@ import { getUserFromToken } from "@lib/auth/utils";
 import { getCollaboratorsOfShelf } from "@lib/helpers/common";
 import { fetchQuery, getQueryClient } from "@lib/providers/queryClient";
 import { getQueryKeys } from "@lib/utils";
+import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { ParloPageProps } from "@type/other";
 import { cookies } from "next/headers";
+// import AddItems from "../AddItems";
 
 const AddInListPage = async ({ params }: ParloPageProps) => {
 
@@ -44,6 +46,12 @@ const AddInListPage = async ({ params }: ParloPageProps) => {
             heading="Oops! Looks the you've been arrested by The Parlocula Cops."
             errCode="unauthorized_access"
         />
+    )
+
+    return (
+        <HydrationBoundary state={dehydrate(queryClient)}>
+            {/* <AddItems sid={sid} uid={user.user_id} /> */}
+        </HydrationBoundary>
     )
 
 }

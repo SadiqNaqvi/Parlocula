@@ -56,6 +56,7 @@ export const RemoveManagers = ({ back, tid, managers, uid }: Props & { managers:
 
             <section className="space-y-4">
                 <ListSelector
+                    mode="static-refiner"
                     data={managers}
                     callbackRef={callbackRef}
                     returnIds
@@ -97,6 +98,7 @@ export const InviteManagers = ({ back, uid, tid, managersCount }: Props & { mana
 
             <section className="pb-8 px-4">
                 <ListSelector
+                    mode="search"
                     queryFn={(q, p) => searchMembers(q, uid, p)}
                     queryKeys={(query) => getQueryKeys("searchMembers_tid_query", { tid, query })}
                     callbackRef={callbackRef}

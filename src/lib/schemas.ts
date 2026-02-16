@@ -131,7 +131,7 @@ export const threadSchemaClient = z.object({
 
 const threadConnectionSchema = z.object({
   type: z.enum(["person", "movie", "show"]),
-  path: z.string(),
+  extid: z.string(),
   name: z.string(),
 });
 
@@ -140,10 +140,6 @@ export const threadSchemaServer = z
     _id: z.string(),
     connections: z
       .array(threadConnectionSchema)
-      .refine(
-        (c) => c.length >= 1,
-        "A connection is required to create a thread"
-      )
       .refine((c) => c.length <= 10, "At most 10 connections are allowed"),
     links: z
       .array(linkSchema)
@@ -171,7 +167,7 @@ export const postClientSchema = z.object({
 });
 
 const postServerBase = z.object({
-  _id: z.string(),
+  _id: z.string().optional(),
   category: categoryEnum.default(""),
   links: z.array(linkSchema),
   filesData: z.array(frameDataSchema).max(numberOfFrames.total).default([]),
@@ -193,14 +189,9 @@ export const registerUserSchemaClient = z.object({
   name: z
     .string()
     .trim()
-    .default("")
-    .refine((name) => {
-      if (!name) return true;
-      else if (name.length > 25)
-        return "Name cannot have more than 25 characters";
-      else if (name.length < 6)
-        return "Name must be 6 characters long";
-    }),
+    .max(25, "Name cannot have more than 25 characters")
+    .default('')
+    .refine((name) => !name || name.length > 6, "Name must be 6 characters long"),
   bio: z
     .string()
     .trim()
@@ -285,35 +276,24 @@ export const likeSchema = z.object({
   comment_author: z.string(),
 });
 
-const itemBaseSchema = z.object({
+export const itemSchema = z.object({
   title: z.string(),
   poster: z.string(),
   year: z.number(),
   taleon_type: z.enum(["movie", "show"]),
   ext_id: z.string(),
-  taleon_id: z.string(),
-})
-
-const confirmedItemExt = z.object({
-  isConfirm: z.literal(true),
+  taleon_id: z.string().optional(),
 });
-
-const unconfirmedItemExt = z.object({
-  isConfirm: z.literal(false),
-});
-
-export const itemSchema = z.union([
-  itemBaseSchema.and(confirmedItemExt),
-  itemBaseSchema.and(unconfirmedItemExt)
-]);
 
 export const shelfClientSchema = z.object({
   name: z
     .string()
     .min(3, "Name must contain at least 3 characters")
-    .max(40, "Title must contain at most 40 characters"),
+    .max(40, "Name must be less than 40 characters"),
   isPrivate: z.boolean(),
 });
+
+export const shelfClientUpdateSchema = shelfClientSchema.partial();
 
 export const shelfServerSchema = z.object({
   name: z.string().min(3).max(40),

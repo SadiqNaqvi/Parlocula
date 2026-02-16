@@ -41,7 +41,7 @@ export type LinkModelType = {
 export type BasedOnModelType = {
   _id?: Nanoid;
   type: string;
-  path: string;
+  extid: string;
   name: string;
 };
 

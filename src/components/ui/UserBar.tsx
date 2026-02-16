@@ -1,12 +1,11 @@
 import Navigate from "@components/Navigate";
-import { getPoster } from "@lib/utils";
 import { MereUser } from "@type/internal";
-import Image from "next/image";
 import ParloImage from "./ParloImage";
 
 export const SimpleUserBar = ({ profile, username }: MereUser) => (
     <article className="flex items-center gap-3 py-2 px-4 border border-gray30 rounded-md">
         <ParloImage
+            frameType="userProfile"
             className="object-cover"
             size={50}
             alt={`Profile picture of ${username}`}

@@ -1,16 +1,15 @@
 import {
   bookmarkSchema,
-  taleonToAddAndRemove,
   commentSchema,
   commentSchemaUpdate,
   emailUpdateSchema,
   frameDataSchema,
   itemSchema,
   itemsForShelfSchema,
+  likeSchema,
   linkSchema,
-  shelfEditSchema,
-  shelfServerSchema,
   messageSchema,
+  postClientSchema,
   postSchemaServer,
   postUpdateSchema,
   registerUserSchemaClient,
@@ -18,13 +17,16 @@ import {
   reportActionSchema,
   reportSchema,
   roomSchema,
+  roomUpdateSchema,
   sessionInvalidationSchemaServer,
+  shelfClientUpdateSchema,
+  shelfEditSchema,
+  shelfServerSchema,
+  taleonToAddAndRemove,
   threadSchemaServer,
   threadUpdateSchema,
   usernameUpdateSchema,
-  userUpdateSchema,
-  likeSchema,
-  roomUpdateSchema
+  userUpdateSchema
 } from "@lib/schemas";
 import { z } from "zod";
 
@@ -37,12 +39,14 @@ export type ThreadUpdateSchema = z.infer<typeof threadUpdateSchema>;
 
 export type PostSchemaType = z.infer<typeof postSchemaServer>;
 export type PostUpdateSchemaType = z.infer<typeof postUpdateSchema>;
+export type PostClientSchemaType = z.infer<typeof postClientSchema>
 
 export type CommentSchemaUpdateType = z.infer<typeof commentSchemaUpdate>;
 export type CommentSchemaType = z.infer<typeof commentSchema>;
 
 export type ShelfSchemaType = z.infer<typeof shelfServerSchema>;
 export type ShelfEditSchemaType = z.infer<typeof shelfEditSchema>;
+export type ShelfUpdateSchemaClient = z.infer<typeof shelfClientUpdateSchema>;
 export type TaleonToAddAndRemoveType = z.infer<typeof taleonToAddAndRemove>;
 export type itemsForShelfSchemaType = z.infer<typeof itemsForShelfSchema>;
 
@@ -73,16 +77,12 @@ type CommanInputFrame = {
   hash: string;
 };
 
-export type ThreadConnectionType = {
-  type: "person" | "movie" | "show";
-  path: string;
-  name: string;
-};
-
 export type InputFrame = CommanInputFrame &
   ({ blob: null; isExternal: true } | { blob: Blob; isExternal: false });
 
 export type TaleonSchemaType = z.infer<typeof itemSchema>
+
+export type ConfirmedTaleon = Omit<TaleonSchemaType, "taleon_id"> & { taleon_id: string };
 
 export type AvailableActionsForReport = "keep" | "delete" | "warn"
 

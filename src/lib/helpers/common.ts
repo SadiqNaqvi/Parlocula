@@ -26,7 +26,7 @@ import {
   ThreadModType,
   ParticipantType,
 } from "@type/internal";
-import { CollaboratorModelType, NotificationModelType, ReportModelType } from "@type/models";
+import { CollaboratorModelType, MembershipModelType, NotificationModelType, ReportModelType } from "@type/models";
 import { AvailableCacheTags, CookiesType, PPGetDataProps } from "@type/other";
 import axios from "axios";
 import { oneDayInMiliSeconds, oneDayInSeconds, oneHourInSeconds, parloculaAppURL, queryFilters } from "../constants";
@@ -126,7 +126,7 @@ export const isMember = async (
   tid: string,
   uid: string,
   cookies?: CookiesType
-): Promise<GeneralGetReturn> => {
+): Promise<GeneralGetReturn<MembershipModelType>> => {
   if (!uid) return { success: false, errCode: "unauthenticated_access" };
   return await ppGetData({
     url: `private/${uid}/thread/${tid}/member`,
@@ -413,6 +413,8 @@ export const getTaleon = async (ext_id: string, type: "movie" | "show"): Promise
 
   const id = ext_id.split("-")[0];
 
+  console.log("just before fetching taleon")
+
   const item = await ppGetData<FullTaleonType>({
     url: `taleon/${id}`,
     revalidate: oneDayInSeconds * 3,
@@ -420,16 +422,23 @@ export const getTaleon = async (ext_id: string, type: "movie" | "show"): Promise
     options: { extid: id },
   });
 
+  console.log(item);
+
   if (item.success) {
     // Updating taleon after 3 days of editing
     if (new Date(item.result.editedAt) < new Date(Date.now() + (oneDayInMiliSeconds * 3)))
-      createUpdateTaleon(ext_id, type);
+      createUpdateTaleon(ext_id, type, true);
 
     return { ...item.result, taleon_id: item.result._id };
   }
 
-  return await createUpdateTaleon(ext_id, type);
 
+  if (item.errCode == "resource_not_found") {
+    console.log("time to store taleon");
+    return await createUpdateTaleon(ext_id, type, false);
+  }
+
+  return null;
 };
 
 export const getShelvesForTaleon = async (id: string, uid: string, cookies?: CookiesType) =>
@@ -444,14 +453,16 @@ export const getShelvesForTaleon = async (id: string, uid: string, cookies?: Coo
 export const getShelf = async (
   id: string,
   uid: string | undefined,
-  key: string = 'none'
-): Promise<GeneralGetReturn> => {
+  key: string = 'none',
+  cookies?: CookiesType,
+): Promise<GeneralGetReturn<FullShelf>> => {
   const { success, errCode, result } = await ppGetData<FullShelf>({
     url: `private/${uid}/shelf/${id}`,
     searchParams: { k: key },
     revalidate: oneDayInSeconds,
     tag: "shelf_sid",
     options: { sid: id },
+    cookies
   });
 
   if (!success || !result)
@@ -494,15 +505,16 @@ export const getItems = async (
   uid: string | undefined,
   page: number,
   filter = queryFilters.items[0],
-  key = "none"
-) =>
-  await ppGetData<AggregatedResponse<ShelfItemType>>({
-    url: `private/${uid}/item/${id}`,
-    searchParams: { k: key, f: filter, p: page },
-    revalidate: oneHourInSeconds,
-    tag: "itemsOfShelf_sid",
-    options: { sid: id },
-  });
+  key = "none",
+  cookies?: CookiesType,
+) => await ppGetData<AggregatedResponse<ShelfItemType>>({
+  url: `private/${uid}/item/${id}`,
+  searchParams: { k: key, f: filter, p: page },
+  revalidate: oneHourInSeconds,
+  tag: "itemsOfShelf_sid",
+  options: { sid: id },
+  cookies,
+});
 
 export const searchPosts = async (query: string, nsfw: boolean, page = 1) =>
   await ppGetData<AggregatedResponse<MerePost>>({

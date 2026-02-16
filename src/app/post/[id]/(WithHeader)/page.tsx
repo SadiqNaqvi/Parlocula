@@ -1,4 +1,4 @@
-import FilterTiles from "@components/Router/FilterTIles";
+import FilterTiles from "@components/FilterTiles";
 import { getCommentsOnPost } from "@lib/helpers/common";
 import { getQueryClient, prefetchInfiniteQuery } from "@lib/providers/queryClient";
 import { getQueryKeys, isValidParloId, refineSearchParams } from "@lib/utils";

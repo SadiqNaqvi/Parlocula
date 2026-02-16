@@ -19,7 +19,7 @@ export const GET = getHandler(async (_, params) => {
     {
       $match: {
         thread_id: id,
-        role: { $or: ["moderator", "moderator_invitee", "creator"] },
+        role: { $in: ["moderator", "moderator_invitee", "creator"] },
       },
     },
     { $limit: threadManagersLimit + 1 },

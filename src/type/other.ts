@@ -6,10 +6,10 @@ import { NotificationModelType } from "./models";
 
 export type ParloPageProps<
   P = { id: string, username: string },
-  S = { p?: string, f?: string, t?: string, k?: string }
+  S = { p: string, f: string, t: string, k: string }
 > = {
   params: Promise<P>,
-  searchParams: Promise<S>,
+  searchParams: Promise<Partial<S>>,
 }
 
 type Arguments<A> =
@@ -292,6 +292,7 @@ export type DeviceLimitation = {
 
 export type InputManagerType<T = any> = {
   getData: () => T;
+  length: number;
 };
 
 export type backdrop_sizes = "w300" | "w780" | "w1280" | "original";
@@ -320,36 +321,26 @@ type InternalPosterProps = {
   size?: undefined;
 };
 
-type ExternalPosterProps =
-  | {
-    external: true;
-    type: "backdrop";
-    size: backdrop_sizes;
-  }
-  | {
-    external: true;
-    type: "logo";
-    size: logo_sizes;
-  }
-  | {
-    external: true;
-    type: "poster";
-    size: poster_sizes;
-  }
-  | {
-    external: true;
-    type: "profile";
-    size: profile_sizes;
-  }
-  | {
-    external: true;
-    type: "still";
-    size: still_sizes;
-  };
+export type ExternalImageTypeToSizeMap = {
+  "poster": poster_sizes,
+  "backdrop": backdrop_sizes,
+  logo: logo_sizes,
+  still: still_sizes,
+  profile: profile_sizes;
+}
 
-export type getPosterFunctionProps = {
+export type ExternalImageType = keyof ExternalImageTypeToSizeMap;
+export type ExternalImageSize<T extends ExternalImageType> = ExternalImageTypeToSizeMap[T];
+
+type ExternalPosterProps<T extends ExternalImageType> = {
+  external: true;
+  type: ExternalImageType;
+  size: ExternalImageSize<T>;
+}
+
+export type GetPosterFunctionProps<T extends ExternalImageType> = {
   path?: string | null;
-} & (InternalPosterProps | ExternalPosterProps);
+} & (InternalPosterProps | ExternalPosterProps<T>);
 
 export type PushNotificationType = {
   title: string;

@@ -1,5 +1,5 @@
-import { BottomSheet } from "@components";
-import ShelfForm from "@components/form/ShelfForm";
+import { BottomSheet, Navigate } from "@components";
+import ShelfForm from "@components/form/Mutation/ShelfMutation";
 import { NotFound } from "@components/ui";
 import { fetchCollection } from "@lib/contentFetcher";
 import { ParloPageProps } from "@type/other";
@@ -33,22 +33,15 @@ export const generateMetadata = async ({ params }: ParloPageProps): Promise<Meta
 
 const Page = async ({ params }: ParloPageProps) => {
 
-    const content = await fetchData(await params);
+    const awaitedParams = await params;
+
+    const content = await fetchData(awaitedParams);
 
     if (!content) return (
         <NotFound
             title="Oops! Looks like The Parlocula Explorers came empty handed."
             paras={["Possible Reason: The collection id is incorrect.", "Please try to search the collection in the explore page"]} />
     )
-
-    const taleons = content.parts.map(el => ({
-        title: el.title,
-        poster: el.poster,
-        year: el.year,
-        ext_id: el.id,
-        taleon_type: el.type,
-        isConfirm: false,
-    }) as TaleonSchemaType);
 
     const metadata = [
         { label: "Rating", value: content.rating },
@@ -65,10 +58,8 @@ const Page = async ({ params }: ParloPageProps) => {
                 title={content.title}
                 wikiMeta={metadata}
                 callToActions={(
-                    <div className="mt-6 text-sm flex gap-2">
-                        <BottomSheet button="Copy As Shelf" className="primary" >
-                            <ShelfForm defaultVals={{ name: content.title }} taleons={taleons} />
-                        </BottomSheet>
+                    <div className="mt-6">
+                        <Navigate className="btn primary sm:flex-none sm:w-fit" comp="link" goto={`/new/shelf?clid=${awaitedParams.id}`}>Copy To Shelf</Navigate>
                     </div>
                 )}
             />

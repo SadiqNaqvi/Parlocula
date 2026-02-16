@@ -1,7 +1,7 @@
 import { getPoster } from "@lib/utils";
 import { RefinedSearchData } from "@type/external";
 import Navigate from "../Navigate";
-import { getPosterFunctionProps } from "@type/other";
+import { GetPosterFunctionProps } from "@type/other";
 import Image from "next/image";
 
 export default function SearchTile({ id, image, media_type, name }: RefinedSearchData) {
@@ -13,7 +13,7 @@ export default function SearchTile({ id, image, media_type, name }: RefinedSearc
         path: image,
         type: mediaFilter,
         size: mediaFilter === "profile" ? "w185" : "w92"
-    } as getPosterFunctionProps;
+    } as GetPosterFunctionProps<typeof mediaFilter>;
 
     return (
         <article className="w-full">

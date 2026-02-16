@@ -14,6 +14,7 @@ const PostBarHeader = ({ poster, profile, thread_id, thread_name, username, sect
         <div className="flex gap-3 items-center">
             <Navigate comp="link" goto={`/user/${username}`}>
                 <ParloImage
+                    frameType="userProfile"
                     frame={profile}
                     className="inline object-cover rounded-full size-[40px]"
                     size={40}
@@ -32,6 +33,7 @@ const PostBarHeader = ({ poster, profile, thread_id, thread_name, username, sect
     else if (section === "thread") return (
         <Navigate comp="link" goto={`/user/${username}`} className="flex gap-3 items-center">
             <ParloImage
+                frameType="userProfile"
                 frame={username ? profile : undefined}
                 className="inline object-cover rounded-full"
                 size={40}
@@ -44,6 +46,7 @@ const PostBarHeader = ({ poster, profile, thread_id, thread_name, username, sect
     return (
         <Navigate comp="link" goto={`/thread/${thread_id}`} className="flex gap-3 items-center">
             <ParloImage
+                frameType="threadPoster"
                 frame={poster}
                 className="inline object-cover rounded-full"
                 size={40}

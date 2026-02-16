@@ -14,10 +14,11 @@ type Props = {
 
 const GeneralTile = ({ title, className, poster, onClick, checked, showCheckBox }: Props) => {
     return (
-        <div className={twMerge("flex gap-2 flex-cntr-all", className)} onClick={onClick}>
+        <article className={twMerge("w-full flex gap-2 flex-cntr-between", className)} onClick={onClick}>
             <div className="flex items-center gap-2">
                 <OptionalChildren condition={poster}>
                     <ParloImage
+                        frameType="poster"
                         className="size-12 min-w-12 object-cover rounded-md"
                         size={48}
                         alt={`Poster of ${title}`}
@@ -33,7 +34,7 @@ const GeneralTile = ({ title, className, poster, onClick, checked, showCheckBox 
                     </OptionalChildren>
                 </span>
             </OptionalChildren>
-        </div>
+        </article>
     )
 }
 

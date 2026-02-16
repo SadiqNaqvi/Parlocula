@@ -94,7 +94,7 @@ const validateUser = async (
 export const proxy = async (req: NextRequest) => {
   const { pathname } = req.nextUrl;
 
-  console.log("PROXY entered for", pathname);
+  console.log("PROXY entered for", req.method, "method at:", pathname);
 
   const response = NextResponse.next();
 

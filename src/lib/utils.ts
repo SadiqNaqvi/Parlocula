@@ -4,9 +4,8 @@ import {
   AggregatedResponse,
   GeneralGetReturn,
   GeneralMultipleReturn,
-  GeneralPostReturn,
   GenericDate,
-  InfiniteQueryResponse,
+  InfiniteQueryResponse
 } from "@type/internal";
 import {
   ArrayForArrayResponse,
@@ -15,16 +14,16 @@ import {
   AvailableRevalidateTags,
   CacheTagsArgs,
   ErrorCodes,
+  ExternalImageType,
   ExtractPlaceholders,
-  getPosterFunctionProps,
+  GetPosterFunctionProps,
   QueryFilterType,
   QueryKeyArgs,
   RevalidateTagsArgs
 } from "@type/other";
 import { InputFrame } from "@type/schemas";
-import { nanoid } from "nanoid";
+import { customAlphabet } from "nanoid";
 import { NextRequest } from "next/server";
-import { toast } from "sonner";
 import {
   cacheTags,
   cloudinary_postKey,
@@ -184,7 +183,7 @@ export const makeUrlSafe = (str: string) => {
     .replace(/^_+|-+$/g, "");
 };
 
-export const getPoster = (config: getPosterFunctionProps): string => {
+export const getPoster = <T extends ExternalImageType>(config: GetPosterFunctionProps<T>): string => {
   const { path } = config;
   if (!path) return placeholder.src;
   if (path.includes("https")) return path;
@@ -229,9 +228,16 @@ export const getThumbnail = (vid: string) => {
   return vidArr.join(".").concat(".jpg");
 };
 
-export const parloId = () => nanoid(10);
+export const parloId = () => {
+  const nanoid = customAlphabet(
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789',
+    12,
+  )
+  return nanoid(12);
+}
 
-export const isValidParloId = (id: string) => Boolean(id.length === 10);
+// export const isValidParloId = (id: string) => Boolean(id.length === 12);
+export const isValidParloId = (id: string) => true;
 
 export const getPageParams = (req: NextRequest, initial: number = 1) => {
   const searchParams = req.nextUrl.searchParams;
@@ -474,22 +480,6 @@ export const capitalize = (str: string) => {
   return (str.at(0) ?? "").toUpperCase().concat(str.slice(1, str.length));
 };
 
-// type FieldsWithObject<O, F extends string> = O & {
-//   [K in F]: unknown
-// }
-
-// export const checkFieldsInObject = <O extends Object, F extends string>(fields: F[], object: O): FieldsWithObject<O, F> | null => {
-
-//   const check = fields.every(field => {
-//     if (field in object) return true;
-//     else return false;
-//   })
-
-//   if (check) return object as FieldsWithObject<O, F>;
-//   else return null;
-
-// }
-
 export const checkEditedFields = <T extends Record<string, any>>(oldObj: T, newObj: Partial<T>): Partial<T> => {
   const objToReturn: Record<string, any> = {};
   Object.entries(newObj).forEach(([k, v]) => {
@@ -499,4 +489,8 @@ export const checkEditedFields = <T extends Record<string, any>>(oldObj: T, newO
   });
 
   return objToReturn as Partial<T>;
+}
+
+export const isEqual = <T>(propToCheck: T, ...conditions: T[]) => {
+  return conditions.some(condition => condition === propToCheck)
 }

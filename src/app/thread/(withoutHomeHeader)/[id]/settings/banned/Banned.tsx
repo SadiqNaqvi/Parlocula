@@ -16,12 +16,13 @@ const nfm = {
 }
 
 const OptionButtons = ({ onAdd, onRemove, tid, uid }: { onRemove: TypedFunction, onAdd: TypedFunction, tid: string, uid: string }) => {
+
     const { data } = useQueryHook({
         queryFn: () => getBannedMembers(tid, uid, 1),
         queryKeys: getQueryKeys("bannedMembers_tid", { tid })
     });
 
-    if (!data || !data.total) return;
+    if (!data) return;
 
     else if (data.total) return (
         <div className="flex gap-2">

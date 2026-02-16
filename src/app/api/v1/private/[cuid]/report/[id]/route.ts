@@ -201,7 +201,7 @@ export const PATCH = updateHandler<ReportActionSchemaType>({
     const isManager = await Member.exists({
       thread_id: params.id,
       user_id,
-      role: { $or: ["creator", "moderator"] }
+      role: { $in: ["creator", "moderator"] }
     });
 
     if (isManager) return { success: true }

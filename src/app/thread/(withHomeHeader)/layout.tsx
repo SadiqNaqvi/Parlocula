@@ -1,12 +1,9 @@
 import { Sidebar } from "@components";
 import { TabContainer, TabList } from "@components/ui/Tabs";
-import type { Metadata } from "next";
+import generateDynamicMetadata from "@lib/seo/metadata";
 import { PropsWithChildren } from "react";
 
-export const metadata: Metadata = {
-    title: "Threads - Parlocula",
-    description: "Stop Searching Start Watching",
-};
+export const metadata = generateDynamicMetadata({ title: "Threads" });
 
 const ThreadHomeLayout = ({ children }: PropsWithChildren) => (
     <>
@@ -18,9 +15,9 @@ const ThreadHomeLayout = ({ children }: PropsWithChildren) => (
             </header>
             <TabContainer className="my-4 w-full">
                 <TabList href="/thread">Popular</TabList>
+                <TabList href="/thread/joined">Joined</TabList>
                 <TabList href="/thread/created">Created</TabList>
                 <TabList href="/thread/manages">Manages</TabList>
-                <TabList href="/thread/joined">Joined</TabList>
             </TabContainer>
             {children}
         </main>

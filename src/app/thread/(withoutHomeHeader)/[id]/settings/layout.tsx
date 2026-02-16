@@ -29,32 +29,35 @@ const Fetcher = async ({ id, children }: PropsWithChildren<{ id: string }>) => {
 
     if (!thread) return (
         <NotFound
-            title="Oops, Parlocula Explorers couldn't find anything."
+            title="Uh oh! The Parlocula Explorers came empty handed."
             paras={["A Thread could not be found with the provided id.", "Please search the thread by it's name in the explore page."]}
             redirectToExplore
         />
     )
 
-    if (!(thread.created_by === user_id || thread.managers?.find(manager => manager._id === user.user_id)))
-        return (
-            <section className="size-screen">
-                <ShowError
-                    heading="You're not allowed to be here"
-                    errCode="unauthenticated_access" />
-            </section>
-        )
+    else if (!(thread.created_by === user_id || thread.managers.find(({ _id }) => _id === user.user_id))) return (
+        <ShowError
+            heading="Uh oh! The Parlocula Cops detained you."
+            errCode="unauthenticated_access"
+            fullScreen
+        />
+    )
 
-    return <HydrationBoundary state={dehydrate(queryClient)}>{children}</HydrationBoundary>
+    return (
+        <HydrationBoundary state={dehydrate(queryClient)}>
+            {children}
+        </HydrationBoundary>
+    )
 
 }
 
-const ThreadSettingLayout = async ({ params }: ParloPageProps) => {
+const ThreadSettingLayout = async ({ params,children }: PropsWithChildren<ParloPageProps>) => {
 
     const [id, ...rest] = (await params).id.split("-");
 
     return (
         <Suspense fallback={<FullPageLoadingSpinner path={rest} />}>
-            <Fetcher id={id} />
+            <Fetcher id={id}>{children}</Fetcher>
         </Suspense>
     )
 }

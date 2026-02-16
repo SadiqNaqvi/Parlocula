@@ -16,15 +16,15 @@ import { PropsWithChildren, Suspense } from "react";
 import { Toaster } from "sonner";
 import UserHydrator from "./UserHydrator";
 
-const montserratFont = Montserrat({
-  variable: "--font-montserrat",
-  subsets: ["latin"],
-});
+// const montserratFont = Montserrat({
+//   variable: "--font-montserrat",
+//   subsets: ["latin"],
+// });
 
-const robotoFont = Roboto({
-  variable: "--font-roboto",
-  subsets: ["latin"],
-});
+// const robotoFont = Roboto({
+//   variable: "--font-roboto",
+//   subsets: ["latin"],
+// });
 
 export const metadata = generateDynamicMetadata({}, true);
 
@@ -73,7 +73,8 @@ const NotificationFetcher = async ({ children }: PropsWithChildren) => {
 const RootLayout = async ({ children }: PropsWithChildren) => {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${robotoFont.variable} ${montserratFont.variable} antialiased`}>
+      {/* <body className={`${robotoFont.variable} ${montserratFont.variable} antialiased`}> */}
+      <body className="antialiased">
         <Toaster swipeDirections={["bottom", "left", "right"]} />
         <ReactQueryProvider>
           <ThemeProvider enableSystem defaultTheme="system" attribute={"class"}>

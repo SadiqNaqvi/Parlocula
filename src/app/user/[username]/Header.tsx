@@ -50,7 +50,8 @@ const Component = (data: RequestedUser, props: Props) => {
 
                 <section className="flex gap-4 items-center">
                     <ParloImage
-                        fancy={{ gallery: "profile_picture" }}
+                        fancyGallery="profile_picture"
+                        frameType="userProfile"
                         alt={`Profile picture of ${data.username}`}
                         height={112}
                         width={112}

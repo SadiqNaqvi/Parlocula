@@ -151,7 +151,7 @@ export type UserConnectionType = {
 
 export type ThreadConnection = {
   type: "person" | "movie" | "show";
-  path: string;
+  extid: string;
   name: string;
 };
 

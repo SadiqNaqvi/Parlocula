@@ -121,6 +121,7 @@ const ChatInfoSection = ({ room, uid, children }: PropsWithChildren<{ room: Full
             <div className="w-full px-2 max-w-screen-md mx-auto space-y-4">
                 <section className="flex flex-col flex-cntr-all w-full">
                     <ParloImage
+                        frameType="userProfile"
                         className="rounded-full"
                         frame={room.poster}
                         height={48}

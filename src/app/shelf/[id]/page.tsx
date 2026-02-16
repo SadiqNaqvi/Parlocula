@@ -14,11 +14,12 @@ export const generateMetadata = async ({ params, searchParams }: ParloPageProps)
 
     if (!isValidParloId(lid)) return { title: { absolute: "Parlocula - The Cinematic Planet" } };
 
-    const user = await getUserFromToken(await cookies());
+    const jar = await cookies();
+    const user = await getUserFromToken(jar);
 
     const { k } = await searchParams;
 
-    const { success, result } = await getShelf(lid, user?.user_id, k);
+    const { success, result } = await getShelf(lid, user?.user_id, k, jar);
     if (!success || !result) return { title: "Parlocula" };
 
     return {
@@ -47,12 +48,12 @@ const Page = async ({ params, searchParams }: ParloPageProps) => {
                 prefetchQuery({
                     queryClient,
                     queryKey: getQueryKeys("shelf_sid", { sid }),
-                    queryFn: () => getShelf(sid, user?.user_id, key),
+                    queryFn: () => getShelf(sid, user?.user_id, key, jar),
                 }),
                 prefetchInfiniteQuery({
                     queryClient,
                     queryKey: getQueryKeys('itemsOfShelf_sid_filter', { sid, filter }),
-                    queryFn: () => getItems(sid, user?.user_id ?? "undefined", page, filter, key),
+                    queryFn: () => getItems(sid, user?.user_id, page, filter, key, jar),
                     initialPageParam: page,
                 })
             ]
@@ -73,6 +74,8 @@ const Page = async ({ params, searchParams }: ParloPageProps) => {
                 ]
             )
     );
+
+    console.log("passed promise in shelf/id page");
 
     return (
         <HydrationBoundary state={dehydrate(queryClient)}>

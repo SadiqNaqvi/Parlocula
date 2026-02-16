@@ -12,7 +12,7 @@ const ShelfItemContent = ({ poster, title, year }: ContentOnlyProps) => (
             height={64}
             src={getPoster({ external: true, type: "poster", path: poster, size: "w92" })}
             alt={`Poster for ${title}`}
-            className="size-12 sm:size-16 object-cover object-center rounded-full"
+            className="size-12 sm:size-16 object-cover rounded-full"
         />
         <div className="space-y-2">
             <h3 className="font-semibold sm:text-xl">{title}</h3>
@@ -23,7 +23,7 @@ const ShelfItemContent = ({ poster, title, year }: ContentOnlyProps) => (
 
 export const ShowOnlyShelfItem = ShelfItemContent;
 
-const ShelfItemBar = ({ taleon_type, poster, title, ext_id, year, _id }: ShelfItemType) => (
+const ShelfItemBar = ({ taleon_type, poster, title, ext_id, year }: ShelfItemType) => (
     <Navigate className="w-full" goto={`/explore/${taleon_type}/${ext_id}`} comp="link">
         <ShelfItemContent poster={poster} title={title} year={year} />
     </Navigate>

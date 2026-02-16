@@ -33,6 +33,7 @@ const InviteSection = ({ rmid, uid }: Props & { back: TypedFunction }) => {
                 }
             />
             <ListSelector
+                mode="search"
                 callbackRef={callbackRef}
                 queryKeys={(query) => getQueryKeys("search-followers_uid_query", { uid, query })}
                 queryFn={(q, p) => searchFollowers(q, uid, p)}
@@ -68,6 +69,7 @@ const RemoveSection = ({ rmid, uid }: Props & { back: TypedFunction }) => {
                 }
             />
             <ListSelector
+                mode="infinite"
                 callbackRef={callbackRef}
                 queryFnForList={(p) => getParticipantsOfRoom(uid, rmid, p)}
                 queryKeysForList={getQueryKeys("participantsOfRoom_rmid_uid", { rmid, uid })}

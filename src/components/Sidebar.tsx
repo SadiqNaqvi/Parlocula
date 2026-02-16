@@ -1,10 +1,10 @@
 "use client";
 
-import { AddIcon, AppIcon, ExploreFillIcon, ExploreIcon, HomeFillIcon, HomeIcon, MessagesFillIcon, MessagesIcon, PostIcon, ThreadIcon, ThreadIconFill, UserIcon } from "@assets/Icons";
+import { AddIcon, AppIcon, CollectionIcon, ExploreFillIcon, ExploreIcon, HomeFillIcon, HomeIcon, MessagesFillIcon, MessagesIcon, PostIcon, ThreadIcon, ThreadIconFill, UserIcon } from "@assets/Icons";
 import { BottomSheet, Navigate } from "@components";
 import useCurrentUser from "@store/user";
 import { usePathname } from "next/navigation";
-import React, { PropsWithChildren, useEffect } from "react";
+import React, { PropsWithChildren } from "react";
 import { twMerge } from "tailwind-merge";
 import NotificationButton from "./notifications/NotificationButton";
 import { OptionalChildren, ParloImage } from "./ui";
@@ -13,7 +13,6 @@ const ProfileButton = () => {
 
     const meta = useCurrentUser(state => state.meta);
     const pathname = usePathname();
-    useEffect(() => console.log("meta in sidebar", meta), [meta]);
 
     if (!meta) return (
         <div className={`rounded-full border-2 ${pathname.startsWith(`/guest`) ? "border-secondary" : "border-gray-500"}`}>
@@ -27,6 +26,7 @@ const ProfileButton = () => {
         <div className={`rounded-full border-2 ${pathname.startsWith(`/user/${meta.username}`) ? "border-secondary" : "border-gray-500"}`}>
             <Navigate comp="link" goto={`/user/${meta.username}`}>
                 <ParloImage
+                    frameType="userProfile"
                     alt="Profile picture of the current user"
                     size={40}
                     className="min-w-10 min-h-10 object-cover rounded-full"
@@ -48,13 +48,17 @@ const AddButton = ({ className }: { className?: string }) => {
                 <h3 className="text-center font-semibold">Start Creating Now</h3>
 
                 <div className="flex gap-4 mt-4 mx-auto w-fit">
-                    <Navigate comp="link" type="button" goto="/post/new" className={addButtonClasses}>
+                    <Navigate comp="link" type="button" goto="/new/post" className={addButtonClasses}>
                         <PostIcon className="size-6 mx-auto" />
                         <p className="text-sm text-zinc-500">Post</p>
                     </Navigate>
-                    <Navigate comp="link" type="button" goto="/thread/new" className={addButtonClasses}>
+                    <Navigate comp="link" type="button" goto="/new/thread" className={addButtonClasses}>
                         <ThreadIcon className="size-6 mx-auto" />
                         <p className="text-sm text-zinc-500">Thread</p>
+                    </Navigate>
+                    <Navigate comp="link" type="button" goto="/new/shelf" className={addButtonClasses}>
+                        <CollectionIcon className="size-5 mx-auto" />
+                        <p className="text-sm text-zinc-500">Shelf</p>
                     </Navigate>
                 </div>
             </section>

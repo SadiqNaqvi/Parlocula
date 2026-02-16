@@ -99,6 +99,7 @@ const CreateGroup = ({ goBack }: { goBack: TypedFunction }) => {
 
             <div className="mb-8 w-full">
                 <ListSelector
+                    mode="search"
                     queryFn={(q, p) => searchNonBlockedUsers(uid, q, p)}
                     queryKeys={(q) => getQueryKeys("searchNonBlockedUser_query_uid", { uid, query: q })}
                     refiner={(resp) => ({

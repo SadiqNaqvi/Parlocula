@@ -34,7 +34,24 @@ const ShelvesPage = async () => {
     return (
         <>
             <Navbar navTitle="Shelves" />
+
             <section className="px-2">
+                <ul className="border border-gray40 rounded-md">
+                    {user.predefinedShelves.map(({ name, _id }) => (
+                        <li key={_id}>
+                            <Navigate
+                                comp="link" type="button" goto={`/shelf/${_id}`}
+                                className="size-full p-2 flex flex-cntr-between">
+                                <span className="capitalize">{name}</span>
+                                <span><RightChevron className="size-5" /></span>
+                            </Navigate>
+                        </li>
+                    ))}
+                </ul>
+            </section>
+
+            <section className="px-2">
+                <h2 className="parloHeading p-2">Your Shelves</h2>
                 <ul className="border border-gray40 rounded-md">
                     {links.map(({ label, path }) => (
                         <li key={path}>
@@ -42,21 +59,6 @@ const ShelvesPage = async () => {
                                 comp="link" type="button" goto={path}
                                 className="size-full p-2 flex flex-cntr-between">
                                 <span className="capitalize">{label}</span>
-                                <span><RightChevron className="size-5" /></span>
-                            </Navigate>
-                        </li>
-                    ))}
-                </ul>
-            </section>
-            <section className="px-2">
-                <h2 className="parloHeading p-2">Pre-Defined Shelves</h2>
-                <ul className="brder border-gray40 rounded-md">
-                    {user.predefinedShelves.map(({ name, _id }) => (
-                        <li key={_id}>
-                            <Navigate
-                                comp="link" type="button" goto={`/shelf/${_id}`}
-                                className="size-full p-2 flex flex-cntr-between">
-                                <span className="capitalize">{name}</span>
                                 <span><RightChevron className="size-5" /></span>
                             </Navigate>
                         </li>

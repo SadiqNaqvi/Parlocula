@@ -1,3 +1,5 @@
+"use client";
+
 import { CheckBoxIcon, EmptyBoxIcon } from "@assets/Icons";
 import { getPoster } from "@lib/utils";
 import Image from "next/image";

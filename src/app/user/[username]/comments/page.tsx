@@ -3,7 +3,7 @@ import { fetchQuery, getQueryClient, prefetchInfiniteQuery } from "@lib/provider
 import { getQueryKeys, refineSearchParams } from "@lib/utils";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import Comments from "../tabs/CommentSection";
-import FilterTiles from "@components/Router/FilterTIles";
+import FilterTiles from "@components/FilterTiles";
 import { cookies } from "next/headers";
 import { getUserFromToken } from "@lib/auth/utils";
 import { ParloPageProps } from "@type/other";

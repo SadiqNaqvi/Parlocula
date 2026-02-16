@@ -11,22 +11,44 @@ type PortalProps = PropsWithChildren<{
   description?: string;
 }>
 
-export const NestedSheet = ({ button, children, className }: PropsWithChildren<{ className?: string, button: React.ReactNode }>) => {
+export const NestedSheet = forwardRef(({ children, description, title, state, onClose, snapPoints, allowHandle, button, className }: BottomSheetProps, ref) => {
+
+  const [open, setOpen] = useState<boolean | undefined>(state);
+
+  useImperativeHandle(ref, () => ({
+    open: () => setOpen(true),
+    close: () => setOpen(false),
+    toggle: () => setOpen(!open),
+  }));
+
+  const handleClick = () => {
+    setOpen(!open);
+  }
+
+  const handleOnClose = () => {
+    setOpen(false);
+    onClose?.();
+  }
+
   return (
-    <Drawer.NestedRoot>
-      <Drawer.Trigger className={className}>{button}</Drawer.Trigger>
-      <DrawerPortal>{children}</DrawerPortal>
+    <Drawer.NestedRoot snapPoints={snapPoints} open={open} onClose={handleOnClose}>
+      <OptionalChildren condition={button}>
+        <Drawer.Trigger onClick={handleClick} className={className}>{button}</Drawer.Trigger>
+      </OptionalChildren>
+      <DrawerPortal title={title} description={description} allowHandle={allowHandle}>
+        {children}
+      </DrawerPortal>
     </Drawer.NestedRoot>
   )
-}
+})
 
 export const DrawerPortal = ({ children, allowHandle, description, title, ref }: PortalProps) => (
   <Portal>
     <Overlay className="z-[10] fixed inset-0 bg-black/40" />
-    <Drawer.Title>{title}</Drawer.Title>
-    <Drawer.Description>{description}</Drawer.Description>
     <Content ref={ref} className="h-fit fixed z-[10] border-t border-gray60 bottom-0 left-0 right-0 outline-none bg-primary py-4">
       <Handle />
+      <Drawer.Title>{title}</Drawer.Title>
+      <Drawer.Description>{description}</Drawer.Description>
       <aside className="sheetContainer mt-4 min-h-40 w-full max-h-[80dvh] overflow-y-auto">
         {children}
       </aside>

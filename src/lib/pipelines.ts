@@ -162,8 +162,8 @@ export const convertMatchToLookupExpr = <T = any>(matchObj: FilterQuery<T>): Pip
   return { $match: parse(matchObj) };
 }
 
-const lookupOrAndChangeRoot = (collection: Collections, forLookup: string | undefined, forReplaceRoot: string | undefined): PipelineStage[] => {
-  if (!forLookup && !forReplaceRoot) return [];
+const lookupOrAndChangeRoot = (collection: Collections, forLookup: string | undefined): PipelineStage[] => {
+  if (!forLookup) return [];
 
   const project = projectionMap[collection];
   if (!project) throw new Error("invalid collection passed in lookupOrAndChangeRoot function");
@@ -180,25 +180,28 @@ const lookupOrAndChangeRoot = (collection: Collections, forLookup: string | unde
         as: collection,
       }
     })
-    ).concatConditionally(Boolean(forReplaceRoot || forLookup), () => ({
-      $replaceRoot: {
-        newRoot: {
-          $arrayElemAt: [`$${forReplaceRoot || collection}`, 0]
+    ).concatConditionally(forLookup, () => [
+      {
+        $set: {
+          doc: { $first: `$${collection}` }
         }
+      },
+      {
+        $replaceWith: "$doc"
       }
-    }));
+    ]);
 
 }
 
 export const postsAggregationPipeline: PipelineFunc<{ isLinkBased: boolean; excludeQuotedPost: boolean }> = (
-  { filters, sort, page = 1, isLinkBased, localFieldForLookup, replaceRoot, excludeQuotedPost }
+  { filters, sort, page = 1, isLinkBased, localFieldForLookup, excludeQuotedPost }
 ) =>
   createPipeline({
     filters,
     sort,
     page,
     preProjection: [
-      ...lookupOrAndChangeRoot("posts", localFieldForLookup, replaceRoot),
+      ...lookupOrAndChangeRoot("posts", localFieldForLookup),
       {
         $lookup: {
           from: "users",
@@ -257,7 +260,7 @@ export const commentsAggregationPipelineWithReplies: PipelineFunc = (
     page,
     sort,
     preProjection: [
-      ...lookupOrAndChangeRoot("comments", localFieldForLookup, replaceRoot),
+      ...lookupOrAndChangeRoot("comments", localFieldForLookup),
       {
         $lookup: {
           from: "users",
@@ -310,7 +313,7 @@ export const commentsAggregationPipeline: PipelineFunc = (
     sort,
     page,
     preProjection: [
-      ...lookupOrAndChangeRoot("comments", localFieldForLookup, replaceRoot),
+      ...lookupOrAndChangeRoot("comments", localFieldForLookup),
       {
         $lookup: {
           from: "users",
@@ -341,7 +344,7 @@ export const threadsAggregationPipeline: PipelineFunc = (
     filters,
     sort,
     page,
-    preProjection: lookupOrAndChangeRoot("threads", localFieldForLookup, replaceRoot),
+    preProjection: lookupOrAndChangeRoot("threads", localFieldForLookup),
     projection: threadProjection,
   });
 
@@ -352,7 +355,7 @@ export const shelvesAggregationPipeline: PipelineFunc = (
     filters,
     sort,
     page,
-    preProjection: lookupOrAndChangeRoot("shelves", localFieldForLookup, replaceRoot),
+    preProjection: lookupOrAndChangeRoot("shelves", localFieldForLookup),
     projection: shelfProjection,
   });
 
@@ -399,13 +402,13 @@ export const itemsAggregationPipeline: PipelineFunc<{ shelf_creator: string }> =
   });
 
 export const usersAggregationPipeline: PipelineFunc = (
-  { filters, page, sort, localFieldForLookup, replaceRoot, limit }
+  { filters, page, sort, localFieldForLookup, limit }
 ) =>
   createPipeline({
     filters,
     sort,
     page,
-    preProjection: lookupOrAndChangeRoot("users", localFieldForLookup, replaceRoot),
+    preProjection: lookupOrAndChangeRoot("users", localFieldForLookup),
     projection: userProjection,
     limit,
   });
@@ -419,7 +422,7 @@ export const bookmarkAggregationPipeline: PipelineFunc<{
   else if (type === "shelf")
     return shelvesAggregationPipeline({ filters, page, sort, localFieldForLookup, replaceRoot });
   else if (type === "post")
-    return postsAggregationPipeline({ filters, page, sort, localFieldForLookup, replaceRoot, excludeQuotedPost: true, isLinkBased: false });
+    return postsAggregationPipeline({ filters, page, sort, localFieldForLookup, excludeQuotedPost: true, isLinkBased: false });
   else return [];
 };
 

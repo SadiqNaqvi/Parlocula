@@ -1,17 +1,16 @@
 "use client";
 
 import { EditIcon } from "@assets/Icons";
-import BottomSheet, { BottomSheetRef, NestedSheet } from "@components/BottomSheet";
-import { CloseButton, Triggerer } from "@components/FancyboxModal";
+import BottomSheet, { BottomSheetRef } from "@components/BottomSheet";
 import OptionMenu from "@components/OptionMenu";
+import OptionList, { NestedSheetTrigger } from "@components/ui/OptionList";
 import { useCustomReducer } from "@lib/hooks";
 import { InputManagerType } from "@type/other";
 import { InputFrame } from "@type/schemas";
 import Image from "next/image";
 import { forwardRef, useImperativeHandle, useRef } from "react";
-import { MediaInputPrompt } from "./MediaPicker";
 import { twMerge } from "tailwind-merge";
-import OptionList, { NestedSheetTrigger } from "@components/ui/OptionList";
+import { MediaInputPrompt } from "./MediaPicker";
 
 type Props = {
     defaultPoster?: string,
@@ -19,7 +18,7 @@ type Props = {
 };
 
 const EditButtonIcon = () => (
-    <div className="p-2 rounded-full border border-slate-500 backdrop-brightness-50 -mb-2 mt-auto -mr-2 ml-auto">
+    <div className="size-9 flex flex-cntr-all rounded-full border border-slate-500 bg-black/50 text-zinc-100 -mb-1 sm:mb-0 mt-auto -mr-1 sm:mr-0 ml-auto">
         <EditIcon className="size-4" />
     </div>
 )
@@ -42,6 +41,7 @@ const Poster = forwardRef<InputManagerType<InputFrame | null>, Props>(
 
         useImperativeHandle(ref, () => ({
             getData: () => frame,
+            length: 1,
         }));
 
         const addPoster = (file: InputFrame) => {

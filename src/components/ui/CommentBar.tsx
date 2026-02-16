@@ -83,6 +83,7 @@ const CommentBar = ({ _id, attachment, nsfw, spoiler, post_id, user, content, st
             <details className="w-full p-2 border-l border-gray30" open={!Boolean(nsfw || spoiler)}>
                 <summary className="flex gap-3 items-center">
                     <ParloImage
+                        frameType="userProfile"
                         frame={profile}
                         className="rounded-full object-cover"
                         size={32}

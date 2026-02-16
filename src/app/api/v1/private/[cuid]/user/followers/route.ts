@@ -13,7 +13,7 @@ export const GET = getHandler(async (r, params) => {
       filters: [{ $match: { followee: cuid, blocked: false } }],
       page,
       sort: { createdAt: -1 },
-      localFieldForLookup: "user_id"
+      localFieldForLookup: "follower",
     })
   );
 

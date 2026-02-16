@@ -4,7 +4,7 @@ import { ArtistCard, LinkTile, NotFound, ParloFooter, VerticleMovieCard } from "
 import { checkAndReturn, createArray, makeUrlSafe, numberConverter } from "@lib/utils";
 import { RefinedCast, RefinedMovieData, RefinedShowData } from "@type/external";
 import { FullTaleonType, Link } from "@type/internal";
-import { TaleonSchemaType } from "@type/schemas";
+import { ConfirmedTaleon, TaleonSchemaType } from "@type/schemas";
 import { AddToShelf, ShowTrailerButton, HorizontalThreadList, TaleonWikiSection, TaleonWikiHeader } from ".";
 
 type Props = {
@@ -50,13 +50,12 @@ const TaleonPage = ({ content, type }: Props) => {
         { label: "IMDB", path: `https://imdb.com/title/${content.imdb_id}` },
     ];
 
-    const taleonForShelf: TaleonSchemaType = {
+    const taleonForShelf: ConfirmedTaleon = {
         title: content.title,
         poster: content.poster,
         ext_id: content.tmdb_id,
         year: content.year,
         taleon_type: type,
-        isConfirm: true,
         taleon_id: content._id,
     }
 

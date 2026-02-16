@@ -25,6 +25,7 @@ const RoomBar = ({ lastMessageAt, lastMessageBy, mute, otherParticipant_seenAt, 
             <article className="flex gap-3 items-center">
                 <div>
                     <ParloImage
+                        frameType="poster"
                         alt={`Profile picture of ${display_name}`}
                         size={40}
                         frame={poster}

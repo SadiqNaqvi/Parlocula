@@ -1,4 +1,6 @@
 import mongoose from "mongoose";
+import dns from "node:dns/promises";
+dns.setServers(["1.1.1.1", "8.8.8.8"]);
 
 export async function connectDatabase(): Promise<boolean> {
   if (mongoose.connection.readyState === 1) return true;

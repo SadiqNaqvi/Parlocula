@@ -11,7 +11,8 @@ export const getAblyOnClient = (client_id: string) => {
 
   if (!ably_realtime) {
     ably_realtime = new Ably.Realtime({
-      authUrl: `${parloculaAppURL}/api/v1/ably`,
+      authUrl: `/api/v1/ably`,
+      // authUrl: `${process.env.NODE_ENV === "production" ? parloculaAppURL : ""}/api/v1/ably`,
       clientId: client_id,
       autoConnect: true,
     });

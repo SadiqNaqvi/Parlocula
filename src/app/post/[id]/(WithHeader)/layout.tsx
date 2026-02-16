@@ -21,7 +21,7 @@ export const generateMetadata = async ({ params }: ParloPageProps): Promise<Meta
 
     const { result, success } = await getPostById(id);
 
-    if (!success) return { title: "Parlocula" }
+    if (!success || !result) return { title: "Parlocula" }
 
     const { title, username, body } = result;
 

@@ -6,13 +6,13 @@ import { ThreadUpdateSchema } from "@type/schemas";
 
 // Making sure that only managers are allowed to update a thread.
 export const PATCH = updateHandler<ThreadUpdateSchema>({
-  handler: async ({ data, frames, params, username, user_id, isNsfw }) => {
+  handler: async ({ data, frames, params, username, user_id, isNsfw, areFilesToDelete }) => {
 
     const dataToUpdate = Object({
       ...data,
       edited_at: new Date(),
       edited_by: username,
-      ...(frames.length && { poster: frames[0] }),
+      ...(frames.length ? { poster: frames[0] } : areFilesToDelete && { poster: undefined }),
     });
 
     const doc = await Thread.findByIdAndUpdate(params.id, { $set: dataToUpdate }).then(r => r?.toObject());

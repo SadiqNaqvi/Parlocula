@@ -1,5 +1,7 @@
+"use client";
+
 import { InfiniteScroller, Navbar } from "@components"
-import FilterTiles from "@components/Router/FilterTIles";
+import FilterTiles from "@components/FilterTiles";
 import ShelfBar from "@components/ui/ShelfBar";
 import { getPrivateShelvesOfUser, getShelvesAsCollaborator, getShelvesAsInvitee, getShelvesOfUser } from "@lib/helpers/common";
 import { getQueryKeys, refineSearchParams } from "@lib/utils";

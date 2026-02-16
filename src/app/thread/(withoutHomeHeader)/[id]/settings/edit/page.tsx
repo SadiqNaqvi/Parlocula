@@ -1,129 +1,33 @@
-"use client";
-
-import ConnectionsInput from "@app/thread/(withoutHomeHeader)/new/ConnectionsInput";
-import { LinkInputManager, Navbar } from "@components";
-import { Form, Input, Poster, Textarea, ToggleButton } from "@components/form";
-import { LoadingSpinner } from "@components/ui";
+import ThreadMutation from "@components/form/Mutation/ThreadMutation";
+import { getUserFromToken } from "@lib/auth/utils";
 import { getThreadById } from "@lib/helpers/common";
-import { editThreadMutation } from "@lib/helpers/mutations";
-import { useQueryHook } from "@lib/hooks";
-import appToast from "@lib/providers/toast";
-import { threadSchemaClient } from "@lib/schemas";
-import { checkEditedFields, getQueryKeys, readyFrames } from "@lib/utils";
-import { useNavigation } from "@store/historystack";
-import useCurrentUser from "@store/user";
-import { Thread } from "@type/internal";
-import { InputManagerType } from "@type/other";
-import { InputFrame, ThreadUpdateSchema } from "@type/schemas";
-import { useParams } from "next/navigation";
-import { useRef } from "react";
+import { fetchQuery, getQueryClient } from "@lib/providers/queryClient";
+import { getQueryKeys } from "@lib/utils";
+import { ParloPageProps } from "@type/other";
+import { cookies } from "next/headers";
 
-const ThreadEditPage = () => {
+const ThreadEditPage = async ({ params }: ParloPageProps) => {
 
-    const { meta } = useCurrentUser();
-    const posterRef = useRef<InputManagerType<InputFrame>>(null);
-    const linksRef = useRef<InputManagerType>(null);
-    const connectionsRef = useRef<InputManagerType>(null);
-    const formRef = useRef<HTMLFormElement>(null);
+    const { id } = await params;
+    const [tid] = id.split('-');
 
-    const navigation = useNavigation();
+    const queryClient = getQueryClient();
 
-    const { id } = useParams();
-    const tid = (id as string).split('-')[0];
+    const jar = await cookies();
+    const user = await getUserFromToken(jar);
 
-    const { data, isFetching } = useQueryHook<Thread>({
+    if (!user) return null;
+
+    const thread = await fetchQuery({
+        queryClient,
+        queryKey: getQueryKeys("thread_id", { id: tid }),
         queryFn: () => getThreadById(tid),
-        queryKeys: getQueryKeys("thread_id", { id: tid }),
-        enabled: Boolean(meta),
     });
 
-    if (isFetching) return <LoadingSpinner />
-    else if (!meta || !data) return null;
+    if (!thread || !(thread.created_by === user.user_id || thread.managers.some(({ _id }) => _id === user.user_id)))
+        return null;
 
-    const submit = async (updatedData: Pick<ThreadUpdateSchema, "name" | "description" | "nsfw">) => {
-
-        const { poster, links, connections, name, description, nsfw } = data;
-
-        const updatedConnections = connectionsRef.current?.getData() || [];
-        const updatedLinks = linksRef.current?.getData() || [];
-        const updatedPoster = posterRef.current?.getData();
-
-        const editedFields = checkEditedFields(
-            { name, description, nsfw, connections, links },
-            { ...updatedData, connections: updatedConnections, links: updatedLinks }
-        )
-
-        let additionalFields: Partial<ThreadUpdateSchema> = {};
-
-        if (updatedPoster && updatedPoster.path !== poster?.path) {
-            const { files, filesData } = await readyFrames(updatedPoster);
-            additionalFields = {
-                files,
-                filesData,
-                filesToRemove: poster ? [{
-                    type: "image",
-                    path: poster.path,
-                }] : []
-            }
-        }
-
-        const error = await editThreadMutation(tid, meta.user_id, { ...editedFields, ...additionalFields });
-
-        if (error) return error;
-        else appToast.success("Thread Updated Successfully");
-        navigation.back();
-
-    }
-
-    const requestSubmit = () => {
-        formRef.current?.requestSubmit();
-    }
-
-    return (
-        <>
-            <Navbar
-                navTitle="Edit Thread"
-                OptionButton={
-                    <button type="submit" className="primary" onClick={requestSubmit}>Save</button>
-                }
-            />
-
-            <Poster defaultPoster={data.poster?.path} ref={posterRef} />
-
-            <Form
-                ref={formRef}
-                defaultVals={data}
-                schema={threadSchemaClient}
-                submit={submit}
-                className="space-y-6"
-            >
-
-                <Input
-                    name="name"
-                    placeholder="Eg: Spider Man"
-                    label="Name"
-                    required
-                    minLength={5}
-                    maxLength={30}
-                />
-
-                <Textarea
-                    name="description"
-                    label="Description"
-                    placeholder="Eg: About the thread and rules if any."
-                    required
-                    maxLength={500}
-                />
-
-                <ToggleButton label="nsfw" className="w-full py-4 uppercase" />
-
-            </Form>
-
-            <ConnectionsInput defaultConnections={data.connections} connectionsRef={connectionsRef} />
-            <LinkInputManager defaultLinks={data.links} ref={linksRef} />
-        </>
-    )
-
+    return <ThreadMutation isEditing defaultValues={thread} />
 }
 
 export default ThreadEditPage;

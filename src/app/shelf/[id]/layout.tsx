@@ -6,16 +6,22 @@ import { PropsWithChildren } from "react";
 
 const ShelfLayout = async ({ children, params }: PropsWithChildren<ParloPageProps>) => {
 
-    const lid = (await params).id.split('-')[0];
+    const awaitedParams = await params;
+    const lid = awaitedParams.id.split('-')[0];
+    
+    const isCorrectId = isValidParloId(lid);
+    console.log("isCorrectId in /shelf/id layout", isCorrectId);
 
-    if (!isValidParloId(lid)) return (
+    if (!isCorrectId) return (
         <NotFound
             title="Oops! Looks like you came across a wrong path."
             paras={["Shelf id is incorrect", "Please search the shelf by name in the explore page."]}
         />
     );
 
-    return <main>{children}</main>
+    return (
+        <main>{children}</main>
+    )
 }
 
 export default ShelfLayout;

@@ -1,4 +1,4 @@
-import FilterTiles from "@components/Router/FilterTIles";
+import FilterTiles from "@components/FilterTiles";
 import { getShelvesOfUser, getUserByUsername } from "@lib/helpers/common";
 import { fetchQuery, getQueryClient, prefetchInfiniteQuery } from "@lib/providers/queryClient";
 import { getQueryKeys, refineSearchParams } from "@lib/utils";

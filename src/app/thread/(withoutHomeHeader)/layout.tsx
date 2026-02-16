@@ -1,10 +1,6 @@
-import type { Metadata } from "next";
+import generateDynamicMetadata from "@lib/seo/metadata";
 
-export const metadata: Metadata = {
-    title: "Threads - Parlocula",
-    description: "Stop Searching Start Watching",
-    keywords: "movies, tv shows, web series, movie recommendation, movie recommendation system, tv show recommendation system, movies suggestion, movie suggestion, show suggestion, series suggestion",
-};
+export const metadata = generateDynamicMetadata({ title: "Threads" });
 
 const ThreadHomeLayout = ({ children }: Readonly<{ children: React.ReactNode, }>) => {
 

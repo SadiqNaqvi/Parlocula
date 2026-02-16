@@ -18,7 +18,7 @@ export const UnbanAction = ({ tid, uid }: { tid: string, uid: string, back: Type
         if (!users || !users.length) return;
         unbanMembersMutation(tid, uid, { users });
     }
-    
+
     return (
         <>
             <Navbar
@@ -28,6 +28,7 @@ export const UnbanAction = ({ tid, uid }: { tid: string, uid: string, back: Type
                 }
             />
             <ListSelector
+                mode="search"
                 callbackRef={callbackRef}
                 limit={blockOrBanLimit}
                 queryFn={(q, p) => searchBannedMembers(tid, uid, q, p)}
@@ -62,6 +63,7 @@ export const BanAction = ({ tid, uid }: { tid: string, uid: string, back: TypedF
                 }
             />
             <ListSelector
+                mode="search"
                 callbackRef={callbackRef}
                 limit={blockOrBanLimit}
                 queryFn={(q, p) => searchMembers(tid, q, p)}

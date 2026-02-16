@@ -28,7 +28,7 @@ export const basedOnModel = new Schema<BasedOnModelType>({
     enum: ["person", "movie", "show"],
     required: true,
   },
-  path: {
+  extid: {
     type: String,
     required: true,
   },

@@ -14,7 +14,7 @@ export const GET = getHandler(async (r, params) => {
     const isManager = await Member.exists({
         thread_id: id,
         user_id: cuid,
-        role: { $or: ["moderator", "creator"] }
+        role: { $in: ["moderator", "creator"] }
     });
 
     if (!isManager) return { success: false, errCode: "unauthorized_access" }

@@ -3,8 +3,8 @@
 import { OptionalChildren } from "@components/ui";
 import LoadingSpinner from "@components/ui/loading/LoadingSpinner";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { forwardRef, HTMLAttributes, } from "react";
-import { useForm, FormProvider } from "react-hook-form"
+import { forwardRef, HTMLAttributes, useEffect } from "react";
+import { FormProvider, useForm } from "react-hook-form";
 import { ZodIssue } from "zod";
 
 export type FormSubmitReturnType = { path: string, message: string }[] | string | false | null | void | undefined | ZodIssue[]
@@ -26,6 +26,8 @@ const FormContainer = ({ children, schema, submit, defaultVals, hideLoading, ski
 
     const { handleSubmit, setError, formState: { errors, isSubmitting }, reset, clearErrors } = formMethod;
 
+    useEffect(() => errors && console.log(errors), [errors]);
+
     const submitForm = async (data: any) => {
         clearErrors();
         if (isSubmitting) return;
@@ -40,6 +42,7 @@ const FormContainer = ({ children, schema, submit, defaultVals, hideLoading, ski
             else setError("custom", { message: errors })
         } else if (!skipReset && errors !== false) reset();
     }
+
 
     return (
         <>

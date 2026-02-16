@@ -30,12 +30,12 @@ export const GET = getHandler(async (_, params) => {
 
 // Update information of the current user
 export const PATCH = updateHandler<UserUpdateSchemaType>({
-  handler: async ({ data, session, user_id, username, frames }) => {
+  handler: async ({ data, session, user_id, username, frames, areFilesToDelete }) => {
 
     const dataToUpdate = {
       ...data,
       edited_at: new Date(),
-      ...(frames && frames.length ? { profile: frames[0] } : {}),
+      ...(frames && frames.length ? { profile: frames[0] } : areFilesToDelete && { profile: undefined }),
       ...(data.dob && calculateAge(data.dob) < 18 ? { filterContent: true } : {})
     }
 
@@ -57,12 +57,12 @@ export const PATCH = updateHandler<UserUpdateSchemaType>({
       if (!success || !result)
         return { success: false, errCode: "uncaught_error" };
 
-      const { dob, profile, filterContent } = dataToUpdate;
+      const { dob, filterContent } = dataToUpdate;
 
       const sessionPayload = {
         ...result,
         ...(dob && { dob }),
-        ...(profile && { profile }),
+        ...("profile" in dataToUpdate && { profile: dataToUpdate.profile }),
         ...(filterContent && { filterContent })
       };
 

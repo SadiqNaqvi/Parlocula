@@ -1,10 +1,18 @@
 "use client";
 import { useFormContext } from "react-hook-form";
+import { twMerge } from "tailwind-merge";
 
-const ToggleButton = ({ label, name, checked, className = '' }: { label: string, name?: string, checked?: boolean, className?: string }) => {
+type Props = {
+    label: string,
+    name?: string,
+    checked?: boolean,
+    className?: string
+}
+
+const ToggleButton = ({ label, name, checked, className }: Props) => {
     const { register } = useFormContext();
     return (
-        <label htmlFor={label} className={`pointer rounded-md inline-flex flex-cntr-all px-2 py-1 border border-gray30 bg-gray10 has-[:checked]:bg-opacity-20 has-[:checked]:bg-purple-500 has-[:checked]:border-purple-500 ${className || "w-full"}`}>
+        <label htmlFor={label} className={twMerge("pointer text-sm rounded-md inline-flex flex-cntr-all px-2 py-1 border border-gray30 bg-gray10 has-[:checked]:bg-purple-500/20 has-[:checked]:border-purple-500 w-fit", className)}>
             <input
                 {...register(name ?? label)}
                 type="checkbox"

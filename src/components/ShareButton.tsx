@@ -14,6 +14,7 @@ const ShareButton = ({ children, onClick, title, url, text, ...args }: Props) =>
 
     const share = () => {
         const urlToShare = url ?? window.location.href;
+        console.log("in share button", url, urlToShare);
         const isMobile = /Mobi|Android/i.test(navigator.userAgent);
         const data = { text, url: urlToShare, title };
 

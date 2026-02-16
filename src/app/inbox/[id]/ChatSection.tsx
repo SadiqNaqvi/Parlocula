@@ -40,6 +40,7 @@ const Component = (data: FullRoomType, { rmid, uid }: Props) => {
                 <ChatInfoSection room={data} uid={uid}>
                     <div className="flex gap-4 items-center">
                         <ParloImage
+                            frameType="userProfile"
                             containerClassName="rounded-full overflow-hidden"
                             frame={data.poster}
                             size={36}

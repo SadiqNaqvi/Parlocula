@@ -1,11 +1,12 @@
+"use client";
+
 import { AddIcon, XmarkIcon } from "@assets/Icons";
-import { BottomSheet, BottomSheetRef, ListSelector } from "@components";
-import { ListSelectorRef, RefinedValues } from "@components/ListSelector";
+import { BottomSheet, BottomSheetRef, ListSelector, ListSelectorRef, RefinedValues } from "@components";
 import { OptionalChildren } from "@components/ui";
 import { searchAllContent } from "@lib/contentFetcher";
 import { RefinedSearchData } from "@type/external";
 import { InputManagerType } from "@type/other";
-import { ThreadConnectionType as CType } from "@type/schemas";
+import { ThreadConnection as CType } from "@type/internal";
 import { RefObject, useImperativeHandle, useRef, useState } from "react";
 
 const refiner = ({ id, media_type, image, name }: RefinedSearchData): RefinedValues<CType> => ({
@@ -14,13 +15,10 @@ const refiner = ({ id, media_type, image, name }: RefinedSearchData): RefinedVal
     poster: image,
     returnVal: {
         name: name,
-        path: id,
+        extid: id,
         type: media_type
     } as CType
 });
-
-const sheetTitle = "";
-const sheetDesc = ""
 
 const ConnectionsInput = ({ defaultConnections, connectionsRef }: { defaultConnections?: CType[], connectionsRef: RefObject<InputManagerType<CType[]>> }) => {
 
@@ -30,10 +28,11 @@ const ConnectionsInput = ({ defaultConnections, connectionsRef }: { defaultConne
 
     useImperativeHandle<InputManagerType<CType[]>, InputManagerType<CType[]>>(connectionsRef, () => ({
         getData: () => connections,
+        length: connections.length,
     }));
 
-    const removeConnection = (path: string) => {
-        setConnections(connections.filter(e => e.path !== path));
+    const removeConnection = (extid: string) => {
+        setConnections(prev => prev.filter(e => e.extid !== extid));
     }
 
     const getConnections = () => {
@@ -46,13 +45,13 @@ const ConnectionsInput = ({ defaultConnections, connectionsRef }: { defaultConne
         <div className="space-y-2">
             <div className="flex flex-cntr-between">
                 <OptionalChildren condition={connections.length} fallback={(
-                    <h4 className="parloHeading">Connect it to Wikis</h4>
+                    <h4 className="parloHeading">Connect to Taleons</h4>
                 )}>
                     <ul className="flex gap-3 flex-1 overflow-x-auto noScroll">
-                        {connections.map(({ path, name }) => (
-                            <li key={path} className="inline-flex text-sm gap-3 whitespace-nowrap text-nowrap flex-cntr-between px-2 py-1 rounded-md bg-gray10 border border-gray20">
+                        {connections.map(({ extid, name }) => (
+                            <li key={extid} className="inline-flex text-sm gap-3 whitespace-nowrap text-nowrap flex-cntr-between px-2 py-1 rounded-md bg-gray10 border border-gray20">
                                 <span>{name}</span>
-                                <button className="p-1 bg-gray20 rounded-md" type="button" onClick={() => removeConnection(path)}>
+                                <button className="p-1 bg-gray20 rounded-md" type="button" onClick={() => removeConnection(extid)}>
                                     <XmarkIcon className="size-2" />
                                 </button>
                             </li>
@@ -60,26 +59,25 @@ const ConnectionsInput = ({ defaultConnections, connectionsRef }: { defaultConne
                     </ul>
                 </OptionalChildren>
 
-                <BottomSheet title={sheetTitle} description={sheetDesc} onClose={getConnections} ref={sheetRef} button={<AddIcon />}>
+                <BottomSheet onClose={getConnections} ref={sheetRef} button={<AddIcon />}>
                     <section className="p-2 sm:p-4">
                         <ListSelector
+                            mode="search"
                             queryFn={searchAllContent}
                             queryKeys={(q) => ["search", "connection", q]}
                             refiner={refiner}
                             callbackRef={callbackRef}
-                            className="min-h-[50dvh] my-2 space-y-4"
+                            className="space-y-4"
                             inputPlaceholder="Search Movies, Shows or Artists"
                         />
                     </section>
                 </BottomSheet>
             </div>
             <OptionalChildren condition={!connections.length}>
-                <p className="text-sm text-gray-500">You can optionally connect this thread to the movies, shows or artists it is based on. If connected, the thread would be shown on these connected wiki page.</p>
+                <p className="text-sm text-gray-500">Connect this thread to the movies, shows or artists it is based on. If connected, the thread would be easier to find.</p>
             </OptionalChildren>
         </div>
     )
 }
-
-ConnectionsInput.displayName = "ConnectionsInput";
 
 export default ConnectionsInput;

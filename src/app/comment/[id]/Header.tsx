@@ -51,6 +51,7 @@ const Component = (data: FullComment, { uid, id }: Props) => {
                     <ParloImage
                         containerClassName="rounded-full overflow-hidden"
                         frame={profile}
+                        frameType="userProfile"
                         size={25}
                         alt="Profile Picture of the author of comment"
                     />

@@ -18,9 +18,9 @@ const OptionMenu = ({ children, heading, controls = "auto", ButtonElement, sheet
     <BottomSheet ref={sheetRef} {...args} button={ButtonElement}>
         <section>
             <OptionalChildren condition={heading || controls === "manual"}>
-                <div className="py-4 px-4 flex-cntr-between flex border-b border-gray30">
+                <div className="p-2 flex-cntr-between flex border-b border-gray30">
                     <OptionalChildren condition={heading}>
-                        <span className="text-xl">{heading}</span>
+                        <h6 className="parloHeading">{heading}</h6>
                     </OptionalChildren>
                     <OptionalChildren condition={controls === "manual"}>
                         <Drawer.Close type="button" className="iconBtn ml-auto">

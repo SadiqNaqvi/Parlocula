@@ -10,7 +10,7 @@ import { render } from "@react-email/components";
 import { GeneralGetReturn, GeneralPostReturn } from "@type/internal";
 import { NotificationModelType, ShelfItemModelType, TaleonModelType } from "@type/models";
 import { PushNotificationType } from "@type/other";
-import { TaleonSchemaType } from "@type/schemas";
+import { ConfirmedTaleon, TaleonSchemaType } from "@type/schemas";
 import Ably from "ably";
 import { randomInt } from "crypto";
 import { ClientSession } from "mongoose";
@@ -30,8 +30,13 @@ export const addItemsInShelf = async (
     throw new Error("shelf items array, which is to be added in shelf, is empty");
 
   // Step 1: Separate confirmed and unconfirmed taleons
-  const confirmedItems = items.filter((item) => item.isConfirm === true);
-  const unconfirmedItems = items.filter((item) => item.isConfirm === false);
+  const confirmedItems: ConfirmedTaleon[] = [];
+  const unconfirmedItems: TaleonSchemaType[] = [];
+
+  items.forEach((item) => {
+    if (item.taleon_id) confirmedItems.push(item as ConfirmedTaleon);
+    else unconfirmedItems.push(item);
+  });
 
   // Step 2: Find existing items for unconfirmed items
   const extIds = unconfirmedItems.map((item) => item.ext_id);
@@ -107,15 +112,15 @@ type SendEmailProps = {
   subject: string;
 }
 
-const transportor = createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.QCORE_EMAIL,
-    pass: process.env.APP_PASSWORD,
-  },
-});
-
 export const sendEmail = async ({ email, subject, template }: SendEmailProps) => {
+  const transportor = createTransport({
+    service: "gmail",
+    auth: {
+      user: process.env.QCORE_EMAIL,
+      pass: process.env.APP_PASSWORD,
+    },
+  });
+
   await transportor.sendMail({
     from: process.env.QCORE_EMAIL,
     to: email,
@@ -242,6 +247,8 @@ export const sendNotification = async (
 };
 
 export const deleteUserFromCookies = async () => {
+  "use server";
+
   const jar = await cookies();
   jar.delete("sid");
   jar.delete("token");

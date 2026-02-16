@@ -10,7 +10,7 @@ import { TaleonToAddAndRemoveType } from "@type/schemas";
 export const GET = getHandler(async (r, params) => {
 
   console.log("Entered Handler");
-  const { id } = params; // shelf_id
+  const { id, cuid } = params; // shelf_id
 
   const { page, filter } = getSearchParams(r.nextUrl, 0, "latest");
 
@@ -38,8 +38,10 @@ export const GET = getHandler(async (r, params) => {
 
   const shelf = shelfResponse.toObject();
 
-  if (shelf.isPrivate && (!key || (key !== shelf.shelfKey)))
+  if (shelf.isPrivate && !((key && (key === shelf.shelfKey)) || (cuid && shelf.user_id === cuid)))
     return { success: false, errCode: "unauthorized_access" };
+
+  console.log(items);
 
   return { success: true, result: items };
 }

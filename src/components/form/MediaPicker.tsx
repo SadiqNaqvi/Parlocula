@@ -12,6 +12,9 @@ import Image from "next/image";
 import { ChangeEvent, forwardRef, useImperativeHandle, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Form, Input } from ".";
+import { Frame } from "@type/internal";
+import { OptionalChildren } from "@components/ui";
+import { twMerge } from "tailwind-merge";
 
 type FrameToReturn = InputFrame & { thumb?: string }
 
@@ -25,22 +28,22 @@ const FrameContainer = ({ path, type, size, thumb, remove }: FrameToReturn & { r
 
     const ExtraComponents = () => (
         <>
-            {remove && (
+            <OptionalChildren condition={remove}>
                 <button
-                    onClick={() => remove(path)}
-                    className="absolute smallBtn p-1 right-0 top-0 mt-1 mr-1 bg-gray30 border border-gray40 rounded-md">
+                    onClick={() => remove?.(path)}
+                    className="absolute smallBtn p-1 right-0 top-0 mt-1 mr-1 bg-black/50 text-white border border-gray40 rounded-md">
                     <XmarkIcon className="h-4" />
                 </button>
-            )}
+            </OptionalChildren>
 
-            <span className="absolute bottom-0 right-0 mr-2 mb-2 bg-black text-sm bg-opacity-50 text-white rounded-md p-1">
+            <span className="absolute bottom-0 right-0 mr-2 mb-2 bg-black/50 text-sm text-white rounded-md p-1">
                 {showSize(size)}
             </span>
         </>
     )
 
     if (type === "image") return (
-        <div className="size-60 mx-auto border rounded-md border-gray40 relative">
+        <div className="min-w-60 size-60 border rounded-md border-gray40 relative">
             <Image
                 className="aspect-square h-full object-contain"
                 src={path}
@@ -52,7 +55,7 @@ const FrameContainer = ({ path, type, size, thumb, remove }: FrameToReturn & { r
     )
 
     else return (
-        <div className="size-60 mx-auto border rounded-md border-gray40 relative">
+        <div className="min-w-60 size-60 border rounded-md border-gray40 relative">
             <video
                 height={240}
                 width={240}
@@ -257,13 +260,29 @@ type ManagerProps = {
     title?: string,
     limit?: number,
     allowBoth?: true,
-    defaultFrames?: InputFrame[],
+    defaultFrames?: Frame[];
+    className?: string;
+    getterRef: React.RefObject<InputManagerType<InputFrame[]>>;
+    promptRef?: React.RefObject<BottomSheetRef>;
 };
 
-const MediaInputManager = forwardRef<InputManagerType<InputFrame[]>, ManagerProps>(({ title, limit, allowBoth, defaultFrames }: ManagerProps, ref) => {
+const convertFrameToInputFrame = (frame: Frame[] | undefined): InputFrame[] => {
 
-    const [frames, setFrames] = useState<FrameToReturn[]>(defaultFrames ?? []);
-    const sheetRef = useRef<BottomSheetRef>();
+    if (!frame) return [];
+    return frame?.map(({ hash, path, size, type }) => ({
+        blob: null,
+        hash,
+        isExternal: true,
+        path,
+        shouldUpload: false,
+        size,
+        type
+    }))
+}
+
+const MediaInputManager = ({ title, limit = 5, allowBoth, defaultFrames, getterRef, promptRef, className }: ManagerProps) => {
+
+    const [frames, setFrames] = useState<FrameToReturn[]>(convertFrameToInputFrame(defaultFrames));
     const [frameType, setFrameType] = useState<"image" | "both">(allowBoth ? "both" : "image");
 
     const getFrames = () => {
@@ -273,7 +292,10 @@ const MediaInputManager = forwardRef<InputManagerType<InputFrame[]>, ManagerProp
         })
     }
 
-    useImperativeHandle(ref, () => ({ getData: getFrames }));
+    useImperativeHandle(getterRef, () => ({
+        getData: getFrames,
+        length: frames.length,
+    }));
 
     const getframe = (frame: InputFrame) => {
 
@@ -301,35 +323,37 @@ const MediaInputManager = forwardRef<InputManagerType<InputFrame[]>, ManagerProp
         setFrames(frames.filter(el => el.path !== path));
     }
 
-    return (
-        <div className="space-y-4">
+    if (!frames.length) return (
+        <BottomSheet ref={promptRef}>
+            <MediaInputPrompt callback={getframe} type={frameType} />
+        </BottomSheet>
+    );
 
-            <div className="flex flex-cntr-between">
-                <h4 className="capitalize">{title ?? "Attach frames"}</h4>
-            </div>
+    return (
+        <section className={twMerge("space-y-4", className)}>
+
+            <OptionalChildren condition={title}>
+                <h4 className="capitalize">{title}</h4>
+            </OptionalChildren>
+
 
             <div className="flex gap-2 overflow-x-auto noScroll">
+
+                <OptionalChildren condition={frames.length < (limit || 1)}>
+                    <BottomSheet
+                        ref={promptRef}
+                        className="size-60 rounded-md border-dashed border border-gray40 aspect-square backdrop:brightness-50 flex flex-cntr-all"
+                        button={<AddIcon />}>
+                        <MediaInputPrompt callback={getframe} type={frameType} />
+                    </BottomSheet>
+                </OptionalChildren>
 
                 {frames.map(frame => (
                     <FrameContainer {...frame} remove={removeframe} key={frame.path} />
                 ))}
-
-                {frames.length < (limit ?? 1) && (
-                    <BottomSheet
-                        ref={sheetRef}
-                        button={
-                            <div className="size-60 rounded-md border-dashed border border-gray40 aspect-square backdrop:brightness-50 flex flex-cntr-all">
-                                <AddIcon />
-                            </div>
-                        }>
-                        <MediaInputPrompt callback={getframe} type={frameType} />
-                    </BottomSheet>
-                )}
             </div>
-        </div>
+        </section>
     )
-});
-
-MediaInputManager.displayName = "MediaInputManager";
+}
 
 export default MediaInputManager;

@@ -74,9 +74,9 @@ const ThreadDetailSheet = ({ connections, createdAt, creator, description, edite
                 </div>
             )}>
                 <ul className="space-y-2">
-                    {connections.map(({ name, path, type }) => (
-                        <li key={`/explore/${type}/${path}`} className="border border-gray20 rounded-md">
-                            <Navigate className="p-2 flex gap-2 flex-cntr-between" comp="link" goto={`/${type}/${path}`}>
+                    {connections.map(({ name, extid, type }) => (
+                        <li key={extid} className="border border-gray20 rounded-md">
+                            <Navigate className="p-2 flex gap-2 flex-cntr-between" comp="link" goto={`/explore/${type}/${extid}`}>
                                 <span className="line-clamp-1">{name}</span>
                                 <span><RightChevron /></span>
                             </Navigate>

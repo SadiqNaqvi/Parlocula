@@ -19,7 +19,7 @@ type Props = {
 const MetadataContentTile = ({ children, skipDisc, }: PropsWithChildren<Pick<Props, "skipDisc">>) => (
     <OptionalChildren condition={!skipDisc} fallback={children}>
         <span className="group-first:hidden">•</span>
-        <span className="text-sm">{children}</span>
+        <div className="text-sm whitespace-nowrap">{children}</div>
     </OptionalChildren>
 )
 
@@ -27,7 +27,7 @@ const MetadataTile = ({ children, className, skipDisc, condition, href }: PropsW
 
     return (
         <OptionalChildren condition={condition ?? true}>
-            <li className={twMerge("space-x-2 text-zinc-500 group", className)}>
+            <li className={twMerge("flex gap-2 text-zinc-500 group items-center", className)}>
                 <OptionalChildren condition={href} fallback={(
                     <MetadataContentTile skipDisc={skipDisc}>{children}</MetadataContentTile>
                 )}>

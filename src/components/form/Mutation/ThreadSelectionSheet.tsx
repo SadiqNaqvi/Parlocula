@@ -1,15 +1,13 @@
 "use client";
 
-import { XmarkIcon } from "@assets/Icons";
-import { BottomSheet, BottomSheetRef, GeneralTile, InfiniteScroller } from "@components";
-import { ParloImage } from "@components/ui";
+import { BottomSheet, BottomSheetRef, GeneralTile, InfiniteScroller, NestedSheet } from "@components";
+import { OptionalChildren, ParloImage } from "@components/ui";
 import { joinedThreadsOfUser } from "@lib/helpers/common";
 import { getQueryKeys } from "@lib/utils";
 import useOfflineStore from "@store/offlineStore";
 import useCurrentUser from "@store/user";
 import { InfiniteQueryResponse, MereThread } from "@type/internal";
-import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
-import { Drawer } from "vaul";
+import { useEffect, useRef, useState } from "react";
 
 type Props = { defaultVal?: MereThread };
 
@@ -17,9 +15,10 @@ const ChoosenThread = ({ name, poster }: Pick<MereThread, "name" | "poster">) =>
     return (
         <div className="flex gap-2 items-center">
             <ParloImage
-                containerClassName="rounded-full overflow-hidden"
+                frameType="poster"
+                className="rounded-full object-cover"
                 frame={poster}
-                size={20}
+                size={48}
                 alt={`Poster of thread ${name}`}
             />
             <h4>{name}</h4>
@@ -44,12 +43,8 @@ const ThreadChoice = ({ submitChoice }: { submitChoice: (chosenThread: MereThrea
     )
 
     return (
-        <div className="bg-primarylight py-4">
-            <header className="flex gap-3 py-2 items-center">
-                <Drawer.Close>
-                    <XmarkIcon />
-                </Drawer.Close>
-
+        <>
+            <header className="">
                 <h3>Choose Thread</h3>
             </header>
             <section className="mt-4">
@@ -65,44 +60,51 @@ const ThreadChoice = ({ submitChoice }: { submitChoice: (chosenThread: MereThrea
 
                 />
             </section >
-        </div>
+        </>
     )
 }
 
-const ChooseThreadButton = forwardRef(({ defaultVal }: Props, ref) => {
+const ChooseThreadButton = ({ defaultVal, submit }: Props & { submit: (tid: string) => void }) => {
 
     const [thread, setThread] = useState<MereThread>();
-    const sheetRef = useRef<BottomSheetRef>()
+    const sheetRef = useRef<BottomSheetRef>();
 
     useEffect(() => {
         if (defaultVal) setThread(defaultVal);
-    }, [defaultVal])
-
-    useImperativeHandle(ref, () => ({
-        getData: () => thread?._id
-    }));
+    }, [defaultVal]);
 
     const takeResult = (thread: MereThread) => {
         setThread(thread);
         sheetRef.current?.close();
     }
 
+    const giveResult = () => {
+        if (thread) {
+            submit(thread._id);
+            sheetRef.current?.close();
+        }
+    }
+
     return (
-        <BottomSheet
-            ref={sheetRef}
-            className="px-3 py-2 bg-gray10 rounded-full"
-            button={
-                thread ?
-                    <ChoosenThread name={thread.name} poster={thread.poster} />
-                    : "Choose Thread"
-            }
-        >
-            <ThreadChoice submitChoice={takeResult} />
-        </BottomSheet>
+        <section>
+            <h5 className="text-lg font-semibold mb-4">Post In:</h5>
+            <NestedSheet
+                ref={sheetRef}
+                className="p-3 w-full bg-gray10 border-gray10 rounded-md"
+                button={
+                    <OptionalChildren condition={thread} fallback="Choose a thread to post">
+                        <ChoosenThread name={thread?.name || ""} poster={thread?.poster} />
+                    </OptionalChildren>
+                }
+            >
+                <ThreadChoice submitChoice={takeResult} />
+            </NestedSheet>
+            <OptionalChildren condition={thread}>
+                <button className="primary w-full mt-4" onClick={giveResult}>Post</button>
+            </OptionalChildren>
+        </section>
     )
 
-})
-
-ChooseThreadButton.displayName = "ChooseThreadButton";
+}
 
 export default ChooseThreadButton;

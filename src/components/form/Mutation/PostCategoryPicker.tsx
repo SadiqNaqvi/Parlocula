@@ -3,7 +3,9 @@
 import { AlertIcon } from "@assets/Icons";
 import BottomSheet, { BottomSheetRef } from "@components/BottomSheet";
 import GeneralTile from "@components/GeneralTile";
+import { OptionalChildren } from "@components/ui";
 import { availablePostCategories } from "@lib/constants";
+import { checkAndReturn } from "@lib/utils";
 import { TypedFunction } from "@type/other";
 import { useRef } from "react";
 
@@ -19,22 +21,20 @@ const PostCategoryPicker = ({ func, defaultCategory = "" }: { func: TypedFunctio
     return (
         <BottomSheet
             ref={sheetRef}
-            className="items-center gap-2 py-2 px-3 rounded-full bg-gray10"
-            button={defaultCategory ?
-                <>
+            className={`items-center capitalize gap-2 px-2 py-1 text-sm border bg-gray10 rounded-full ${defaultCategory ? "border-secondary" : "border-gray10"}`}
+            button={(
+                <OptionalChildren condition={defaultCategory} fallback="Category">
                     <AlertIcon className="h-4" />
                     <span className="text-sm">{defaultCategory}</span>
-                </>
-                :
-                "Category"
-            }>
-            <section className="bg-primary text-inherit w-96 border border-dashed rounded-md p-4 border-gray-500">
+                </OptionalChildren>
+            )}>
+            <section>
                 {["none", ...availablePostCategories].map(category => (
                     <GeneralTile
                         title={category}
                         key={category}
-                        className="capitalize"
-                        checked={defaultCategory === category}
+                        className="capitalize py-2 cursor-pointer"
+                        checked={defaultCategory === (checkAndReturn(category, undefined, "none") ?? "")}
                         showCheckBox
                         onClick={() => submitcategory(category)}
                     />

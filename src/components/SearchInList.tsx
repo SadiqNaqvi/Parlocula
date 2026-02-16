@@ -55,9 +55,9 @@ const SearchInList = <T,>({ queryFn, queryKeys, className, Component, inputPlace
     else if (!query) return (
         <>
             <SearchInput onUpdate={updateQuery} query={query} inputPlaceholder={inputPlaceholder} />
-            <section className={twMerge("flex flex-cntr-all h-stretch", className)}>
+            <div className={twMerge("flex flex-cntr-all h-stretch min-h-[50dvh]", className)}>
                 <p>Results would appear here</p>
-            </section>
+            </div>
         </>
 
     )

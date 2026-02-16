@@ -30,11 +30,9 @@ const TaleonWikiHeader = ({ className, posterClassName, title, titleToShare, pos
             <OptionalChildren condition={backdrop}>
                 <section className="w-full">
                     <ParloImage
-                        fancy={{
-                            gallery: "backdrop for the wiki",
-                            fullSizePath: getPoster({ external: true, type: "backdrop", path: backdrop, size: "original" }),
-                            fileNameToDownload: `${title} - Parlocula`,
-                        }}
+                        fancyGallery="backdrop for the wiki"
+                        fileNameToDownload={`Cover Image of ${title} - Parlocula`}
+                        frameType="backdrop"
                         containerClassName="w-full"
                         width={768}
                         height={300}
@@ -49,16 +47,14 @@ const TaleonWikiHeader = ({ className, posterClassName, title, titleToShare, pos
             <section className={`relative flex gap-2 sm:gap-4 ${backdrop ? "items-end pl-4" : "items-center"}`}>
 
                 <ParloImage
-                    fancy={{
-                        gallery: "taleon_poster",
-                        fullSizePath: getPoster({ external: true, type: "poster", path: poster, size: "original" }),
-                        fileNameToDownload: `Poster of ${title} - Parlocula`,
-                    }}
+                    frameType="poster"
                     height={160}
                     width={160}
                     className={twMerge(`${backdrop ? "absolute -translate-y-[50%] top-0 border-4 border-primary" : ''} object-cover min-w-24 size-24 sm:min-w-40 sm:size-40 rounded-full`, posterClassName)}
                     alt={`Poster of ${title}`}
                     frame={getPoster({ external: true, type: "poster", path: poster, size: "w185" })}
+                    fancyGallery="taleon_poster"
+                    fileNameToDownload={`Poster of ${title} - Parlocula`}
                 />
 
                 <div className={`w-full space-y-1 ${backdrop ? "mt-2 pl-24 sm:pl-40" : ''}`}>

@@ -52,6 +52,7 @@ export const RemoveCollaborators = ({ back, total, sid, uid }: Props) => {
 
             <section className="space-y-4">
                 <ListSelector
+                    mode="static-refiner"
                     data={total}
                     callbackRef={callbackRef}
                     returnIds
@@ -87,6 +88,7 @@ export const InviteCollaborators = ({ uid, back, total, sid }: Props) => {
 
             <section className="px-4">
                 <ListSelector
+                    mode="search"
                     queryFn={(q, p) => searchFollowers(q, uid, p)}
                     queryKeys={q => getQueryKeys("search-followers_uid_query", { uid, query: q })}
                     callbackRef={inviteesRef}

@@ -2,151 +2,219 @@
 
 import appToast from "@lib/providers/toast";
 import { Frame } from "@type/internal";
-import { FunctionComponent, RefObject, useImperativeHandle, useState } from "react";
+import {
+    FunctionComponent,
+    RefObject,
+    useCallback,
+    useImperativeHandle,
+    useMemo,
+    useState,
+} from "react";
 import GeneralTile from "./GeneralTile";
 import InfiniteScroller, { InfiniteScrollerProps } from "./InfiniteScroller";
 import SearchInList, { QueryFnReturn } from "./SearchInList";
 
-export type ListSelectorRef<R = string> = () => R[];
-export type RefinedValues<R = unknown> = {
-    title: string,
-    poster: string | Frame | undefined,
-    id: string,
-    returnVal?: R,
-}
+/* ---------------------------------- Types --------------------------------- */
 
-type Resposne = { _id?: string, id?: string, [key: string]: unknown }
+export type ListSelectorRef<R = string> = () => R[];
+
+export type RefinedValues<R = unknown> = {
+    title: string;
+    poster: string | Frame | undefined;
+    id: string;
+    returnVal?: R;
+};
+
+type Response = { _id?: string; id?: string;[key: string]: unknown };
 
 type BaseProps<R> = {
     inputPlaceholder?: string;
-    callbackRef: RefObject<ListSelectorRef<R>>,
+    callbackRef: RefObject<ListSelectorRef<R>>;
     limit?: number;
     className?: string;
-}
+    alreadySelectedValues?: { id: string, val?: R }[]
+};
 
 type InfiniteQueryProps<T, R> = {
-    queryKeysForList: string[],
-    queryFnForList: (p: number) => QueryFnReturn<T>,
-    returnIds?: boolean,
-    refiner: ((resp: T) => RefinedValues<R>) | undefined,
-}
+    mode: "infinite";
+    queryKeysForList: string[];
+    queryFnForList: (p: number) => QueryFnReturn<T>;
+    returnIds?: boolean;
+    refiner: (resp: T) => RefinedValues<R>;
+};
 
 type SearchQueryProps<T, R> = {
-    refiner: ((resp: T) => RefinedValues<R>),
-    queryKeys: ((q: string) => string[]),
-    queryFn: ((query: string, page: number) => QueryFnReturn<T>),
-}
+    mode: "search";
+    queryKeys: (q: string) => string[];
+    queryFn: (query: string, page: number) => QueryFnReturn<T>;
+    queryKeysForList?: string[];
+    queryFnForList?: (p: number) => QueryFnReturn<T>;
+    returnIds?: boolean;
+    refiner: (resp: T) => RefinedValues<R>;
+};
 
-type DefinedDataProps<T, R> = ({
+type StaticComponentProps<T, R> = {
+    mode: "static-component";
     data: T[];
-    Component: FunctionComponent<T & {
-        checked: boolean | undefined,
-        onClick: (v: R) => void,
-    }>,
-} | {
+    Component: FunctionComponent<
+        T & {
+            checked: boolean;
+            onClick: (v: R) => void;
+        }
+    >;
+};
+
+type StaticRefinerProps<T, R> = {
+    mode: "static-refiner";
     data: T[];
-    refiner: (data: T) => RefinedValues
-})
+    returnIds?: boolean;
+    refiner: (data: T) => RefinedValues<R>;
+};
 
-type Props<T extends Resposne, R> = BaseProps<R> & (
-    InfiniteQueryProps<T, R>
-    | SearchQueryProps<T, R>
-    | DefinedDataProps<T, R>
-) & Partial<Pick<InfiniteScrollerProps, "NotFoundSection" | "notFoundMessage">>
+type Props<T extends Response, R> = BaseProps<R> &
+    (InfiniteQueryProps<T, R> |
+        SearchQueryProps<T, R> |
+        StaticComponentProps<T, R> |
+        StaticRefinerProps<T, R>) &
+    Partial<Pick<InfiniteScrollerProps, "NotFoundSection" | "notFoundMessage">>;
 
-const ListSelector = <T extends Resposne, R>(props: Props<T, R>) => {
+/* -------------------------------- Component -------------------------------- */
 
-    const { NotFoundSection, notFoundMessage, callbackRef, className, inputPlaceholder, limit } = props;
+const ListSelector = <T extends Response, R>(
+    props: Props<T, R>
+) => {
+    const {
+        callbackRef,
+        className,
+        inputPlaceholder,
+        limit,
+        NotFoundSection,
+        notFoundMessage,
+        mode,
+        alreadySelectedValues
+    } = props;
 
-    const [selectedParticipants, setSelectedParticipants] = useState<Map<string, any>>(new Map());
+    /* --------------------------- Selection State --------------------------- */
 
-    const handleReturn = (): R[] => {
+    const [selectedMap, setSelectedMap] = useState<Map<string, R | true>>(() => new Map(alreadySelectedValues?.map(({ id, val }) => [id, val ?? true])) || []);
+
+    /* -------------------------- Imperative Handle -------------------------- */
+
+    const handleReturn = useCallback((): R[] => {
         if ("returnIds" in props && props.returnIds) {
-            return selectedParticipants.keys().toArray() as R[]
-        } else {
-            return selectedParticipants.values().toArray();
+            return Array.from(selectedMap.keys()) as R[];
         }
-    }
+        return Array.from(selectedMap.values()) as R[];
+    }, [selectedMap, props]);
 
-    useImperativeHandle<ListSelectorRef<R>, ListSelectorRef<R>>(callbackRef, () => handleReturn);
+    useImperativeHandle(callbackRef, () => handleReturn, [handleReturn]);
 
-    const handleSelection = (id: string, returnVal?: any) => {
-        let temp = new Map(selectedParticipants);
+    /* ----------------------------- Selection ----------------------------- */
 
-        if (selectedParticipants.has(id))
-            temp.delete(id);
+    const handleSelection = useCallback(
+        (action: "add" | "remove", id: string, returnVal?: R) => {
+            setSelectedMap((prev) => {
+                const next = new Map(prev);
 
-        else if (limit && selectedParticipants.size >= limit)
-            return appToast.error(`Only ${limit} selections are allowed.`)
+                if (action === "remove") {
+                    next.delete(id);
+                    return next;
+                }
 
-        else temp.set(id, returnVal || true);
+                else if (limit && next.size >= limit) {
+                    appToast.error(`Only ${limit} selections are allowed.`);
+                    return prev;
+                }
 
-        setSelectedParticipants(temp);
-    }
+                next.set(id, returnVal ?? true);
+                return next;
+            });
+        },
+        [limit]
+    );
 
-    const ComponentToUse = (response: T) => {
+    /* ------------------------- Render Item Function ------------------------ */
 
-        if ("Component" in props) {
-            const { Component } = props;
-            const { _id, id } = response;
-            const uid = id || _id || "";
-            return (
-                <Component
-                    checked={selectedParticipants.get(uid)}
-                    onClick={() => handleSelection(uid)}
-                    {...response}
-                />
-            )
-        }
+    const renderItem = useCallback(
+        (response: T) => {
+            const uid = (response.id || response._id) ?? "";
+            const checked = selectedMap.has(uid);
 
-        if ("refiner" in props && props.refiner) {
-            const { id, title, poster, returnVal } = props.refiner(response);
-            return (
-                <GeneralTile
-                    title={title}
-                    poster={poster}
-                    onClick={() => handleSelection(id, returnVal)}
-                    showCheckBox
-                    checked={selectedParticipants.has(id)}
-                    className="pointer w-full"
-                />
-            );
-        }
-    }
+            // Static Component Mode
+            if (mode === "static-component") {
+                const { Component } = props;
+                return (
+                    <Component
+                        key={uid}
+                        {...response}
+                        checked={checked}
+                        onClick={(v: R) => handleSelection(checked ? "remove" : "add", uid, v)}
+                    />
+                );
+            }
 
-    if ("queryKeysForList" in props && "queryFnForList" in props) return (
+            // Refiner-based modes
+            else if (
+                mode === "static-refiner" ||
+                mode === "infinite" ||
+                mode === "search"
+            ) {
+                const { id, title, poster, returnVal } = props.refiner(response);
+
+                return (
+                    <GeneralTile
+                        key={id}
+                        title={title}
+                        poster={poster}
+                        showCheckBox
+                        checked={checked}
+                        onClick={() => handleSelection(checked ? "remove" : "add", id, returnVal)}
+                        className="pointer w-full"
+                    />
+                );
+            }
+
+            return null;
+        },
+        [props, selectedMap, handleSelection]
+    );
+
+    /* ------------------------------ Render ------------------------------ */
+
+    if (mode === "infinite") return (
         <InfiniteScroller
-            Component={ComponentToUse}
+            Component={renderItem}
             fetchData={props.queryFnForList}
             queryKeys={props.queryKeysForList}
             className={className}
             NotFoundSection={NotFoundSection}
             notFoundMessage={notFoundMessage}
         />
-    )
+    );
 
-    else if ("queryKeys" in props && "queryFn" in props) return (
+    else if (mode === "search") return (
         <SearchInList
-            Component={ComponentToUse}
+            Component={renderItem}
             queryFn={props.queryFn}
             queryKeys={props.queryKeys}
-            queryKeysForList={undefined}
-            queryFnForList={undefined}
+            queryFnForList={props.queryFnForList}
+            queryKeysForList={props.queryKeysForList}
             inputPlaceholder={inputPlaceholder}
             className={className}
             NotFoundSection={NotFoundSection}
             notFoundMessage={notFoundMessage}
         />
+    );
+
+    else if (
+        (mode === "static-component" ||
+            mode === "static-refiner") &&
+        props.data.length
+    ) return (
+        <ul>{props.data.map(renderItem)}</ul>
     )
 
-    else if ("data" in props && props.data.length) (
-        <ul>
-            {props.data.map((content, i) => (
-                <ComponentToUse {...content} key={content._id || content.id} />
-            ))}
-        </ul>
-    )
-
-}
+    return null;
+};
 
 export default ListSelector;

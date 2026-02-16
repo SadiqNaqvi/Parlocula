@@ -177,15 +177,14 @@ export const postHandler = <T extends HandlerData>({ handler, preCheck, schema, 
         const payload = skipUserCheck ? null : await getUserFromToken(req.cookies);
         const awaitedParams = await params;
 
-        if (!(skipUserCheck || payload))
-            return NextResponse.json(
-                {
-                    success: false,
-                    errCode: "unauthenticated_access",
-                    result: null,
-                },
-                { status: 500 }
-            );
+        if (!(skipUserCheck || payload)) return NextResponse.json(
+            {
+                success: false,
+                errCode: "unauthenticated_access",
+                result: null,
+            },
+            { status: 500 }
+        );
 
         const user_id = payload?.user_id || "";
         const username = payload?.username || "";
@@ -367,25 +366,29 @@ export const deleteHandler = (
     };
 };
 
-export const updateHandler = <T extends HandlerData>({ handler, preCheck, schema }: {
-    handler: (args: MutationHandlerFunctionParams<T>) => Promise<HandlerResponse>;
+export const updateHandler = <T extends HandlerData>({ handler, preCheck, schema, skipUserCheck }: {
+    handler: (args: MutationHandlerFunctionParams<T> & { areFilesToDelete: boolean }) => Promise<HandlerResponse>;
     preCheck?: PrecheckFunction<T>;
     schema?: ZodSchema;
+    skipUserCheck?: boolean;
 }) => {
     return async (req: NextRequest, { params }: { params: Promise<HandlerParamVariable> }) => {
         // Checking if there is a current user and taking it's user_id and username
-        const payload = await getUserFromToken(req.cookies);
+        const payload = skipUserCheck ? null : await getUserFromToken(req.cookies);
         const awaitedParams = await params;
 
-        if (!payload)
-            return NextResponse.json(
-                { success: false, errCode: "unauthenticated_access" },
-                { status: 401 }
-            );
+        if (!(skipUserCheck || payload)) return NextResponse.json(
+            {
+                success: false,
+                errCode: "unauthenticated_access",
+                result: null,
+            },
+            { status: 500 }
+        );
 
-        const user_id = payload.user_id;
-        const username = payload.username;
-        const profile = payload.profile;
+        const user_id = payload?.user_id || "";
+        const username = payload?.username || "";
+        const profile = payload?.profile;
 
         const response = await getDataFromRequest<T>(req, schema);
 
@@ -398,12 +401,11 @@ export const updateHandler = <T extends HandlerData>({ handler, preCheck, schema
         let session: ClientSession | null = null;
         try {
             const isDbConnected = await connectDatabase();
-            if (!isDbConnected)
-                return NextResponse.json({
-                    result: null,
-                    success: false,
-                    errCode: "database_connection_fail",
-                });
+            if (!isDbConnected) return NextResponse.json({
+                result: null,
+                success: false,
+                errCode: "database_connection_fail",
+            });
 
             session = await mongoose.startSession();
 
@@ -440,6 +442,7 @@ export const updateHandler = <T extends HandlerData>({ handler, preCheck, schema
                     session,
                     req,
                     params: awaitedParams,
+                    areFilesToDelete: Boolean(filesToRemove && filesToRemove.length)
                 });
 
             if (success) {

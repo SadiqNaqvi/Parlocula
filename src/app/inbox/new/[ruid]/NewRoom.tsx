@@ -51,6 +51,7 @@ const NewRoom = ({ ruser }: { ruser: MereUser }) => {
                 </Drawer.Close>
                 <div className="flex gap-4 items-center">
                     <ParloImage
+                        frameType="userProfile"
                         containerClassName="rounded-full overflow-hidden"
                         frame={ruser.profile}
                         size={48}

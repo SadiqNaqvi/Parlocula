@@ -1,8 +1,9 @@
-import { PullToRefresh } from "@components";
 import { PropsWithChildren } from "react";
 
 const Layout = ({ children }: PropsWithChildren) => (
-    { children }
+    <main>
+        {children}
+    </main>
 )
 
 export default Layout;
