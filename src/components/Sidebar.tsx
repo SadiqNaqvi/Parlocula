@@ -29,7 +29,7 @@ const ProfileButton = () => {
                     frameType="userProfile"
                     alt="Profile picture of the current user"
                     size={40}
-                    className="min-w-10 min-h-10 object-cover rounded-full"
+                    className="min-w-8 size-8 sm:min-w-10 sm:size-10 object-cover rounded-full"
                     frame={meta.profile}
                 />
             </Navigate>

@@ -11,7 +11,7 @@ import useCurrentUser from "@store/user"
 import { CommentReplyType, CurrentUser, Frame, FullComment, FullPost, FullRoomType, FullShelf, FullTaleonType, GeneralGetReturn, GeneralPostReturn, MereComment, MereMessage, MereRoomType, MereShelf, MereUser, ModeratorType, ShelfCollaborator, ShelfCollaborators, ShelfItemType, ShelvesForTaleon, ThreadModType, UserConnectionType } from "@type/internal"
 import { NotificationModelType } from "@type/models"
 import { ErrorCodes, InfiniteScrollerDataType } from "@type/other"
-import { BookmarkSchemaType, CommentSchemaType, CommentSchemaUpdateType, EmailUpdateSchemaType, LikeSchemaType, MessageSchemaType, PostSchemaType, PostUpdateSchemaType, ReportActionSchemaType, ReportSchemaType, ReportTypeEnum, RoomSchemaType, SessionInvalidationServerSchemaType, ShelfEditSchemaType, ShelfSchemaType, TaleonSchemaType, TaleonToAddAndRemoveType, ThreadSchemaServer, ThreadUpdateSchema, UsernameUpdateSchemaType, UserSchemaType, UserUpdateSchemaType } from "@type/schemas"
+import { BookmarkSchemaType, CommentSchemaType, CommentSchemaUpdateType, EmailUpdateSchemaType, ItemsForShelfSchemaType, LikeSchemaType, MessageSchemaType, PostSchemaType, PostUpdateSchemaType, ReportActionSchemaType, ReportSchemaType, ReportTypeEnum, RoomSchemaType, SessionInvalidationServerSchemaType, ShelfEditSchemaType, ShelfSchemaType, TaleonSchemaType, TaleonToAddAndRemoveType, ThreadSchemaServer, ThreadUpdateSchema, UsernameUpdateSchemaType, UserSchemaType, UserUpdateSchemaType } from "@type/schemas"
 import axios from "axios"
 import { setUserOnRefreshOrLogin } from "./user"
 import { GeneralExtReturn, RefinedMovieData, RefinedShowData } from "@type/external"
@@ -348,7 +348,7 @@ export const createUpdateTaleon = async (ext_id: string, type: "movie" | "show",
         taleon_type: type,
         ext_id,
     };
-    
+
     if (update) {
 
         const resp = await axios
@@ -899,12 +899,12 @@ export const updateShelvesWithItem = async (
     });
 }
 
-export const addItemsInShelf = async (sid: string, uid: string, items: TaleonSchemaType[]) => {
+export const addItemsInShelf = async (sid: string, uid: string, data: ItemsForShelfSchemaType) => {
 
     const { meta } = useCurrentUser.getState();
     if (!meta) throw new Error("Guest is trying to add items in a shelf");
 
-    const shelfItems: ShelfItemType[] = items.map(item => {
+    const shelfItems: ShelfItemType[] = data.items.map(item => {
         return {
             ...item,
             _id: item.taleon_id || '',
@@ -919,13 +919,13 @@ export const addItemsInShelf = async (sid: string, uid: string, items: TaleonSch
     const shelfItemsKey = getQueryKeys("itemsOfShelf_sid_filter", { sid, filter: "latest" })
 
     await performMutation({
-        mutationFn: () => ppPostData({ url: `shelf/${sid}`, data: { items }, uid }),
+        mutationFn: () => ppPostData({ url: `shelf/${sid}`, data, uid }),
         onMutate: () => addDocsInInfiniteQueryResult<ShelfItemType[]>(shelfItemsKey, shelfItems),
         onError: ({ context }) => {
             appToast.error(
                 () => LinkToast({ title: `Failed to add taleons in Shelf`, href: `/shelf/${sid}` })
             )
-
+console.log(context);
             if (context) setDoc(shelfItemsKey, context);
         }
     })

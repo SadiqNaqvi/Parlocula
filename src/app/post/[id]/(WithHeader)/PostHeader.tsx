@@ -7,18 +7,17 @@ import { BreadCrumbs, BreadCrumbTile } from "@components/ui/Breadcrumbs";
 import LinksSection from "@components/ui/LinksSection";
 import { getPostById } from "@lib/helpers/common";
 import { getQueryKeys, makeUrlSafe, numberConverter, timeAgo } from "@lib/utils";
-import useGlobalStore from "@store/globalStore";
-import { useNavigation } from "@store/historystack";
 import { FullPost } from "@type/internal";
 import OptionsButton from "./OptionsButton";
 import ReactionButton from "./ReactionButton";
+import { ContentFiltered } from "@components/fallbacks";
 
 type Props = { id: string, uid: string | undefined }
 
 const getQueryProps = ({ id }: Props) => ({
     queryKeys: getQueryKeys("post_id", { id }),
     args: [id],
-    queryFn: getPostById
+    queryFn: getPostById,
 })
 
 const Component = (data: FullPost, { uid }: Props) => {
@@ -27,6 +26,10 @@ const Component = (data: FullPost, { uid }: Props) => {
 
     return (
         <>
+            <OptionalChildren condition={nsfw}>
+                <ContentFiltered allow={uid === user_id} redirectPath={`/post/${_id}`} />
+            </OptionalChildren>
+
             <Navbar
                 navTitle="Post"
                 titleToShare={`Check out this post by ${username} on Parlocula`}
@@ -34,91 +37,88 @@ const Component = (data: FullPost, { uid }: Props) => {
                 className="sticky bg-primary -mt-4 mb-4"
             />
 
-            <article>
+            <article className="px-2">
 
-                <BreadCrumbs>
-                    <BreadCrumbTile href={`/thread/${thread_id}-${makeUrlSafe(thread_name)}`}>{thread_name}</BreadCrumbTile>
-                </BreadCrumbs>
 
-                <header className="px-4 flex gap-2 items-center">
+                <header className="px-2 flex gap-2 items-center">
                     <Navigate comp="link" role="button" goto={`/thread/${thread_id}`}>
                         <ParloImage
                             frameType="threadPoster"
-                            containerClassName="rounded-full overflow-hidden"
+                            containerClassName="max-h-8 max-w-8 overflow-hidden"
+                            className="min-w-8 size-8 rounded-full"
                             frame={poster}
-                            size={28}
+                            size={32}
                             alt="Profile Picture of the author of the post"
                         />
                     </Navigate>
-                    <OptionalChildren condition={username} fallback={(
-                        <span className="text-gray-500 text-semibold">Parlocula User</span>
-                    )}>
-                        <Navigate
-                            comp="link"
-                            type="button"
-                            goto={`/user/${username}`}
-                            className="font-semibold">
-                            {username}
-                        </Navigate>
-                    </OptionalChildren>
+                    <BreadCrumbs>
+                        <BreadCrumbTile href={`/thread/${thread_id}-${makeUrlSafe(thread_name)}`}>{thread_name}</BreadCrumbTile>
+                        <BreadCrumbTile className={username ? '' : "text-gray-500"} href={username ? `/user/${username}` : undefined}>{username || "Parlocula User"}</BreadCrumbTile>
+                    </BreadCrumbs>
                 </header>
 
-                <OptionalChildren condition={quoted_post_id && quoted_post_title}>
-                    <section className="my-2 border border-gray30">
-                        <Navigate comp="link" goto={`/post/${quoted_post_id}`} className="py-2">
-                            <p className="mt-2 font-bold line-clamp-2">
-                                {quoted_post_title}
-                            </p>
-                            <div className="flex gap-2">
-                                <div className="text-sm text-zinc-500 flex items-center gap-2">
-                                    <QuoteIcon />
-                                    <span>Quoted</span>
-                                </div>
-                                <div className="text-sm text-zinc-500">
-                                    Frames: {quoted_post_frames_count}
-                                </div>
-                                <div className="text-sm text-zinc-500">
-                                    Links: {quoted_post_links_count}
-                                </div>
-                            </div>
-                        </Navigate>
-                    </section>
-                </OptionalChildren>
+                <MetadataTileContainer className="my-4 px-2">
+                    <MetadataTile>{timeAgo(createdAt)}</MetadataTile>
 
-                <section className="px-4 mt-2 space-y-4">
+                    <MetadataTile className="px-2 py-1 rounded-md" condition={!!edited_at}>Edited: {timeAgo(edited_at)}</MetadataTile>
 
-                    <MetadataTileContainer>
-                        <MetadataTile>{timeAgo(createdAt)}</MetadataTile>
+                    <MetadataTile
+                        condition={!!(category && category !== "none")}
+                        href={`/thread/${thread_id}?c=${category}`}
+                        skipDisc
+                        className="capitalize py-1 px-2 rounded-full text-sm bg-gray10 border border-gray20 color-secondary"
+                    >
+                        {category}
+                    </MetadataTile>
 
-                        <MetadataTile
-                            condition={category !== "none"}
-                            href={`/thread/${thread_id}?c=${category}`}
-                            className="capitalize">
-                            {category}
-                        </MetadataTile>
 
-                        <MetadataTile className="px-2 py-1 bg-gray10 border-gray20 rounded-md" condition={Boolean(edited_at)}>Edited: {timeAgo(edited_at)}</MetadataTile>
+                    <MetadataTile skipDisc className="px-2 py-1 text-sm border color-secondary bg-purple-500/30 border-purple-500 rounded-md" condition={nsfw}>NSFW</MetadataTile>
 
-                        <MetadataTile className="px-2 py-1 bg-gray10 border-purple-500 text-purple-500 rounded-md" condition={nsfw}>NSFW</MetadataTile>
+                    <MetadataTile skipDisc className="px-2 py-1 text-sm border color-secondary bg-orange-500/30 border-orange-500 rounded-md" condition={spoiler}>Spoiler</MetadataTile>
 
-                        <MetadataTile className="px-2 py-1 bg-gray10 border-orange-500 text-orange-500 rounded-md" condition={spoiler}>Spoiler</MetadataTile>
+                </MetadataTileContainer>
 
-                    </MetadataTileContainer>
+                <article>
 
                     <h1 className="text-lg sm:text-xl font-semibold">{title}</h1>
 
-                    <p className="whitespace-break-spaces">{body}</p>
+                    <OptionalChildren condition={quoted_post_id && quoted_post_title}>
+                        <section className="my-4 border border-gray30">
+                            <Navigate comp="link" goto={`/post/${quoted_post_id}`} className="py-2">
+                                <p className="mt-2 font-bold line-clamp-2">
+                                    {quoted_post_title}
+                                </p>
+                                <div className="flex gap-2">
+                                    <div className="text-sm text-zinc-500 flex items-center gap-2">
+                                        <QuoteIcon />
+                                        <span>Quoted</span>
+                                    </div>
+                                    <div className="text-sm text-zinc-500">
+                                        Frames: {quoted_post_frames_count}
+                                    </div>
+                                    <div className="text-sm text-zinc-500">
+                                        Links: {quoted_post_links_count}
+                                    </div>
+                                </div>
+                            </Navigate>
+                        </section>
+                    </OptionalChildren>
 
-                </section>
+                    <p className="mt-4 whitespace-break-spaces">{body}</p>
 
-                <section className="sm:px-4 my-2 w-full max-w-[400px] aspect-square mx-auto sm:border border-gray20">
-                    <FramesCarousel className="sm:rounded-md" frames={frames} />
-                </section>
+                </article>
+
+
+                <OptionalChildren condition={frames?.length}>
+                    <section className="sm:px-4 my-2 w-full max-w-[400px] aspect-square mx-auto sm:border border-gray20">
+                        <FramesCarousel className="sm:rounded-md" frames={frames} />
+                    </section>
+                </OptionalChildren>
 
                 <LinksSection links={links} />
             </article>
 
-            <div className="px-4 flex items-center gap-3">
+            <div className="px-2 flex items-center gap-3">
                 <ReactionButton uid={uid} id={_id} count={reaction_count} />
 
                 <div className="flex gap-2 text-sm items-center">

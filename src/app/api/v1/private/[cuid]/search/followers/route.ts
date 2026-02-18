@@ -5,7 +5,6 @@ export const GET = getHandler(async (r, params) => {
   const { cuid } = params;
   return await searchHandler({
     r,
-    filterInsideSearch: { isActive: true },
     type: "users",
     filters: [
       {

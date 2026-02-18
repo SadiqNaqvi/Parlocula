@@ -31,7 +31,7 @@ const MetadataTile = ({ children, className, skipDisc, condition, href }: PropsW
                 <OptionalChildren condition={href} fallback={(
                     <MetadataContentTile skipDisc={skipDisc}>{children}</MetadataContentTile>
                 )}>
-                    <Navigate goto={href || ""} comp="link" className="no-underline">
+                    <Navigate className="contents" goto={href || ""} comp="link">
                         <MetadataContentTile skipDisc={skipDisc}>{children}</MetadataContentTile>
                     </Navigate>
                 </OptionalChildren>

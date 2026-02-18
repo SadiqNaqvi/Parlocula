@@ -70,6 +70,7 @@ const Component = (data: FullShelf, { filter, page, uid, key }: Props) => {
                     author={user_id}
                     id={_id}
                     isPrivate={isPrivate}
+                    shelf_type={shelf_type}
                 />
 
             </ObserverHeader>

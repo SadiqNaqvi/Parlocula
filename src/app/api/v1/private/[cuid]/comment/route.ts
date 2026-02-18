@@ -74,7 +74,10 @@ export const POST = postHandler<CommentSchemaType>({
       { session }
     );
 
-    await User.findByIdAndUpdate(user_id, { $inc: { comments: 1 } }, { session });
+    await User.findByIdAndUpdate(user_id, {
+      $set: { lastCommentedAt: new Date() },
+      $inc: { comments: 1 }
+    }, { session });
 
     if (rest.replied_to) {
       await Comment.findByIdAndUpdate(rest.replied_to, { $inc: { replies_count: 1 } }, { session })

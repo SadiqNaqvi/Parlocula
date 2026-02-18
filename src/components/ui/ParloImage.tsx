@@ -32,12 +32,12 @@ const FallbackIcon = ({ type }: { type: FrameType }) => {
     else return <ImageIconFill className="w-full h-auto max-w-12" />
 }
 
-const getFancyAttributes = (config: Pick<Props, "fancyGallery" | "fileNameToDownload" | "frameType"> | undefined, src: string | undefined) => {
-    if (!config || !src) return {};
+const getFancyAttributes = (config: Pick<Props, "fancyGallery" | "fileNameToDownload" | "frameType">, src: string | undefined) => {
     const { fileNameToDownload, fancyGallery, frameType } = config;
-    const fullSizePath = isEqual(frameType, "shelfPoster", "threadPoster", "userProfile") ?
-        src
+    if (!fancyGallery || !src) return {};
+    const fullSizePath = isEqual(frameType, "shelfPoster", "threadPoster", "userProfile") ? src
         : getPoster({ external: true, type: frameType as ExternalImageType, size: "original", path: src })
+
     const source = fullSizePath || src;
     return {
         "data-src": source,
@@ -70,7 +70,7 @@ const ParloImage = ({ frame, alt, height, size, width, className, containerClass
                 src={getPoster({ path: source })}
                 loading={prioritize ? "eager" : "lazy"}
                 alt={alt || ""}
-                loader={isExternal ? ({ src }) => src : undefined}
+                loader={isExternal ? ({ src, }) => src : undefined}
                 className={twMerge(`cursor-pointer`, className)}
                 blurDataURL={frame && !isExternal ? decodeHash(frame.hash) : undefined}
                 {...getFancyAttributes({ frameType, fancyGallery, fileNameToDownload }, source)}

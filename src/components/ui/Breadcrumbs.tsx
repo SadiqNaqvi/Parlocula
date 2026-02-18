@@ -2,22 +2,25 @@ import { RightChevron } from "@assets/Icons";
 import Navigate from "@components/Navigate";
 import { TypedFunction } from "@type/other";
 import { PropsWithChildren } from "react";
+import {twMerge} from "tailwind-merge";
 
-const BreadCrumb = ({ children }: PropsWithChildren) => (
-    <div className="text-sm flex gap-2 items-center hover:underline">
+type BreadCrumbProps = { className?: string }
+
+const BreadCrumb = ({ children, className }: PropsWithChildren<BreadCrumbProps>) => (
+    <div className={twMerge("text-sm flex gap-2 items-center hover:underline", className)}>
         <strong>{children}</strong>
         <RightChevron className="size-4 group-last:rotate-90" />
     </div>
 )
 
-export const BreadCrumbTile = ({ children, href, onClick }: PropsWithChildren<{ href?: string, onClick?: TypedFunction }>) => {
+export const BreadCrumbTile = ({ children, href, onClick, className }: PropsWithChildren<{ href?: string, onClick?: TypedFunction }> & BreadCrumbProps) => {
 
     if (!children) return;
 
     else if (href) return (
         <li className="group">
             <Navigate comp="link" goto={href} className="inline">
-                <BreadCrumb>{children}</BreadCrumb>
+                <BreadCrumb className={className}>{children}</BreadCrumb>
             </Navigate>
         </li>
     )
@@ -25,13 +28,14 @@ export const BreadCrumbTile = ({ children, href, onClick }: PropsWithChildren<{ 
     else if (onClick) return (
         <li className="group">
             <button onClick={onClick} className="inline">
+                <BreadCrumb className={className}>{children}</BreadCrumb>
             </button>
         </li>
     )
 
     else return (
         <li className="group">
-            <BreadCrumb>{children}</BreadCrumb>
+            <BreadCrumb className={className}>{children}</BreadCrumb>
         </li>
     )
 

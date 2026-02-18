@@ -8,6 +8,7 @@ import useOfflineStore from "@store/offlineStore";
 import useCurrentUser from "@store/user";
 import { InfiniteQueryResponse, MereThread } from "@type/internal";
 import { useEffect, useRef, useState } from "react";
+import { Drawer } from "vaul";
 
 type Props = { defaultVal?: MereThread };
 
@@ -100,7 +101,7 @@ const ChooseThreadButton = ({ defaultVal, submit }: Props & { submit: (tid: stri
                 <ThreadChoice submitChoice={takeResult} />
             </NestedSheet>
             <OptionalChildren condition={thread}>
-                <button className="primary w-full mt-4" onClick={giveResult}>Post</button>
+                <Drawer.Close className="primary w-full mt-4" onClick={giveResult}>Post</Drawer.Close>
             </OptionalChildren>
         </section>
     )

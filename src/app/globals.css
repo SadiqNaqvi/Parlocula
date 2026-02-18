@@ -402,6 +402,10 @@ body {
   /* container: body / inline-size; */
 }
 
+body:has(.preventScrolling){
+  overflow:hidden
+}
+
 #observer-navbar #navbar-title {
   opacity: 0;
   transition: opacity 0.3s ease;
@@ -626,24 +630,6 @@ textarea {
 @keyframes skeletonPulseLoading {
   50% {
     background: #717170;
-  }
-}
-
-.loadingSpinner {
-  height: 3rem;
-  width: 3rem;
-  border: 4px solid var(--gray40);
-  border-left-color: var(--secondary);
-  border-radius: 100%;
-  animation: spinnerLoading 1s linear infinite;
-}
-
-@keyframes spinnerLoading {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
   }
 }
 

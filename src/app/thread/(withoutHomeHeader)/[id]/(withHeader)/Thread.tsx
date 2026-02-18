@@ -7,6 +7,7 @@ import { getQueryKeys } from "@lib/utils";
 import { Thread as ThreadType } from "@type/internal";
 import { ActionsButton, EllipsisButton, ThreadDetailsSheet } from "./";
 import { OptionalChildren, ParloImage } from "@components/ui";
+import { ContentFiltered } from "@components/fallbacks";
 
 type Props = { id: string, uid?: string }
 
@@ -22,6 +23,10 @@ const Component = (data: ThreadType, { id, uid }: Props) => {
 
     return (
         <>
+
+            <OptionalChildren condition={nsfw}>
+                <ContentFiltered allow={uid === created_by} redirectPath={`/thread/${_id}`} />
+            </OptionalChildren>
             <ObserverHeader
                 navTitle={name}
                 titleToShare={`Check out a thread on "${name}" on Parlocula`}
@@ -56,7 +61,7 @@ const Component = (data: ThreadType, { id, uid }: Props) => {
                             <span className="py-1 px-2 rounded-md border border-purple-500 bg-purple-500/30">NSFW</span>
                         </div>
                     </OptionalChildren>
-                    
+
                     <BottomSheet className="text-sm line-clamp-2 whitespace-break-spaces text-left" button={description}>
                         <ThreadDetailsSheet
                             connections={connections}

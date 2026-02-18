@@ -7,7 +7,6 @@ export const GET = getHandler(async (r, params) => {
 
   return await searchHandler({
     r,
-    filterInsideSearch: { isActive: true },
     filters: [
       {
         $lookup: {

@@ -222,26 +222,28 @@ export const sendNotification = async (
   notifications: NotificationModelType[],
   session?: ClientSession
 ) => {
-  const createdNotifications = await Notification.create(notifications, { session });
+  const createdNotifications = await Notification.create(notifications, { session, ordered: true });
+
+  console.log("Notifications created");
 
   const ably = new Ably.Rest(process.env.ABLY_API_KEY!);
   await Promise.all(
     createdNotifications.map(async (n) => {
       const channel = ably.channels.get(n.user_id as string);
-      if ((await channel.presence.get()).items.length) {
-        return channel.publish("notification", n);
-      } else {
-        return ably.push.admin.publish(
-          {
-            clientId: n.user_id,
-          },
-          {
-            title: n.title,
-            data: { path: n.path ?? "/notifications" },
-            body: "Click here to open",
-          } as PushNotificationType
-        );
-      }
+      // if ((await channel.presence.get()).items.length) {
+      return channel.publish("notification", n, { client_id: n.user_id });
+      // } else {
+      //   return ably.push.admin.publish(
+      //     {
+      //       clientId: n.user_id,
+      //     },
+      //     {
+      //       title: n.title,
+      //       data: { path: n.path ?? "/notifications" },
+      //       body: "Click here to open",
+      //     } as PushNotificationType
+      //   );
+      // }
     })
   );
 };

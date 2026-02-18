@@ -47,8 +47,8 @@ const FormContainer = ({ children, schema, submit, defaultVals, hideLoading, ski
     return (
         <>
             <OptionalChildren condition={isSubmitting && !hideLoading}>
-                <div style={{ margin: 0, padding: 0 }} className="flex flex-cntr-all fixed customize inset-0 backdrop-brightness-[25%] z-[10] cursor-not-allowed">
-                    <LoadingSpinner />
+                <div style={{ margin: 0, padding: 0 }} className="fullScreen flex flex-cntr-all fixed customize inset-0 backdrop-brightness-[25%] z-[10] cursor-not-allowed">
+                    <LoadingSpinner spinnerClassName="border-l-zinc-100" />
                 </div>
             </OptionalChildren>
             <FormProvider {...formMethod}>

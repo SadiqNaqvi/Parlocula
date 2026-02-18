@@ -48,7 +48,7 @@ export type ShelfSchemaType = z.infer<typeof shelfServerSchema>;
 export type ShelfEditSchemaType = z.infer<typeof shelfEditSchema>;
 export type ShelfUpdateSchemaClient = z.infer<typeof shelfClientUpdateSchema>;
 export type TaleonToAddAndRemoveType = z.infer<typeof taleonToAddAndRemove>;
-export type itemsForShelfSchemaType = z.infer<typeof itemsForShelfSchema>;
+export type ItemsForShelfSchemaType = z.infer<typeof itemsForShelfSchema>;
 
 export type BookmarkSchemaType = z.infer<typeof bookmarkSchema>;
 

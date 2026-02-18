@@ -6,7 +6,7 @@ import { getShelfConnection } from "@lib/helpers/common";
 import { acceptCollaboratorInvitation, rejectCollaboratorInvitation } from "@lib/helpers/mutations";
 import { useQueryHook } from "@lib/hooks";
 import { getQueryKeys } from "@lib/utils";
-import { twMerge } from "tailwind-merge";
+import { AllShelves } from "@type/models";
 import AddItemsButton from "./AddItemsButton";
 
 type Props = {
@@ -15,22 +15,23 @@ type Props = {
     author: string,
     cuid: string | undefined,
     saved_count: number | undefined,
+    shelf_type: AllShelves,
 }
 
-const SaveShelfButton = ({ isPrivate, saved_count, sid, uid, author }: { isPrivate: boolean, uid: string | undefined, author: string, sid: string, saved_count: number | undefined }) => {
+const SaveShelfButton = ({ isPrivate, saved_count, id, cuid, author }: Omit<Props, "shelf_type">) => {
     if (!isPrivate) return (
         <SaveButton
             author={author}
-            uid={uid}
+            uid={cuid}
             count={saved_count}
             type="Shelf"
-            id={sid}
+            id={id}
             className="primary gap-2"
         />
     )
 }
 
-const CheckShelfConnection = ({ uid, sid }: { uid: string, sid: string }) => {
+const CheckShelfConnection = ({ uid, sid, shelf_type }: { uid: string, sid: string, shelf_type: AllShelves }) => {
 
     const { data } = useQueryHook({
         queryFn: () => getShelfConnection(uid, sid),
@@ -46,7 +47,7 @@ const CheckShelfConnection = ({ uid, sid }: { uid: string, sid: string }) => {
     }
 
     if (data?.type === "collaborator") return (
-        <AddItemsButton sid={sid} uid={uid} />
+        <AddItemsButton shelf_type={shelf_type} sid={sid} uid={uid} />
     )
 
     else if (data?.type === "invitee") return (
@@ -63,7 +64,7 @@ const CheckShelfConnection = ({ uid, sid }: { uid: string, sid: string }) => {
 
 const sectionClassName = "grid gap-2 grid-cols-2 sm:grid-cols-4";
 
-const ActionButton = ({ isPrivate, cuid, author, id, saved_count }: Props) => {
+const ActionButton = ({ isPrivate, cuid, author, id, saved_count, shelf_type }: Props) => {
 
     if (cuid === author) return (
         <section className={sectionClassName}>
@@ -83,19 +84,19 @@ const ActionButton = ({ isPrivate, cuid, author, id, saved_count }: Props) => {
             >
                 Manage
             </Navigate>
-            <AddItemsButton uid={cuid} sid={id} className="col-span-2 sm:col-span-1" />
+            <AddItemsButton shelf_type={shelf_type} uid={cuid} sid={id} className="col-span-2 sm:col-span-1" />
 
         </section>
     )
 
     else if (cuid) return (
         <section className={sectionClassName}>
-            <SaveShelfButton author={author} isPrivate={isPrivate} saved_count={saved_count} sid={id} uid={cuid} />
-            <CheckShelfConnection sid={id} uid={cuid} />
+            <SaveShelfButton author={author} isPrivate={isPrivate} saved_count={saved_count} id={id} cuid={cuid} />
+            <CheckShelfConnection shelf_type={shelf_type} sid={id} uid={cuid} />
         </section>
     )
 
-    return <SaveShelfButton author={author} isPrivate={isPrivate} saved_count={saved_count} sid={id} uid={cuid} />
+    return <SaveShelfButton author={author} isPrivate={isPrivate} saved_count={saved_count} id={id} cuid={cuid} />
 }
 
 export default ActionButton;

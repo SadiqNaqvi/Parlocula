@@ -30,7 +30,7 @@ const PostMutationPage = ({ defaultVal, isEditing, defaultThread, quotedPost }: 
     const formRef = useRef<HTMLFormElement | null>(null);
     const linksRef = useRef<InputManagerType>(null);
     const framesRef = useRef<InputManagerType<InputFrame[]>>(null);
-    const thread_id = useRef("");
+    const thread_id = useRef(defaultThread?._id || "");
     const threadSelectionSheet = useRef<BottomSheetRef>(null);
 
     const mediaPromptRef = useRef<BottomSheetRef>(null);
@@ -103,7 +103,6 @@ const PostMutationPage = ({ defaultVal, isEditing, defaultThread, quotedPost }: 
 
         else if (!thread_id.current) {
             threadSelectionSheet.current?.open();
-            if (defaultThread) thread_id.current = defaultThread?._id;
         }
 
         else return await submitCreation(data);
@@ -121,14 +120,19 @@ const PostMutationPage = ({ defaultVal, isEditing, defaultThread, quotedPost }: 
             <Navbar
                 navTitle={isEditing ? "Edit Post" : "Create Post"}
                 OptionButton={(
-                    <button className="primary" onClick={requestSubmit}>
-                        {isEditing ? "Update" : "Create"}
-                    </button>
+
+                    <OptionalChildren condition={!isEditing} fallback={(
+                        <button className="primary" onClick={requestSubmit}>
+                            Update
+                        </button>
+                    )}>
+
+                        <BottomSheet button="Create" className="primary" ref={threadSelectionSheet}>
+                            <ChooseThreadButton submit={takeThreadAndProceed} defaultVal={defaultThread} />
+                        </BottomSheet>
+                    </OptionalChildren>
                 )}
             />
-
-            <OptionalChildren condition={!isEditing}>
-            </OptionalChildren>
 
             <Form schema={postClientSchema} className="space-y-4 px-2 sm:px-4" ref={formRef} submit={submit} skipReset>
 
@@ -206,19 +210,6 @@ const PostMutationPage = ({ defaultVal, isEditing, defaultThread, quotedPost }: 
             </OptionMenu>
 
             <PostPageMockup />
-
-            <BottomSheet ref={threadSelectionSheet}>
-                <OptionalChildren condition={meta} fallback={(
-                    <LoginModal
-                        heading="Uh Oh! The Parlocula Guards stopped you"
-                        desc={[
-                            "You need to log-in to create a post."
-                        ]}
-                    />
-                )}>
-                    <ChooseThreadButton submit={takeThreadAndProceed} defaultVal={defaultThread} />
-                </OptionalChildren>
-            </BottomSheet>
 
             <InitialDescriptionSheet>
                 <OptionalChildren condition={!isEditing}>

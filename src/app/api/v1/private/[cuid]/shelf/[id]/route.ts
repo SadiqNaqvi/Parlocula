@@ -4,7 +4,7 @@ import { addItemsInShelf } from "@lib/helpers/server";
 import { itemsForShelfSchema, shelfEditSchema } from "@lib/schemas";
 import { Shelf, ShelfItem, Collaborators, User } from "@model";
 import { FullShelf } from "@type/internal";
-import { itemsForShelfSchemaType, ShelfEditSchemaType } from "@type/schemas";
+import { ItemsForShelfSchemaType, ShelfEditSchemaType } from "@type/schemas";
 
 // Get shelf including private
 export const GET = getHandler(async (r, params) => {
@@ -49,7 +49,7 @@ export const GET = getHandler(async (r, params) => {
 
 // Adding multiple Items in a shelf
 // Can only be done by the creator and Collaborators
-export const POST = postHandler<itemsForShelfSchemaType>({
+export const POST = postHandler<ItemsForShelfSchemaType>({
   handler: async ({ params, data, user_id, session }) => {
     const { id } = params;
 
@@ -76,7 +76,8 @@ export const POST = postHandler<itemsForShelfSchemaType>({
     await Shelf.findByIdAndUpdate(
       id,
       {
-        $set: { poster: itemsToAdd.at(-1)?.poster },
+        $set: { poster: itemsToAdd.at(-1)?.poster, last_added: new Date() },
+        $inc: { item_count: itemsToAdd.length },
       },
       { session }
     );
@@ -132,8 +133,6 @@ export const PATCH = updateHandler<ShelfEditSchemaType>({
       success: false, errCode: "resource_not_found"
     }
 
-    const key = shelf.shelfKey || "none";
-
     return {
       files: [],
       success: true,
@@ -159,13 +158,15 @@ export const DELETE = deleteHandler(async ({ params, session, user_id }) => {
   const shelf = await deleteShelfs({
     _id: id,
     user_id: user_id
-  }, session);
+  }, session, ["isPrivate"]);
 
   if (!shelf.length) return {
     success: false, errCode: "resource_not_found"
   }
 
-  await User.findByIdAndUpdate(user_id, { $inc: { publicShelves: -1 } }, { session });
+  if (!shelf[0]?.isPrivate) {
+    await User.findByIdAndUpdate(user_id, { $inc: { publicShelves: -1 } }, { session });
+  }
 
   return {
     files: [],

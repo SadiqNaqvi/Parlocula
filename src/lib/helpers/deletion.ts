@@ -10,48 +10,62 @@ export const deleteBookmarks = async (filter: FilterQuery<BookmarkModelType & Do
   return [];
 };
 
-export const deleteShelfs = async (filter: FilterQuery<ShelfModelType & Doc>, session: ClientSession): Promise<ShelfModelType[]> => {
-  const shelfs = await Shelf.find(filter, { session })
+export const deleteShelfs = async <T extends ShelfModelType>(filter: FilterQuery<T & Doc>, session: ClientSession, project?: Array<keyof T> | null): Promise<T[]> => {
+
+  const defaultFields: Array<keyof T> = ["_id"];
+
+  const projection = project === null ? null : Array.from(new Set((project || []).concat(defaultFields))).join(' ');
+
+  const shelfs = await Shelf.find(filter, projection, { session })
     .exec();
 
-  if (!shelfs.length) return shelfs;
+  if (!shelfs.length) return shelfs as T[];
 
   const ids = shelfs.map((el) => el._id);
 
-  ShelfItem.deleteMany({ shelf_id: { $in: ids } }, { session });
+  await ShelfItem.deleteMany({ shelf_id: { $in: ids } }, { session });
 
-  deleteBookmarks({ content_type: "Shelf", content_id: { $in: ids } }, session);
+  await deleteBookmarks({ content_type: "Shelf", content_id: { $in: ids } }, session);
 
-  Shelf.deleteMany(filter, { session });
-  return shelfs;
+  await Shelf.deleteMany(filter, { session });
+  return shelfs as T[];
 };
 
-export const deleteComments = async (filter: FilterQuery<CommentModelType & Doc>, session: ClientSession): Promise<CommentModelType[]> => {
-  const comments = await Comment.find(filter, { _id: 1 }, { session });
+export const deleteComments = async <T extends CommentModelType>(filter: FilterQuery<T & Doc>, session: ClientSession, project?: Array<keyof T> | null): Promise<T[]> => {
 
-  if (!comments.length) return comments;
+  const defaultFields: Array<keyof T> = ["_id"];
+
+  const projection = project === null ? null : Array.from(new Set((project || []).concat(defaultFields))).join(' ');
+
+  const comments = await Comment.find(filter, projection, { session });
+
+  if (!comments.length) return comments as T[];
 
   const ids = comments.map((el) => el._id);
 
-  Like.deleteMany({ _id: { $in: ids } }), { session };
+  await Like.deleteMany({ _id: { $in: ids } }), { session };
 
-  deleteBookmarks(
+  await deleteBookmarks(
     { content_type: "Comment", content_id: { $in: ids } },
     session
   );
 
-  Comment.deleteMany(filter, { session });
-  return comments;
+  await Comment.deleteMany(filter, { session });
+  return comments as T[];
 };
 
-export const deletePosts = async (filter: FilterQuery<PostModelType & Doc>, session: ClientSession): Promise<PostModelType[]> => {
+export const deletePosts = async <T extends PostModelType>(filter: FilterQuery<T & Doc>, session: ClientSession, project?: Array<keyof T> | null): Promise<T[]> => {
 
+  const defaultFields: Array<keyof T> = ["_id", "frames"];
+
+  const projection = project === null ? null : Array.from(new Set((project || []).concat(defaultFields))).join(' ');
   const posts = await Post.find(
     filter,
+    projection,
     { session, ordered: true }
   );
 
-  if (!posts.length) return posts;
+  if (!posts.length) return posts as T[];
 
   const paths = posts.flatMap((post) =>
     post.frames
@@ -59,35 +73,38 @@ export const deletePosts = async (filter: FilterQuery<PostModelType & Doc>, sess
       .map((path) => path.path)
   );
 
-  deleteMediaFiles(paths);
+  await deleteMediaFiles(paths);
 
   const ids = posts.map((el) => el._id);
 
-  Reaction.deleteMany({ post_id: { $in: ids } }, { session, ordered: true });
+  await Reaction.deleteMany({ post_id: { $in: ids } }, { session, ordered: true });
 
-  deleteComments({ post_id: { $in: ids } }, session);
+  await deleteComments({ post_id: { $in: ids } }, session);
 
-  deleteBookmarks({ content_type: "Post", content_id: { $in: ids } }, session);
+  await deleteBookmarks({ content_type: "Post", content_id: { $in: ids } }, session);
 
-  Post.deleteMany(filter, { session, ordered: true });
+  await Post.deleteMany(filter, { session, ordered: true });
 
-  return posts;
+  return posts as T[];
 };
 
-export const deleteRooms = async (filter: FilterQuery<RoomModelType & Doc>, session: ClientSession): Promise<RoomModelType[]> => {
+export const deleteRooms = async <T extends RoomModelType>(filter: FilterQuery<T & Doc>, session: ClientSession, project?: Array<keyof T> | null): Promise<T[]> => {
 
-  const rooms = await Room.find(filter);
+  const defaultFields: Array<keyof T> = ["_id"];
 
-  for (const r of rooms) {
-    const room = r.toObject();
-    if (!room) continue;
+  const projection = project === null ? null : Array.from(new Set((project || []).concat(defaultFields))).join(' ');
 
-    await Room.findByIdAndDelete(room._id, { session });
-    await Participant.deleteMany({ room_id: room._id }, { session });
-    await Message.deleteMany({ room_id: room._id }, { session });
-  }
+  const rooms = await Room.find(filter, projection).exec();
 
-  return rooms;
+  await Promise.all(
+    rooms.map(({ _id }) => [
+      Room.findByIdAndDelete(_id, { session }),
+      Participant.deleteMany({ room_id: _id }, { session }),
+      Message.deleteMany({ room_id: _id }, { session }),
+    ]).flatMap(el => el)
+  );
+
+  return rooms as T[];
 
 };
 

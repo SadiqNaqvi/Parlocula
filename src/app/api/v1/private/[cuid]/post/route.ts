@@ -6,18 +6,16 @@ import { postSchemaServer } from "@lib/schemas";
 import { createArray } from "@lib/utils";
 import { Post, Thread, User } from "@model";
 import { PostSchemaType } from "@type/schemas";
+import { PipelineStage } from "mongoose";
 
 // Checking if the current user is a member of the thread and if user is blocked by the author of the quoted post.
-const preCheck: PrecheckFunction<PostSchemaType> = async ({
-  user_id,
-  data,
-}) => {
+const preCheck: PrecheckFunction<PostSchemaType> = async ({ user_id, data }) => {
   const { thread_id, quoted_post_id, quoted_post_author } = data;
 
   if (!thread_id || (quoted_post_id && !quoted_post_author))
     return { success: false, errCode: "invalid_input" };
 
-  const pipeline = createArray([
+  const pipeline = createArray<PipelineStage>([
     { $match: { _id: user_id } },
     {
       $lookup: {
@@ -48,7 +46,7 @@ const preCheck: PrecheckFunction<PostSchemaType> = async ({
         { $project: { _id: 1 } }
       ],
     },
-  }));
+  })).concat({ $project: { isMember: 1, isBlocked: 1 } });
 
   const checks = await User.aggregate(pipeline);
 
@@ -77,11 +75,17 @@ export const POST = postHandler<PostSchemaType>({
           user_id,
           quoted_post_id
         }
-      ], { session })
+      ], { session, ordered: true })
     )[0];
 
     if (!post)
       return { success: false, errCode: "data_storing_fail" }
+
+    else if (post.quoted_post_id) {
+      await Post.findByIdAndUpdate(post.quoted_post_id, {
+        $inc: { quoted_count: 1 }
+      }, { session });
+    }
 
     const thread = await Thread.findByIdAndUpdate(
       post.thread_id,
@@ -95,7 +99,10 @@ export const POST = postHandler<PostSchemaType>({
     if (!thread)
       return { success: false, errCode: "resource_not_found" };
 
-    const user = await User.findByIdAndUpdate(user_id, { $inc: { posts: 1 } }, { session });
+    const user = await User.findByIdAndUpdate(user_id, {
+      $inc: { posts: 1 },
+      $set: { lastPostedAt: new Date() },
+    }, { session });
 
     if (!user)
       return { success: false, errCode: "unauthenticated_access" }
@@ -103,7 +110,7 @@ export const POST = postHandler<PostSchemaType>({
     const tid = thread._id;
 
     const followers = await getFollowersToNotify(user_id);
-    const members = await getMembersToNotify(tid);
+    const members = await getMembersToNotify(tid, 50, user_id);
 
     await sendNotification(
       Array.from(

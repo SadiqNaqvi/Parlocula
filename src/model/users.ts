@@ -37,6 +37,7 @@ const userModel = new StrictSchema<UserModelType>(
     lastLoginAt: { type: Date, default: Date.now },
     lastCommentedAt: Date,
     lastPostedAt: Date,
+    lastShelfCreatedAt: Date,
     isBanned: { type: Boolean, default: false },
     banEndsAt: Date,
     filterContent: { type: Boolean, default: false },
@@ -59,7 +60,7 @@ const userModel = new StrictSchema<UserModelType>(
 );
 
 userModel.index({ username: 1, isActive: 1 });
-userModel.index({ email: 1 }, {unique: true});
+userModel.index({ email: 1 }, { unique: true });
 
 const User: StrictModel<UserModelType> =
   (models.User as any) || (model("User", userModel) as StrictModel<UserModelType>);

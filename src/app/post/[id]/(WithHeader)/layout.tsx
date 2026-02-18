@@ -26,7 +26,7 @@ export const generateMetadata = async ({ params }: ParloPageProps): Promise<Meta
     const { title, username, body } = result;
 
     return {
-        title: `${title.slice(0, 50)}${username ? " - Post by @" + username : ""} - Parlocula`,
+        title: `${title.slice(0, 80)}${title.length > 80 ? "..." : ''}${username ? " - Post by @" + username : ""}`,
         description: body
     }
 }
@@ -56,11 +56,6 @@ const Fetcher = async ({ id, children }: PropsWithChildren<{ id: string }>) => {
         />
     )
 
-    // Now if Post contains NSFW and user is a guest or user does not allow NSFW.
-    else if (post.nsfw && (!user || user.filterContent)) return (
-        <ContentFiltered />
-    )
-
     if (user) {
         const uid = user.user_id;
         await Promise.all([
@@ -82,7 +77,7 @@ const Fetcher = async ({ id, children }: PropsWithChildren<{ id: string }>) => {
             <PostHeader uid={user?.user_id} id={id} />
             <div className="my-6">
                 <TabContainer>
-                    <TabList href={`/post/${id}`}>Posts</TabList>
+                    <TabList href={`/post/${id}`}>Comments</TabList>
                     <TabList href={`/post/${id}/quotes`}>Quotes</TabList>
                     <TabList href={`/post/${id}/reports`}>Reports</TabList>
                 </TabContainer>

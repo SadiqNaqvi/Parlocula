@@ -258,7 +258,7 @@ type ReturnType<F> = {
 export const getSearchParams = <F extends string | undefined>(url: URL, initial = 1, fallbackFilter?: F): ReturnType<F> => {
   const sp = url.searchParams;
   const query = sp.get('q') || sp.get("query");
-  const page = Math.max(Number(sp.get('p') || sp.get("page") || `${initial}`) || initial, initial) - 1;
+  const page = Math.max(Number(sp.get('p') || sp.get("page")) || initial, initial) - 1;
   const nsfw = Boolean(sp.get("nsfw") === "true");
   const filter = sp.get("f") || sp.get("filter") || fallbackFilter;
 

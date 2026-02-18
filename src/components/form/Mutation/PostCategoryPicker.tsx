@@ -28,7 +28,7 @@ const PostCategoryPicker = ({ func, defaultCategory = "" }: { func: TypedFunctio
                     <span className="text-sm">{defaultCategory}</span>
                 </OptionalChildren>
             )}>
-            <section>
+            <section className="px-2">
                 {["none", ...availablePostCategories].map(category => (
                     <GeneralTile
                         title={category}

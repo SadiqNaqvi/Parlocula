@@ -9,7 +9,7 @@ export const DELETE = deleteHandler(
   async ({ params, session, user_id }) => {
     const { id } = params;
 
-    const result = await deleteComments({ _id: id, user_id }, session);
+    const result = await deleteComments({ _id: id, user_id }, session, ["post_id", "replied_to"]);
     const comment = result[0];
 
     const post = await Post.findByIdAndUpdate(

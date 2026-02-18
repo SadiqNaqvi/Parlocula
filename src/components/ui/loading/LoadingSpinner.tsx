@@ -1,9 +1,9 @@
 import Navbar from "@components/Navbar";
 import { twMerge } from "tailwind-merge";
 
-const LoadingSpinner = ({ className = '' }: { className?: string }) => (
+const LoadingSpinner = ({ className, spinnerClassName }: { className?: string, spinnerClassName?: string }) => (
     <div role="status" data-testid="loadingSpinner" className={twMerge("h-size-screen flex flex-cntr-all", className)}>
-        <div className="loadingSpinner"></div>
+        <div className={twMerge("size-12 border-4 border-gray-500/30 border-l-[var(--secondary)] rounded-full animate-spin", spinnerClassName)}></div>
     </div>
 )
 

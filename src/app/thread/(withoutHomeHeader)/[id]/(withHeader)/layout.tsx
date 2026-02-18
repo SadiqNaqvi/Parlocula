@@ -22,7 +22,7 @@ export const generateMetadata = async ({ params }: ParloPageProps): Promise<Meta
     if (!success || !result) return { title: "Parlocula" }
 
     const { name, description } = result;
-    return { title: `${name} - Thread - Parlocula`, description };
+    return { title: `${name} - Thread`, description };
 }
 
 const Fetcher = async ({ tid, children }: PropsWithChildren<{ tid: string }>) => {

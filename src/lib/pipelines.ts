@@ -6,7 +6,8 @@ import { NextRequest } from "next/server";
 import { queryLimit } from "./constants";
 import { createArray, getSearchParams } from "./utils";
 
-type Collections = "users" | "posts" | "threads" | "comments" | "shelves";
+type SearchableCollections = "users" | "posts" | "threads" | "shelves";
+type Collections = "comments" | SearchableCollections;
 
 export const userProjection = {
   username: 1,
@@ -486,11 +487,16 @@ export const getFollowersToNotify = async (user_id: string, limit = 50): Promise
 
 export const getMembersToNotify = async (
   tid: string,
-  limit = 50
+  limit = 50,
+  except?: string,
 ): Promise<{ user_id: string }[]> => {
   return await Member.aggregate([
     {
-      $match: { thread_id: tid, notification: true },
+      $match: {
+        thread_id: tid,
+        notification: true,
+        ...(except && { user_id: { $ne: except } })
+      },
     },
     {
       $lookup: {
@@ -504,7 +510,7 @@ export const getMembersToNotify = async (
         as: "user",
       },
     },
-    { $sort: { "$user.updatedAt": -1 } },
+    { $sort: { "user.updatedAt": -1 } },
     { $limit: limit },
     { $project: { user_id: 1 } },
   ]);
@@ -522,81 +528,335 @@ type FilterInsideSearchType = Record<string, boolean | number | string>;
 
 type SearchHandlerProps = {
   filters: PipelineStage[],
-  type: Collections,
+  type: SearchableCollections,
   r: NextRequest,
   applyNsfwCheck?: boolean,
   filterInsideSearch?: FilterInsideSearchType
 }
 
-const createSearchFilter = (filter: FilterInsideSearchType) => {
-  return Object.entries(filter).map(([path, value]) => ({
-    equals: { path, value }
-  }));
+const getSearchPipelineForThreads = (query: string, allowNsfw: boolean): PipelineStage[] => [
+  {
+    $search: {
+      index: "thread",
+      compound: {
+        must: allowNsfw
+          ? []
+          : [
+            {
+              equals: {
+                path: "nsfw",
+                value: false
+              }
+            }
+          ],
+        should: [
+          {
+            autocomplete: {
+              query,
+              path: "name",
+              score: { boost: { value: 5 } }
+            }
+          },
+          {
+            text: {
+              query,
+              path: "name",
+              fuzzy: { maxEdits: 1 },
+              score: { boost: { value: 4 } }
+            }
+          },
+          {
+            text: {
+              query,
+              path: "description",
+              fuzzy: { maxEdits: 1 },
+              score: { boost: { value: 2 } }
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    $addFields: {
+      recencyScore: {
+        $divide: [
+          1,
+          {
+            $add: [
+              1,
+              {
+                $divide: [
+                  { $subtract: [new Date(), "$lastPostedAt"] },
+                  1000 * 60 * 60 * 24
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    $addFields: {
+      finalScore: {
+        $add: [
+          { $meta: "searchScore" },
+          { $multiply: ["$member_count", 0.02] },
+          { $multiply: ["$post_count", 0.01] },
+          { $multiply: ["$recencyScore", 2] }
+        ]
+      }
+    }
+  },
+  { $sort: { finalScore: -1 } },
+]
+
+const getSearchPipelineForPosts = (query: string, allowNsfw = false): PipelineStage[] => [
+  {
+    $search: {
+      index: "post",
+      compound: {
+        must: [
+          ...(allowNsfw ? [] : [
+            { equals: { path: "nsfw", value: false } }
+          ]),
+        ],
+        should: [
+          {
+            autocomplete: {
+              query,
+              path: "title",
+              score: { boost: { value: 6 } }
+            }
+          },
+          {
+            text: {
+              query,
+              path: "title",
+              fuzzy: { maxEdits: 1 }
+            },
+            score: { boost: { value: 4 } }
+          },
+          {
+            text: {
+              query,
+              path: "body",
+              score: { boost: { value: 2 } }
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    $addFields: {
+      engagementScore: {
+        $add: [
+          { $multiply: ["$reaction_count", 0.02] },
+          { $multiply: ["$comment_count", 0.03] },
+          { $multiply: ["$saved_count", 0.05] },
+        ]
+      }
+    }
+  },
+  {
+    $addFields: {
+      recencyScore: {
+        $divide: [
+          1,
+          {
+            $add: [
+              1,
+              {
+                $divide: [
+                  { $subtract: [new Date(), "$createdAt"] },
+                  1000 * 60 * 60 * 24
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    $addFields: {
+      finalScore: {
+        $add: [
+          { $meta: "searchScore" },
+          "$engagementScore",
+          { $multiply: ["$recencyScore", 3] }
+        ]
+      }
+    }
+  },
+]
+
+const getSearchPipelineForUsers = (query: string): PipelineStage[] => [
+  {
+    $search: {
+      index: "user",
+      compound: {
+        must: [
+          { equals: { path: "isActive", value: true } }
+        ],
+        should: [
+          {
+            autocomplete: {
+              query,
+              path: "username",
+              score: { boost: { value: 8 } }
+            }
+          },
+          {
+            text: {
+              query,
+              path: "username",
+              fuzzy: { maxEdits: 1 },
+              score: { boost: { value: 6 } }
+            }
+          },
+          {
+            autocomplete: {
+              query,
+              path: "name",
+              score: { boost: { value: 4 } }
+            }
+          },
+        ]
+      }
+    }
+  },
+  {
+    $addFields: {
+      activityScore: {
+        $divide: [
+          1,
+          {
+            $add: [
+              1,
+              {
+                $divide: [
+                  { $subtract: [new Date(), "$lastLoginAt"] },
+                  1000 * 60 * 60 * 24
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    $addFields: {
+      finalScore: {
+        $add: [
+          { $meta: "searchScore" },
+          { $multiply: ["$followers", 0.02] },
+          { $multiply: ["$posts", 0.01] },
+          { $multiply: ["$activityScore", 3] }
+        ]
+      }
+    }
+  },
+]
+
+const getSearchPipelineForShelves = (query: string): PipelineStage[] => {
+  const tokens = query
+    .trim()
+    .toLowerCase()
+    .split(/\s+/)
+    .filter(Boolean);
+
+  const regex = tokens.map(token => ({ name: { $regex: `^${token}`, $options: 'i' } }));
+
+  return [
+    { $match: { $or: regex, shelf_type: "custom", isPrivate: false } },
+    {
+      $addFields: {
+        exactMatchScore: {
+          $cond: [
+            { $eq: [{ $toLower: "$name" }, query.toLowerCase()] },
+            5,
+            0
+          ]
+        }
+      }
+    },
+    {
+      $addFields: {
+        popularityScore: {
+          $add: [
+            { $multiply: ["$saved_count", 0.05] },
+            { $multiply: ["$item_count", 0.02] }
+          ]
+        }
+      }
+    },
+    {
+      $addFields: {
+        recencyScore: {
+          $divide: [
+            1,
+            {
+              $add: [
+                1,
+                {
+                  $divide: [
+                    { $subtract: [new Date(), "$createdAt"] },
+                    1000 * 60 * 60 * 24
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      $addFields: {
+        finalScore: {
+          $add: [
+            "$exactMatchScore",
+            "$popularityScore",
+            { $multiply: ["$recencyScore", 2] }
+          ]
+        }
+      }
+    },
+  ]
+
 }
 
-export const searchHandler = async ({ r, type, filters, applyNsfwCheck, filterInsideSearch }: SearchHandlerProps): Promise<GeneralGetReturn> => {
+export const searchHandler = async ({ r, type, filters }: SearchHandlerProps): Promise<GeneralGetReturn> => {
 
   const sp = r.nextUrl.searchParams;
 
   const query: string | null = sp.get("q");
-  if (!query) return { success: false, errCode: "unknown_error" };
+  if (!query || query.length < 4)
+    return { success: false, errCode: "custom_error", customError: "Query must be 4 characters long to search" };
 
-  const { page, nsfw } = getSearchParams(r.nextUrl, 0);
+  const { page, nsfw } = getSearchParams(r.nextUrl);
 
-  const isFiltering = nsfw === false;
+  const searchFilters =
+    type === "posts" ? getSearchPipelineForPosts(query, nsfw)
+      : type === "threads" ? getSearchPipelineForThreads(query, nsfw)
+        : type === "users" ? getSearchPipelineForUsers(query)
+          : type === "shelves" ? getSearchPipelineForShelves(query)
+            : null;
 
-  const pathsDict: Record<Collections, string[]> = {
-    "users": ["username", "name"],
-    "posts": ["title"],
-    "threads": ["name"],
-    "comments": ["content"],
-    "shelves": ["name"],
-  }
+  if (!searchFilters || !searchFilters.length) throw new Error(`Incorrect type passed in search handler, got: ${type}`)
 
-  const indexNameDict: Record<Collections, string> = {
-    "users": "searchIndexForUsers_username_name",
-    "posts": "searchIndexForPosts_title",
-    "threads": "searchIndexForThreads_name",
-    "comments": "searchIndexForComments_content",
-    "shelves": "searchIndexForShelves_name",
-  }
-
-  const paths = pathsDict[type];
-  const index = indexNameDict[type];
-
-  if (!paths || !index) throw new Error(`Incorrect type passed in search handler, got: ${type}`)
-
-  const searchFilters: PipelineStage[] = [
-    {
-      $search: {
-        index,
-        compound: {
-          should: paths.map((path) => ({
-            autocomplete: {
-              query,
-              path,
-              fuzzy: { maxEdits: 2, prefixLength: 1 },
-            },
-          })),
-          filter: (applyNsfwCheck || filterInsideSearch) ? createSearchFilter({
-            ...(applyNsfwCheck && isFiltering && { nsfw }),
-            ...(filterInsideSearch && filterInsideSearch),
-          }) : undefined,
-        },
-      },
-    },
-    {
-      $addFields: {
-        score: { $meta: "searchScore" },
-      },
-    },
-    { $sort: { score: -1 } },
-    { $skip: page * queryLimit },
-    { $limit: 100 },
-    ...filters
+  const pipeline: PipelineStage[] = [
+    ...(type === "shelves" ? filters : []),
+    ...searchFilters,
+    { $skip: Math.floor(page / 5) * queryLimit },
+    { $limit: queryLimit * 5 },
+    ...(type !== "shelves" ? filters : [])
   ];
 
-  const response = await performAggregation({ filters: searchFilters, page, type });
+  const response = await performAggregation({ filters: pipeline, page, type });
 
   return { success: true, result: response[0] ?? { data: [], total: 0 } }
 

@@ -75,8 +75,6 @@ const Page = async ({ params, searchParams }: ParloPageProps) => {
             )
     );
 
-    console.log("passed promise in shelf/id page");
-
     return (
         <HydrationBoundary state={dehydrate(queryClient)}>
             <ShelfPage uid={user?.user_id} key={key} id={sid} page={page} filter={filter} />

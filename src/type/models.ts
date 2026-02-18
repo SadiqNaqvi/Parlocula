@@ -66,6 +66,7 @@ export type UserModelType = {
   usernameUpdatedAt?: GenericDate | undefined;
   emailUpdatedAt?: GenericDate | undefined;
   lastPostedAt?: GenericDate | undefined;
+  lastShelfCreatedAt?: GenericDate | undefined;
   lastCommentedAt?: GenericDate | undefined;
   lastLoginAt?: GenericDate;
 
@@ -124,6 +125,7 @@ export type PostModelType = {
   reaction_count?: number;
   comment_count?: number;
   saved_count?: number;
+  quoted_count?: number;
 };
 
 export type CommentModelType = {

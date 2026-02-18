@@ -36,7 +36,6 @@ export const GET = getHandler(async (r, params) => {
             { $project: { isOrHaveBlocked: 0 } }
         ],
         r,
-        filterInsideSearch: { isActive: true },
         type: "users"
     });
 });

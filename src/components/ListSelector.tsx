@@ -6,6 +6,7 @@ import {
     FunctionComponent,
     RefObject,
     useCallback,
+    useEffect,
     useImperativeHandle,
     useMemo,
     useState,
@@ -98,6 +99,8 @@ const ListSelector = <T extends Response, R>(
 
     const [selectedMap, setSelectedMap] = useState<Map<string, R | true>>(() => new Map(alreadySelectedValues?.map(({ id, val }) => [id, val ?? true])) || []);
 
+    useEffect(() => console.log(selectedMap), [selectedMap])
+
     /* -------------------------- Imperative Handle -------------------------- */
 
     const handleReturn = useCallback((): R[] => {
@@ -111,73 +114,68 @@ const ListSelector = <T extends Response, R>(
 
     /* ----------------------------- Selection ----------------------------- */
 
-    const handleSelection = useCallback(
-        (action: "add" | "remove", id: string, returnVal?: R) => {
-            setSelectedMap((prev) => {
-                const next = new Map(prev);
+    const handleSelection = useCallback((id: string, returnVal?: R) => {
+        setSelectedMap((prev) => {
+            const next = new Map(prev);
 
-                if (action === "remove") {
-                    next.delete(id);
-                    return next;
-                }
-
-                else if (limit && next.size >= limit) {
-                    appToast.error(`Only ${limit} selections are allowed.`);
-                    return prev;
-                }
-
-                next.set(id, returnVal ?? true);
+            if (next.has(id)) {
+                next.delete(id);
                 return next;
-            });
-        },
-        [limit]
-    );
+            }
+
+            else if (limit && next.size >= limit) {
+                appToast.error(`Only ${limit} selections are allowed.`);
+                return prev;
+            }
+
+            next.set(id, returnVal ?? true);
+            return next;
+        });
+    }, [limit])
 
     /* ------------------------- Render Item Function ------------------------ */
 
-    const renderItem = useCallback(
-        (response: T) => {
+    const renderItem = useCallback((response: T) => {
+
+        // Static Component Mode
+        if (mode === "static-component") {
             const uid = (response.id || response._id) ?? "";
             const checked = selectedMap.has(uid);
 
-            // Static Component Mode
-            if (mode === "static-component") {
-                const { Component } = props;
-                return (
-                    <Component
-                        key={uid}
-                        {...response}
-                        checked={checked}
-                        onClick={(v: R) => handleSelection(checked ? "remove" : "add", uid, v)}
-                    />
-                );
-            }
+            const { Component } = props;
+            return (
+                <Component
+                    key={uid}
+                    {...response}
+                    checked={checked}
+                    onClick={(v: R) => handleSelection(uid, v)}
+                />
+            );
+        }
 
-            // Refiner-based modes
-            else if (
-                mode === "static-refiner" ||
-                mode === "infinite" ||
-                mode === "search"
-            ) {
-                const { id, title, poster, returnVal } = props.refiner(response);
+        // Refiner-based modes
+        else if (
+            mode === "static-refiner" ||
+            mode === "infinite" ||
+            mode === "search"
+        ) {
+            const { id, title, poster, returnVal } = props.refiner(response);
+            const checked = selectedMap.has(id);
+            return (
+                <GeneralTile
+                    key={id}
+                    title={title}
+                    poster={poster}
+                    showCheckBox
+                    checked={checked}
+                    onClick={() => handleSelection(id, returnVal)}
+                    className="pointer w-full"
+                />
+            );
+        }
 
-                return (
-                    <GeneralTile
-                        key={id}
-                        title={title}
-                        poster={poster}
-                        showCheckBox
-                        checked={checked}
-                        onClick={() => handleSelection(checked ? "remove" : "add", id, returnVal)}
-                        className="pointer w-full"
-                    />
-                );
-            }
-
-            return null;
-        },
-        [props, selectedMap, handleSelection]
-    );
+        return null;
+    }, [props, selectedMap, handleSelection]);
 
     /* ------------------------------ Render ------------------------------ */
 

@@ -34,11 +34,13 @@ const FilterContentTogglePage = ({ status }: { status: boolean }) => {
     return (
         <>
             <Navbar />
+            
             <ToggleButtonBar
                 label="Filter Contents"
                 checked={checked}
                 onClick={handleToggle}
             />
+
             <p className="mt-4 text-center">
                 {status ?
 

@@ -4,23 +4,30 @@ import { BottomSheet, ListSelector, ListSelectorRef } from "@components";
 import { searchTaleonsOnly } from "@lib/contentFetcher";
 import { addItemsInShelf } from "@lib/helpers/mutations";
 import { ExtSearchDataTaleonOnly } from "@type/external";
+import { AllShelves } from "@type/models";
 import { useRef } from "react";
 import { twMerge } from "tailwind-merge";
 
-const AddItemsButton = ({ sid, uid, className }: { sid: string, uid: string, className?: string }) => {
+const AddItemsButton = ({ sid, uid, className, shelf_type }: { sid: string, uid: string, className?: string, shelf_type: AllShelves }) => {
 
     const callbackRef = useRef<ListSelectorRef<ExtSearchDataTaleonOnly>>(null);
 
     const handleSubmit = async () => {
         const items = callbackRef.current?.();
         if (!items || !items.length) return;
-        await addItemsInShelf(sid, uid, items.map(({ media_type, poster, title, tmdb_id, year }) => ({
-            poster,
-            ext_id: tmdb_id,
-            taleon_type: media_type,
-            title,
-            year,
-        })));
+
+        const data = {
+            shelf_type,
+            items: items.map(({ media_type, poster, title, tmdb_id, year }) => ({
+                poster,
+                ext_id: tmdb_id,
+                taleon_type: media_type,
+                title,
+                year,
+            }))
+        };
+
+        await addItemsInShelf(sid, uid, data);
     }
 
     return (

@@ -74,7 +74,14 @@ export const POST = postHandler<ShelfSchemaType>({
         session
       );
 
-      await User.findByIdAndUpdate(user_id, { $inc: { publicShelves: 1 } }, { session })
+      await User.findByIdAndUpdate(user_id, {
+        $set: { lastShelfCreatedAt: new Date() },
+        $inc: { publicShelves: 1 }
+      }, { session })
+    } else {
+      await User.findByIdAndUpdate(user_id, {
+        $set: { lastShelfCreatedAt: new Date() },
+      }, { session })
     }
 
     return {

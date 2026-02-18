@@ -10,11 +10,13 @@ export type GeneralGetReturn<T = any> =
     success: true;
     result: T;
     errCode?: undefined;
+    customError?: undefined;
   }
   | {
     success: false;
     errCode: ErrorCodes;
     result?: undefined;
+    customError?: string;
   };
 
 export type GeneralPostReturn<T = any> =

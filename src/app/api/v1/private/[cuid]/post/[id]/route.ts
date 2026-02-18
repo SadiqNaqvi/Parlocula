@@ -10,13 +10,15 @@ export const DELETE = deleteHandler(
   async ({ params, session, user_id }) => {
     const { id } = params;
 
-    const posts = await deletePosts({ _id: id, user_id }, session);
+    const posts = await deletePosts({ _id: id, user_id }, session, ["thread_id", "quoted_post_id"]);
     if (!posts.length) return {
       success: false, errCode: "resource_not_found"
     };
 
+    const { thread_id, quoted_post_id } = posts[0];
+
     await Thread.findByIdAndUpdate(
-      posts[0].thread_id,
+      thread_id,
       { $inc: { post_count: -1 } },
       { session }
     )
@@ -27,7 +29,11 @@ export const DELETE = deleteHandler(
       { session }
     );
 
-    const { thread_id } = posts[0];
+    if (quoted_post_id) {
+      await Post.findByIdAndUpdate(quoted_post_id, {
+        $inc: { quoted_count: -1 }
+      }, { session })
+    }
 
     return {
       success: true,

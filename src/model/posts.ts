@@ -32,6 +32,7 @@ const postModel = new StrictSchema<PostModelType>({
   comment_count: numberSchema,
   reaction_count: numberSchema,
   saved_count: numberSchema,
+  quoted_count: numberSchema,
 }, { timestamps: true, _id: true });
 
 postModel.index({ thread_id: 1, nsfw: 1 });
