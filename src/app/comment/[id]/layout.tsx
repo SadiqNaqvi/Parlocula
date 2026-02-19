@@ -1,15 +1,15 @@
-import { ContentFiltered, NotFound } from "@components/fallbacks";
+import { NotFound } from "@components/fallbacks";
 import { FullPageLoadingSpinner } from "@components/ui/loading/LoadingSpinner";
 import { getUserFromToken } from "@lib/auth/utils";
-import { checkIfItemSaved, checkIfReportExists, getCommentById, checkLikeOnComment } from "@lib/helpers/common";
+import { checkIfItemSaved, checkIfReportExists, checkLikeOnComment, getCommentById } from "@lib/helpers/common";
 import { fetchQuery, getQueryClient, prefetchQuery } from "@lib/providers/queryClient";
 import { calculateAge, getQueryKeys, isValidParloId } from "@lib/utils";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
+import { ParloPageProps } from "@type/other";
 import { Metadata } from "next";
 import { cookies } from "next/headers";
 import { PropsWithChildren, Suspense } from "react";
 import CommentHeader from "./Header";
-import { ParloPageProps } from "@type/other";
 
 export const generateMetadata = async ({ params }: ParloPageProps): Promise<Metadata> => {
 
@@ -56,11 +56,6 @@ const Fetcher = async ({ cid, children }: PropsWithChildren<{ cid: string }>) =>
             ]}
             fullScreen
         />
-    )
-
-    // Now if comment contains NSFW and user is a guest or user does not allow NSFW.
-    else if (comment.nsfw && (!user || user.filterContent)) return (
-        <ContentFiltered />
     )
 
     else if (user) {

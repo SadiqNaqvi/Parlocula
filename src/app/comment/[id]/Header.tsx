@@ -8,6 +8,7 @@ import { FullComment } from "@type/internal";
 import Image from "next/image";
 import OptionsButton from "./Ellipsis";
 import LikeButton from "./LikeButton";
+import { ContentFiltered } from "@components/fallbacks";
 
 type Props = {
     id: string,
@@ -28,6 +29,8 @@ const Component = (data: FullComment, { uid, id }: Props) => {
 
     return (
         <>
+
+            <ContentFiltered allow={user_id === uid} redirectPath={`/comment/${_id}`} />
             <Navbar
                 titleToShare={`Read the comment by ${username} and their replies on Parlocula`}
                 className="sticky bg-primary -mt-4 mb-4"
