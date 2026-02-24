@@ -1,8 +1,8 @@
-import { getPoster, makeUrlSafe } from "@lib/utils";
 import Navigate from "@components/Navigate";
-import Image from "next/image";
+import { makeUrlSafe } from "@lib/utils";
 import { RefinedGeneralData } from "@type/external";
 import { twMerge } from "tailwind-merge";
+import ParloImage from "./ParloImage";
 
 export const VerticleMovieCardSkeleton = ({ className }: { className?: string }) => (
     <div className={twMerge("min-w-44 w-44 aspect-[2/3] space-y-2", className)}>
@@ -20,13 +20,15 @@ export default function VerticleMovieCard({ id, type, poster, title, year, ratin
         <Navigate key={link} comp="link" goto={link}>
             <figure className={twMerge("min-w-44 w-44 relative cursor-pointer", className)}>
 
-                <Image
-                    src={getPoster({ external: true, path: poster, type: "poster", size: "w342" })}
-                    height={176}
-                    width={176}
-                    loading="lazy"
+                <ParloImage
+                    frame={poster}
+                    frameType="poster"
+                    // extSize="w154"
+                    className="absolute inset-0 size-full"
+                    size={176}
+                    fill
                     alt={`Poster of ${title}`}
-                    className="w-full h-auto aspect-[2/3] object-cover" />
+                    containerClassName="relative w-full h-auto aspect-[2/3] object-cover" />
 
                 <figcaption className="absolute text-zinc-200 *:px-2 inset-0 fade-effect flex flex-col justify-end">
                     <h3 className="font-bold line-clamp-2 text-wrap">{title}</h3>

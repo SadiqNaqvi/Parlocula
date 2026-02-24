@@ -52,10 +52,11 @@ const Component = (data: FullComment, { uid, id }: Props) => {
                 <header className="flex items-center gap-3">
 
                     <ParloImage
-                        containerClassName="rounded-full overflow-hidden"
+                        containerClassName="max-h-6 overflow-hidden"
+                        className="min-w-6 size-6 object-cover rounded-full"
                         frame={profile}
                         frameType="userProfile"
-                        size={25}
+                        size={24}
                         alt="Profile Picture of the author of comment"
                     />
 

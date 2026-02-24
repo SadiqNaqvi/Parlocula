@@ -8,7 +8,7 @@ import { Post } from "@model";
 export const GET = getHandler(async (r, params) => {
     const { id } = params;
 
-    const { page, nsfw, filter } = getSearchParams(r.nextUrl, 0, "latest");
+    const { page, nsfw, filter } = getSearchParams(r.nextUrl, 1, "latest");
 
     const sort = filterToSort.posts[filter] ?? filterToSort.posts.latest;
 

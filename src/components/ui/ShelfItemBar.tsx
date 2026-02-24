@@ -1,17 +1,21 @@
 import Navigate from "@components/Navigate";
-import { getPoster } from "@lib/utils";
 import { ShelfItemType } from "@type/internal";
-import Image from "next/image";
+import ParloImage from "./ParloImage";
 
 type ContentOnlyProps = Pick<ShelfItemType, "poster" | "title" | "year">;
 
 const ShelfItemContent = ({ poster, title, year }: ContentOnlyProps) => (
     <article className="flex items-center gap-3 w-full">
-        <Image
-            width={64}
-            height={64}
-            src={getPoster({ external: true, type: "poster", path: poster, size: "w92" })}
+        <ParloImage
+            size={64}
+            frame={poster}
+            frameType="poster"
             alt={`Poster for ${title}`}
+            //  extSize="w92"
+            sizes={[
+                { imageWidth: 48, maxScreenWidth: 480 },
+                { imageWidth: 64 },
+            ]}
             className="size-12 sm:size-16 object-cover rounded-full"
         />
         <div className="space-y-2">

@@ -46,19 +46,17 @@ export const PATCH = updateHandler<TaleonSchemaType>({
 
     const { id } = params;
 
-    console.log("about to update taleon");
-
     const taleonDoc = await Taleon.findOneAndUpdate(
       { ext_id: id },
       { ...data, editedAt: Date.now() },
       { session }
     );
 
-    console.log(taleonDoc);
-
     if (!taleonDoc) return {
       success: false, errCode: "data_storing_fail"
     }
+
+    console.log("Taleon is updated and about to be returned");
 
     return {
       result: taleonDoc.toObject(),

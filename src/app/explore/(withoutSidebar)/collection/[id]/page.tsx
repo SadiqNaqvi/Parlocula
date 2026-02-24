@@ -1,13 +1,11 @@
-import { BottomSheet, Navigate } from "@components";
-import ShelfForm from "@components/form/Mutation/ShelfMutation";
+import { Navigate } from "@components";
 import { NotFound } from "@components/ui";
 import { fetchCollection } from "@lib/contentFetcher";
-import { ParloPageProps } from "@type/other";
-import { TaleonSchemaType } from "@type/schemas";
-import { Metadata } from "next";
-import { TaleonGrid, TaleonWikiHeader, TaleonWikiSection } from "../../components";
 import generateDynamicMetadata from "@lib/seo/metadata";
 import { getPoster } from "@lib/utils";
+import { ParloPageProps } from "@type/other";
+import { Metadata } from "next";
+import { TaleonGrid, TaleonWikiHeader, TaleonWikiSection } from "../../components";
 
 const fetchData = async (params: { id: string }) => {
     const collection_id = params.id.split('-')[0];
@@ -62,6 +60,7 @@ const Page = async ({ params }: ParloPageProps) => {
                         <Navigate className="btn primary sm:flex-none sm:w-fit" comp="link" goto={`/new/shelf?clid=${awaitedParams.id}`}>Copy To Shelf</Navigate>
                     </div>
                 )}
+                frameType="poster"
             />
             <TaleonWikiSection heading="movies">
                 <TaleonGrid

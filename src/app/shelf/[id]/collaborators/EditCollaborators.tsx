@@ -65,14 +65,15 @@ export const RemoveCollaborators = ({ back, total, sid, uid }: Props) => {
 
 export const InviteCollaborators = ({ uid, back, total, sid }: Props) => {
 
-    const inviteesRef = useRef<ListSelectorRef<UserMetaData>>(null);
+    const inviteesRef = useRef<ListSelectorRef<MereUser>>(null);
 
     const handleSubmit = async () => {
         const invitees = inviteesRef.current?.();
+
         if (!invitees || !invitees.length)
             return appToast.error("At least one user should be selected to invite")
 
-        inviteCollaboratorsMutation(sid, invitees.map(u => ({ ...u, type: "invitee" })));
+        inviteCollaboratorsMutation(sid, invitees.map(({ _id, username, profile }) => ({ user_id: _id, username, profile, type: "invitee" })));
         back();
     }
 

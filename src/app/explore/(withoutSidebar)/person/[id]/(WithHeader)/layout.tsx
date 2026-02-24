@@ -49,6 +49,7 @@ const Page = async ({ params, children }: PropsWithChildren<{ params: { id: stri
             <TaleonWikiHeader
                 poster={content.profile}
                 title={content.name}
+                frameType="profile"
                 titleSupport={<p className="text-sm md:text-base text-zinc-500">Profession: {content.department}</p>}
                 overviewOrBio={content.biography}
                 descriptionSupport={(

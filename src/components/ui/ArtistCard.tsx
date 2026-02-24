@@ -1,18 +1,17 @@
-import { getPoster } from "@lib/utils";
-import Image from "next/image";
 import { Navigate } from "@components";
+import ParloImage from "./ParloImage";
 
 export default function ArtistCard({ img, title, detail, link }: { img: string | null, title: string, detail?: string, link: string }) {
     return (
         <Navigate goto={link} comp="link">
             <figure className="size-48 p-2 border border-gray40 rounded-lg flex flex-col flex-cntr-around">
 
-                <Image
-                    height={80}
-                    width={80}
-                    src={getPoster({ external: true, type: "profile", path: img, size: "w185" })}
+                <ParloImage
+                    size={80}
+                    frame={img || undefined}
+                    frameType="profile"
                     alt={`Picture of ${title}`}
-                    className="object-cover size-20 rounded-full" />
+                    className="object-cover min-w-20 size-20 rounded-full" />
 
                 <figcaption>
 

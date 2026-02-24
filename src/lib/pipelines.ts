@@ -254,7 +254,7 @@ export const postsAggregationPipeline: PipelineFunc<{ isLinkBased: boolean; excl
   });
 
 export const commentsAggregationPipelineWithReplies: PipelineFunc = (
-  { filters, page, sort, localFieldForLookup, replaceRoot }
+  { filters, page, sort, localFieldForLookup }
 ) =>
   createPipeline({
     filters,
@@ -307,7 +307,7 @@ export const commentsAggregationPipelineWithReplies: PipelineFunc = (
   });
 
 export const commentsAggregationPipeline: PipelineFunc = (
-  { filters, page, sort, localFieldForLookup, replaceRoot }
+  { filters, page, sort, localFieldForLookup }
 ) =>
   createPipeline({
     filters,
@@ -339,7 +339,7 @@ export const commentsAggregationPipeline: PipelineFunc = (
   });
 
 export const threadsAggregationPipeline: PipelineFunc = (
-  { filters, page, sort, localFieldForLookup, replaceRoot }
+  { filters, page, sort, localFieldForLookup }
 ) =>
   createPipeline({
     filters,
@@ -350,7 +350,7 @@ export const threadsAggregationPipeline: PipelineFunc = (
   });
 
 export const shelvesAggregationPipeline: PipelineFunc = (
-  { filters, page, sort, localFieldForLookup, replaceRoot }
+  { filters, page, sort, localFieldForLookup }
 ) =>
   createPipeline({
     filters,
@@ -416,12 +416,12 @@ export const usersAggregationPipeline: PipelineFunc = (
 
 export const bookmarkAggregationPipeline: PipelineFunc<{
   type: "post" | "shelf" | "comment";
-}> = ({ filters, page, type, localFieldForLookup, replaceRoot }) => {
+}> = ({ filters, page, type, localFieldForLookup }) => {
   const sort = { createdAt: -1 };
   if (type === "comment")
-    return commentsAggregationPipeline({ filters, page, sort, localFieldForLookup, replaceRoot });
+    return commentsAggregationPipeline({ filters, page, sort, localFieldForLookup });
   else if (type === "shelf")
-    return shelvesAggregationPipeline({ filters, page, sort, localFieldForLookup, replaceRoot });
+    return shelvesAggregationPipeline({ filters, page, sort, localFieldForLookup });
   else if (type === "post")
     return postsAggregationPipeline({ filters, page, sort, localFieldForLookup, excludeQuotedPost: true, isLinkBased: false });
   else return [];
@@ -634,9 +634,9 @@ const getSearchPipelineForPosts = (query: string, allowNsfw = false): PipelineSt
             text: {
               query,
               path: "title",
-              fuzzy: { maxEdits: 1 }
+              fuzzy: { maxEdits: 1 },
+              score: { boost: { value: 4 } }
             },
-            score: { boost: { value: 4 } }
           },
           {
             text: {
@@ -769,7 +769,7 @@ const getSearchPipelineForShelves = (query: string): PipelineStage[] => {
     .split(/\s+/)
     .filter(Boolean);
 
-  const regex = tokens.map(token => ({ name: { $regex: `^${token}`, $options: 'i' } }));
+  const regex = tokens.map(token => ({ name: { $regex: token, $options: 'i' } }));
 
   return [
     { $match: { $or: regex, shelf_type: "custom", isPrivate: false } },

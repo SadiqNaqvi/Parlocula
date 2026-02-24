@@ -4,6 +4,7 @@ import {
   allowedSizes,
   availablePostCategories,
   emailPattern,
+  extMediaSource,
   megaFilePattern,
   numberOfFrames,
   urlPattern,
@@ -57,20 +58,22 @@ export const dobSchema = dateSchema
     return age > 12 && age < 80;
   }, "Your age is not valid to use this app!");
 
+export const urlSchema = z
+  .string()
+  .trim()
+  .min(15, "URL must have 15 characters")
+  .max(200, "URL cannot have more than 100 characters")
+  .refine((url) => new RegExp(urlPattern).test(url), {
+    message: "Invalid URL. Please include 'https'.",
+  })
+
 export const linkSchema = z.object({
   label: z
     .string()
     .trim()
     .min(5, "Label must contain 5 characters.")
     .max(20, "Label connot have more than 20 characters."),
-  path: z
-    .string()
-    .trim()
-    .min(15, "URL must have 15 characters")
-    .max(200, "URL cannot have more than 100 characters")
-    .refine((url) => new RegExp(urlPattern).test(url), {
-      message: "Invalid URL. Please include 'https'.",
-    }),
+  path: urlSchema,
 });
 
 export const megaFileSchema =
@@ -85,8 +88,9 @@ export const frameDataSchema = z.object({
   isExternal: z.boolean(),
   path: z.string(),
   shouldUpload: z.boolean().optional(),
-  size: z.number(),
-  hash: z.string(),
+  size: z.number().optional(),
+  hash: z.string().optional(),
+  extSource: z.enum(extMediaSource).optional(),
 });
 
 export const fileSchema = z

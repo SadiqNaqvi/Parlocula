@@ -1,3 +1,4 @@
+import { extMediaSource } from "@lib/constants";
 import {
   BasedOnModelType,
   FrameModelType,
@@ -49,9 +50,12 @@ export const frameModel = new Schema<FrameModelType>({
     required: true,
   },
   isExternal: Boolean,
-  hash: {
+  hash: String,
+  size: Number,
+  extSource: {
     type: String,
-    required: true,
+    enum: extMediaSource,
+    required: false,
   }
 });
 

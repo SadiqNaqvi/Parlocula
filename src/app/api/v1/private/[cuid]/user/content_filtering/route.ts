@@ -1,4 +1,5 @@
 import { generateToken, getSession, storeSession } from "@lib/auth";
+import { setCookies } from "@lib/auth/cookies";
 import { updateHandler } from "@lib/helpers/handlers";
 import { User } from "@model";
 import { cookies } from "next/headers";
@@ -17,19 +18,14 @@ export const PATCH = updateHandler({
         const sid = cookieStore.get("sid")?.value ?? "";
 
         const { result, success } = await getSession(sid);
-        
+
         if (!success || !result)
             return { success: false, errCode: "unknown_error" };
 
         const sessionPayload = { ...result, filterContent: !result.filterContent }
         const { email, expireOn, ...tokenPayload } = sessionPayload;
 
-        cookieStore.set("token", await generateToken(tokenPayload), {
-            httpOnly: true,
-            secure: true,
-            sameSite: "strict",
-            path: "/",
-        });
+        setCookies(cookieStore, "token", await generateToken(tokenPayload));
 
         const stored = await storeSession(sid, sessionPayload);
 

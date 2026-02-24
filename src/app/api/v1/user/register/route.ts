@@ -1,6 +1,7 @@
 import WelcomeEmail from "@components/EmailTemplates/welcome";
 import { generateToken, storeSession } from "@lib/auth";
-import { parloculaAppURL, predefinedShelves } from "@lib/constants";
+import { setCookies } from "@lib/auth/cookies";
+import { oneDayInSeconds, parloculaAppURL, predefinedShelves } from "@lib/constants";
 import { postHandler } from "@lib/helpers/handlers";
 import { sendEmail } from "@lib/helpers/server";
 import { registerUserSchemaServer } from "@lib/schemas";
@@ -19,6 +20,7 @@ export const POST = postHandler<UserSchemaType>({
     const { name, dob, email, bio, username, bioLinks } = data;
 
     const passkey = crypto.randomUUID().split("-").join("");
+    
     const encryptedPasskey = await bcrypt.hash(
       passkey,
       await bcrypt.genSalt(10)
@@ -80,19 +82,10 @@ export const POST = postHandler<UserSchemaType>({
 
     const token = await generateToken(tokenPayload);
 
-    (await cookies()).set("token", token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "strict",
-      path: "/",
-    });
+    const jar = await cookies();
 
-    (await cookies()).set("sid", session_id, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "strict",
-      path: "/",
-    });
+    setCookies(jar, "token", token);
+    setCookies(jar, "sid", session_id);
 
     const template = await render(WelcomeEmail({ passkey }));
 

@@ -10,6 +10,7 @@ import { ShelfCollaborators } from "@type/internal";
 import { TypedFunction } from "@type/other";
 import { useState } from "react";
 import { InviteCollaborators, RemoveCollaborators } from "./EditCollaborators";
+import { OptionalChildren } from "@components/ui";
 
 type Props = { sid: string, uid: string }
 
@@ -53,22 +54,19 @@ const ShowCollaborators = ({ setSection, total }: { total: ShelfCollaborators["c
 
                 <div>
                     <h4 className="text-sm uppercase">Collaborators</h4>
-                    {collaborators.length ?
-                        (
-                            <ul className="space-y-4">
-                                {collaborators.map(c => (
-                                    <li key={c.user_id}>
-                                        <SimpleUserBar _id={c.user_id} {...c} />
-                                    </li>
-                                ))}
-                            </ul>
-                        )
-                        :
-                        (
-                            <div className="my-4">
-                                <p className="text-center">No Collaborators Yet</p>
-                            </div>
-                        )}
+                    <OptionalChildren condition={collaborators.length} fallback={(
+                        <div className="my-4">
+                            <p className="text-center">No Collaborators Yet</p>
+                        </div>
+                    )}>
+                        <ul className="space-y-4">
+                            {collaborators.map(c => (
+                                <li key={c.user_id}>
+                                    <SimpleUserBar _id={c.user_id} {...c} />
+                                </li>
+                            ))}
+                        </ul>
+                    </OptionalChildren>
                 </div>
 
                 <div>

@@ -1,4 +1,5 @@
 import { generateToken, getSession, verifyToken } from "@lib/auth";
+import { deleteAuthCookies, setCookies } from "@lib/auth/cookies";
 import { slidingWindowRateLimit } from "@lib/helpers/redis/rate_limiting";
 import { ErrorCodes } from "@type/other";
 import { cookies } from "next/headers";
@@ -49,7 +50,6 @@ const validateUser = async (
   const { user_id } = payload;
 
   // If token is neither tampered nor expired, return true;
-  // console.log("payload in proxy", payload.exp, Boolean(payload.exp! * 1000 < Date.now()));
 
   if (payload.exp && (payload.exp * 1000) > Date.now())
     return { success: true, user_id };
@@ -66,8 +66,7 @@ const validateUser = async (
   // If session is not available, delete cookies
   else if (!result) {
     console.log("deleting cookies in proxy");
-    jar.delete("token");
-    jar.delete("sid");
+    deleteAuthCookies(rs.cookies)
     return { success: false, errCode: "unauthenticated_access" };
   }
 
@@ -77,12 +76,7 @@ const validateUser = async (
 
   const newToken = await generateToken(tokenPayload);
 
-  rs.cookies.set("token", newToken, {
-    httpOnly: true,
-    secure: true,
-    sameSite: "strict",
-    path: "/",
-  });
+  setCookies(rs.cookies, "token", newToken);
 
   // If token is temporarily banned
   if (result.isBanned && result.banEndsAt && new Date(result.banEndsAt).getTime() > Date.now())

@@ -1,4 +1,5 @@
 import { generateToken, getSession, storeSession } from "@lib/auth";
+import { setCookies } from "@lib/auth/cookies";
 import { updateHandler } from "@lib/helpers/handlers";
 import { usernameUpdateSchema } from "@lib/schemas";
 import { getTimeInFuture } from "@lib/utils";
@@ -63,12 +64,7 @@ export const PATCH = updateHandler<UsernameUpdateSchemaType>({
 
     const { email, expireOn, ...tokenPayload } = result;
 
-    cookieStore.set("token", await generateToken({ ...tokenPayload, username: newUsername }), {
-      httpOnly: true,
-      secure: true,
-      sameSite: "strict",
-      path: "/",
-    });
+    setCookies(cookieStore, "token", await generateToken({ ...tokenPayload, username: newUsername }));
 
     return {
       success: true,

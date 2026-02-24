@@ -29,6 +29,10 @@ const ProfileButton = () => {
                     frameType="userProfile"
                     alt="Profile picture of the current user"
                     size={40}
+                    sizes={[
+                        { maxScreenWidth: 480, imageWidth: 32 },
+                        { imageWidth: 40 },
+                    ]}
                     className="min-w-8 size-8 sm:min-w-10 sm:size-10 object-cover rounded-full"
                     frame={meta.profile}
                 />

@@ -16,7 +16,6 @@ const Page = async ({ params, searchParams }: ParloPageProps) => {
 
     const currentUser = await getUserFromToken(await cookies());
 
-    const allowNsfw = currentUser ? !currentUser.filterContent : false;
 
     const user = await fetchQuery({
         queryClient,
@@ -27,6 +26,7 @@ const Page = async ({ params, searchParams }: ParloPageProps) => {
     if (!user) return null;
 
     const uid = user._id;
+    const allowNsfw = currentUser ? currentUser.user_id === user._id ? true : !currentUser.filterContent : false;
 
     const { filter, page } = refineSearchParams("comments", p, f);
 

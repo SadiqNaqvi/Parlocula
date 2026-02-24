@@ -5,9 +5,11 @@ import {
   AvailableRevalidateTags,
   CloudinaryMediaOptions,
   ErrorCodes,
+  ExternalImageTypeToSizeMap,
   QueryFilterType,
   ReportReasonType,
 } from "@type/other";
+import { ExtMediaSource } from "@type/schemas";
 
 export const searchFilters = [
   "all",
@@ -16,7 +18,6 @@ export const searchFilters = [
   "threads",
   "users",
   "posts",
-  "comments",
   "shelves",
   "people",
   "collections",
@@ -49,8 +50,13 @@ export const urlPattern =
 export const mediaUrlPattern =
   /^(https:\/\/)?([\w\-]+\.)+[\w\-]+(\/[\w\-%.~+\/]*)*(\.(jpg|jpeg|png|bmp|webp|mp4|mov|avi|mkv|flv|wmv|webm|3gp))(?=[\/?]|$)/i;
 
+export const youtubeLinkPattern =
+  /^(?:https?:)?(?:\/\/)?(?:youtu\.be\/|(?:www\.|m\.)?youtube\.com\/(?:watch|v|embed)(?:\.php)?(?:\?.*v=|\/))([a-zA-Z0-9\_-]{7,15})(?:[\?&][a-zA-Z0-9\_-]+=[a-zA-Z0-9\_-]+)*(?:[&\/\#].*)?$/i;
+
+export const vimeoLinkPattern = /(?:https?:\/\/)?(?:www\.)?(?:player\.)?vimeo\.com\/(?:[a-z]*\/)*([0-9]{6,11})/i;
+
 export const megaFilePattern =
-  /^https:\/\/mega(\.(nz|io))\/file\/[a-zA-Z0-9-]{3,}(\#)[a-zA-Z0-9-]{5,}$/;
+  /^https:\/\/mega(\.(nz|io))\/file\/[a-zA-Z0-9\_-]{3,}(\#)[a-zA-Z0-9\_-]{5,}$/;
 
 export const passwordValidator =
   /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$/;
@@ -62,8 +68,8 @@ export const emailPattern =
 
 export const externalImgUrlPrefix = "https://image.tmdb.org/t/p/";
 
-export const backdrop_sizes = ["w300", "w780", "w1280", "original"];
-export const logo_sizes = [
+export const backdrop_sizes: ExternalImageTypeToSizeMap["backdrop"][] = ["w300", "w780", "w1280", "original"];
+export const logo_sizes: ExternalImageTypeToSizeMap["logo"][] = [
   "w45",
   "w92",
   "w154",
@@ -72,7 +78,7 @@ export const logo_sizes = [
   "w500",
   "original",
 ];
-export const poster_sizes = [
+export const poster_sizes: ExternalImageTypeToSizeMap["poster"][] = [
   "w92",
   "w154",
   "w185",
@@ -81,8 +87,8 @@ export const poster_sizes = [
   "w780",
   "original",
 ];
-export const profile_sizes = ["w45", "w185", "h632", "original"];
-export const still_sizes = ["w92", "w185", "w300", "original"];
+export const profile_sizes: ExternalImageTypeToSizeMap["profile"][] = ["w45", "w185", "h632", "original"];
+export const still_sizes: ExternalImageTypeToSizeMap["still"][] = ["w92", "w185", "w300", "original"];
 
 export const oneKb = 1024;
 export const oneMb = oneKb * oneKb;
@@ -97,19 +103,7 @@ export const allowedFormats: Record<string, string[]> = {
   video: ["mp4", "webm", "mkv"],
 };
 
-export const cloudinary_media_options: Record<CloudinaryMediaOptions, string> =
-{
-  aspect_ratio: "ar_",
-  crop: "c_",
-  width: "w_",
-  height: "h_",
-  quality: "q_",
-  filter: "f_",
-  round: "r_",
-};
-
-export const cloudinary_uri = "https://res.cloudinary.com/dwpbmrgsx/";
-export const cloudinary_postKey = "v1731487676";
+export const extMediaSource = ["mega", "youtube", "vimeo", "web"] as const;
 
 export const queryLimit = 20;
 export const recentlyJoinedLimit = 20;

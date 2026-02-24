@@ -8,6 +8,8 @@ const nextConfig = {
         hostname: "**",
       },
     ],
+    // deviceSizes: [300, 375, 480, 640, 768, 1024, 1536],
+    // imageSizes: [],
   },
   serverExternalPackages: ["mongoose"],
   logging: {

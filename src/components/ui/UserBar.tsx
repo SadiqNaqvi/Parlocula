@@ -6,8 +6,8 @@ export const SimpleUserBar = ({ profile, username }: MereUser) => (
     <article className="flex items-center gap-3 py-2 px-4 border border-gray30 rounded-md">
         <ParloImage
             frameType="userProfile"
-            className="object-cover"
-            size={50}
+            className="min-w-8 size-8 rounded-md object-cover"
+            size={32}
             alt={`Profile picture of ${username}`}
             frame={profile}
         />

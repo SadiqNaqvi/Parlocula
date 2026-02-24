@@ -26,8 +26,6 @@ import { customAlphabet } from "nanoid";
 import { NextRequest } from "next/server";
 import {
   cacheTags,
-  cloudinary_postKey,
-  cloudinary_uri,
   errorCodes,
   externalImgUrlPrefix,
   queryFilters,
@@ -185,10 +183,12 @@ export const makeUrlSafe = (str: string) => {
 
 export const getPoster = <T extends ExternalImageType>(config: GetPosterFunctionProps<T>): string => {
   const { path } = config;
-  if (!path) return placeholder.src;
-  if (path.includes("https")) return path;
 
-  if (config.external || path?.startsWith('/')) {
+  if (!path) return placeholder.src;
+
+  else if (path.includes("https")) return path;
+
+  else if ((config.external) && !config.extSource) {
 
     if (!config.size)
       return `${externalImgUrlPrefix}w185${path}`;
@@ -197,6 +197,7 @@ export const getPoster = <T extends ExternalImageType>(config: GetPosterFunction
     if (!path) return placeholder.src;
     switch (type) {
       case "poster":
+      case "shelfPoster":
         return `${externalImgUrlPrefix}${size}${path}`;
       case "backdrop":
         return `${externalImgUrlPrefix}${size}${path}`;
@@ -209,11 +210,15 @@ export const getPoster = <T extends ExternalImageType>(config: GetPosterFunction
       default:
         return "";
     }
-  } else {
-    const { path, type } = config;
-
-    return `${cloudinary_uri}${type ?? "image"}/upload/${cloudinary_postKey}/${path}${type === "video" ? ".mp4" : ".webp"}`;
   }
+
+  else if (config.extSource === "vimeo")
+    return `https://vumbnail.com/${path}.jpg`;
+
+  else if (config.extSource === "youtube")
+    return `https://i.ytimg.com/${path}/hqdefault.jpg`
+
+  else return path;
 };
 
 export const checkAndReturn = <T>(prop: T, equals?: any, notEquals?: any): T | undefined => {
@@ -491,6 +496,7 @@ export const checkEditedFields = <T extends Record<string, any>>(oldObj: T, newO
   return objToReturn as Partial<T>;
 }
 
-export const isEqual = <T>(propToCheck: T, ...conditions: T[]) => {
-  return conditions.some(condition => condition === propToCheck)
-}
+export const isEqual = <T, U extends readonly unknown[]>(
+  propToCheck: T,
+  ...conditions: U
+): propToCheck is Extract<T, U[number]> => conditions.includes(propToCheck);

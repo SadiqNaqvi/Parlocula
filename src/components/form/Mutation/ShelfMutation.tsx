@@ -8,7 +8,7 @@ import { getItems } from "@lib/helpers/common";
 import { createShelfMutation, editShelfMutation } from "@lib/helpers/mutations";
 import appToast from "@lib/providers/toast";
 import { shelfClientSchema, shelfClientUpdateSchema } from "@lib/schemas";
-import { checkEditedFields, getPoster, getQueryKeys, numberConverter, timeAgo } from "@lib/utils";
+import { checkEditedFields, getQueryKeys, numberConverter, timeAgo } from "@lib/utils";
 import { useNavigation } from "@store/historystack";
 import useCurrentUser from "@store/user";
 import { FullShelf, ShelfItemType } from "@type/internal";
@@ -38,7 +38,7 @@ const refiner = (item: ShelfItemType | TaleonSchemaType): RefinedValues => {
     return {
         id: ext_id,
         title,
-        poster: getPoster({ external: true, type: "poster", path: poster, size: "w92" }),
+        poster,
         returnVal: {
             ext_id,
             poster,

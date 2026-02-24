@@ -26,7 +26,7 @@ const FormContainer = ({ children, schema, submit, defaultVals, hideLoading, ski
 
     const { handleSubmit, setError, formState: { errors, isSubmitting }, reset, clearErrors } = formMethod;
 
-    useEffect(() => errors && console.log(errors), [errors]);
+    useEffect(() => { if(Object.keys(errors).length) console.log(errors) }, [errors]);
 
     const submitForm = async (data: any) => {
         clearErrors();

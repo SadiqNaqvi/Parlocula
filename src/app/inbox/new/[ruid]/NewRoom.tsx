@@ -4,10 +4,9 @@ import { LeftChevron, SendIcon } from "@assets/Icons";
 import { Form, Input } from "@components/form";
 import { ParloImage } from "@components/ui";
 import { createRoomMutation } from "@lib/helpers/mutations";
-import { getPoster, parloId } from "@lib/utils";
+import { parloId } from "@lib/utils";
 import { useNavigation } from "@store/historystack";
 import { MereUser } from "@type/internal";
-import Image from "next/image";
 import { useRef } from "react";
 import { Drawer } from "vaul";
 
@@ -52,7 +51,8 @@ const NewRoom = ({ ruser }: { ruser: MereUser }) => {
                 <div className="flex gap-4 items-center">
                     <ParloImage
                         frameType="userProfile"
-                        containerClassName="rounded-full overflow-hidden"
+                        className="min-w-12 size-12 object-cover rounded-full"
+                        containerClassName="max-h-12 overflow-hidden"
                         frame={ruser.profile}
                         size={48}
                         alt="Poster of room"

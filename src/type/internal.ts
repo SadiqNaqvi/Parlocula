@@ -2,6 +2,7 @@ import { ZodIssue } from "zod";
 import { ErrorCodes, ReportReasonType } from "./other";
 import { AllShelves, FrameModelType, PredefinedShelves, UserModelType } from "./models";
 import { UserMetaData } from "@store/user";
+import { ExtMediaSource } from "./schemas";
 
 export type GenericDate = Date | number | string;
 
@@ -81,8 +82,9 @@ export type Frame = {
   path: string;
   type: "image" | "video";
   isExternal: boolean;
-  hash: string;
-  size: number;
+  hash?: string;
+  size?: number;
+  extSource?: ExtMediaSource,
 };
 
 export type ShelfMetaData = {

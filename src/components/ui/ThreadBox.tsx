@@ -9,6 +9,7 @@ const ThreadBox = ({ _id, name, poster }: MereThread) => (
             <ParloImage
                 frameType="profile"
                 size={48}
+              //  extSize="w45"
                 className="size-12 object-cover rounded-full"
                 frame={poster}
                 alt={`Poster of thread ${name}`}

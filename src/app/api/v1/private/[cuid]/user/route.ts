@@ -1,4 +1,5 @@
 import { generateToken, getSession, storeSession } from "@lib/auth";
+import { setCookies } from "@lib/auth/cookies";
 import { getHandler, updateHandler } from "@lib/helpers/handlers";
 import { currentUserPipeline } from "@lib/pipelines";
 import { userUpdateSchema } from "@lib/schemas";
@@ -45,7 +46,7 @@ export const PATCH = updateHandler<UserUpdateSchemaType>({
       { session }
     );
 
-    if ("profile" in dataToUpdate || "dob" in dataToUpdate || "filterContent" in dataToUpdate) {
+    if ("profile" in dataToUpdate || "dob" in dataToUpdate) {
 
       const cookieStore = await cookies();
       const sid = cookieStore.get("sid")?.value;
@@ -57,13 +58,12 @@ export const PATCH = updateHandler<UserUpdateSchemaType>({
       if (!success || !result)
         return { success: false, errCode: "uncaught_error" };
 
-      const { dob, filterContent } = dataToUpdate;
+      const { dob } = dataToUpdate;
 
       const sessionPayload = {
         ...result,
         ...(dob && { dob }),
         ...("profile" in dataToUpdate && { profile: dataToUpdate.profile }),
-        ...(filterContent && { filterContent })
       };
 
       const stored = await storeSession(sid, sessionPayload);
@@ -72,12 +72,8 @@ export const PATCH = updateHandler<UserUpdateSchemaType>({
 
       const { email, expireOn, ...tokenPayload } = sessionPayload;
 
-      cookieStore.set("token", await generateToken(tokenPayload), {
-        httpOnly: true,
-        secure: true,
-        sameSite: "strict",
-        path: "/",
-      });
+      setCookies(cookieStore, "token", await generateToken(tokenPayload));
+
     }
 
     const updatedFields: Record<string, any> = {};

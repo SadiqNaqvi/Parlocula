@@ -55,6 +55,7 @@ const SeasonPage = async ({ params }: Props) => {
 
             <TaleonWikiHeader
                 backdrop={show.backdrop}
+                frameType="poster"
                 overviewOrBio={season.overview}
                 poster={season.poster}
                 title={season.title}

@@ -17,7 +17,8 @@ const ChoosenThread = ({ name, poster }: Pick<MereThread, "name" | "poster">) =>
         <div className="flex gap-2 items-center">
             <ParloImage
                 frameType="poster"
-                className="rounded-full object-cover"
+              //  extSize="w92"
+                className="rounded-full min-w-12 size-12 object-cover"
                 frame={poster}
                 size={48}
                 alt={`Poster of thread ${name}`}

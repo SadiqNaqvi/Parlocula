@@ -1,5 +1,6 @@
 "use client";
 
+import { CheckBoxIcon, EmptyBoxIcon } from "@assets/Icons";
 import appToast from "@lib/providers/toast";
 import { Frame } from "@type/internal";
 import {
@@ -8,12 +9,13 @@ import {
     useCallback,
     useEffect,
     useImperativeHandle,
-    useMemo,
-    useState,
+    useRef,
+    useState
 } from "react";
-import GeneralTile from "./GeneralTile";
+import { twMerge } from "tailwind-merge";
 import InfiniteScroller, { InfiniteScrollerProps } from "./InfiniteScroller";
 import SearchInList, { QueryFnReturn } from "./SearchInList";
+import { ParloImage, ParloImageFrameType } from "./ui";
 
 /* ---------------------------------- Types --------------------------------- */
 
@@ -81,9 +83,56 @@ type Props<T extends Response, R> = BaseProps<R> &
 
 /* -------------------------------- Component -------------------------------- */
 
-const ListSelector = <T extends Response, R>(
-    props: Props<T, R>
-) => {
+type ListSelectorBarProps = RefinedValues & {
+    onClick: (id: string, returnVal: any) => void;
+    frameType?: ParloImageFrameType;
+    defaultChecked?: boolean;
+    checked?: boolean;
+    className?: string;
+    disable?: boolean;
+}
+
+
+export const ListSelectorBar = ({ disable, checked, poster, frameType, className, id, title, defaultChecked, returnVal, onClick }: ListSelectorBarProps) => {
+
+    return (
+        <label
+            htmlFor={id}
+            className={twMerge("inline-flex flex-cntr-between w-full capitalize px-4 py-2 pointer", disable ? "brightness-50" : '', className)}
+            onClick={() => onClick(id, returnVal)}
+        >
+
+            <input
+                name={id}
+                value={id}
+                checked={checked}
+                type="checkbox"
+                disabled={disable}
+                defaultChecked={defaultChecked}
+                id={id}
+                className="sr-only peer"
+            />
+
+            <div className="flex gap-3 items-center">
+                <ParloImage
+                    frameType={frameType || "poster"}
+                    size={48}
+                    alt={`Poster of ${title}`}
+                    className="min-w-12 size-12 rounded-full object-cover"
+                    frame={poster}
+                />
+
+                <h6>{title}</h6>
+            </div>
+
+            <CheckBoxIcon className="hidden peer-checked:block" />
+            <EmptyBoxIcon className="block peer-checked:hidden" />
+        </label>
+    )
+}
+
+const ListSelector = <T extends Response, R>(props: Props<T, R>) => {
+
     const {
         callbackRef,
         className,
@@ -97,17 +146,15 @@ const ListSelector = <T extends Response, R>(
 
     /* --------------------------- Selection State --------------------------- */
 
-    const [selectedMap, setSelectedMap] = useState<Map<string, R | true>>(() => new Map(alreadySelectedValues?.map(({ id, val }) => [id, val ?? true])) || []);
-
-    useEffect(() => console.log(selectedMap), [selectedMap])
+    const selectedMap = useRef<Map<string, R | true>>(new Map(alreadySelectedValues?.map(({ id, val }) => [id, val ?? true])) || []);
 
     /* -------------------------- Imperative Handle -------------------------- */
 
     const handleReturn = useCallback((): R[] => {
         if ("returnIds" in props && props.returnIds) {
-            return Array.from(selectedMap.keys()) as R[];
+            return Array.from(selectedMap.current.keys()) as R[];
         }
-        return Array.from(selectedMap.values()) as R[];
+        return Array.from(selectedMap.current.values()) as R[];
     }, [selectedMap, props]);
 
     useImperativeHandle(callbackRef, () => handleReturn, [handleReturn]);
@@ -115,23 +162,23 @@ const ListSelector = <T extends Response, R>(
     /* ----------------------------- Selection ----------------------------- */
 
     const handleSelection = useCallback((id: string, returnVal?: R) => {
-        setSelectedMap((prev) => {
-            const next = new Map(prev);
 
-            if (next.has(id)) {
-                next.delete(id);
-                return next;
-            }
+        const next = new Map(selectedMap.current);
 
-            else if (limit && next.size >= limit) {
-                appToast.error(`Only ${limit} selections are allowed.`);
-                return prev;
-            }
+        if (next.has(id)) {
+            next.delete(id);
+        }
 
-            next.set(id, returnVal ?? true);
-            return next;
-        });
-    }, [limit])
+        else if (limit && next.size >= limit) {
+            appToast.error(`Only ${limit} selections are allowed.`);
+            return;
+        }
+
+        next.set(id, returnVal ?? true);
+
+        selectedMap.current = next;
+
+    }, [limit]);
 
     /* ------------------------- Render Item Function ------------------------ */
 
@@ -140,7 +187,7 @@ const ListSelector = <T extends Response, R>(
         // Static Component Mode
         if (mode === "static-component") {
             const uid = (response.id || response._id) ?? "";
-            const checked = selectedMap.has(uid);
+            const checked = selectedMap.current.has(uid);
 
             const { Component } = props;
             return (
@@ -159,23 +206,20 @@ const ListSelector = <T extends Response, R>(
             mode === "infinite" ||
             mode === "search"
         ) {
-            const { id, title, poster, returnVal } = props.refiner(response);
-            const checked = selectedMap.has(id);
+            const refinedValues = props.refiner(response);
+
             return (
-                <GeneralTile
-                    key={id}
-                    title={title}
-                    poster={poster}
-                    showCheckBox
-                    checked={checked}
-                    onClick={() => handleSelection(id, returnVal)}
-                    className="pointer w-full"
-                />
+                <ListSelectorBar
+                    {...refinedValues}
+                    defaultChecked={selectedMap.current.has(refinedValues.id)}
+                    onClick={handleSelection}
+                    className="pointer w-full" />
             );
         }
 
         return null;
     }, [props, selectedMap, handleSelection]);
+
 
     /* ------------------------------ Render ------------------------------ */
 
@@ -204,11 +248,7 @@ const ListSelector = <T extends Response, R>(
         />
     );
 
-    else if (
-        (mode === "static-component" ||
-            mode === "static-refiner") &&
-        props.data.length
-    ) return (
+    else if ((mode === "static-component" || mode === "static-refiner") && props.data.length) return (
         <ul>{props.data.map(renderItem)}</ul>
     )
 

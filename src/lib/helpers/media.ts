@@ -1,6 +1,5 @@
 import { oneKb, oneMb } from "@lib/constants";
-import sharp from "sharp";
-import { thumbHashToDataURL, rgbaToThumbHash } from "thumbhash"
+import { rgbaToThumbHash, thumbHashToDataURL } from "thumbhash";
 
 type FileAcceptTypes = Blob | File | string;
 
@@ -60,7 +59,7 @@ export const showSize = (size: number): string => {
     }
 
     const [int, frac] = newSize.toString().split(".");
-    return [int].concat([frac.slice(0, 2)]).join('.').concat(` ${unit}`)
+    return [int].concat([frac?.slice(0, 2)]).join('.').concat(` ${unit}`)
 }
 
 export const generateSnapshot = async (file: FileAcceptTypes, timeInSeconds = 0.01) => {
@@ -109,14 +108,22 @@ export const generateSnapshot = async (file: FileAcceptTypes, timeInSeconds = 0.
 
 const loadImage = (file: FileAcceptTypes): Promise<HTMLImageElement> => {
     const path = getPath(file);
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
+
         const img = new Image();
-        img.src = path;
-        img.crossOrigin = "anonymous";
+        // img.crossOrigin = "anonymous";
+
         img.onload = () => {
             URL.revokeObjectURL(img.src);
             resolve(img);
-        }
+        };
+
+        img.onerror = (err) => {
+            console.error("image failed to load", err);
+            reject(err);
+        };
+
+        img.src = path;
     });
 }
 
@@ -163,13 +170,6 @@ export const imagePathToBlob = async (
 
 
 export const getImageData = async (img: FileAcceptTypes) => {
-
-    // if (isServer()) {
-    //     const src = typeof img === "string" ? img : await img.arrayBuffer();
-    //     const image = sharp(src).resize(100, 100, { fit: 'inside' });
-    //     const { data, info } = await image.ensureAlpha().raw().toBuffer({ resolveWithObject: true })
-    //     return { data, width: info.width, height: info.height }
-    // } else {
     const image = await loadImage(img);
     const canvas = new OffscreenCanvas(image.width, image.height);
     const context = canvas.getContext('2d');
@@ -182,8 +182,6 @@ export const getImageData = async (img: FileAcceptTypes) => {
     context.drawImage(image, 0, 0, canvas.width, canvas.height);
     const { data, width, height } = context.getImageData(0, 0, canvas.width, canvas.height);
     return { data, width, height }
-    // }
-
 }
 
 export const binaryToBase64 = (binary: Uint8Array) => {
@@ -208,11 +206,9 @@ export const base64ToBinary = (base64: string) => {
 */
 
 export const createThumbHash = async (file: FileAcceptTypes) => {
-
     const { data, height, width } = await getImageData(file);
     const binary = rgbaToThumbHash(width, height, data);
     return binaryToBase64(binary);
-
 }
 
 /**

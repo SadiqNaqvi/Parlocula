@@ -1,5 +1,7 @@
 import { generateToken } from "@lib/auth";
+import { setCookies } from "@lib/auth/cookies";
 import { deleteSession, storeSession } from "@lib/auth/session";
+import { oneDayInSeconds } from "@lib/constants";
 import { postHandler } from "@lib/helpers/handlers";
 import { storeUserMetaInCache } from "@lib/helpers/redis/messaging";
 import { verifyCode } from "@lib/helpers/server";
@@ -58,19 +60,8 @@ const sessionManagement = async (
   const token = await generateToken(tokenPayload);
   const jar = await cookies();
 
-  jar.set("token", token, {
-    httpOnly: true,
-    secure: true,
-    sameSite: "strict",
-    path: "/",
-  });
-
-  jar.set("sid", session_id, {
-    httpOnly: true,
-    secure: true,
-    sameSite: "strict",
-    path: "/",
-  });
+  setCookies(jar, "token", token);
+  setCookies(jar, "sid", session_id);
 
 };
 

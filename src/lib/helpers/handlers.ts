@@ -117,9 +117,9 @@ const uploadFiles = async (files: File[], filesData: FrameDataSchemaType[], chec
     let isNsfw = false;
 
     const frames = filesData
-        .map(({ isExternal, path, type, shouldUpload, hash, size }) => {
+        .map(({ isExternal, path, type, shouldUpload, hash, size, extSource }) => {
 
-            if (!shouldUpload) return { path, type, isExternal, size, hash };
+            if (!shouldUpload) return { path, type, isExternal, size, hash, extSource };
 
             const result = results.shift();
 
@@ -130,18 +130,17 @@ const uploadFiles = async (files: File[], filesData: FrameDataSchemaType[], chec
                 isNsfw = true;
             }
 
-            return { path: result.path, type, isExternal, size, hash };
+            return { path: result.path, type, isExternal, size, hash, extSource };
 
         });
-
 
     return { frames, isNsfw };
 
 };
 
 const deleteFiles = async (files: Frame[]) => {
-    if (!files.length) return;
-    const ids = files.filter((file) => !file.isExternal).map(({ path }) => path);
+    if (!files || !files.length) return;
+    const ids = files?.filter((file) => !file.isExternal).map(({ path }) => path) || [];
     await deleteMediaFiles(ids);
 };
 
@@ -447,6 +446,7 @@ export const updateHandler = <T extends HandlerData>({ handler, preCheck, schema
 
             if (success) {
 
+                console.log("updating quota");
                 await updateQuotaLimit(req, user_id);
 
                 if (warnTeamParlocula) {
@@ -456,6 +456,8 @@ export const updateHandler = <T extends HandlerData>({ handler, preCheck, schema
                         template: await render(WarnTeamParlocula(warnTeamParlocula))
                     });
                 }
+                
+                console.log("deleting files");
                 await deleteFiles(filesToRemove);
 
                 if (revalidateQueue && revalidateQueue.length)
@@ -463,6 +465,7 @@ export const updateHandler = <T extends HandlerData>({ handler, preCheck, schema
                 else if (available && options)
                     revalidateTags = getRevalidateTags(available, options);
 
+                console.log("commiting transaction");
                 await session.commitTransaction();
 
             } else {

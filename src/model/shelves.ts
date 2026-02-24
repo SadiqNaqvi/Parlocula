@@ -31,6 +31,7 @@ const shelfModel = new Schema<ShelfModelType>({
 }, { timestamps: true, _id: false });
 
 shelfModel.index({ user_id: 1, isPrivate: 1, shelf_type: 1 });
+shelfModel.index({ name: 1, isPrivate: 1, shelf_type: 1 });
 
 const Shelf: StrictModel<ShelfModelType> =
   (models.Shelf as any) || model("Shelf", shelfModel);

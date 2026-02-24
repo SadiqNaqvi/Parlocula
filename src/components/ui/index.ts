@@ -17,7 +17,7 @@ export { default as UserBar, SimpleUserBar } from "./UserBar";
 export { default as MessageBar } from "./MessageBar";
 export { TabContainer, TabList } from "./Tabs"
 export { default as ReportedContentBar } from "./ReportedContentBar";
-export { default as ParloImage } from "./ParloImage";
+export { default as ParloImage, type ParloImageFrameType } from "./ParloImage";
 export { default as OptionalChildren } from "./OptionalChildren";
 export { default as ParloFooter } from "./ParloFooter";
 export { default as InteractiveDetailSection } from "./InteractiveDetailSection";

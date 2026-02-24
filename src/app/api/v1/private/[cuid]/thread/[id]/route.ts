@@ -1,5 +1,6 @@
 import { parloculaAppURL } from "@lib/constants";
 import { updateHandler } from "@lib/helpers/handlers";
+import { sendNotification } from "@lib/helpers/server";
 import { threadUpdateSchema } from "@lib/schemas";
 import { Member, Thread } from "@model";
 import { ThreadUpdateSchema } from "@type/schemas";
@@ -17,6 +18,26 @@ export const PATCH = updateHandler<ThreadUpdateSchema>({
 
     const doc = await Thread.findByIdAndUpdate(params.id, { $set: dataToUpdate }).then(r => r?.toObject());
     if (!doc) return { success: false, errCode: "resource_not_found" }
+
+    const managers = await Member.find(
+      { role: { $in: ["creator", "moderator"] }, user_id: { $ne: user_id } }
+      , { user_id: 1 }
+    );
+
+    if (managers.length) {
+      await sendNotification(managers.map(manager => ({
+        title: `${username} updated the thread ${doc.name}`,
+        message: [
+          { type: "link", label: username, path: `/user/${username}` },
+          { type: "text", text: "updated the thread" },
+          { type: "link", label: doc.name, path: `/thread/${doc._id}` },
+        ],
+        poster: doc.poster?.path,
+        user_id: manager.user_id,
+        metadata: { thread_id: doc._id, user_id: manager.user_id },
+        path: `/thread/${doc._id}`,
+      })))
+    }
 
     return {
       success: true,

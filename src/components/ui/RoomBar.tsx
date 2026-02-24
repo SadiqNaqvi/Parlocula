@@ -1,9 +1,8 @@
 import { BellSlashIcon } from "@assets/Icons";
 import Navigate from "@components/Navigate";
-import { getPoster, timeAgo } from "@lib/utils";
+import { timeAgo } from "@lib/utils";
 import useCurrentUser from "@store/user";
 import { MereRoomType, SearchedRoom } from "@type/internal";
-import Image from "next/image";
 import ParloImage from "./ParloImage";
 
 type RoomBarProps = Partial<Omit<MereRoomType, "display_name" | "poster">> & SearchedRoom;
@@ -26,10 +25,11 @@ const RoomBar = ({ lastMessageAt, lastMessageBy, mute, otherParticipant_seenAt, 
                 <div>
                     <ParloImage
                         frameType="poster"
+                      //  extSize="w92"
                         alt={`Profile picture of ${display_name}`}
                         size={40}
                         frame={poster}
-                        className="rounded-full object-cover"
+                        className="min-w-10 size-10 rounded-full object-cover"
                     />
                 </div>
                 <div className={`space-y-1 ${newMessage ? "font-semibold" : ""}`}>

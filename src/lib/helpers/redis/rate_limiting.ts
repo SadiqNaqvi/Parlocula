@@ -108,10 +108,12 @@ const isProbablyId = (segment: string) => {
     return false;
 }
 
-export const getActionKey = (req: NextRequest): string => {
+export const getActionKey = (req: NextRequest) => {
     const method = req.method.toUpperCase();
-  const paths = req.nextUrl.pathname.split("/private/")[1]?.split("/");
-  const segments = paths.filter(Boolean);
+    const paths = req.nextUrl.pathname.split("/private/")[1]?.split("/");
+    if (!paths || !paths.length) return;
+
+    const segments = paths.filter(Boolean);
 
     const normalized = segments.filter((segment) => {
         if (STATIC_SEGMENTS.has(segment)) return true;
@@ -133,23 +135,27 @@ export const getActionKey = (req: NextRequest): string => {
  * Returns allowed boolean and metadata.
  */
 
+const responseForNonLimit = {
+    allowed: true,
+    remaining: 0,
+    current: 0,
+    resetIn: 0
+}
+
 export const slidingWindowRateLimit = async (req: NextRequest, unique_id: string): Promise<RateLimitResult> => {
     const now = Date.now();
 
     const action = getActionKey(req);
+
+    if (!action) return responseForNonLimit;
+
     const bKey = ACTION_BUCKET_MAP[action];
 
     const limits = BUCKET_LIMITS[bKey];
 
     console.log(action, bKey, limits);
-    if (!limits) return {
-        allowed: true,
-        remaining: 0,
-        current: 0,
-        resetIn: 0
-    };
 
-
+    if (!limits) return responseForNonLimit;
 
     const qKey = QUOTA_BUCKET_MAP[action];
     const quota = QUOTA_LIMITS[qKey];
@@ -212,6 +218,9 @@ export const checkCooldownState = async (uid: string) => {
 export const updateQuotaLimit = async (req: NextRequest, uid: string) => {
 
     const actionKey = getActionKey(req);
+
+    if (!actionKey) return responseForNonLimit;
+
     const action = QUOTA_BUCKET_MAP[actionKey];
     if (!action) return;
     const { window } = QUOTA_LIMITS[action];

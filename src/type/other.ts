@@ -3,6 +3,7 @@ import { RequestCookies } from "next/dist/compiled/@edge-runtime/cookies";
 import { ReadonlyRequestCookies } from "next/dist/server/web/spec-extension/adapters/request-cookies";
 import { Frame, GenericDate, InfiniteQueryResponse, MereMessage } from "./internal";
 import { NotificationModelType } from "./models";
+import { ExtMediaSource } from "./schemas";
 
 export type ParloPageProps<
   P = { id: string, username: string },
@@ -315,12 +316,6 @@ export type poster_sizes =
 export type profile_sizes = "w45" | "w185" | "h632" | "original";
 export type still_sizes = "w92" | "w185" | "w300" | "original";
 
-type InternalPosterProps = {
-  external?: false | undefined;
-  type?: "image" | "video";
-  size?: undefined;
-};
-
 export type ExternalImageTypeToSizeMap = {
   "poster": poster_sizes,
   "backdrop": backdrop_sizes,
@@ -332,15 +327,13 @@ export type ExternalImageTypeToSizeMap = {
 export type ExternalImageType = keyof ExternalImageTypeToSizeMap;
 export type ExternalImageSize<T extends ExternalImageType> = ExternalImageTypeToSizeMap[T];
 
-type ExternalPosterProps<T extends ExternalImageType> = {
-  external: true;
-  type: ExternalImageType;
-  size: ExternalImageSize<T>;
-}
-
 export type GetPosterFunctionProps<T extends ExternalImageType> = {
-  path?: string | null;
-} & (InternalPosterProps | ExternalPosterProps<T>);
+  path: string | null;
+  external?: boolean;
+  type?: ExternalImageType | "shelfPoster";
+  size?: ExternalImageSize<T>;
+  extSource?: ExtMediaSource;
+}
 
 export type PushNotificationType = {
   title: string;

@@ -61,6 +61,7 @@ const EpisodePage = async ({ params }: ParloPageProps<Ids>) => {
             backdrop={show.backdrop}
             overviewOrBio={episode.overview}
             poster={episode.poster}
+            frameType="poster"
             title={episode.title}
             titleSupport={<p className="text-sm md:text-base text-zinc-500">{show.tagline}</p>}
             wikiMeta={metadata}

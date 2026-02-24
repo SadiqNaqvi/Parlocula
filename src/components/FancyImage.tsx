@@ -34,7 +34,7 @@ const FancyImage = ({ id, download, caption, alt, src, height, width, type = "im
             data-download-src={download ? source : undefined}
             data-download-filename={download}
             data-caption={caption}>
-            {type === "image" ?
+            {/* {type === "image" ?
                 <ParloImage
                     frameType="poster"
                     data-lazy-src={thumbnail ?? source}
@@ -54,7 +54,7 @@ const FancyImage = ({ id, download, caption, alt, src, height, width, type = "im
                     poster={source ? getThumbnail(source) : undefined}>
                     <source src={source} />
                 </video>
-            }
+            } */}
         </div>
     )
 }

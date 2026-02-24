@@ -38,9 +38,7 @@ const Component = (data: FullShelf, { filter, page, uid, key }: Props) => {
                 <section className="flex gap-2 sm:gap-4 items-center">
                     <ShelfPoster
                         fancy
-                        className="min-w-24 size-24 sm:min-w-32 sm:size-32"
-                        useClassNameForBoth
-                        iconsClassName="p-4"
+                        bigSize
                         name={name}
                         poster={poster}
                         shelf_type={shelf_type}

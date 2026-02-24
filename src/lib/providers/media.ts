@@ -22,7 +22,7 @@ export const uploadMediaFiles = async <T extends File | File[]>(file: T) => {
     if (!files || !files.length)
         throw new Error("Files are requred to upload");
 
-    const uri = process.env.QCORE_CLOUD_URI;
+    const uri = process.env.QCORE_CLOUD_UPLOAD_URI;
     const apiKey = process.env.QCORE_CLOUD_AUTH_KEY;
     if (!uri) throw new Error("QCORE_CLOUD_URI env variable is undefined!");
     else if (!apiKey) throw new Error("QCORE_CLOUD_AUTH_KEY env variable is undefined!");
@@ -30,11 +30,12 @@ export const uploadMediaFiles = async <T extends File | File[]>(file: T) => {
     const fd = new FormData();
     files.forEach(file => fd.append("files", file));
 
+    const headers = new Headers();
+    headers.append("Authorization", `Bearer ${apiKey}`);
+
     const { json, ok, text } = await fetch(`${uri}/upload`, {
         method: "POST",
-        headers: {
-            "Authorization": `Bearer ${apiKey}`
-        },
+        headers,
         body: fd
     }).then(parseResponse) as ParseResponseType<QCoreCloudResponse<UploadResponse[]>>;
 

@@ -97,6 +97,9 @@ const performMutation = async <T, M = undefined>({ mutationFn, onError, beforeMu
     if (navigator && !navigator.onLine) return unstableInternetError();
 
     const context = await onMutate?.();
+
+    console.log("context", context);
+
     try {
         beforeMutation?.();
         const response = await mutationFn();
@@ -822,9 +825,14 @@ export const inviteCollaboratorsMutation = async (sid: string, users: ShelfColla
             }
         }),
         onError: ({ context }) => {
+
+            console.log("context in inviteCollaborators", context);
+
             appToast.error(
                 () => LinkToast({ title: `Failed to invite collaborators`, href: `/shelf/${sid}/collaborators` })
             )
+
+
             if (!context) return;
             queryClient.setQueryData(qkeys, context);
         }
@@ -925,7 +933,7 @@ export const addItemsInShelf = async (sid: string, uid: string, data: ItemsForSh
             appToast.error(
                 () => LinkToast({ title: `Failed to add taleons in Shelf`, href: `/shelf/${sid}` })
             )
-console.log(context);
+            console.log(context);
             if (context) setDoc(shelfItemsKey, context);
         }
     })

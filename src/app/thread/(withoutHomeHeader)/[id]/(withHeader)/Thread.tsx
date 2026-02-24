@@ -37,10 +37,14 @@ const Component = (data: ThreadType, { id, uid }: Props) => {
                     <ParloImage
                         className="min-w-24 size-24 sm:min-w-32 sm:size-32 object-cover rounded-full"
                         frame={poster}
+                        sizes={[
+                            { imageWidth: 96, maxScreenWidth: 480 },
+                            { imageWidth: 128 },
+                        ]}
                         frameType="threadPoster"
                         fancyGallery="thread-poster"
                         fileNameToDownload={`Poster of thread "${name}" - Parlocula`}
-                        height={128} width={128}
+                        size={128}
                         alt="Poster"
                         prioritize
                     />

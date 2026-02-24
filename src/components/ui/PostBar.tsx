@@ -16,7 +16,7 @@ const PostBarHeader = ({ poster, profile, thread_id, thread_name, username, sect
                 <ParloImage
                     frameType="userProfile"
                     frame={profile}
-                    className="inline object-cover rounded-full size-[40px]"
+                    className="inline object-cover rounded-full size-10 min-w-10"
                     size={40}
                     alt="Profile picture of the author of this post" />
             </Navigate>
@@ -35,7 +35,7 @@ const PostBarHeader = ({ poster, profile, thread_id, thread_name, username, sect
             <ParloImage
                 frameType="userProfile"
                 frame={username ? profile : undefined}
-                className="inline object-cover rounded-full"
+                className="size-10 min-w-10 inline object-cover rounded-full"
                 size={40}
                 alt="Profile picture of the author of this post"
             />
@@ -48,7 +48,7 @@ const PostBarHeader = ({ poster, profile, thread_id, thread_name, username, sect
             <ParloImage
                 frameType="threadPoster"
                 frame={poster}
-                className="inline object-cover rounded-full"
+                className="size-10 min-w-10 inline object-cover rounded-full"
                 size={40}
                 alt="Profile picture of the author of this post"
             />

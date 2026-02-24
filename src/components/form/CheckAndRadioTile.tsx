@@ -1,7 +1,8 @@
 "use client";
 
 import { CheckBoxIcon, EmptyBoxIcon } from "@assets/Icons";
-import { getPoster } from "@lib/utils";
+import { OptionalChildren, ParloImage, ParloImageFrameType } from "@components/ui";
+import { Frame } from "@type/internal";
 import Image from "next/image";
 import { useFormContext } from "react-hook-form";
 import { twMerge } from "tailwind-merge";
@@ -11,13 +12,14 @@ type Props = {
     label: string,
     disable?: boolean,
     checked?: boolean,
-    poster?: string,
+    poster?: string | Frame,
     className?: string,
+    frameType?: ParloImageFrameType
 } & ({
     group?: undefined, type: "checkbox"
 } | { group: string, type: "radio" })
 
-const CheckTile = ({ name, label, disable = false, checked = false, poster, className = "", type, group }: Props) => {
+const CheckTile = ({ name, label, disable = false, checked = false, poster, frameType, className = "", type, group }: Props) => {
 
     const { register } = useFormContext();
 
@@ -35,50 +37,15 @@ const CheckTile = ({ name, label, disable = false, checked = false, poster, clas
                 className="sr-only peer"
             />
             <div className="flex gap-3 items-center">
-                {poster && (
-                    <Image
-                        height={48}
-                        width={48}
+                <OptionalChildren condition={poster}>
+                    <ParloImage
+                        frameType={frameType || "poster"}
+                        size={48}
                         alt={`Poster of ${label}`}
-                        loading="lazy"
                         className="size-12 rounded-full object-cover"
-                        src={getPoster({ path: poster })}
+                        frame={poster}
                     />
-                )}
-
-                <span className="font-medium">{label}</span>
-            </div>
-
-            <CheckBoxIcon className="hidden peer-checked:block" />
-            <EmptyBoxIcon className="block peer-checked:hidden" />
-        </label>
-    )
-}
-
-export const NormalCheckTile = ({ name, label, disable = false, checked = false, poster, className = "", type, group }: Props) => {
-
-    return (
-        <label
-            htmlFor={name}
-            className={`inline-flex ${disable ? "brightness-50" : ""} flex-cntr-between w-full capitalize px-4 py-2 pointer ${className}`}>
-            <input
-                name={type === "radio" ? group : name}
-                value={type === "radio" ? name : undefined}
-                type={type}
-                disabled={disable}
-                defaultChecked={checked}
-                id={name}
-                className="sr-only peer"
-            />
-            <div className="flex gap-3 items-center">
-                {poster && <Image
-                    height={48}
-                    width={48}
-                    alt={`Poster of ${label}`}
-                    loading="lazy"
-                    className="size-12 rounded-full object-cover"
-                    src={poster}
-                />}
+                </OptionalChildren>
 
                 <span className="font-medium">{label}</span>
             </div>

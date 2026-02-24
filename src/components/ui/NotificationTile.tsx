@@ -45,8 +45,8 @@ const NotificationTile = ({ message, type, request_type, status, poster, created
                 <OptionalChildren condition={poster}>
                     <ParloImage
                         frameType="userProfile"
-                        size={50}
-                        className="h-full aspect-square max-h-12 rounded-md"
+                        size={48}
+                        className="size-12 min-w-12 object-cover rounded-md"
                         alt="Poster of the notification"
                         frame={poster}
                     />

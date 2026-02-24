@@ -1,30 +1,30 @@
 "use client";
 
-import { AddIcon, XmarkIcon } from "@assets/Icons";
+import { AddIcon, GlobeIcon, LeftChevron, MegaIcon, VimeoIcon, XmarkIcon, YoutubeIcon } from "@assets/Icons";
 import BottomSheet, { BottomSheetRef } from "@components/BottomSheet";
-import { mediaInputConfig, numberOfFrames, oneKb } from "@lib/constants";
+import { LoadingSpinner, OptionalChildren } from "@components/ui";
+import { mediaInputConfig, mediaUrlPattern, numberOfFrames, vimeoLinkPattern, youtubeLinkPattern } from "@lib/constants";
+import { createThumbHash, scaleImage, showSize } from "@lib/helpers/media";
 import appToast from "@lib/providers/toast";
-import { fileSchema, megaFileSchema } from "@lib/schemas";
-import { createThumbHash, generateSnapshot, scaleImage, showSize } from "@lib/helpers/media";
-import { InputManagerType, TypedFunction } from "@type/other";
-import { InputFrame } from "@type/schemas";
-import Image from "next/image";
-import { ChangeEvent, forwardRef, useImperativeHandle, useRef, useState } from "react";
-import { toast } from "sonner";
-import { Form, Input } from ".";
+import { fileSchema, megaFileSchema, urlSchema } from "@lib/schemas";
 import { Frame } from "@type/internal";
-import { OptionalChildren } from "@components/ui";
+import { InputManagerType, TypedFunction } from "@type/other";
+import { ExtMediaSource, InputFrame } from "@type/schemas";
+import Image from "next/image";
+import { ChangeEvent, useImperativeHandle, useState } from "react";
+import { toast } from "sonner";
 import { twMerge } from "tailwind-merge";
+import { Form, Input } from ".";
 
 type FrameToReturn = InputFrame & { thumb?: string }
 
-type MediaType = "image" | "video";
+type Sections = "all" | ExtMediaSource;
 
 const showError = (err: string) => {
     appToast.error(err)
 }
 
-const FrameContainer = ({ path, type, size, thumb, remove }: FrameToReturn & { remove?: TypedFunction<string> }) => {
+const FrameContainer = ({ path, type, size, thumb, remove, className }: FrameToReturn & { remove?: TypedFunction<string>, className?: string }) => {
 
     const ExtraComponents = () => (
         <>
@@ -35,18 +35,19 @@ const FrameContainer = ({ path, type, size, thumb, remove }: FrameToReturn & { r
                     <XmarkIcon className="h-4" />
                 </button>
             </OptionalChildren>
-
-            <span className="absolute bottom-0 right-0 mr-2 mb-2 bg-black/50 text-sm text-white rounded-md p-1">
-                {showSize(size)}
-            </span>
+            <OptionalChildren condition={size}>
+                <span className="absolute bottom-0 right-0 mr-2 mb-2 bg-black/50 text-sm text-white rounded-md p-1">
+                    {showSize(size || 0)}
+                </span>
+            </OptionalChildren>
         </>
     )
 
-    if (type === "image") return (
-        <div className="min-w-60 size-60 border rounded-md border-gray40 relative">
+    if (type === "image" || thumb) return (
+        <div className={twMerge("min-w-60 size-60 border rounded-md border-gray40 relative", className)}>
             <Image
                 className="aspect-square h-full object-contain"
-                src={path}
+                src={thumb || path}
                 alt=""
                 width={240} height={240}
             />
@@ -55,7 +56,7 @@ const FrameContainer = ({ path, type, size, thumb, remove }: FrameToReturn & { r
     )
 
     else return (
-        <div className="min-w-60 size-60 border rounded-md border-gray40 relative">
+        <div className={twMerge("min-w-60 size-60 border rounded-md border-gray40 relative", className)}>
             <video
                 height={240}
                 width={240}
@@ -71,150 +72,253 @@ const FrameContainer = ({ path, type, size, thumb, remove }: FrameToReturn & { r
 
 }
 
-const ImageUploader = ({ setFrame }: { setFrame: TypedFunction<FrameToReturn> }) => {
+const UploadFromRest = ({ setUrl, goBack, section }: { setUrl: TypedFunction<string>, section: Sections, goBack: TypedFunction }) => {
 
-    const handleMediaUpload = async (event: ChangeEvent<HTMLInputElement>) => {
-        if (!event.target.files?.length) return;
-        const file: File = event.target.files[0];
+    const handleSubmit = async ({ url }: { url: string }) => {
+        if (section === "web") {
+            if (mediaUrlPattern.test(url))
+                setUrl(url);
+            else return "Invalid Link! Make sure it contains https"
+        }
+        else {
+            const { success, error } = urlSchema.safeParse(url);
+            if (!success) return error.errors[0]?.message;
+            else if ((section === "youtube" && !youtubeLinkPattern.test(url)) || (section === "vimeo" && !vimeoLinkPattern.test(url)))
+                return `Invalid Url! Please provide a valid ${section} shareable url.`
+        }
 
-        const test = fileSchema.safeParse(file);
-
-        if (!test.success) return showError(test.error.message);
-
-        const [blob, hash] = await Promise.all([
-            scaleImage(file),
-            createThumbHash(file),
-        ]);
-
-        if (!blob) return showError("Failed to upload image! Please try again.");
-
-        const path = URL.createObjectURL(blob);
-
-        setFrame({
-            type: "image",
-            size: blob.size,
-            path,
-            blob,
-            isExternal: false,
-            shouldUpload: true,
-            hash,
-            thumb: path
-        });
+        setUrl(url);
     }
 
     return (
-        <div className="p-4 space-y-4">
-            <p className="text-zinc-500 text-center">
-                Image should be less than {mediaInputConfig.image.size.label}.
-            </p>
-
-            <div className="relative pointer">
-                <button className="primary w-full sm:w-fit sm:mx-auto">Upload</button>
-                <input
-                    onChange={handleMediaUpload}
-                    className="absolute inset-0 opacity-0"
-                    title="" type="file"
-                    accept={mediaInputConfig.image.accept}
-                />
+        <div className="px-2">
+            <div>
+                <div className="mx-auto flex gap-2 items-center">
+                    <button onClick={goBack}><LeftChevron /></button>
+                    <h4 className="text-lg capitalize">Upload from {section}</h4>
+                </div>
+                <p className="text-sm text-center">Just copy the link of the content and past it here. Simple</p>
             </div>
+
+            <Form className="mt-4" submit={handleSubmit}>
+                <Input
+                    name="url"
+                    placeholder="Paste the link here..."
+                    description={section === "web" ? "Make sure it is the link of the content, not the page" : undefined}
+                />
+
+                <button type="submit" className="primary mt-3 w-full">Upload</button>
+            </Form>
+
         </div>
     )
 
 }
 
-const VideoUploader = ({ setFrame }: { setFrame: TypedFunction<FrameToReturn> }) => {
+const UploadFromMega = ({ setUrl, goBack }: { setUrl: TypedFunction<string>, goBack: TypedFunction }) => {
 
-    const [loading, setLoading] = useState(false);
-
-    const attachVideo = async (data: { url: string }) => {
-
-        const [id, key] = data.url.split("/").at(-1)?.split("#") || [];
-        if (!id || !key) return;
-
-        const path = `https://testlalaapp.vercel.app/api/media/${id}-${key}`;
-        setLoading(true);
-
-        const errMsg = "Wrong Link! Please make sure your internet connection is stable and file exists";
-
-        const resp = await fetch(path, { headers: { "Range": `bytes=0-${oneKb}` } })
-            .then(r => {
-                const size = Number(r.headers.get("Content-Length") || 0);
-                const type = r.headers.get("Content-type") || "";
-                if (r.ok && r.status === 206 && size && type.startsWith("video")) {
-                    return r.blob().then(blob => ({ blob, size }))
-                } else showError(errMsg)
-            })
-            .catch(() => showError(errMsg))
-            .finally(() => setLoading(false));
-
-        if (!resp) return;
-
-        const { blob, size } = resp;
-        const thumb = await generateSnapshot(blob)
-        const hash = await createThumbHash(thumb);
-
-        setFrame({
-            blob: null,
-            isExternal: true,
-            path,
-            shouldUpload: false,
-            size,
-            type: "video",
-            hash,
-            thumb,
-        })
+    const handleSubmit = async ({ url }: { url: string }) => {
+        const { success, data, error } = megaFileSchema.safeParse(url);
+        console.log(success, data, error)
+        if (success) setUrl(data);
+        else return error.errors[0].message;
     }
 
-    if (loading) return (
-        <section className="h-40">
-            <span className="size-10 border-2 border-invert border-b-transparent animate-spin"></span>
-        </section>
-    )
-
     return (
-        <section className="p-4">
-            <div className="text-center text-zinc-500 space-y-2">
-                <p>We{"'"}re working on video upload. We support Mega Uploads.</p>
-                <p>You can upload videos on Mega and paste the link here.</p>
-                <p>Or you can upload videos elsewhere and attach the link using Link Prompt.</p>
+        <section className="px-2">
+            <div>
+                <div className="mx-auto flex gap-2 items-center">
+                    <button onClick={goBack}><LeftChevron /></button>
+                    <h4 className="text-lg">Upload from Mega</h4>
+                </div>
+                <p className="text-sm text-center">This is the best way to upload large videos and images here. Just upload your file on Mega and drop the link here.</p>
             </div>
 
-            <Form schema={{ url: megaFileSchema }} submit={attachVideo}>
+            <Form className="mt-4" submit={handleSubmit}>
                 <Input
                     name="url"
                     placeholder="https://mega.nz/file/{id}#{key}"
                     description="Make sure key is attached with the url"
                 />
-                <button
-                    type="submit"
-                    className="primary w-full mt-4 sm:w-fit sm:mx-auto"
-                >
-                    Attach
-                </button>
+
+                <button type="submit" className="primary mt-3 w-full">Upload</button>
             </Form>
+
         </section>
     )
 
 }
 
-const SectionNav = ({ section, setSection }: { section: MediaType, setSection: TypedFunction<MediaType> }) => (
-    <ul className="flex">
-        {(["image", "video"] as MediaType[]).map(el => (
-            <li
-                key={el}
-                onClick={() => setSection(el)}
-                className={`flex-1 py-2 text-center border-b capitalize ${section === el ? "border-invert" : "border-transparent"}`}
-            >
-                {el}
-            </li>
-        ))}
-    </ul>
-)
+type URLUploadOption = { icon: React.ReactNode, label: string, id: Sections };
+
+const videoUrlUploadOptions: URLUploadOption[] = [
+    { icon: <YoutubeIcon className="size-6" />, label: "Youtube", id: "youtube" },
+    { icon: <VimeoIcon className="size-6" />, label: "Vimeo", id: "vimeo" },
+];
+
+const imageUrlUploadOptions: URLUploadOption[] = [
+    { icon: <MegaIcon className="size-6" />, label: "Mega", id: "mega" },
+    { icon: <GlobeIcon className="size-6" />, label: "Other", id: "web" }
+];
+
+const combineUploadOptions = videoUrlUploadOptions.concat(imageUrlUploadOptions);
+
+type MediaCheckedResponse<T = any> = { success: boolean, error: string, result: T };
+type MegaAndWebResponse = { size: number, mime: "image" | "video", ext: string, hash: string };
+
+const checkMediaLink = async <T,>(url: string, returnBoolean?: boolean): Promise<T | undefined | boolean> => {
+
+    const resp = await fetch(url);
+    console.log("response", resp.ok, resp.status, resp.statusText);
+    const { error, result, success } = await resp.json() as MediaCheckedResponse<T>;
+
+    if (resp.ok && success) return returnBoolean ? true : result as T;
+
+    else if (resp.status === 404)
+        showError("Nothing could be found! Please check the link and try again.")
+
+    else {
+        console.error("Error while checking link", resp.status, resp.statusText, error);
+        showError("Something went wrong! Please try again.")
+    }
+}
+
+const checkMegaLink = async (url: string) => {
+    const idWithKey = url.split('/').at(-1);
+    const [id, key] = idWithKey?.split('#') || [];
+
+    if (!id || !key) {
+        return showError("Invalid URL! Please provide a valid mega url with key attached");
+    }
+
+    const result = await checkMediaLink<MegaAndWebResponse>(`/api/v1/checkMediaUrl?source=mega&path=${id}&key=${key}`);
+
+    if (result && typeof result !== "boolean") return { path: `${id}?key=${key}`, type: result.mime, size: result.size, hash: result.hash }
+}
 
 export const MediaInputPrompt = ({ type, callback }: { type: "image" | "both", callback: TypedFunction<[FrameToReturn]> }) => {
 
     const [frame, setFrame] = useState<FrameToReturn | null>(null);
-    const [section, setSection] = useState<MediaType>("image");
+    const [section, setSection] = useState<Sections>("all");
+    const [loading, setLoading] = useState(false);
+
+    const handleUploadFromUrl = async (url: string) => {
+        setLoading(true);
+
+        let path = '', thumb = '', hash: string | undefined, mediaType: InputFrame["type"] = 'image', size = 0;
+
+        const apiPath = `/api/v1/checkMediaUrl?source=${section}`;
+
+        try {
+            if (section === "mega") {
+                const resp = await checkMegaLink(url);
+                if (!resp) return;
+
+                path = `https://qcorecloud.vercel.app/media/v1/mega/${resp.path}`;
+                size = resp.size;
+                mediaType = resp.type;
+                hash = resp.hash;
+            } else if (section === "web") {
+                const resp = await checkMediaLink<MegaAndWebResponse>(`${apiPath}&path=${url}`);
+                if (!resp || typeof resp === "boolean") return;
+
+                path = url;
+                size = resp.size;
+                mediaType = resp.mime;
+                hash = resp.hash;
+            } else if (section === "youtube") {
+                const resp = await checkMediaLink<{ thumbnail_url: string }>(`${apiPath}&path=${url}`);
+                if (!resp || typeof resp === "boolean") return;
+                const match = url.match(/^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/);
+
+                const video_id = match && match[7];
+
+                if (!video_id || video_id.length !== 11) return showError("Invalid Url!");
+                path = video_id;
+                thumb = resp.thumbnail_url;
+                mediaType = "video";
+            } else if (section === "vimeo") {
+                const id = url.split('/').at(-1);
+                if (!id) return showError("Invalid url! Please choose a valid vimeo url");
+
+                const resp = await checkMediaLink(`${apiPath}&path=${url}`, true);
+                if (!resp) return;
+
+                path = id;
+                thumb = `https://vumbnail.com/${id}.jpg`;
+                mediaType = "video";
+            } else if (section === "all") return;
+
+            if (mediaType !== "video" && mediaType !== "image")
+                return showError("Invalid Media Type! Only Images and Videos are allowed.")
+
+            else if (type === "image" && mediaType === "video")
+                return showError("Invalid Media Type! Only Images are allowed.")
+
+            setFrame({ blob: null, isExternal: true, path: path, hash, shouldUpload: false, type: mediaType, extSource: section, size: size ?? undefined, thumb });
+        } catch (e: any) {
+            console.log("error handling upload from url", e.message);
+            showError("Unstable Internet Connection!");
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    const handleDeviceUpload = async (event: ChangeEvent<HTMLInputElement>) => {
+        if (!event.target.files?.length) return;
+
+        setLoading(true);
+
+        const file: File = event.target.files[0];
+
+        const { success, error } = fileSchema.safeParse(file);
+
+        if (!success) return showError(error.message);
+        try {
+
+            let blob: Blob | null = null,
+                hash: string | undefined = undefined,
+                thumb: string | undefined = undefined;
+
+            const fileMime = file.type.split('/')[0]
+
+            if (fileMime === "image") {
+                const [scaledImageBlob, imageHash] = await Promise.all([
+                    scaleImage(file),
+                    createThumbHash(file),
+                ]);
+
+                if (!scaledImageBlob) return showError("Failed to upload image! Please try again.");
+
+                blob = scaledImageBlob;
+                hash = imageHash;
+            } else if (fileMime === "video") {
+                if (type === "image") return showError("Upload an image please!")
+
+                blob = new Blob([file], { type: file.type });
+                if (!blob) return showError("Failed to upload! Please try again.")
+            } else return showError("Invalid file type! Only images and videos are allowed to upload.")
+
+            const path = URL.createObjectURL(blob);
+
+            setFrame({
+                type: fileMime,
+                size: blob.size,
+                path,
+                blob,
+                isExternal: false,
+                shouldUpload: true,
+                hash,
+            });
+        } catch (err: any) {
+            console.warn("Error occured while handling media upload:", err.message)
+            showError("Something went wrong! Please try again.")
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    const changeSectionToAll = () => setSection("all");
 
     const returnMedia = () => {
         if (!frame) return;
@@ -230,7 +334,7 @@ export const MediaInputPrompt = ({ type, callback }: { type: "image" | "both", c
     if (frame) return (
         <section className="space-y-4 p-4">
 
-            <FrameContainer {...frame} />
+            <FrameContainer className="mx-auto" {...frame} />
 
             <div className="flex gap-2 flex-cntr-all">
                 <button className="flex-1 sm:flex-0 secondary" onClick={() => removeFrame()}>Cancel</button>
@@ -239,19 +343,53 @@ export const MediaInputPrompt = ({ type, callback }: { type: "image" | "both", c
         </section>
     )
 
-    if (section === "video" && type === "both") return (
-        <section className="space-y-2">
-            <SectionNav section={section} setSection={setSection} />
-            <VideoUploader setFrame={setFrame} />
+    else if (loading) return (
+        <section className="h-64 flex flex-cntr-all">
+            <div className="min-w-60 size-60 flex flex-cntr-all border rounded-md border-gray40 relative">
+                <span className="size-6 animate-spin border-2 border-gray-500/30 border-l-[var(--secondary)] rounded-full"></span>
+                <span className="px-8 py-4 rounded-md absolute bottom-2 right-2 skeleton-pulse-loading"></span>
+            </div>
         </section>
     )
 
+
+    else if (section === "mega") return (
+        <UploadFromMega goBack={changeSectionToAll} setUrl={handleUploadFromUrl} />
+    )
+
+    else if (section === "web" || (type === "both" && (section === "vimeo" || section === "youtube"))) return (
+        <UploadFromRest goBack={changeSectionToAll} section={section} setUrl={handleUploadFromUrl} />
+    )
+
     return (
-        <section className="space-y-2">
-            {type === "both" && (
-                <SectionNav section={section} setSection={setSection} />
-            )}
-            <ImageUploader setFrame={setFrame} />
+        <section className="px-2">
+            <div className="space-y-2">
+                <h4 className="parloHeading">Upload from URL</h4>
+                <ul className="flex gap-2 overflow-x-auto noScroll">
+                    {(type === "image" ? imageUrlUploadOptions : combineUploadOptions).map(({ icon, id, label }) => (
+                        <li key={id}>
+                            <button
+                                onClick={() => setSection(id)}
+                                className="flex gap-1 items-center p-2 border border-gray40 rounded-md">
+                                {icon}
+                                <span className="text-sm">{label}</span>
+                            </button>
+                        </li>
+                    ))}
+                </ul>
+            </div>
+            <div className="mt-8 space-y-2">
+                <h4 className="parloHeading">Device Upload</h4>
+                <div className="relative pointer">
+                    <button className="primary w-full">Upload</button>
+                    <input
+                        onChange={handleDeviceUpload}
+                        className="absolute inset-0 opacity-0"
+                        title="" type="file"
+                        accept={`${mediaInputConfig.image.accept}, ${mediaInputConfig.video.accept}`}
+                    />
+                </div>
+            </div>
         </section>
     )
 }

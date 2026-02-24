@@ -17,7 +17,6 @@ const Page = async ({ params, searchParams }: ParloPageProps) => {
 
     const currentUser = await getUserFromToken(await cookies());
 
-    const allowNsfw = currentUser ? !currentUser.filterContent : false;
 
     const user = await fetchQuery({
         queryClient,
@@ -28,6 +27,7 @@ const Page = async ({ params, searchParams }: ParloPageProps) => {
     if (!user) return null;
 
     const uid = user._id;
+    const allowNsfw = currentUser ? currentUser.user_id === user._id ? true : !currentUser.filterContent : false;
 
     await prefetchInfiniteQuery({
         queryKey: getQueryKeys("postsOfUser_uid_filter", { uid, filter }),

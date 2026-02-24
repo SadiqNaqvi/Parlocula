@@ -50,13 +50,18 @@ const Component = (data: RequestedUser, props: Props) => {
 
                 <section className="flex gap-4 items-center">
                     <ParloImage
+                        prioritize
                         fancyGallery="profile_picture"
                         frameType="userProfile"
                         alt={`Profile picture of ${data.username}`}
-                        height={112}
-                        width={112}
+                        size={112}
                         className="size-20 object-cover sm:size-28 max-h-fit aspect-square rounded-full"
-                        frame={profile} />
+                        frame={profile}
+                        sizes={[
+                            { maxScreenWidth: 480, imageWidth: 80 },
+                            { imageWidth: 112 },
+                        ]}
+                    />
                     <div>
                         <OptionalChildren condition={name}>
                             <h2 className="text-lg xs:text-xl sm:text-2xl font-semibold capitalize">{name}</h2>

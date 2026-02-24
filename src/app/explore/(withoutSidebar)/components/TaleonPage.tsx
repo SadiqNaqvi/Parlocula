@@ -81,6 +81,7 @@ const TaleonPage = ({ content, type }: Props) => {
                 overviewOrBio={content.overview}
                 poster={content.poster}
                 title={content.title}
+                frameType="poster"
                 titleSupport={<p className="text-sm md:text-base text-zinc-500">{content.tagline}</p>}
                 descriptionSupport={<LinksSection extLinks={extLinks} genres={content.genres} />}
                 wikiMeta={metadata}

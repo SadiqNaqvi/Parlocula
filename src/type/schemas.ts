@@ -30,6 +30,8 @@ import {
 } from "@lib/schemas";
 import { z } from "zod";
 
+export type ExtMediaSource = "mega" | "youtube" | "vimeo" | "web";
+
 export type LinkSchema = z.infer<typeof linkSchema>;
 export type FrameDataSchemaType = z.infer<typeof frameDataSchema>;
 export type ReportSchemaType = z.infer<typeof reportSchema>;
@@ -73,8 +75,9 @@ type CommanInputFrame = {
   path: string;
   type: "image" | "video";
   shouldUpload: boolean;
-  size: number;
-  hash: string;
+  size?: number;
+  hash?: string;
+  extSource?: ExtMediaSource
 };
 
 export type InputFrame = CommanInputFrame &

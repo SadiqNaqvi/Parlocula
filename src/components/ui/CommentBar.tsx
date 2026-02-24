@@ -85,7 +85,7 @@ const CommentBar = ({ _id, attachment, nsfw, spoiler, post_id, user, content, st
                     <ParloImage
                         frameType="userProfile"
                         frame={profile}
-                        className="rounded-full object-cover"
+                        className="min-w-8 size-8 rounded-full object-cover"
                         size={32}
                         alt={`profile picture of ${username}`}
                     />

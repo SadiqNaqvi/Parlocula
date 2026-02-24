@@ -41,9 +41,10 @@ const Component = (data: FullRoomType, { rmid, uid }: Props) => {
                     <div className="flex gap-4 items-center">
                         <ParloImage
                             frameType="userProfile"
-                            containerClassName="rounded-full overflow-hidden"
+                            className="min-w-12 size-12 object-cover rounded-full"
+                            containerClassName="max-h-12 overflow-hidden"
                             frame={data.poster}
-                            size={36}
+                            size={48}
                             alt="Poster of room"
                         />
 
