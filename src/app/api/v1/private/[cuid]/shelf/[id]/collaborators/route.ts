@@ -3,6 +3,7 @@ import { getHandler, postHandler, PrecheckFunction, updateHandler } from "@lib/h
 import { sendNotification } from "@lib/helpers/server";
 import { convertMatchToLookupExpr } from "@lib/pipelines";
 import { createArrayOfUidsSchema } from "@lib/schemas";
+import { getPoster } from "@lib/utils";
 import { Connection, Shelf } from "@model";
 import Collaborator from "@model/collaborators";
 
@@ -89,7 +90,7 @@ export const POST = postHandler<SchemaType>({
     const { id } = params;
     const { users } = data;
 
-    const shelf = await Shelf.findById(id, { name: 1 });
+    const shelf = await Shelf.findById(id, { name: 1, poster: 1 });
 
     if (!shelf)
       return { success: false, errCode: "resource_not_found" }
@@ -106,7 +107,7 @@ export const POST = postHandler<SchemaType>({
     await sendNotification(
       users.map((u) => ({
         title: `${username} has invited you to collaborate in one of their shelfs`,
-        poster: profile,
+        poster: shelf.poster ? getPoster({ path: shelf.poster, type: "poster", size: "w92", external: true }) : profile,
         path: "/notifications",
         message: [
           { type: "link", label: username, path: `/user/${username}` },
@@ -159,7 +160,7 @@ export const PATCH = updateHandler<SchemaType>({
   },
   schema,
   preCheck: async ({ params, user_id }) => {
-    
+
     const { id } = params;
 
     const shelf = await Shelf.exists({ _id: id, user_id });

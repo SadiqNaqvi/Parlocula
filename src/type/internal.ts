@@ -281,6 +281,8 @@ export type MereShelf = {
   poster: string | undefined;
   shelfKey: string | undefined;
   isPrivate: boolean;
+  createdAt?: GenericDate;
+  last_added?: GenericDate;
 };
 
 export type FullShelf = MereShelf &

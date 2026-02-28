@@ -229,13 +229,6 @@ h6 {
   background-color: transparent !important;
   backdrop-filter: blur(8px) brightness(0.8);
 }
-.f-carousel__dots {
-  bottom: 0 !important;
-}
-
-.f-carousel.has-dots {
-  margin-bottom: unset !important;
-}
 
 .items-end {
   align-items: flex-end;
@@ -402,8 +395,8 @@ body {
   /* container: body / inline-size; */
 }
 
-body:has(.preventScrolling){
-  overflow:hidden
+body:has(.preventScrolling) {
+  overflow: hidden;
 }
 
 #observer-navbar #navbar-title {
@@ -631,6 +624,11 @@ textarea {
   50% {
     background: #717170;
   }
+}
+
+.frameIconShadow {
+  filter: drop-shadow(0 0 1px rgb(0 0 0 / 0.6))
+    drop-shadow(0 0 2px rgb(0 0 0 / 0.6));
 }
 
 .mainPagePoster {

@@ -7,8 +7,6 @@ import { isMember } from "@lib/helpers/common";
 import { acceptManagerInvitation, rejectManagerInvitation } from "@lib/helpers/mutations";
 import { AvailableMutations } from "@lib/providers/mutationStore";
 import { getQueryKeys } from "@lib/utils";
-import useGlobalStore from "@store/globalStore";
-import { useNavigation } from "@store/historystack";
 import { MereThread, ThreadMembership } from "@type/internal";
 import { toast } from "sonner";
 

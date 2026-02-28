@@ -11,6 +11,7 @@ import {
   usernamePattern
 } from "./constants";
 import { calculateAge, isValidParloId } from "./utils";
+import { FormidableFile } from "@type/other"
 
 export const categoryEnum = z
   .string()
@@ -95,15 +96,19 @@ export const frameDataSchema = z.object({
 
 export const fileSchema = z
   .any()
-  .refine((input) => Boolean(input instanceof File))
-  .refine((file: File) => {
-    const [type, ext] = file.type.split("/");
+  .refine((file: FormidableFile) => {
+    if (!file.mimetype) return false;
+
+    const [type, ext] = file.mimetype.split("/");
+
     const formats = allowedFormats[type];
+
     if (formats && formats.includes(ext)) return true;
     return false;
+
   }, "Invalid file format!")
   .refine(
-    (file: File) => file.size < allowedSizes[file.type.split("/")[0]],
+    (file: FormidableFile) => file.size < allowedSizes[(file.mimetype!).split("/")[0]],
     "File size is too large!"
   );
 

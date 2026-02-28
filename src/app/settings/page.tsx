@@ -3,6 +3,7 @@
 import { RightChevron } from "@assets/Icons";
 import { BottomSheet, Navbar, Navigate, WarningModal } from "@components";
 import { ParloFooter } from "@components/ui";
+import InstallPrompt from "@components/ui/InstallPrompt";
 import { FullPageLoadingSpinner } from "@components/ui/loading/LoadingSpinner";
 import { logoutUser } from "@lib/helpers/mutations";
 import { useNavigation } from "@store/historystack";
@@ -51,6 +52,8 @@ const SettingPage = () => {
     return (
         <>
             <Navbar navTitle="Settings" />
+
+            <InstallPrompt />
 
             <Sections heading="my account">
 

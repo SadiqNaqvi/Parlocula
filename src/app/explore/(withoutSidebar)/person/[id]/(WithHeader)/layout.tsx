@@ -55,7 +55,7 @@ const Page = async ({ params, children }: PropsWithChildren<{ params: { id: stri
                 descriptionSupport={(
                     <div className="mt-4 space-y-2 text-zinc-500 text-xs md:text-sm">
                         <p>
-                            Born on: {new Date(content.birth).toDateString()}
+                            Born on: {new Date(content.birth).toDateString()}{" "}
                             <OptionalChildren condition={content.place_of_birth}>
                                 at {content.place_of_birth}
                             </OptionalChildren>

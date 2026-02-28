@@ -1,4 +1,9 @@
+"use server";
+import 'server-only'
+import { promises } from "fs";
 import { handleArrayForArrayResponse, parseResponse, ParseResponseType } from "@lib/utils";
+import FormData from "form-data";
+import { File as FormidableFile } from "formidable";
 
 type NsfwEnum = "Yes" | "No" | "Possible";
 type MediaType = "image" | "video";
@@ -17,8 +22,26 @@ type UploadResponse = {
     path: string;
 }
 
-export const uploadMediaFiles = async <T extends File | File[]>(file: T) => {
-    const files = (!file ? [] : Array.isArray(file) ? file : [file]) as File[];
+const getFromDiskAndUpload = async (file: FormidableFile, uri: string, apiKey: string) => {
+
+    const fileBuff = (await promises.readFile(file.filepath)).buffer;
+
+    const form = new FormData();
+    form.append("files", new Blob([fileBuff]), "filename.jpg");
+
+    const headers = new Headers(form.getHeaders());
+    headers.append("Authorization", `Bearer ${apiKey}`);
+
+    return await fetch(`${uri}/upload`, {
+        method: "POST",
+        headers,
+        body: fileBuff
+    }).then(parseResponse) as ParseResponseType<QCoreCloudResponse<UploadResponse[]>>;
+
+}
+
+export const uploadMediaFiles = async <T extends FormidableFile | FormidableFile[]>(file: T) => {
+    const files = (!file ? [] : Array.isArray(file) ? file : [file]) as FormidableFile[];
     if (!files || !files.length)
         throw new Error("Files are requred to upload");
 
@@ -27,27 +50,29 @@ export const uploadMediaFiles = async <T extends File | File[]>(file: T) => {
     if (!uri) throw new Error("QCORE_CLOUD_URI env variable is undefined!");
     else if (!apiKey) throw new Error("QCORE_CLOUD_AUTH_KEY env variable is undefined!");
 
-    const fd = new FormData();
-    files.forEach(file => fd.append("files", file));
+    let results: UploadResponse[] = [];
 
-    const headers = new Headers();
-    headers.append("Authorization", `Bearer ${apiKey}`);
+    try {
+        await Promise.all(files.map(file => getFromDiskAndUpload(file, uri, apiKey)
+            .then(({ json, ok, status, text }) => {
 
-    const { json, ok, text } = await fetch(`${uri}/upload`, {
-        method: "POST",
-        headers,
-        body: fd
-    }).then(parseResponse) as ParseResponseType<QCoreCloudResponse<UploadResponse[]>>;
+                if (!ok || !json) {
+                    throw new Error(`Media Upload Failed, Response = ${text}`);
+                }
+                else if (!json.success) {
+                    throw new Error(`Media Upload Failed, ${json.error}`);
+                }
 
-    if (!ok || !json) {
-        throw new Error(`Media Upload Failed, Response = ${text}`);
+                results = [...results, ...json.result];
+            })
+        ));
+
+        return handleArrayForArrayResponse(file, results);
+    } catch (err) {
+        console.warn("Error in files upload", err);
+        deleteMediaFiles(results.map(r => r.path));
+        return [];
     }
-    else if (!json.success) {
-        throw new Error(`Media Upload Failed, ${json.error}`);
-    }
-
-    else return handleArrayForArrayResponse(file, json.result);
-
 }
 
 export const deleteMediaFiles = async (path: string | string[]) => {

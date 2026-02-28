@@ -55,8 +55,8 @@ const Component = (data: FullShelf, { filter, page, uid, key }: Props) => {
 
                 <div className="space-y-4 my-4">
                     <MetadataTileContainer>
-                        <MetadataTile>Created: {timeAgo(createdAt)}</MetadataTile>
-                        <MetadataTile>Items: {item_count}</MetadataTile>
+                        <MetadataTile>{timeAgo(createdAt)}</MetadataTile>
+                        <MetadataTile>{item_count} items</MetadataTile>
                         <MetadataTile condition={Boolean(saved_count)}>Saved by: {saved_count}</MetadataTile>
                         <MetadataTile condition={Boolean(last_added)}>Last Added: {timeAgo(last_added)}</MetadataTile>
                     </MetadataTileContainer>

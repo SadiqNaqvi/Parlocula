@@ -50,7 +50,7 @@ const useCurrentUser = create(
         // set({ user: null, meta: null, dataSaver: false, filterContent: true })
       },
 
-      toggleDataSaver: (newState) => set({ dataSaver: newState }),
+      toggleDataSaver: () => set((prev) => ({ dataSaver: !prev.dataSaver })),
       setContentFiltering: (newState) => {
         const dob = get().user?.dob;
 

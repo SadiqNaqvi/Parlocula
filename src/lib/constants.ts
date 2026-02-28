@@ -109,6 +109,7 @@ export const queryLimit = 20;
 export const recentlyJoinedLimit = 20;
 export const emailLimit = 3;
 export const postLinksLength = 5;
+export const attachedFramesLimit = 5;
 export const threadManagersLimit = 10;
 export const participantsRemoveOrInviteLimit = 10;
 export const participantsLimitForGroup = 50;

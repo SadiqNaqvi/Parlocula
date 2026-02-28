@@ -31,6 +31,7 @@ export const threadProjection = {
   member_count: 1,
   post_count: 1,
   poster: 1,
+  createdAt: 1,
 }
 
 export const commentProjection = {
@@ -43,7 +44,6 @@ export const commentProjection = {
 export const shelfProjection = {
   user_id: 0,
   saved_count: 0,
-  createdAt: 0,
   updatedAt: 0,
 }
 
@@ -416,14 +416,14 @@ export const usersAggregationPipeline: PipelineFunc = (
 
 export const bookmarkAggregationPipeline: PipelineFunc<{
   type: "post" | "shelf" | "comment";
-}> = ({ filters, page, type, localFieldForLookup }) => {
+}> = ({ filters, page, type }) => {
   const sort = { createdAt: -1 };
   if (type === "comment")
-    return commentsAggregationPipeline({ filters, page, sort, localFieldForLookup });
+    return commentsAggregationPipeline({ filters, page, sort, localFieldForLookup: "content_id" });
   else if (type === "shelf")
-    return shelvesAggregationPipeline({ filters, page, sort, localFieldForLookup });
+    return shelvesAggregationPipeline({ filters, page, sort, localFieldForLookup: "content_id" });
   else if (type === "post")
-    return postsAggregationPipeline({ filters, page, sort, localFieldForLookup, excludeQuotedPost: true, isLinkBased: false });
+    return postsAggregationPipeline({ filters, page, sort, localFieldForLookup: "content_id", excludeQuotedPost: true, isLinkBased: false });
   else return [];
 };
 

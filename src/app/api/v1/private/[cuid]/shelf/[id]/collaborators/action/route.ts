@@ -1,10 +1,12 @@
 import { deleteHandler, updateHandler } from "@lib/helpers/handlers";
 import { sendNotification } from "@lib/helpers/server";
+import { Shelf } from "@model";
 import Collaborator from "@model/collaborators";
 
 // User accepted the invitation to become a collaborator
 export const PATCH = updateHandler({
   handler: async ({ params, user_id, profile, session, username }) => {
+
     const { id } = params;
 
     const check = await Collaborator.findOneAndUpdate(
@@ -16,6 +18,11 @@ export const PATCH = updateHandler({
     if (!check)
       return { success: false, errCode: "resource_not_found" }
 
+    const shelf = await Shelf.findById(id, { user_id: 1 });
+
+    if (!shelf)
+      return { success: false, errCode: "resource_not_found" }
+
     await sendNotification([
       {
         message: [
@@ -25,7 +32,7 @@ export const PATCH = updateHandler({
         ],
         title: `New Collaborator for your shelf 🥳`,
         poster: profile,
-        user_id,
+        user_id: shelf.user_id,
         metadata: { shelf_id: id },
       }
     ], session);

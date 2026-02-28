@@ -26,7 +26,7 @@ const SaveShelfButton = ({ isPrivate, saved_count, id, cuid, author }: Omit<Prop
             count={saved_count}
             type="Shelf"
             id={id}
-            className="primary gap-2"
+            className="secondary gap-2 col-span-4 sm:col-span-1"
         />
     )
 }
@@ -68,6 +68,7 @@ const ActionButton = ({ isPrivate, cuid, author, id, saved_count, shelf_type }: 
 
     if (cuid === author) return (
         <section className={sectionClassName}>
+            <AddItemsButton shelf_type={shelf_type} uid={cuid} sid={id} className="col-span-2 sm:col-span-1" />
             <Navigate
                 className="btn secondary gap-2"
                 type="button"
@@ -84,15 +85,14 @@ const ActionButton = ({ isPrivate, cuid, author, id, saved_count, shelf_type }: 
             >
                 Manage
             </Navigate>
-            <AddItemsButton shelf_type={shelf_type} uid={cuid} sid={id} className="col-span-2 sm:col-span-1" />
 
         </section>
     )
 
     else if (cuid) return (
         <section className={sectionClassName}>
-            <SaveShelfButton author={author} isPrivate={isPrivate} saved_count={saved_count} id={id} cuid={cuid} />
             <CheckShelfConnection shelf_type={shelf_type} sid={id} uid={cuid} />
+            <SaveShelfButton author={author} isPrivate={isPrivate} saved_count={saved_count} id={id} cuid={cuid} />
         </section>
     )
 

@@ -2,9 +2,12 @@
 
 import { Navbar } from "@components";
 import ToggleButtonBar from "@components/ui/ToggleButtonBar";
+import { sendTestNotification } from "@lib/helpers/server";
 import { checkPushStatus, disablePush, enablePush } from "@lib/providers/notification";
+import appToast from "@lib/providers/toast";
 import useCurrentUser from "@store/user";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 const StatusBanned = ({ granted }: { granted: boolean }) => {
 
@@ -30,8 +33,10 @@ const StatusBanned = ({ granted }: { granted: boolean }) => {
 
 const NotificationSettingsPage = () => {
 
-    const [status, setStatus] = useState(checkPushStatus());
+    const [status, setStatus] = useState<NotificationPermission>("default");
     const { meta } = useCurrentUser();
+
+    useEffect(() => setStatus(checkPushStatus()), []);
 
     if (!meta) return null;
 
@@ -41,28 +46,35 @@ const NotificationSettingsPage = () => {
 
     const togglePushNotification = async () => {
         if (status === "granted") {
-            await disablePush(meta.user_id);
+            toast.promise(disablePush(meta.user_id), { success: "Notification Disabled." });
         } else {
-            await enablePush(meta.user_id)
+            toast.promise(enablePush(meta.user_id), { success: "Notification Enabled." });
         }
         checkStatus();
     }
 
+    const testNotification = async () => {
+        await sendTestNotification(meta.user_id);
+        appToast.success("Notification send");
+    }
+
     return (
         <>
-            <Navbar navTitle="Push Notification" />
-            <section>
+            <Navbar navTitle="Push Notification" className="border-b border-gray20" />
+            <section className="mt-6 px-2">
                 <ToggleButtonBar
                     onClick={togglePushNotification}
                     checked={status === "granted"}
                     label="Allow Notifications"
                 />
-                <StatusBanned granted={status === "granted"} />
+                <div className="space-y-2 mt-8">
+                    <StatusBanned granted={status === "granted"} />
+                </div>
             </section>
+
+            <button className="primary" onClick={testNotification}>Test</button>
         </>
     )
-
-
 }
 
 export default NotificationSettingsPage;

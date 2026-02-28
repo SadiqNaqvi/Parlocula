@@ -4,7 +4,7 @@ import { AddIcon, GlobeIcon, LeftChevron, MegaIcon, VimeoIcon, XmarkIcon, Youtub
 import BottomSheet, { BottomSheetRef } from "@components/BottomSheet";
 import { LoadingSpinner, OptionalChildren } from "@components/ui";
 import { mediaInputConfig, mediaUrlPattern, numberOfFrames, vimeoLinkPattern, youtubeLinkPattern } from "@lib/constants";
-import { createThumbHash, scaleImage, showSize } from "@lib/helpers/media";
+import { createThumbHash, scaleImage, convertByteIntoSize } from "@lib/helpers/media";
 import appToast from "@lib/providers/toast";
 import { fileSchema, megaFileSchema, urlSchema } from "@lib/schemas";
 import { Frame } from "@type/internal";
@@ -37,7 +37,7 @@ const FrameContainer = ({ path, type, size, thumb, remove, className }: FrameToR
             </OptionalChildren>
             <OptionalChildren condition={size}>
                 <span className="absolute bottom-0 right-0 mr-2 mb-2 bg-black/50 text-sm text-white rounded-md p-1">
-                    {showSize(size || 0)}
+                    {convertByteIntoSize(size || 0)}
                 </span>
             </OptionalChildren>
         </>
@@ -273,12 +273,14 @@ export const MediaInputPrompt = ({ type, callback }: { type: "image" | "both", c
 
         const { success, error } = fileSchema.safeParse(file);
 
-        if (!success) return showError(error.message);
+        if (!success) {
+            setLoading(false);
+            return error.errors.map(err => showError(err.message));
+        }
         try {
 
             let blob: Blob | null = null,
-                hash: string | undefined = undefined,
-                thumb: string | undefined = undefined;
+                hash: string | undefined = undefined;
 
             const fileMime = file.type.split('/')[0]
 

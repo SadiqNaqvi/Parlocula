@@ -6,6 +6,7 @@ import { Carousel as NativeCarousel } from '@fancyapps/ui';
 import '@fancyapps/ui/dist/carousel/carousel.css';
 
 import type { OptionsType } from '@fancyapps/ui/types/Carousel/options';
+import { twMerge } from 'tailwind-merge';
 
 const options: Partial<OptionsType> = {
     infinite: true,
@@ -26,9 +27,9 @@ const Carousel = ({ children, className }: { children: React.ReactNode, classNam
     }, []);
 
     return (
-        <section className={`f-carousel ${className}`} ref={containerRef}>
+        <ul className={twMerge("f-carousel", className)} ref={containerRef}>
             {children}
-        </section>
+        </ul>
     );
 }
 

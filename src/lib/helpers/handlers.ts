@@ -1,19 +1,23 @@
+import "server-only";
+
 import WarnTeamParlocula from "@components/EmailTemplates/warnParlocula";
 import { getUserFromToken } from "@lib/auth/utils";
+import { attachedFramesLimit, oneMb } from "@lib/constants";
 import { connectDatabase } from "@lib/database";
 import { deleteMediaFiles, uploadMediaFiles } from "@lib/providers/media";
-import { formDataToObject, getRevalidateTags } from "@lib/utils";
+import { getRevalidateTags, parseObject } from "@lib/utils";
 import { render } from "@react-email/components";
 import { Frame, GeneralGetReturn, GeneralPostReturn } from "@type/internal";
 import { AvailableRevalidateTags, ErrorCodes, RevalidateTagsArgs } from "@type/other";
 import { FrameDataSchemaType } from "@type/schemas";
+import formidable, { File as FormidableFile } from "formidable";
 import mongoose, { ClientSession } from "mongoose";
 import { revalidateTag } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
+import { Readable } from "stream";
 import { ZodSchema } from "zod";
-import { sendEmail } from "./server";
 import { updateQuotaLimit } from "./redis/rate_limiting";
-import { redirect } from "next/navigation";
+import { sendEmail } from "./server";
 
 type RT = AvailableRevalidateTags
 
@@ -111,7 +115,7 @@ export const getHandler = <T extends any>(handler: GetHandlerFunction<T>) => {
     };
 };
 
-const uploadFiles = async (files: File[], filesData: FrameDataSchemaType[], checkNsfw: boolean) => {
+const uploadFiles = async (files: FormidableFile[], filesData: FrameDataSchemaType[], checkNsfw: boolean) => {
     const results = await uploadMediaFiles(files);
 
     let isNsfw = false;
@@ -144,26 +148,43 @@ const deleteFiles = async (files: Frame[]) => {
     await deleteMediaFiles(ids);
 };
 
-type HandlerData = { files?: File[], filesData?: any[], [key: string]: any }
+type HandlerData = { files?: FormidableFile[], filesData?: any[], [key: string]: any }
 
-const getDataFromRequest = async <T>(r: NextRequest, schema: ZodSchema | undefined): Promise<GeneralPostReturn<T>> => {
-    const contentType = r.headers.get("Content-Type") || ""
-    let tempdata: T;
+const getDataFromRequest = async <T>(req: NextRequest, schema: ZodSchema | undefined): Promise<GeneralPostReturn<T>> => {
 
-    if (contentType.startsWith("multipart/form-data"))
-        tempdata = formDataToObject(await r.formData()) as T;
-    else if (contentType.startsWith("application/json"))
-        tempdata = await r.json();
-    else return { success: false, errCode: "custom_error", customError: "Content type is not valid" }
+    if (!req.body) {
+        if (schema) throw new Error("No body is attached in the request");
+        else return { success: true, result: {} as T }
+    }
 
-    if (schema && tempdata) {
-        const { success, data, error } = schema.safeParse(tempdata);
+    const body = Readable.from(req.body as any);
+    Object.assign(body, {
+        headers: Object.fromEntries(req.headers),
+        method: req.method,
+        url: req.url,
+    });
 
-        if (success) return { success, result: tempdata }
+    const fd = await formidable({
+        multiples: true,
+        maxFileSize: 50 * oneMb,
+        maxFiles: attachedFramesLimit,
+        keepExtensions: true,
+    }).parse(body as any);
+
+    const [fields, files] = fd;
+
+    const uploadedFiles = Array.isArray(files.files) ? files.files : files.files ? [files.files] : [];
+
+    const parsedFields = parseObject(fields);
+
+    if (schema) {
+        const { success, data, error } = schema.safeParse({ ...parsedFields, files: uploadedFiles });
+
+        if (success) return { success, result: data }
         else return { success: false, errCode: "form_error", formError: error.errors }
     }
 
-    return { success: true, result: tempdata };
+    return { success: true, result: { ...parsedFields, files: uploadedFiles } as T };
 }
 
 export const postHandler = <T extends HandlerData>({ handler, preCheck, schema, skipUserCheck }: {
@@ -446,7 +467,6 @@ export const updateHandler = <T extends HandlerData>({ handler, preCheck, schema
 
             if (success) {
 
-                console.log("updating quota");
                 await updateQuotaLimit(req, user_id);
 
                 if (warnTeamParlocula) {
@@ -456,8 +476,7 @@ export const updateHandler = <T extends HandlerData>({ handler, preCheck, schema
                         template: await render(WarnTeamParlocula(warnTeamParlocula))
                     });
                 }
-                
-                console.log("deleting files");
+
                 await deleteFiles(filesToRemove);
 
                 if (revalidateQueue && revalidateQueue.length)

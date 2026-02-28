@@ -10,33 +10,30 @@ export const checkPushStatus = () => {
   return Notification.permission;
 };
 
-export const enablePush = (user_id: string) =>
-  trycatch(async () => {
-    const permission = await Notification.requestPermission();
-    if (permission === "denied") {
-      toast.error("Notification Permission denied");
-      return;
-    }
+export const enablePush = async (user_id: string) => {
+  const permission = await Notification.requestPermission();
+  if (permission === "denied") {
+    toast.error("Notification Permission denied");
+    return;
+  }
 
-    const client = new Ably.Realtime({
-      authUrl: `${parloculaAppURL}/api/v1/ably`,
-      pushServiceWorkerUrl: "/sw.js",
-      clientId: user_id,
-      plugins: { Push },
-    });
-
-    await client.push.activate();
-    toast.success("Notification Enabled successfully");
+  const client = new Ably.Realtime({
+    authUrl: `${parloculaAppURL}/api/v1/ably`,
+    pushServiceWorkerUrl: "/sw.js",
+    clientId: user_id,
+    plugins: { Push },
   });
 
-export const disablePush = (user_id: string) =>
-  trycatch(() => {
-    new Ably.Realtime({
-      authUrl: `${parloculaAppURL}/api/v1/ably`,
-      pushServiceWorkerUrl: "/sw.js",
-      clientId: user_id,
-      plugins: { Push },
-    }).push
-      .deactivate()
-      .then(() => toast.success("UnRegistered successfully"));
-  });
+  await client.push.activate();
+  toast.success("Notification Enabled successfully");
+}
+
+export const disablePush = async (user_id: string) =>
+  await new Ably.Realtime({
+    authUrl: `${parloculaAppURL}/api/v1/ably`,
+    pushServiceWorkerUrl: "/sw.js",
+    clientId: user_id,
+    plugins: { Push },
+  }).push
+    .deactivate()
+    .then(() => toast.success("Notification disabled successfully"));

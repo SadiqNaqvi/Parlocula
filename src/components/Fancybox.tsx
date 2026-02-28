@@ -16,26 +16,31 @@ const Fancybox = ({ children }: { children: React.ReactNode }) => {
         } as any);
 
         NativeFancybox.bind("[data-frame]" as any, {
-            groupAll: true,
+            groupAll: false,
             hideScrollbar: true,
+            animated: true,
+            closeButton: false,
+            dragToClose: true,
+            Fullscreen: { autoStart: true },
             Toolbar: {
-                // items: {
-                //     customDownload: {
-                //         tpl: `<button class="fancybox__button" title="Download">⬇️</button>`,
-                //         click: (fancybox, slide) => {
-                //             const src = fancybox.instance.getSlide()?.src
-                //             console.log(src)
-                //             // const src = slide.src;
-                //             // const link = document.createElement("a");
-                //             // link.href = src;
-                //             // link.download = `image-${Date.now()}`;
-                //             // document.body.appendChild(link);
-                //             // link.click();
-                //             // document.body.removeChild(link);
-                //         },
+                items: {
+                    customDownload: {
+                        tpl: `<button class="fancybox__button" title="Download">⬇️</button>`,
+                        click: (fancybox, slide) => {
+                            const src = fancybox.instance.getSlide()?.src
+                            console.log(src)
+                            if (!src || typeof src !== "string") return;
+                            // const src = slide.src;
+                            const link = document.createElement("a");
+                            link.href = src;
+                            link.download = `image-${Date.now()}`;
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                        },
 
-                //     }
-                // },
+                    }
+                },
                 display: {
                     left: ["infobar"],
                     middle: [],

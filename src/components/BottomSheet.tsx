@@ -1,7 +1,7 @@
 "use client";
 
-import { forwardRef, MutableRefObject, PropsWithChildren, useEffect, useImperativeHandle, useState } from "react";
-import { Root, Overlay, Portal, Content, Handle, Drawer } from "vaul";
+import { forwardRef, MutableRefObject, PropsWithChildren, useImperativeHandle, useState } from "react";
+import { Content, Drawer, Handle, Overlay, Portal, Root } from "vaul";
 import { OptionalChildren } from "./ui";
 
 type PortalProps = PropsWithChildren<{

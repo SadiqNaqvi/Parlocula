@@ -143,13 +143,18 @@ export const calculateAge = (bday: GenericDate): number => {
 export const objectToFormData = (
   object: Record<string, any>
 ): FormData | null => {
-  if (!object) return object;
+  
   const formData = new FormData();
+  if (!object) return formData;
+
   Object.keys(object).forEach((key) => {
+
     if (key === "files" && Array.isArray(object.files) && object.files.length)
       object.files.forEach((file) => formData.append("files", file));
-    else formData.append(key, JSON.stringify(object[key]));
+
+    else if (object[key] !== undefined) formData.append(key, JSON.stringify(object[key]));
   });
+
   return formData;
 };
 
@@ -170,6 +175,17 @@ export const formDataToObject = (formData: FormData) => {
   }
   return formDataObject;
 };
+
+export const parseObject = (obj: Record<string, any>): Record<string, any> => {
+  if (!obj) return {};
+  return Object.keys(obj).reduce((prev, cur) => {
+    try {
+      return { ...prev, [cur]: JSON.parse(obj[cur]) }
+    } catch (_) {
+      return { ...prev, [cur]: obj[cur] }
+    }
+  }, {})
+}
 
 export const makeUrlSafe = (str: string) => {
   if (!str) return "";
@@ -216,7 +232,7 @@ export const getPoster = <T extends ExternalImageType>(config: GetPosterFunction
     return `https://vumbnail.com/${path}.jpg`;
 
   else if (config.extSource === "youtube")
-    return `https://i.ytimg.com/${path}/hqdefault.jpg`
+    return `https://i.ytimg.com/vi/${path}/hqdefault.jpg`
 
   else return path;
 };

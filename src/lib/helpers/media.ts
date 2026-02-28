@@ -46,7 +46,8 @@ const getPath = (obj: FileAcceptTypes): string => {
     else return URL.createObjectURL(obj);
 }
 
-export const showSize = (size: number): string => {
+export const convertByteIntoSize = (size: number | undefined): string => {
+    if (!size) return '';
     let newSize = size;
     let unit = "B";
 

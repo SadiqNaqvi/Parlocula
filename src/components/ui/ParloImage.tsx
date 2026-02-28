@@ -1,13 +1,14 @@
 "use client";
 
-import { CollectionIcon, ImageIconFill, ThreadIcon, UserIcon } from "@assets/Icons";
+import { CollectionIcon, GlobeIcon, ImageIconFill, MegaIcon, PlayIcon, ThreadIcon, UserIcon, VimeoIcon, YoutubeIcon } from "@assets/Icons";
 import { backdrop_sizes, logo_sizes, poster_sizes, profile_sizes, still_sizes } from "@lib/constants";
-import { decodeHash } from "@lib/helpers/media";
+import { convertByteIntoSize, decodeHash } from "@lib/helpers/media";
 import { getPoster, isEqual } from "@lib/utils";
 import { Frame } from "@type/internal";
 import { ExternalImageType, ExternalImageTypeToSizeMap } from "@type/other";
 import Image from "next/image";
 import { twMerge } from "tailwind-merge";
+import OptionalChildren from "./OptionalChildren";
 
 type InternalFrameType = "threadPoster" | "shelfPoster" | "userProfile";
 export type ParloImageFrameType = ExternalImageType | InternalFrameType;
@@ -24,12 +25,16 @@ type Props = {
     size?: number,
     alt?: string,
     prioritize?: boolean,
-    fancyGallery?: string;
-    fileNameToDownload?: string;
     frame: string | Frame | undefined;
     frameType: ExternalImageType | InternalFrameType;
+    fullSizeFrame?: string;
+    fancyGallery?: string;
+    fileNameToDownload?: string;
     fill?: boolean,
     sizes?: ImageSize[];
+    showMediaType?: boolean;
+    showSourceIcon?: boolean;
+    showSize?: boolean;
 }
 
 const turnSizesArrIntoString = (sizes: ImageSize[]) => {
@@ -94,19 +99,17 @@ const getSourceSet = (frame: Frame, sizes: ImageSize[] | undefined) => {
 }
 
 const FallbackIcon = ({ type, className }: { type: ParloImageFrameType, className?: string; }) => {
-    if (type === "shelfPoster") return <CollectionIcon className={twMerge("w-full h-auto max-w-12", className)} />
-    else if (type === "threadPoster") return <ThreadIcon className={twMerge("w-full h-auto max-w-12", className)} />
-    else if (type === "userProfile") return <UserIcon className={twMerge("w-full h-auto max-w-12", className)} />
-    else return <ImageIconFill className={twMerge("w-full h-auto max-w-12", className)} />
+    if (type === "shelfPoster") return <CollectionIcon className={twMerge("w-full h-auto max-w-10", className)} />
+    else if (type === "threadPoster") return <ThreadIcon className={twMerge("w-full h-auto max-w-10", className)} />
+    else if (type === "userProfile") return <UserIcon className={twMerge("w-full h-auto max-w-10", className)} />
+    else return <ImageIconFill className={twMerge("w-full h-auto max-w-10", className)} />
 }
 
-const getFancyAttributes = (config: Pick<Props, "fancyGallery" | "fileNameToDownload" | "frameType">, src: string | undefined) => {
-    const { fileNameToDownload, fancyGallery, frameType } = config;
+const getFancyAttributes = (config: Pick<Props, "fancyGallery" | "fileNameToDownload" | "frameType" | "fullSizeFrame">, src: string | undefined) => {
+    const { fileNameToDownload, fancyGallery, frameType, fullSizeFrame } = config;
     if (!fancyGallery || !src) return {};
-    const fullSizePath = isInternalFrame(frameType) ? src
+    const source = isInternalFrame(frameType) ? fullSizeFrame || src
         : getPoster({ external: true, type: frameType, size: "original", path: src })
-
-    const source = fullSizePath || src;
 
     return {
         "data-src": source,
@@ -117,10 +120,25 @@ const getFancyAttributes = (config: Pick<Props, "fancyGallery" | "fileNameToDown
     }
 }
 
-const ParloImage = ({ frame, alt, height, size, width, className, containerClassName, sizes, classNameForFallback, fill, commonClassName, prioritize, fancyGallery, frameType, fileNameToDownload }: Props) => {
+const iconClassName = "size-6 frameIconShadow text-zinc-200";
+
+const SourceIconMap = ({ extSource }: Pick<Frame, "extSource">) => {
+    if (extSource === "vimeo")
+        return <VimeoIcon className="text-zinc-500 size-6" />
+    else if (extSource === "youtube")
+        return <YoutubeIcon className="text-zinc-500 size-6" />
+    // if (extSource === "mega")
+    //     return <MegaIcon className="text-zinc-500 size-6" />
+    // else if (extSource === "web")
+    //     return <GlobeIcon className="text-zinc-500 size-6" />
+
+
+}
+
+const ParloImage = ({ frame, alt, height, size, width, className, containerClassName, fullSizeFrame, sizes, classNameForFallback, fill, commonClassName, prioritize, fancyGallery, frameType, fileNameToDownload, showMediaType, showSize, showSourceIcon }: Props) => {
 
     if (!frame) return (
-        <div className={twMerge("p-2 bg-gray10 flex flex-cntr-all", className)}>
+        <div className={twMerge("p-2 bg-gray10 flex flex-cntr-all", containerClassName)}>
             <FallbackIcon
                 type={frameType}
                 className={twMerge(commonClassName, classNameForFallback)}
@@ -154,7 +172,7 @@ const ParloImage = ({ frame, alt, height, size, width, className, containerClass
     )
 
     return (
-        <div className={containerClassName}>
+        <div className={"relative " + containerClassName || ''}>
             <Image
                 height={fill ? undefined : correctHeight}
                 width={fill ? undefined : correctWidth}
@@ -166,12 +184,28 @@ const ParloImage = ({ frame, alt, height, size, width, className, containerClass
                 className={twMerge(`cursor-pointer`, commonClassName, className)}
                 blurDataURL={!isTmdbImage && frame.hash ? decodeHash(frame.hash) : undefined}
                 placeholder={!isTmdbImage && frame.hash ? "blur" : "empty"}
-                {...getFancyAttributes({ frameType, fancyGallery, fileNameToDownload }, source)}
+                {...getFancyAttributes({ frameType, fancyGallery, fileNameToDownload, fullSizeFrame }, source)}
                 crossOrigin="anonymous"
                 decoding={prioritize ? "sync" : "async"}
                 sizes={sizes ? turnSizesArrIntoString(sizes) : `${correctWidth}px`}
             />
-
+            <OptionalChildren condition={showSize || showMediaType || showSourceIcon}>
+                <div className="absolute bottom-4 right-4 flex gap-1 items-center text-zinc-200">
+                    <OptionalChildren condition={showSize && frame.size}>
+                        <span className="px-2 py-1 bg-black/50 text-sm rounded-md">{convertByteIntoSize(frame.size)}</span>
+                    </OptionalChildren>
+                    <OptionalChildren condition={showSourceIcon && frame.extSource}>
+                        <SourceIconMap extSource={frame.extSource} />
+                    </OptionalChildren>
+                    <OptionalChildren condition={showMediaType && !(frame.extSource === "vimeo" || frame.extSource === "youtube")}>
+                        <OptionalChildren condition={frame.type === "image"}
+                            fallback={<PlayIcon className={iconClassName} />}
+                        >
+                            <ImageIconFill className={iconClassName} />
+                        </OptionalChildren>
+                    </OptionalChildren>
+                </div>
+            </OptionalChildren>
         </div>
     )
 }

@@ -63,7 +63,6 @@ const SaveButton = ({ id, count, type, uid, author, className }: Props) => {
             noUserStateChilren={<NoUserStateButton count={count} type={type} />}
             redirectAfterLogin={`/${type.toLocaleLowerCase()}/${id}`}
             errorStateClassName="flex p-2 border border-gray-500 border-opacity-30 rounded-md"
-            noUserStateClassName="secondary"
             Button={Button}
             queryFn={(uid) => checkIfItemSaved(id, uid)}
             queryKeys={getQueryKeys("isContentSaved_type_id", { type: type.toLowerCase(), id })}

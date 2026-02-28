@@ -11,6 +11,7 @@ import { FullPost } from "@type/internal";
 import OptionsButton from "./OptionsButton";
 import ReactionButton from "./ReactionButton";
 import { ContentFiltered } from "@components/fallbacks";
+import FrameSlider from "./FrameSlider";
 
 type Props = { id: string, uid: string | undefined }
 
@@ -108,10 +109,9 @@ const Component = (data: FullPost, { uid }: Props) => {
 
                 </article>
 
-
                 <OptionalChildren condition={frames?.length}>
-                    <section className="sm:px-4 my-2 w-full max-w-[400px] aspect-square mx-auto sm:border border-gray20">
-                        <FramesCarousel className="sm:rounded-md" frames={frames} />
+                    <section className="px-2 my-2 w-full">
+                        <FrameSlider id={_id} frames={frames} />
                     </section>
                 </OptionalChildren>
 
@@ -132,7 +132,7 @@ const Component = (data: FullPost, { uid }: Props) => {
                 <Navigate
                     comp="link"
                     goto={`/new/post?qpid=${data._id}`}
-                    className="py-1 space-x-2 hover:bg-[var(--gray10)]">
+                    className="flex gap-2">
                     <QuoteIcon />
                     <span>Quote</span>
                 </Navigate>

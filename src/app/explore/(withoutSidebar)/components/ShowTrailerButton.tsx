@@ -8,7 +8,7 @@ const ShowTrailerButton = ({ trailers }: { trailers: { key: string, [key: string
     const showTrailer = () => {
         Fancybox.show(trailers.map(
             ({ key, name }) => ({ src: `https://www.youtube.com/watch?v=${key}`, caption: name })
-        ), { Thumbs: false })
+        ))
     }
 
     return (

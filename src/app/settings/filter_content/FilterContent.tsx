@@ -33,22 +33,23 @@ const FilterContentTogglePage = ({ status }: { status: boolean }) => {
 
     return (
         <>
-            <Navbar />
-            
-            <ToggleButtonBar
-                label="Filter Contents"
-                checked={checked}
-                onClick={handleToggle}
-            />
+            <Navbar navTitle="Filter Content" className="border-b border-gray20" />
+            <section className="mt-6 spae-y-8 px-2">
+                <ToggleButtonBar
+                    label="Filter Contents"
+                    checked={checked}
+                    onClick={handleToggle}
+                />
 
-            <p className="mt-4 text-center">
-                {status ?
+                <p className="mt-4 text-center">
+                    {status ?
 
-                    "By turning it off, explicit contents won't be filtered out."
-                    :
-                    "By turning it on, explicit contents in Posts, Comments and Threads will be filtered out before they reach you."
-                }
-            </p>
+                        "By turning it off, explicit contents won't be filtered out."
+                        :
+                        "By turning it on, explicit contents in Posts, Comments and Threads will be filtered out before they reach you."
+                    }
+                </p>
+            </section>
         </>
     )
 

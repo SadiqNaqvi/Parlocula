@@ -336,10 +336,11 @@ export type GetPosterFunctionProps<T extends ExternalImageType> = {
 }
 
 export type PushNotificationType = {
-  title: string;
-  body?: string;
-  data?: { path: string };
-  tag?: string;
+  title: string,
+  body?: string,
+  icon?: string,
+  path?: string,
+  tag?: string
 };
 
 export type InfiniteScrollerDataType<T = any> = {
@@ -386,3 +387,11 @@ export type PPGetDataProps<K extends AvailableCacheTags> = {
       options: CacheTagsArgs<K>;
     }
   );
+
+export type FormidableFile = {
+  size: number;
+  filepath: string;
+  originalFilename: string | null;
+  newFilename: string;
+  mimetype: string | null;
+}

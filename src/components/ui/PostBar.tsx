@@ -3,6 +3,7 @@ import { FramesCarousel, Navigate } from "@components";
 import { makeUrlSafe, numberConverter, timeAgo } from "@lib/utils";
 import { MerePost } from "@type/internal";
 import { BreadCrumbs, BreadCrumbTile, MetadataTile, MetadataTileContainer, ParloImage } from "./";
+import FrameSlider from "@app/post/[id]/(WithHeader)/FrameSlider";
 
 type SectionType = "thread" | "user";
 
@@ -18,7 +19,7 @@ const PostBarHeader = ({ poster, profile, thread_id, thread_name, username, sect
                     frame={profile}
                     className="inline object-cover rounded-full size-10 min-w-10"
                     size={40}
-                    alt="Profile picture of the author of this post" />
+                    alt={`Profile picture of ${username} the author of this post`} />
             </Navigate>
 
             <div className="flex gap-2 items-center">
@@ -37,7 +38,7 @@ const PostBarHeader = ({ poster, profile, thread_id, thread_name, username, sect
                 frame={username ? profile : undefined}
                 className="size-10 min-w-10 inline object-cover rounded-full"
                 size={40}
-                alt="Profile picture of the author of this post"
+                alt={`Poster of the thread ${thread_name}`}
             />
             <span className="font-semibold">{username || "Not Found"}</span>
         </Navigate>
@@ -50,7 +51,8 @@ const PostBarHeader = ({ poster, profile, thread_id, thread_name, username, sect
                 frame={poster}
                 className="size-10 min-w-10 inline object-cover rounded-full"
                 size={40}
-                alt="Profile picture of the author of this post"
+                alt={`Poster of the thread ${thread_name}`}
+
             />
             <span className="font-semibold">{thread_name}</span>
         </Navigate>
@@ -93,13 +95,13 @@ const PostBar = ({ _id, comment_count, nsfw, createdAt, editedAt, poster, reacti
                 </MetadataTileContainer>
             </header>
 
-            <section className="flex gap-2 flex-col sm:flex-row-reverse">
+            <section className="space-y-2">
 
                 <Navigate role="button" comp="link" goto={`/post/${_id}-${makeUrlSafe(title)}`} className="w-full">
                     <h3 className="customize text-lg font-semibold line-clamp-4">{title}</h3>
                 </Navigate>
 
-                <FramesCarousel gallery={_id} className="w-full sm:w-80" frames={frames || []} />
+                <FrameSlider id={_id} frames={frames || []} />
             </section>
 
             <ul className="flex gap-3">
@@ -109,7 +111,6 @@ const PostBar = ({ _id, comment_count, nsfw, createdAt, editedAt, poster, reacti
                         <span>{numberConverter(value || 0)}</span>
                     </li>
                 ))}
-                <i className="fa-light fa-link"></i>
             </ul>
 
         </article>

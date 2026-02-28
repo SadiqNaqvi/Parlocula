@@ -134,15 +134,17 @@ const Component = (data: ShelfCollaborators, { sid, uid }: Props) => {
 
 const CollaboratorSection = ({ sid, uid }: Props) => {
 
-    return <GenericWrapper
-        component={Component}
-        getQueryProps={() => ({
-            args: [uid, sid],
-            queryFn: getCollaboratorsOfShelf,
-            queryKeys: getQueryKeys("shelfCollaborators_sid", { sid })
-        })}
-        props={{ sid, uid }}
-    />
+    return (
+        <GenericWrapper
+            component={Component}
+            getQueryProps={() => ({
+                args: [uid, sid],
+                queryFn: getCollaboratorsOfShelf,
+                queryKeys: getQueryKeys("shelfCollaborators_sid", { sid })
+            })}
+            props={{ sid, uid }}
+        />
+    )
 }
 
 export default CollaboratorSection;

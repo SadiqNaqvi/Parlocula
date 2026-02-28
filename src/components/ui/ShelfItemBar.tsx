@@ -1,17 +1,20 @@
 import Navigate from "@components/Navigate";
 import { ShelfItemType } from "@type/internal";
 import ParloImage from "./ParloImage";
+import MetadataTile, { MetadataTileContainer } from "./MetaDataTile";
+import { timeAgo } from "@lib/utils";
 
-type ContentOnlyProps = Pick<ShelfItemType, "poster" | "title" | "year">;
 
-const ShelfItemContent = ({ poster, title, year }: ContentOnlyProps) => (
+type RequiredFields = "poster" | "title" | "year";
+type ShelfItemProps = Pick<ShelfItemType, RequiredFields> & Partial<Omit<ShelfItemType, RequiredFields>>;
+
+const ShelfItemContent = ({ poster, title, year, createdAt, added_by }: ShelfItemProps) => (
     <article className="flex items-center gap-3 w-full">
         <ParloImage
             size={64}
             frame={poster}
             frameType="poster"
             alt={`Poster for ${title}`}
-            //  extSize="w92"
             sizes={[
                 { imageWidth: 48, maxScreenWidth: 480 },
                 { imageWidth: 64 },
@@ -20,17 +23,24 @@ const ShelfItemContent = ({ poster, title, year }: ContentOnlyProps) => (
         />
         <div className="space-y-2">
             <h3 className="font-semibold sm:text-xl">{title}</h3>
-            <span className="text-sm text-zinc-500">{year}</span>
+            <MetadataTileContainer>
+                <MetadataTile>{year}</MetadataTile>
+                <MetadataTile condition={!!createdAt}>{timeAgo(createdAt)}</MetadataTile>
+                <MetadataTile condition={!!added_by}>by: @{added_by}</MetadataTile>
+            </MetadataTileContainer>
         </div>
     </article>
 )
 
 export const ShowOnlyShelfItem = ShelfItemContent;
 
-const ShelfItemBar = ({ taleon_type, poster, title, ext_id, year }: ShelfItemType) => (
-    <Navigate className="w-full" goto={`/explore/${taleon_type}/${ext_id}`} comp="link">
-        <ShelfItemContent poster={poster} title={title} year={year} />
-    </Navigate>
-)
+const ShelfItemBar = (item: ShelfItemType) => {
+    const { taleon_type, ext_id } = item;
+    return (
+        <Navigate className="w-full" goto={`/explore/${taleon_type}/${ext_id}`} comp="link">
+            <ShelfItemContent {...item} />
+        </Navigate>
+    )
+}
 
 export default ShelfItemBar;

@@ -9,7 +9,7 @@ import { offlineStore } from "@store/offlineStore"
 import useRoomStore from "@store/roomStore"
 import useCurrentUser from "@store/user"
 import { CommentReplyType, CurrentUser, Frame, FullComment, FullPost, FullRoomType, FullShelf, FullTaleonType, GeneralGetReturn, GeneralPostReturn, MereComment, MereMessage, MereRoomType, MereShelf, MereUser, ModeratorType, ShelfCollaborator, ShelfCollaborators, ShelfItemType, ShelvesForTaleon, ThreadModType, UserConnectionType } from "@type/internal"
-import { NotificationModelType } from "@type/models"
+import { CollaboratorModelType, NotificationModelType } from "@type/models"
 import { ErrorCodes, InfiniteScrollerDataType } from "@type/other"
 import { BookmarkSchemaType, CommentSchemaType, CommentSchemaUpdateType, EmailUpdateSchemaType, ItemsForShelfSchemaType, LikeSchemaType, MessageSchemaType, PostSchemaType, PostUpdateSchemaType, ReportActionSchemaType, ReportSchemaType, ReportTypeEnum, RoomSchemaType, SessionInvalidationServerSchemaType, ShelfEditSchemaType, ShelfSchemaType, TaleonSchemaType, TaleonToAddAndRemoveType, ThreadSchemaServer, ThreadUpdateSchema, UsernameUpdateSchemaType, UserSchemaType, UserUpdateSchemaType } from "@type/schemas"
 import axios from "axios"
@@ -41,7 +41,7 @@ export const ppPostData = async <T,>({
     return await trycatch(() =>
         axios
             .post(
-                `${parloculaAppURL}/api/v1/private/${uid}/${url}`,
+                `/api/v1/private/${uid}/${url}`,
                 data ? objectToFormData(data) : new FormData(),
             )
             .then((r) => r.data)
@@ -60,7 +60,7 @@ export const ppUpdateData = async ({
     return await trycatch(() =>
         axios
             .patch(
-                `${parloculaAppURL}/api/v1/private/${uid}/${url}`,
+                `/api/v1/private/${uid}/${url}`,
                 objectToFormData(data)
             )
             .then((r) => r.data)
@@ -628,7 +628,7 @@ export const acceptCollaboratorInvitation = async (sid: string) => {
     const uid = user.user_id;
     const queryClient = getQueryClient();
 
-    const collaboratorsKey = getQueryKeys("shelfCollaborators_sid", { sid });
+    const connectionKey = getQueryKeys("shelfConnection_sid", { sid });
     const collaborativeShelvesKey = getQueryKeys("collaboratedShelvesOfUser_uid", { uid });
     const notificationKeys = getQueryKeys("notifications_uid", { uid });
 
@@ -644,16 +644,9 @@ export const acceptCollaboratorInvitation = async (sid: string) => {
                 { status: "accepted" }
             );
 
-            const collaborators = updateDoc<ShelfCollaborators>(collaboratorsKey, (prev) => {
-                if (!prev) return;
+            const connection = updateDoc<CollaboratorModelType>(connectionKey, { type: "collaborator" })
 
-                return {
-                    ...prev,
-                    collaborators: [...prev.collaborators, { ...user, type: "collaborator" }]
-                }
-            });
-
-            return { collaborators, notifications }
+            return { notifications, connection }
         },
         onSuccess: () => {
             queryClient.refetchQueries({ queryKey: collaborativeShelvesKey });
@@ -663,7 +656,7 @@ export const acceptCollaboratorInvitation = async (sid: string) => {
                 () => LinkToast({ title: `Failed to accept collaborate invitation`, href: `/shelf/${sid}` })
             );
             if (!context) return;
-            queryClient.setQueryData(collaboratorsKey, context.collaborators);
+            queryClient.setQueryData(connectionKey, context.connection);
             queryClient.setQueryData(notificationKeys, context.notifications);
         }
     })
@@ -677,8 +670,8 @@ export const rejectCollaboratorInvitation = async (sid: string) => {
 
     const queryClient = getQueryClient();
 
-    const collaboratorsKey = getQueryKeys("shelfCollaborators_sid", { sid });
     const notificationKeys = getQueryKeys("notifications_uid", { uid });
+    const connectionKey = getQueryKeys("shelfConnection_sid", { sid });
 
     await performMutation({
         mutationFn: () => ppDeleteData(`shelf/${sid}/collaborators/action`, uid),
@@ -691,23 +684,19 @@ export const rejectCollaboratorInvitation = async (sid: string) => {
                 { status: "denied" }
             );
 
-            const collaborators = updateDoc<ShelfCollaborators>(collaboratorsKey, (prev) => {
-                if (!prev) return;
+            const connection = updateDoc(connectionKey, { type: "none" });
 
-                return {
-                    ...prev,
-                    collaborators: prev.collaborators.filter(({ user_id }) => user_id !== uid)
-                }
-            });
-
-            return { collaborators, notifications }
+            return { notifications, connection }
+        },
+        onSuccess: () => {
+            deleteQueires(connectionKey);
         },
         onError: ({ context }) => {
             appToast.error(
                 () => LinkToast({ title: `Failed to reject collaborate invitation`, href: `/shelf/${sid}` })
             )
             if (!context) return;
-            queryClient.setQueryData(collaboratorsKey, context.collaborators);
+            queryClient.setQueryData(connectionKey, context.connection);
             queryClient.setQueryData(notificationKeys, context.notifications);
         }
     })

@@ -7,7 +7,7 @@ import {twMerge} from "tailwind-merge";
 type BreadCrumbProps = { className?: string }
 
 const BreadCrumb = ({ children, className }: PropsWithChildren<BreadCrumbProps>) => (
-    <div className={twMerge("text-sm flex gap-2 items-center hover:underline", className)}>
+    <div className={twMerge("text-sm space-x-2 items-center hover:underline whitespace-nowrap line-clamp-1", className)}>
         <strong>{children}</strong>
         <RightChevron className="size-4 group-last:rotate-90" />
     </div>

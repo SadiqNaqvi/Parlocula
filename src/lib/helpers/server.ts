@@ -218,6 +218,25 @@ export const verifyCode = async (code: string | number, fingerprint: string): Pr
   }
 };
 
+export const sendTestNotification = async (clientId: string) => {
+  const ably = new Ably.Rest(process.env.ABLY_API_KEY!);
+
+  console.log(await ably.channels.all);
+  console.log(await ably.channels.get(clientId));
+
+  await ably.push.admin.publish(
+    { clientId },
+    {
+      data: {
+        title: "Test Notification",
+        body: "Click here to open",
+        path: "/notifications",
+      } as PushNotificationType,
+    },
+  );
+
+}
+
 export const sendNotification = async (
   notifications: NotificationModelType[],
   session?: ClientSession
@@ -230,20 +249,20 @@ export const sendNotification = async (
   await Promise.all(
     createdNotifications.map(async (n) => {
       const channel = ably.channels.get(n.user_id as string);
-      // if ((await channel.presence.get()).items.length) {
-      return channel.publish("notification", n, { client_id: n.user_id });
-      // } else {
-      //   return ably.push.admin.publish(
-      //     {
-      //       clientId: n.user_id,
-      //     },
-      //     {
-      //       title: n.title,
-      //       data: { path: n.path ?? "/notifications" },
-      //       body: "Click here to open",
-      //     } as PushNotificationType
-      //   );
-      // }
+      if ((await channel.presence.get()).items.length) {
+        return channel.publish("notification", n, { client_id: n.user_id });
+      } else {
+        return ably.push.admin.publish(
+          {
+            clientId: n.user_id,
+          },
+          {
+            title: n.title,
+            data: { path: n.path ?? "/notifications" },
+            body: "Click here to open",
+          } as PushNotificationType
+        );
+      }
     })
   );
 };
