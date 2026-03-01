@@ -124,15 +124,9 @@ const iconClassName = "size-6 frameIconShadow text-zinc-200";
 
 const SourceIconMap = ({ extSource }: Pick<Frame, "extSource">) => {
     if (extSource === "vimeo")
-        return <VimeoIcon className="text-zinc-500 size-6" />
+        return <VimeoIcon className={iconClassName} />
     else if (extSource === "youtube")
-        return <YoutubeIcon className="text-zinc-500 size-6" />
-    // if (extSource === "mega")
-    //     return <MegaIcon className="text-zinc-500 size-6" />
-    // else if (extSource === "web")
-    //     return <GlobeIcon className="text-zinc-500 size-6" />
-
-
+        return <YoutubeIcon className={iconClassName} />
 }
 
 const ParloImage = ({ frame, alt, height, size, width, className, containerClassName, fullSizeFrame, sizes, classNameForFallback, fill, commonClassName, prioritize, fancyGallery, frameType, fileNameToDownload, showMediaType, showSize, showSourceIcon }: Props) => {

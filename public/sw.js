@@ -13,11 +13,11 @@ self.addEventListener("push", (event) => {
   if (event.data) {
     const payload = event.data.json();
 
-    const { body, icon, title } = payload;
+    const { body, icon, title } = payload.data;
 
     const options = {
       body,
-      icon: icon || "/android-chrome-192x192.png",
+      icon: icon,
       badge: "/badge.png",
       vibrate: [100, 50, 100],
       data: {

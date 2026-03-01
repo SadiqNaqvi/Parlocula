@@ -17,9 +17,10 @@ export const generateMetadata = async ({ params, searchParams }: ParloPageProps)
     const jar = await cookies();
     const user = await getUserFromToken(jar);
 
-    const { k } = await searchParams;
+    const sp = await searchParams;
+    const key = sp.k || sp.key;
 
-    const { success, result } = await getShelf(lid, user?.user_id, k, jar);
+    const { success, result } = await getShelf(lid, user?.user_id, key, jar);
     if (!success || !result) return { title: "Parlocula" };
 
     return {
@@ -38,7 +39,7 @@ const Page = async ({ params, searchParams }: ParloPageProps) => {
     const sid = id.split('-')[0];
 
     const { filter, page } = refineSearchParams("items", sp.p, sp.f);
-    const key = sp.k;
+    const key = sp.k || sp.key;
     const jar = await cookies();
     const user = await getUserFromToken(jar);
 

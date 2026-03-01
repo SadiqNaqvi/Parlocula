@@ -33,6 +33,7 @@ const ProfileButton = () => {
                         { maxScreenWidth: 480, imageWidth: 32 },
                         { imageWidth: 40 },
                     ]}
+                    classNameForFallback="min-w-5 size-5 sm:min-w-8 sm:size-8"
                     className="min-w-8 size-8 sm:min-w-10 sm:size-10 object-cover rounded-full"
                     frame={meta.profile}
                 />

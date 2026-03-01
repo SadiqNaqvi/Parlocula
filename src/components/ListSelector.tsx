@@ -3,15 +3,7 @@
 import { CheckBoxIcon, EmptyBoxIcon } from "@assets/Icons";
 import appToast from "@lib/providers/toast";
 import { Frame } from "@type/internal";
-import {
-    FunctionComponent,
-    RefObject,
-    useCallback,
-    useEffect,
-    useImperativeHandle,
-    useRef,
-    useState
-} from "react";
+import { FunctionComponent, RefObject, useCallback, useImperativeHandle, useRef } from "react";
 import { twMerge } from "tailwind-merge";
 import InfiniteScroller, { InfiniteScrollerProps } from "./InfiniteScroller";
 import SearchInList, { QueryFnReturn } from "./SearchInList";
@@ -30,6 +22,8 @@ export type RefinedValues<R = unknown> = {
 
 type Response = { _id?: string; id?: string;[key: string]: unknown };
 
+type ComponentToRender<T, R> = FunctionComponent<T & { checked: boolean; onClick: (v: R) => void; }>;
+
 type BaseProps<R> = {
     inputPlaceholder?: string;
     callbackRef: RefObject<ListSelectorRef<R>>;
@@ -43,7 +37,8 @@ type InfiniteQueryProps<T, R> = {
     queryKeysForList: string[];
     queryFnForList: (p: number) => QueryFnReturn<T>;
     returnIds?: boolean;
-    refiner: (resp: T) => RefinedValues<R>;
+    refiner?: (resp: T) => RefinedValues<R>;
+    Component?: ComponentToRender<T, R>;
 };
 
 type SearchQueryProps<T, R> = {
@@ -53,25 +48,23 @@ type SearchQueryProps<T, R> = {
     queryKeysForList?: string[];
     queryFnForList?: (p: number) => QueryFnReturn<T>;
     returnIds?: boolean;
-    refiner: (resp: T) => RefinedValues<R>;
+    refiner?: (resp: T) => RefinedValues<R>;
+    Component?: ComponentToRender<T, R>;
 };
 
 type StaticComponentProps<T, R> = {
     mode: "static-component";
     data: T[];
-    Component: FunctionComponent<
-        T & {
-            checked: boolean;
-            onClick: (v: R) => void;
-        }
-    >;
+    Component: ComponentToRender<T, R>
+    refiner?: (data: T) => RefinedValues<R>;
 };
 
 type StaticRefinerProps<T, R> = {
     mode: "static-refiner";
     data: T[];
     returnIds?: boolean;
-    refiner: (data: T) => RefinedValues<R>;
+    Component?: ComponentToRender<T, R>
+    refiner?: (data: T) => RefinedValues<R>;
 };
 
 type Props<T extends Response, R> = BaseProps<R> &
@@ -91,7 +84,6 @@ type ListSelectorBarProps = RefinedValues & {
     className?: string;
     disable?: boolean;
 }
-
 
 export const ListSelectorBar = ({ disable, checked, poster, frameType, className, id, title, defaultChecked, returnVal, onClick }: ListSelectorBarProps) => {
 
@@ -185,7 +177,7 @@ const ListSelector = <T extends Response, R>(props: Props<T, R>) => {
     const renderItem = useCallback((response: T) => {
 
         // Static Component Mode
-        if (mode === "static-component") {
+        if (props.Component) {
             const uid = (response.id || response._id) ?? "";
             const checked = selectedMap.current.has(uid);
 
@@ -201,11 +193,11 @@ const ListSelector = <T extends Response, R>(props: Props<T, R>) => {
         }
 
         // Refiner-based modes
-        else if (
+        else if (props.refiner && (
             mode === "static-refiner" ||
             mode === "infinite" ||
             mode === "search"
-        ) {
+        )) {
             const refinedValues = props.refiner(response);
 
             return (

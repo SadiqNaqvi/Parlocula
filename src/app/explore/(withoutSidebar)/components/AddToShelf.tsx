@@ -36,7 +36,7 @@ const AddToShelf = ({ className, taleon, released }: { className?: string, taleo
     useEffect(() => {
         if (!data) return;
         setShelfBucket(new Map(data.shelves.map(id => [id, "none"])))
-    }, [data])
+    }, [data]);
 
     if (!meta || !user) return (
         <BottomSheet className={className} button="Add To Shelf">
@@ -61,21 +61,21 @@ const AddToShelf = ({ className, taleon, released }: { className?: string, taleo
 
     const shelfMap = new Map<string, boolean>(shelves.map(shelf_id => [shelf_id, true]));
 
-    const handleToggle = (id: string) => {
+    const handleToggle = ({ _id }: { _id: string }) => {
         const tempBucket = new Map(shelfBucket);
 
-        const isAlreadyChecked = Boolean(shelfMap.has(id));
-        const currentCheckedStatus = tempBucket.get(id);
+        const isAlreadyChecked = Boolean(shelfMap.has(_id));
+        const currentCheckedStatus = tempBucket.get(_id);
         const isUntouched = !currentCheckedStatus || currentCheckedStatus === "none";
 
         if (isAlreadyChecked && isUntouched) {
-            tempBucket.set(id, "removed");
+            tempBucket.set(_id, "removed");
         } else if (isAlreadyChecked && currentCheckedStatus === "removed") {
-            tempBucket.set(id, "none");
+            tempBucket.set(_id, "none");
         } else if (!isAlreadyChecked && isUntouched) {
-            tempBucket.set(id, "added");
+            tempBucket.set(_id, "added");
         } else if (!isAlreadyChecked && currentCheckedStatus === "added") {
-            tempBucket.set(id, "none");
+            tempBucket.set(_id, "none");
         }
 
         setShelfBucket(tempBucket);
@@ -143,22 +143,16 @@ const AddToShelf = ({ className, taleon, released }: { className?: string, taleo
                         <RightChevron />
                     </Navigate>
 
-                    <NestedSheet
-                        button={(
-                            <>
-                                <span>Add in Collaborative Shelves</span>
-                                <RightChevron />
-                            </>
-                        )}
-                        className={buttonClassName}>
-                        <AddToCollaborativeShelf
-                            taleon={{
-                                id: taleon.taleon_id,
-                                ext_id: taleon.ext_id,
-                                type: taleon.taleon_type
-                            }}
-                            uid={meta.user_id} />
-                    </NestedSheet>
+                    <AddToCollaborativeShelf
+                        taleon={{
+                            id: taleon.taleon_id,
+                            ext_id: taleon.ext_id,
+                            type: taleon.taleon_type,
+                            year: taleon.year,
+                        }}
+                        uid={meta.user_id}
+                        className={buttonClassName}
+                    />
                 </header>
 
                 <section className="px-2 space-y-1 my-4">

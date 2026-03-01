@@ -14,7 +14,7 @@ const DataSaverTogglePage = () => {
     return (
         <>
             <Navbar navTitle="Data Saver" className="border-b border-gray20" />
-            <section className="px-2 sm:px-0">
+            <section className="px-2">
                 <ToggleButtonBar
                     checked={dataSaver}
                     label="Data Saver"
@@ -22,7 +22,7 @@ const DataSaverTogglePage = () => {
                     className="my-4 w-full"
                 />
 
-                <p className="mt-4 text-center">
+                <p className="mt-4 text-center text-sm sm:text-base">
                     Save Data while exploring Parlocula. Images and Videos wont be loaded automatically as well as Infinite Scrolling would be disabled. You manually need to load content.
                 </p>
             </section>

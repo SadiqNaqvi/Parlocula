@@ -6,8 +6,8 @@ import { NotificationModelType } from "./models";
 import { ExtMediaSource } from "./schemas";
 
 export type ParloPageProps<
-  P = { id: string, username: string },
-  S = { p: string, f: string, t: string, k: string }
+  P = { id: string, username: string, [key: string]: string },
+  S = { p: string, f: string, t: string, k: string, [key: string]: string }
 > = {
   params: Promise<P>,
   searchParams: Promise<Partial<S>>,

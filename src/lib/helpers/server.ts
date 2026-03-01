@@ -221,9 +221,6 @@ export const verifyCode = async (code: string | number, fingerprint: string): Pr
 export const sendTestNotification = async (clientId: string) => {
   const ably = new Ably.Rest(process.env.ABLY_API_KEY!);
 
-  console.log(await ably.channels.all);
-  console.log(await ably.channels.get(clientId));
-
   await ably.push.admin.publish(
     { clientId },
     {
@@ -253,14 +250,14 @@ export const sendNotification = async (
         return channel.publish("notification", n, { client_id: n.user_id });
       } else {
         return ably.push.admin.publish(
+          { clientId: n.user_id },
           {
-            clientId: n.user_id,
+            data: {
+              title: "Test Notification",
+              body: "Click here to open",
+              path: "/notifications",
+            } as PushNotificationType,
           },
-          {
-            title: n.title,
-            data: { path: n.path ?? "/notifications" },
-            body: "Click here to open",
-          } as PushNotificationType
         );
       }
     })

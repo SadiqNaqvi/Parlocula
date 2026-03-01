@@ -1,5 +1,6 @@
 import { deleteHandler, updateHandler } from "@lib/helpers/handlers";
 import { sendNotification } from "@lib/helpers/server";
+import { getPoster } from "@lib/utils";
 import { Shelf } from "@model";
 import Collaborator from "@model/collaborators";
 
@@ -18,7 +19,7 @@ export const PATCH = updateHandler({
     if (!check)
       return { success: false, errCode: "resource_not_found" }
 
-    const shelf = await Shelf.findById(id, { user_id: 1 });
+    const shelf = await Shelf.findById(id, { user_id: 1, poster: 1 });
 
     if (!shelf)
       return { success: false, errCode: "resource_not_found" }
@@ -31,7 +32,7 @@ export const PATCH = updateHandler({
           { type: "text", text: "has accepted your request to become a collaborator in your shelf." }
         ],
         title: `New Collaborator for your shelf 🥳`,
-        poster: profile,
+        poster: profile ? profile : shelf.poster ? getPoster({ external: true, path: shelf.poster, size: "w92", type: "poster" }) : undefined,
         user_id: shelf.user_id,
         metadata: { shelf_id: id },
       }

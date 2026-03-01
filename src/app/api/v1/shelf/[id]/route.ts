@@ -2,7 +2,7 @@ import { filterToSort } from "@lib/constants";
 import { getHandler } from "@lib/helpers/handlers";
 import { shelvesAggregationPipeline } from "@lib/pipelines";
 import { getSearchParams } from "@lib/utils";
-import { Shelf, User } from "@model";
+import { Shelf } from "@model";
 
 // Get all the public shelves of the user.
 export const GET = getHandler(async (r, params) => {

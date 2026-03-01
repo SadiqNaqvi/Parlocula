@@ -1,15 +1,18 @@
 "use client";
 
 import Navigate from "@components/Navigate";
-import { checkPushStatus } from "@lib/providers/notification";
+import { checkPushStatus } from "@lib/providers/pushNotification";
 import useCurrentUser from "@store/user";
 
 const StatusBanner = () => {
 
-    const status = checkPushStatus();
     const { meta } = useCurrentUser();
 
-    if (meta && status !== "granted") return (
+    if (!meta) return null;
+
+    const status = checkPushStatus(meta.user_id);
+
+    if (!status) return (
         <section className="my-4 py-4 border border-dashed border-gray40 space-y-3">
 
             <h2 className="sm:text-xl">You{"'"}re missing out big time 😨</h2>
@@ -21,14 +24,12 @@ const StatusBanner = () => {
                 className="primary rounded-full btn"
                 type="button"
                 comp="link"
-                goto="/settings/notification">
+                goto="/settings/notifications">
                 View
             </Navigate>
 
         </section>
     )
-
-    return null;
 }
 
 export default StatusBanner;

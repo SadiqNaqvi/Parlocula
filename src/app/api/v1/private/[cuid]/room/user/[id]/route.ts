@@ -9,6 +9,5 @@ export const GET = getHandler(async (_, params) => {
     participants: [id, cuid].sort(),
   });
 
-  if (room) return { success: true, result: room };
-  return { success: false, errCode: "resource_not_found" };
+  return { success: true, result: room };
 });

@@ -5,7 +5,7 @@ import { MetadataTile, MetadataTileContainer, ShelfPoster } from "./";
 
 const ShelfBar = ({ _id, item_count, name, poster, shelfKey, isPrivate, shelf_type, createdAt, last_added }: MereShelf) => {
     return (
-        <Navigate key={_id} comp="link" goto={`/shelf/${_id}${isPrivate ? `?key=${shelfKey}` : ''}`}>
+        <Navigate key={_id} comp="link" goto={`/shelf/${_id}${isPrivate ? `?k=${shelfKey}` : ''}`}>
             <article className="flex items-center gap-2 p-2 sm:px-4">
                 <ShelfPoster iconsClassName="p-2 bg-gray20" name={name} poster={poster} shelf_type={shelf_type} />
                 <div className="w-stretch">

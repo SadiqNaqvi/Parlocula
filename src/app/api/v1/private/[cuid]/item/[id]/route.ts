@@ -4,12 +4,12 @@ import { itemsAggregationPipeline } from "@lib/pipelines";
 import { taleonToAddAndRemove } from "@lib/schemas";
 import { getSearchParams } from "@lib/utils";
 import { Taleon, Shelf, ShelfItem } from "@model";
+import Collaborator from "@model/collaborators";
 import { TaleonToAddAndRemoveType } from "@type/schemas";
 
 // Getting items for a shelf (public or private), id = shelf_id
 export const GET = getHandler(async (r, params) => {
 
-  console.log("Entered Handler");
   const { id, cuid } = params; // shelf_id
 
   const { page, filter } = getSearchParams(r.nextUrl, 0, "latest");
@@ -41,14 +41,12 @@ export const GET = getHandler(async (r, params) => {
   if (shelf.isPrivate && !((key && (key === shelf.shelfKey)) || (cuid && shelf.user_id === cuid)))
     return { success: false, errCode: "unauthorized_access" };
 
-  console.log(items);
-
   return { success: true, result: items };
 }
 );
 
 // Adding/Removing a taleon to/from multiple shelves, id = taleon_id
-// Must only be done by the creator
+// Can be done by either a collaborator or the creator
 export const POST = postHandler<TaleonToAddAndRemoveType>({
   handler: async ({ data, params, session }) => {
 
@@ -116,21 +114,28 @@ export const POST = postHandler<TaleonToAddAndRemoveType>({
         .concat(add.concat(remove).map(id => `itemsOfShelf-${id}`))
         .concat([`shelvesForTaleon-${id}-user-${cuid}`])
     }
+    
   },
   preCheck: async ({ data, user_id }) => {
     const { add, remove } = data;
-    const shelves = await Shelf.find({
-      _id: { $in: [...add, ...remove] }
-    }, { user_id: 1 });
+    const [shelves, collaborators] = await Promise.all([
+      Shelf.find({
+        _id: { $in: [...add, ...remove] }
+      }, { user_id: 1 }),
+      Collaborator.find({ user_id, type: "collaborator" }, { shelf_id: 1 }),
+    ]);
 
     if (!shelves.length) return {
       success: false,
       errCode: "resource_not_found"
     }
 
-    const isCreator = shelves.every(shelf => shelf.user_id === user_id);
+    const collaboratorMap = new Map(collaborators.map(c => [c.shelf_id, true]));
 
-    if (!isCreator) return {
+    const isCreator = shelves.every(shelf => shelf.user_id === user_id);
+    const isCollaborator = add.every(sid => collaboratorMap.has(sid));
+
+    if (!(isCreator || isCollaborator)) return {
       success: false,
       errCode: "unauthorized_access"
     }

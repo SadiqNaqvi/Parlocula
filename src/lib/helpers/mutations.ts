@@ -203,11 +203,10 @@ export const updateDocInInfiniteQueryResult = <T>(queryKeys: string[], matcher: 
     return previousState;
 }
 
-export const updateDoc = async <T extends Record<string, any>>(
+export const updateDoc = <T extends Record<string, any>>(
     qkey: (string | number)[],
     update: Partial<T> | ((prev: T | undefined) => T | undefined),
 ) => {
-
     const queryClient = getQueryClient();
 
     const prev = queryClient.getQueryData<T>(qkey);

@@ -64,7 +64,7 @@ const NewRoom = ({ ruser }: { ruser: MereUser }) => {
             <section className="p-4 min-h-[25dvh]">
                 <p className="text-center text-zinc-500">Invite this user to chat with you. You can only send 1 message, make it worth.</p>
             </section>
-            <footer className="w-stretch fixed bottom-0 px-2 py-4">
+            <footer className="w-stretch sticky bottom-0 px-2 py-4">
                 <Form
                     ref={formRef}
                     className="flex items-center gap-2"
@@ -74,6 +74,7 @@ const NewRoom = ({ ruser }: { ruser: MereUser }) => {
                         enterKeyHint="send"
                         name="content"
                         maxLength={3000}
+                        containerClasses="flex-1"
                         className="flex-1 border border-invert p-3 bg-transparent rounded-2xl"
                     />
                     <button type="submit" className="size-fit p-2">

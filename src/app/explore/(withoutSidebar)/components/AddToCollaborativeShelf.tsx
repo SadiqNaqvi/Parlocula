@@ -1,29 +1,79 @@
 "use client"
 
-import { GeneralTile, InfiniteScroller } from "@components";
+import { RightChevron } from "@assets/Icons";
+import { BottomSheet, ListSelector, ListSelectorRef } from "@components";
+import { ShelfSelector } from "@components/form";
 import { getShelvesAsCollaborator } from "@lib/helpers/common";
-import { addItemInCollaborativeShelf } from "@lib/helpers/mutations";
+import { updateShelvesWithItem } from "@lib/helpers/mutations";
 import { getQueryKeys } from "@lib/utils";
 import { MereShelf } from "@type/internal";
+import { PredefinedShelves } from "@type/models";
+import { useRef } from "react";
 
-const AddToCollaborativeShelf = ({ uid, taleon }: { uid: string, taleon: { id: string; type: "movie" | "show"; ext_id: string } }) => {
+type Props = {
+    uid: string,
+    taleon: {
+        id: string;
+        type: "movie" | "show";
+        ext_id: string,
+        year: number,
+    },
+    className?: string;
+}
 
-    const handleAdding = async (sid: string, isPrivate: boolean, shelfKey: string | undefined) => {
-        await addItemInCollaborativeShelf(sid, uid, taleon, isPrivate, shelfKey);
-    }
+const AddToCollaborativeShelf = ({ uid, taleon, className }: Props) => {
 
-    const Component = ({ _id, name, poster, isPrivate, shelfKey }: MereShelf) => {
-        return <GeneralTile title={name} poster={poster} onClick={() => handleAdding(_id, isPrivate, shelfKey)} />
+    const callbackRef = useRef<ListSelectorRef<Pick<MereShelf, "_id" | "shelf_type">>>(null);
+
+    const handleAdding = async () => {
+        const { ext_id, id, type } = taleon;
+
+        const shelves = callbackRef.current?.();
+
+        if (!shelves || !shelves.length) return;
+
+        let shelfStatus: Record<PredefinedShelves, "none" | "added"> = {
+            favourite: "none", recommended: "none", watched: "none"
+        };
+
+        const ids: string[] = [];
+
+        shelves.forEach(shelf => {
+            if (shelf.shelf_type !== "custom") {
+                shelfStatus[shelf.shelf_type]
+            }
+
+            ids.push(shelf._id);
+        })
+
+        await updateShelvesWithItem(id, type, uid, {
+            ext_id,
+            ...shelfStatus,
+            remove: [],
+            year: taleon.year,
+            add: ids,
+        });
     }
 
     return (
-        <section className="py-4">
-            <InfiniteScroller
-                fetchData={(p) => getShelvesAsCollaborator(uid, p)}
-                Component={Component}
-                queryKeys={getQueryKeys("collaboratedShelvesOfUser_uid", { uid })}
+        <BottomSheet
+            button={(
+                <>
+                    <span>Add in Collaborative Shelves</span>
+                    <RightChevron />
+                </>
+            )}
+            className={className}
+            onClose={handleAdding}
+        >
+            <ListSelector
+                queryFnForList={(p) => getShelvesAsCollaborator(uid, p)}
+                queryKeysForList={getQueryKeys("collaboratedShelvesOfUser_uid", { uid })}
+                Component={ShelfSelector as any}
+                callbackRef={callbackRef}
+                mode="infinite"
             />
-        </section>
+        </BottomSheet>
     )
 
 }
