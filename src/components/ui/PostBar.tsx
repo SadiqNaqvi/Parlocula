@@ -80,7 +80,7 @@ const PostBar = ({ _id, comment_count, nsfw, createdAt, editedAt, poster, reacti
                     <MetadataTile>{timeAgo(createdAt)}</MetadataTile>
 
                     <MetadataTile
-                        condition={category !== "none"}
+                        condition={!!(category && category !== "none")}
                         href={`/thread/${thread_id}?c=${category}`}
                         className="capitalize">
                         {category}

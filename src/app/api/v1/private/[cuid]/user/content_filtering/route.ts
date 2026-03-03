@@ -9,7 +9,7 @@ export const PATCH = updateHandler({
     handler: async ({ user_id, session }) => {
 
         await User.findByIdAndUpdate(user_id,
-            { $set: { filterContent: { $not: "$filterContent" } } },
+            [{ $set: { filterContent: { $not: "$filterContent" } } }],
             { session }
         );
 

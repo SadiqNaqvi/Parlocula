@@ -493,7 +493,7 @@ export const revalidateTags: Record<AvailableRevalidateTags, string[]> = {
     "allShelves-user-{uid}"
   ],
   shelfUpdation_sid: ["shelf-{sid}"],
-  shelfCollaboratorMutation_uid_sid: ["shelf-collaborators-{sid}", "shelf-{sid}", "isShelfCollaborator-{uid}-{sid}"],
+  shelfCollaboratorMutation_uid_sid: ["shelf-collaborators-{sid}", "invitedShelvesOfUser-{uid}", "collaborativeShelvesOfUser-{uid}", "shelf-{sid}", "isShelfCollaborator-{uid}-{sid}"],
   addItemsInShelf_sid: ["itemsOfShelf-{sid}", "shelf-{sid}"],
 
   savedPosts_uid: ["savedPosts-user-{uid}"],

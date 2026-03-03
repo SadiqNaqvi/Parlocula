@@ -57,7 +57,7 @@ const Component = (data: RequestedUser, props: Props) => {
                         size={112}
                         className="size-20 object-cover sm:size-28 max-h-fit aspect-square"
                         containerClassName="rounded-full"
-                        classNameForFallback="p-4 size-16 object-cover sm:size-24"
+                        classNameForFallback="p-2 sm:p-4 size-12 max-w-12 object-cover sm:size-20 sm:max-w-20"
                         frame={profile}
                         sizes={[
                             { maxScreenWidth: 480, imageWidth: 80 },
@@ -74,7 +74,7 @@ const Component = (data: RequestedUser, props: Props) => {
                 <section className="mt-4">
                     <ul className="flex gap-3">
                         {userMeta.map(({ label, value }) => (
-                            <li className="gap-1 flex" key={label}>
+                            <li className="gap-1 flex items-center" key={label}>
                                 <span className="text-base sm:text-xl text-center">{numberConverter(value)}</span>
                                 <span className="text-sm text-zinc-500">{label}</span>
                             </li>

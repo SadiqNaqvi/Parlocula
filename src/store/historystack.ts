@@ -78,8 +78,8 @@ export const useNavigation = (): AppNavigationInstance => {
 
   return {
     back: () => {
-      popHistory();
-      // console.log("popping from history stack", pathname, recentlyOpened, recentlyOpened && recentlyOpened !== pathname);
+      // popHistory();
+      // console.log("popping from history stack", pathname, prevPage, recentlyOpened, recentlyOpened && recentlyOpened !== pathname);
       router.replace(prevPage && prevPage !== pathname ? prevPage : recentlyOpened && recentlyOpened !== pathname ? recentlyOpened : "/home");
     },
     replace: (href: string) => {

@@ -235,11 +235,13 @@ export const PATCH = updateHandler<RoomUpdateSchemaType>({
 
     const fieldsToUpdate = {
       ...(name && { name }),
-      ...(frames.length ? { poster: frames[0] } : areFilesToDelete && { poster: undefined }),
+      ...(frames.length && { poster: frames[0] }),
     }
 
     await Room.findByIdAndUpdate(id, {
       $set: fieldsToUpdate,
+      ...(!frames.length && areFilesToDelete && { $unset: { poster: 1 } }),
+
     }, { session });
 
     await setRoomDetail(id, fieldsToUpdate, true);

@@ -51,16 +51,28 @@ export const POST = postHandler<TaleonToAddAndRemoveType>({
   handler: async ({ data, params, session }) => {
 
     const { id, cuid } = params;
-    const { add, remove, ext_id, year, favourite, recommended, watched } =
-      data;
+    const { add, remove, ext_id, year, favourite, recommended, watched } = data;
 
-    const dataToCreate = add.map((shelf_id) => ({
-      shelf_id,
-      year,
-      ext_id,
-      taleon_id: id,
-      user_id: cuid,
-    }));
+    const alreadyExisted = Array.from(
+      await ShelfItem
+        .find({
+          taleon_id: id,
+          shelf_id: { $in: add }
+        }, { shelf_id: 1 }
+        )
+    )
+      .map(({ shelf_id }) => shelf_id);
+
+
+    const dataToCreate = add
+      .filter(s => !alreadyExisted.includes(s))
+      .map((shelf_id) => ({
+        shelf_id,
+        year,
+        ext_id,
+        taleon_id: id,
+        user_id: cuid,
+      }));
 
     if (dataToCreate.length) {
 
@@ -114,7 +126,7 @@ export const POST = postHandler<TaleonToAddAndRemoveType>({
         .concat(add.concat(remove).map(id => `itemsOfShelf-${id}`))
         .concat([`shelvesForTaleon-${id}-user-${cuid}`])
     }
-    
+
   },
   preCheck: async ({ data, user_id }) => {
     const { add, remove } = data;

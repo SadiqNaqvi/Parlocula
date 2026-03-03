@@ -36,13 +36,16 @@ export const PATCH = updateHandler<UserUpdateSchemaType>({
     const dataToUpdate = {
       ...data,
       edited_at: new Date(),
-      ...(frames && frames.length ? { profile: frames[0] } : areFilesToDelete && { profile: undefined }),
+      ...(frames && frames.length && { profile: frames[0] }),
       ...(data.dob && calculateAge(data.dob) < 18 ? { filterContent: true } : {})
     }
 
     await User.findByIdAndUpdate(
       user_id,
-      { $set: dataToUpdate },
+      {
+        $set: dataToUpdate,
+        ...(!frames.length && areFilesToDelete && { $unset: { profile: 1 } }),
+      },
       { session }
     );
 

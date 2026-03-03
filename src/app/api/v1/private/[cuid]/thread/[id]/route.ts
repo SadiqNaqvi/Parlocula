@@ -13,15 +13,23 @@ export const PATCH = updateHandler<ThreadUpdateSchema>({
       ...data,
       edited_at: new Date(),
       edited_by: username,
-      ...(frames.length ? { poster: frames[0] } : areFilesToDelete && { poster: undefined }),
+      ...(frames.length && { poster: frames[0] }),
     });
 
-    const doc = await Thread.findByIdAndUpdate(params.id, { $set: dataToUpdate }).then(r => r?.toObject());
+    console.log(dataToUpdate);
+
+    const doc = await Thread.findByIdAndUpdate(
+      params.id,
+      {
+        $set: dataToUpdate,
+        ...(!frames.length && areFilesToDelete && { $unset: { poster: 1 } }),
+      }
+    ).then(r => r?.toObject());
     if (!doc) return { success: false, errCode: "resource_not_found" }
 
     const managers = await Member.find(
-      { role: { $in: ["creator", "moderator"] }, user_id: { $ne: user_id } }
-      , { user_id: 1 }
+      { role: { $in: ["creator", "moderator"] }, user_id: { $ne: user_id } },
+      { user_id: 1 }
     );
 
     if (managers.length) {

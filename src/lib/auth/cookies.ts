@@ -10,8 +10,8 @@ export const setCookies = (jar: Cookies, key: string, value: any) => {
         httpOnly: true,
         secure: true,
         maxAge,
-        expires: new Date(Date.now() + maxAge),
-        sameSite: "strict",
+        expires: new Date(Date.now() + maxAge * 1000),
+        sameSite: "lax",
         path: "/",
     });
 }

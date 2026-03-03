@@ -629,6 +629,7 @@ export const acceptCollaboratorInvitation = async (sid: string) => {
 
     const connectionKey = getQueryKeys("shelfConnection_sid", { sid });
     const collaborativeShelvesKey = getQueryKeys("collaboratedShelvesOfUser_uid", { uid });
+    const invitedShelvesKey = getQueryKeys("invitedShelvesOfUser_uid", { uid });
     const notificationKeys = getQueryKeys("notifications_uid", { uid });
 
     await performMutation({
@@ -645,7 +646,9 @@ export const acceptCollaboratorInvitation = async (sid: string) => {
 
             const connection = updateDoc<CollaboratorModelType>(connectionKey, { type: "collaborator" })
 
-            return { notifications, connection }
+            const invitation = filterDocsInInfiniteQueryResult(invitedShelvesKey, [sid]);
+
+            return { notifications, connection, invitation }
         },
         onSuccess: () => {
             queryClient.refetchQueries({ queryKey: collaborativeShelvesKey });
@@ -656,6 +659,7 @@ export const acceptCollaboratorInvitation = async (sid: string) => {
             );
             if (!context) return;
             queryClient.setQueryData(connectionKey, context.connection);
+            queryClient.setQueryData(invitedShelvesKey, context.invitation);
             queryClient.setQueryData(notificationKeys, context.notifications);
         }
     })
@@ -671,6 +675,7 @@ export const rejectCollaboratorInvitation = async (sid: string) => {
 
     const notificationKeys = getQueryKeys("notifications_uid", { uid });
     const connectionKey = getQueryKeys("shelfConnection_sid", { sid });
+    const invitedShelvesKey = getQueryKeys("invitedShelvesOfUser_uid", { uid });
 
     await performMutation({
         mutationFn: () => ppDeleteData(`shelf/${sid}/collaborators/action`, uid),
@@ -684,8 +689,9 @@ export const rejectCollaboratorInvitation = async (sid: string) => {
             );
 
             const connection = updateDoc(connectionKey, { type: "none" });
+            const invitation = filterDocsInInfiniteQueryResult(invitedShelvesKey, [sid]);
 
-            return { notifications, connection }
+            return { notifications, connection, invitation }
         },
         onSuccess: () => {
             deleteQueires(connectionKey);
@@ -696,6 +702,7 @@ export const rejectCollaboratorInvitation = async (sid: string) => {
             )
             if (!context) return;
             queryClient.setQueryData(connectionKey, context.connection);
+            queryClient.setQueryData(invitedShelvesKey, context.invitation);
             queryClient.setQueryData(notificationKeys, context.notifications);
         }
     })
@@ -839,7 +846,7 @@ export const removeCollaboratorsMutation = async (sid: string, uid: string, data
             if (!old) return;
             return {
                 ...old,
-                collaborators: old.collaborators.filter(u => !usersMap.get(u.user_id)),
+                collaborators: old.collaborators.filter(u => !usersMap.has(u.user_id)),
             }
         }),
         onError: ({ context }) => {

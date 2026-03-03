@@ -29,7 +29,8 @@ type BaseProps<R> = {
     callbackRef: RefObject<ListSelectorRef<R>>;
     limit?: number;
     className?: string;
-    alreadySelectedValues?: { id: string, val?: R }[]
+    alreadySelectedValues?: { id: string, val?: R }[],
+    frameType?: ParloImageFrameType,
 };
 
 type InfiniteQueryProps<T, R> = {
@@ -110,7 +111,8 @@ export const ListSelectorBar = ({ disable, checked, poster, frameType, className
                     frameType={frameType || "poster"}
                     size={48}
                     alt={`Poster of ${title}`}
-                    className="min-w-12 size-12 rounded-full object-cover"
+                    className="min-w-12 size-12 object-cover"
+                    containerClassName="rounded-full overflow-hidden"
                     frame={poster}
                 />
 
@@ -133,7 +135,10 @@ const ListSelector = <T extends Response, R>(props: Props<T, R>) => {
         NotFoundSection,
         notFoundMessage,
         mode,
-        alreadySelectedValues
+        alreadySelectedValues,
+        frameType,
+        Component,
+        refiner
     } = props;
 
     /* --------------------------- Selection State --------------------------- */
@@ -177,11 +182,9 @@ const ListSelector = <T extends Response, R>(props: Props<T, R>) => {
     const renderItem = useCallback((response: T) => {
 
         // Static Component Mode
-        if (props.Component) {
+        if (Component) {
             const uid = (response.id || response._id) ?? "";
             const checked = selectedMap.current.has(uid);
-
-            const { Component } = props;
             return (
                 <Component
                     key={uid}
@@ -193,19 +196,21 @@ const ListSelector = <T extends Response, R>(props: Props<T, R>) => {
         }
 
         // Refiner-based modes
-        else if (props.refiner && (
+        else if (refiner && (
             mode === "static-refiner" ||
             mode === "infinite" ||
             mode === "search"
         )) {
-            const refinedValues = props.refiner(response);
+            const refinedValues = refiner(response);
 
             return (
                 <ListSelectorBar
                     {...refinedValues}
                     defaultChecked={selectedMap.current.has(refinedValues.id)}
                     onClick={handleSelection}
-                    className="pointer w-full" />
+                    className="pointer w-full"
+                    frameType={frameType}
+                />
             );
         }
 

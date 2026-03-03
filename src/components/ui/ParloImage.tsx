@@ -166,7 +166,7 @@ const ParloImage = ({ frame, alt, height, size, width, className, containerClass
     )
 
     return (
-        <div className={"relative " + containerClassName || ''}>
+        <div className={"relative  overflow-hidden " + containerClassName || ''}>
             <Image
                 height={fill ? undefined : correctHeight}
                 width={fill ? undefined : correctWidth}

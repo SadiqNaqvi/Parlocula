@@ -8,31 +8,40 @@ tag?: string
 */
 
 self.addEventListener("push", (event) => {
-  console.log(event);
+  console.log(event, event.data.json());
+  if (!event.data) return;
 
-  if (event.data) {
-    const payload = event.data.json();
+  let payload;
 
-    const { body, icon, title } = payload.data;
-
-    const options = {
-      body,
-      icon: icon,
-      badge: "/badge.png",
-      vibrate: [100, 50, 100],
-      data: {
-        dateOfArrival: Date.now(),
-        primaryKey: "2",
-      },
-    };
-    event.waitUntil(self.registration.showNotification(title, options));
+  try {
+    payload = event.data.json();
+  } catch (e) {
+    payload = event.data;
   }
+
+  console.log(payload);
+
+  const data = payload.data || payload;
+  const { body, icon, title, path } = data;
+
+  const options = {
+    body,
+    icon: icon,
+    badge: "/badge.png",
+    vibrate: [100, 50, 100],
+    data: {
+      dateOfArrival: Date.now(),
+      primaryKey: "2",
+      path,
+    },
+  };
+  event.waitUntil(self.registration.showNotification(title, options));
 });
 
 const baseUrl = "https://parlocula.vercel.app";
 
 self.addEventListener("notificationclick", function (event) {
-  const data = event.data.json();
+  const data = event.notification.data;
   const path =
     data && data.path
       ? new URL(data.path, baseUrl)

@@ -16,16 +16,16 @@ type Props = { sid: string, uid: string, total: UserMetaData[], back: TypedFunct
 
 const refiner = (user: MereUser | UserMetaData): RefinedValues => {
 
-    if ("_id" in user) return {
+    if ("user_id" in user) return {
+        title: user.username,
+        id: user.user_id,
+        poster: user.profile,
+    }
+    else return {
         title: user.username,
         id: user._id,
         poster: user.profile,
         returnVal: user
-    }
-    else return {
-        title: user.username,
-        id: user.user_id,
-        poster: user.profile,
     }
 }
 

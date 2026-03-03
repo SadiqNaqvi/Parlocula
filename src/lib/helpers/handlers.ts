@@ -1,5 +1,3 @@
-import "server-only";
-
 import WarnTeamParlocula from "@components/EmailTemplates/warnParlocula";
 import { getUserFromToken } from "@lib/auth/utils";
 import { attachedFramesLimit, oneMb } from "@lib/constants";
@@ -19,7 +17,7 @@ import { ZodSchema } from "zod";
 import { updateQuotaLimit } from "./redis/rate_limiting";
 import { sendEmail } from "./server";
 
-type RT = AvailableRevalidateTags
+type RT = AvailableRevalidateTags;
 
 export type HandlerParamVariable = { id: string; cuid: string;[key: string]: string }
 
@@ -55,34 +53,31 @@ export type WarningPayload = {
     path: string,
 }
 
-export type HandlerResponse =
-    | {
-        result: any;
-        success: true;
-        warnTeamParlocula?: WarningPayload,
-        errCode?: null;
-        options: Partial<RevalidateTagsArgs<RT>>;
-        available: RT;
-        revalidateQueue?: undefined;
-    }
-    | {
-        result: any;
-        success: true;
-        warnTeamParlocula?: WarningPayload,
-        errCode?: null;
-        options?: undefined;
-        available?: undefined;
-        revalidateQueue: string[];
-    }
-    | {
-        result?: null;
-        success: false;
-        errCode: ErrorCodes;
-        options?: undefined;
-        warnTeamParlocula?: undefined,
-        available?: undefined;
-        revalidateQueue?: undefined;
-    };
+export type HandlerResponse = {
+    result: any;
+    success: true;
+    warnTeamParlocula?: WarningPayload,
+    errCode?: null;
+    options: Partial<RevalidateTagsArgs<RT>>;
+    available: RT;
+    revalidateQueue?: undefined;
+} | {
+    result: any;
+    success: true;
+    warnTeamParlocula?: WarningPayload,
+    errCode?: null;
+    options?: undefined;
+    available?: undefined;
+    revalidateQueue: string[];
+} | {
+    result?: null;
+    success: false;
+    errCode: ErrorCodes;
+    options?: undefined;
+    warnTeamParlocula?: undefined,
+    available?: undefined;
+    revalidateQueue?: undefined;
+};
 
 type DeleteHandlerResponse = Promise<Omit<HandlerResponse & { files?: Frame[] }, "result">>
 
@@ -194,6 +189,7 @@ export const postHandler = <T extends HandlerData>({ handler, preCheck, schema, 
     skipUserCheck?: boolean,
 }) => {
     return async function (req: NextRequest, { params }: { params: Promise<HandlerParamVariable> }) {
+        console.log("Entered Post handler HOF", "skip user =", skipUserCheck);
         const payload = skipUserCheck ? null : await getUserFromToken(req.cookies);
         const awaitedParams = await params;
 
@@ -210,7 +206,9 @@ export const postHandler = <T extends HandlerData>({ handler, preCheck, schema, 
         const username = payload?.username || "";
         const profile = payload?.profile
 
+        console.log("about to get data from formdata")
         const response = await getDataFromRequest<T>(req, schema);
+        console.log("Successfully got data", response);
 
         if (!response.success) return NextResponse.json(response, { status: 400 });
 
@@ -221,6 +219,7 @@ export const postHandler = <T extends HandlerData>({ handler, preCheck, schema, 
         let session: ClientSession | null = null;
 
         try {
+            console.log("About to connect to database");
             const isDbConnected = await connectDatabase();
             if (!isDbConnected)
                 return NextResponse.json(
@@ -232,6 +231,7 @@ export const postHandler = <T extends HandlerData>({ handler, preCheck, schema, 
                     { status: 500 }
                 );
 
+            console.log("About to enter precheck");
             if (preCheck) {
 
                 const { errCode, success } = await preCheck({
@@ -249,17 +249,28 @@ export const postHandler = <T extends HandlerData>({ handler, preCheck, schema, 
                     );
             }
 
+            console.log("Starting session");
             session = await mongoose.startSession();
             let isNsfw = false;
+
             const { files, filesData, filesToRemove, ...rest } = data;
+
             if (files && files.length && filesData && filesData.length) {
-                const res = await uploadFiles(files, filesData, !data.nsfw)
+
+                console.log("About to upload files");
+
+                const res = await uploadFiles(files, filesData, !data.nsfw);
+
+                console.log("Files uploaded", res);
+
                 frames = res.frames;
                 isNsfw = res.isNsfw;
             }
 
+            console.log("Starting Transaction");
             session.startTransaction();
 
+            console.log("Entering Handler");
             const { available, errCode, options, result, success, revalidateQueue, warnTeamParlocula } =
                 await handler({
                     data: rest,
@@ -273,11 +284,19 @@ export const postHandler = <T extends HandlerData>({ handler, preCheck, schema, 
                     isNsfw,
                 });
 
+            console.log("Out of handler with success:", success);
+
             if (!success) {
+                console.log("About to delete files");
+
                 await deleteFiles(frames);
+                console.log("About to abort transaction");
+
                 await session.abortTransaction().catch(console.error);
             } else {
                 if (warnTeamParlocula) {
+                    console.log("About to warn creators");
+
                     await sendEmail({
                         email: process.env.CREATOR_EMAIL!,
                         subject: "Warning from Parlocula",
@@ -291,6 +310,7 @@ export const postHandler = <T extends HandlerData>({ handler, preCheck, schema, 
                     revalidateTags = getRevalidateTags(available, options);
                 }
 
+                console.log("commiting transaction");
                 await session.commitTransaction().catch(console.error);
 
 
@@ -301,7 +321,12 @@ export const postHandler = <T extends HandlerData>({ handler, preCheck, schema, 
                 { status: success ? 200 : 500 }
             );
         } catch (err: any) {
+            console.log("In the catch block, deleting files.");
+
             await deleteFiles(frames);
+
+            console.log("aborting transaction.");
+
             if (session?.inTransaction())
                 await session.abortTransaction().catch(console.error);
 
@@ -327,6 +352,8 @@ export const deleteHandler = (
     precheck?: (req: NextRequest, params: any) => PrecheckResponse | Promise<PrecheckResponse>
 ) => {
     return async (req: NextRequest, { params }: { params: Promise<HandlerParamVariable> }) => {
+        console.log("Entering Delete handler HOF");
+
         const payload = await getUserFromToken(req.cookies);
 
         if (!payload)
@@ -340,18 +367,28 @@ export const deleteHandler = (
         let session: ClientSession | null = null;
 
         try {
+            console.log("Connecting Database");
             const isDbConnected = await connectDatabase();
             if (!isDbConnected)
                 return NextResponse.json({ success: false, errCode: "database_connection_fail" });
 
+
             if (precheck) {
+                console.log("Entering Precheck");
                 const { success, errCode } = await precheck(req, params);
+                console.log("Out of precheck with success:", success);
+
                 if (!success) return NextResponse.json({ success, errCode });
             }
 
+            console.log("Starting session");
+
             session = await mongoose.startSession();
 
+            console.log("Starting transaction");
             session.startTransaction();
+
+            console.log("Entering Handler");
             const { errCode, success, available, options, files, revalidateQueue } =
                 await handler({
                     req,
@@ -362,17 +399,36 @@ export const deleteHandler = (
                     profile: profile?.path,
                 });
 
+            console.log("Out of handler with success:", success);
+
+
             if (success) {
-                files && (await deleteFiles(files));
+
+                if (files) {
+                    console.log("Deleting files");
+
+                    await deleteFiles(files);
+                }
+
+                console.log("Commiting transaction");
+
                 await session.commitTransaction();
+
                 if (revalidateQueue && revalidateQueue.length)
                     revalidateTags = revalidateQueue;
+
                 else if (available && options)
                     revalidateTags = getRevalidateTags(available, options);
-            } else await session.abortTransaction().catch(console.error);
+            } else {
+                console.log("Aborting transaction");
+
+                await session.abortTransaction().catch(console.error);
+            }
 
             return NextResponse.json({ success, errCode });
         } catch (err: any) {
+            console.log("Entered catch block, aborting transaction");
+
             await session?.abortTransaction().catch(console.error);
             console.error("Error occured while deleting resource", err.message);
             return NextResponse.json({
@@ -393,6 +449,8 @@ export const updateHandler = <T extends HandlerData>({ handler, preCheck, schema
     skipUserCheck?: boolean;
 }) => {
     return async (req: NextRequest, { params }: { params: Promise<HandlerParamVariable> }) => {
+        console.log("Entered Update Handler", "skipUser=", skipUserCheck);
+
         // Checking if there is a current user and taking it's user_id and username
         const payload = skipUserCheck ? null : await getUserFromToken(req.cookies);
         const awaitedParams = await params;
@@ -403,14 +461,17 @@ export const updateHandler = <T extends HandlerData>({ handler, preCheck, schema
                 errCode: "unauthenticated_access",
                 result: null,
             },
-            { status: 500 }
+            { status: 401 }
         );
 
         const user_id = payload?.user_id || "";
         const username = payload?.username || "";
         const profile = payload?.profile;
 
+        console.log("Looking to get data from formdata");
         const response = await getDataFromRequest<T>(req, schema);
+
+        console.log("Successfully got data", response);
 
         if (!response.success) return NextResponse.json(response, { status: 402 });
 
@@ -420,6 +481,8 @@ export const updateHandler = <T extends HandlerData>({ handler, preCheck, schema
         let frames: Frame[] = [];
         let session: ClientSession | null = null;
         try {
+            console.log("Connecting to database");
+
             const isDbConnected = await connectDatabase();
             if (!isDbConnected) return NextResponse.json({
                 result: null,
@@ -427,10 +490,14 @@ export const updateHandler = <T extends HandlerData>({ handler, preCheck, schema
                 errCode: "database_connection_fail",
             });
 
+            console.log("starting transaction");
+
             session = await mongoose.startSession();
 
             // Some pre-checking eg: if the user is authorized to do this specific thing or not
             if (preCheck) {
+                console.log("Entering Precheck");
+
                 const { errCode, success } = await preCheck({
                     data,
                     params: awaitedParams,
@@ -438,19 +505,30 @@ export const updateHandler = <T extends HandlerData>({ handler, preCheck, schema
                     user_id,
                     username,
                 });
+
+                console.log("Out of precheck with success:", success, errCode);
+
                 if (!success)
                     return NextResponse.json({ success, errCode }, { status: 500 });
             }
 
             const { files, filesData, filesToRemove, ...rest } = data;
             let isNsfw = false;
+
             if (files && files.length && filesData && filesData.length) {
+                console.log("Uploading files");
+
                 const res = await uploadFiles(files, filesData, !data.nsfw)
                 frames = res.frames;
                 isNsfw = Boolean(res.isNsfw)
             }
 
+            console.log("Starting transaction");
+
             session.startTransaction();
+
+            console.log("Entering handler");
+
             const { available, errCode, options, result, success, revalidateQueue, warnTeamParlocula } =
                 await handler({
                     data: rest,
@@ -465,11 +543,16 @@ export const updateHandler = <T extends HandlerData>({ handler, preCheck, schema
                     areFilesToDelete: Boolean(filesToRemove && filesToRemove.length)
                 });
 
+            console.log("Out of handler with success:", success);
+
             if (success) {
+                console.log("Updating quota limit");
 
                 await updateQuotaLimit(req, user_id);
 
                 if (warnTeamParlocula) {
+                    console.log("about to warn creators.");
+
                     await sendEmail({
                         email: process.env.CREATOR_EMAIL!,
                         subject: "Warning from Parlocula",
@@ -477,7 +560,11 @@ export const updateHandler = <T extends HandlerData>({ handler, preCheck, schema
                     });
                 }
 
-                await deleteFiles(filesToRemove);
+                if (filesToRemove) {
+                    console.log("about to delete files to remove");
+
+                    await deleteFiles(filesToRemove);
+                }
 
                 if (revalidateQueue && revalidateQueue.length)
                     revalidateTags = revalidateQueue;
@@ -488,7 +575,11 @@ export const updateHandler = <T extends HandlerData>({ handler, preCheck, schema
                 await session.commitTransaction();
 
             } else {
+                console.log("about to delete files");
+
                 await deleteFiles(frames);
+
+                console.log("aborting transaction");
                 await session.abortTransaction().catch(console.error);
             }
 
@@ -496,13 +587,22 @@ export const updateHandler = <T extends HandlerData>({ handler, preCheck, schema
                 { result, success, errCode },
                 { status: success ? 200 : 500 }
             );
+
         } catch (err: any) {
+            console.log("Entered catch block, aborting transaction");
+
             await session?.abortTransaction().catch(console.error);
+
             console.error(
                 `Error occured at path ${req.nextUrl.pathname} while updating data`,
                 err.message
             );
+
+            console.log("deleting files");
+
             await deleteFiles(frames);
+            console.log("files deleted");
+
             return NextResponse.json(
                 {
                     result: null,

@@ -51,7 +51,6 @@ const NotificationPage = ({ status }: { status: boolean }) => {
     }
 
     const togglePushNotification = async () => {
-        console.log(enabled);
         if (enabled) {
             setEnabled(() => false);
             toast.promise(() => disablePush(meta.user_id), {
@@ -64,20 +63,20 @@ const NotificationPage = ({ status }: { status: boolean }) => {
             });
         } else {
             const browserStatus = checkBrowserPushStatus();
-            if (browserStatus !== "granted") {
-                if (await Notification.requestPermission() === "granted") {
-                    setEnabled(true);
-                } else return;
-            } else setEnabled(true);
+            if (browserStatus !== "granted" && await Notification.requestPermission() !== "granted")
+                return;
 
-            toast.promise(enablePush(meta.user_id), {
-                success: "Notification Enabled.",
-                error: () => {
-                    console.log("entered disabled error");
-                    setEnabled(false);
-                    return "Failed to enable Notification";
-                }
-            });
+            setEnabled(() => true);
+
+            await enablePush(meta.user_id, undefined, () => setEnabled(false));
+            // toast.promise(enablePush(meta.user_id), {
+            //     success: "Notification Enabled.",
+            //     error: () => {
+            //         console.log("entered disabled error");
+            //         setEnabled(false);
+            //         return "Failed to enable Notification";
+            //     }
+            // });
         }
     }
 

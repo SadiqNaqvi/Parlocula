@@ -15,12 +15,12 @@ const MessageButton = ({ ruid, username, profile }: { ruid: string, username: st
     const { data, isError, isPending } = useQueryHook<{ _id: string }>({
         queryKeys: meta ? getQueryKeys("roomExists_ruid_uid", { ruid, uid: meta.user_id }) : [],
         queryFn: () => getRoomByUserId((meta?.user_id as string), ruid),
-        enabled: Boolean(meta),
+        enabled: Boolean(meta && ruid !== meta.user_id),
     });
 
-    if (isError || isPending || !meta) return null;
+    if (isError || isPending || !meta || meta.user_id === ruid) return null;
 
-    if (data) return (
+    else if (data) return (
         <Navigate goto={`/inbox/${data._id}`}
             comp="link"
             className="btn secondary flex-1 sm:w-fit"

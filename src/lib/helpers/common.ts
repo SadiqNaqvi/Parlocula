@@ -186,7 +186,7 @@ export const getPostsOfThread = async (
   category = "",
 ) =>
   await ppGetData<AggregatedResponse<MerePost>>({
-    url: "post/thread",
+    url: `post/thread/${tid}`,
     searchParams: {
       p: page,
       f: filter,
