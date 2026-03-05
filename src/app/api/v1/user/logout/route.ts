@@ -1,4 +1,4 @@
-import { deleteSession } from "@lib/auth";
+import { deleteSession } from "@lib/auth/session";
 import { deleteHandler } from "@lib/helpers/handlers";
 import { User } from "@model";
 import { cookies } from "next/headers";

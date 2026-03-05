@@ -1,11 +1,11 @@
 import { oneDayInMiliSeconds } from "@lib/constants";
 import { parloId } from "@lib/utils";
-import { MembershipModelType, StrictModel } from "@type/models";
-import { model, models } from "mongoose";
-import { StrictSchema } from "./general";
+import { MembershipModelType } from "@type/models";
+import type { StrictModel } from "@type/mongoose";
+import { model, models, StrictSchema } from "@type/mongoose";
 
 const memberModel = new StrictSchema<MembershipModelType>({
-  _id: { type: String, default: parloId },
+  _id: { type: String, default: () => parloId(21) },
   thread_id: {
     type: String,
     ref: "Thread",

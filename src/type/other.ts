@@ -1,4 +1,3 @@
-import { PipelineStage } from "mongoose";
 import { RequestCookies } from "next/dist/compiled/@edge-runtime/cookies";
 import { ReadonlyRequestCookies } from "next/dist/server/web/spec-extension/adapters/request-cookies";
 import { Frame, GenericDate, InfiniteQueryResponse, MereMessage } from "./internal";
@@ -199,7 +198,7 @@ export type AblyEventType =
 
 export type AblyEventParams = {
   "entered_chat": { user_id: string, room_id: string, time: GenericDate }
-  "notification": NotificationModelType
+  "notification": { title: string },
   "message": MereMessage & {
     room: {
       display_name: string,
@@ -251,17 +250,6 @@ export type QueryFilterType =
   | "userPosts"
   | "shelves"
   | "items";
-
-export type PipelineFunc<T = { [key: string]: any }> = (
-  __0: {
-    filters: PipelineStage[];
-    page: number;
-    sort?: any;
-    localFieldForLookup?: string,
-    replaceRoot?: string,
-    limit?: number;
-  } & T
-) => PipelineStage[];
 
 export type MutationFnProps<T = any> = {
   newState: T;

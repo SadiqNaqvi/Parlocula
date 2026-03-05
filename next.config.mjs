@@ -55,14 +55,6 @@ const nextConfig = {
     ]
   }
   },
-  // experimental: {
-  //   globalNotFound: true,
-  // },
-  // turbopack: (config) => {
-  //   // Ignore ALL turbopack warnings produced by ./node_modules/keyv/src/index.js file
-  //   config.ignoreWarnings = [{ module: /node_modules\/keyv\/src\/index\.js/ }];
-  //   return config;
-  // },
 };
 
 export default nextConfig;

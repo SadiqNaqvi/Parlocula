@@ -1,7 +1,6 @@
 import { Comment, Connection, Member, Post, Shelf, Thread, User } from "@model";
 import { GeneralGetReturn } from "@type/internal";
-import { PipelineFunc } from "@type/other";
-import { FilterQuery, PipelineStage } from "mongoose";
+import { PipelineFunc, FilterQuery, PipelineStage } from "@type/mongoose";
 import { NextRequest } from "next/server";
 import { queryLimit } from "./constants";
 import { createArray, getSearchParams } from "./utils";

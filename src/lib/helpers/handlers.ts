@@ -1,3 +1,4 @@
+import "server-only";
 import WarnTeamParlocula from "@components/EmailTemplates/warnParlocula";
 import { getUserFromToken } from "@lib/auth/utils";
 import { attachedFramesLimit, oneMb } from "@lib/constants";
@@ -9,7 +10,7 @@ import { Frame, GeneralGetReturn, GeneralPostReturn } from "@type/internal";
 import { AvailableRevalidateTags, ErrorCodes, RevalidateTagsArgs } from "@type/other";
 import { FrameDataSchemaType } from "@type/schemas";
 import formidable, { File as FormidableFile } from "formidable";
-import mongoose, { ClientSession } from "mongoose";
+import type { ClientSession } from "@type/mongoose";
 import { revalidateTag } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 import { Readable } from "stream";
@@ -98,7 +99,6 @@ export const getHandler = <T extends any>(handler: GetHandlerFunction<T>) => {
             return NextResponse.json(data, { status: data.success ? 200 : 500 });
         } catch (err: any) {
             console.error(`Error occurred at path ${req.nextUrl.pathname}:`, err.message);
-
             return NextResponse.json(
                 {
                     errCode: "uncaught_error",
@@ -220,16 +220,15 @@ export const postHandler = <T extends HandlerData>({ handler, preCheck, schema, 
 
         try {
             console.log("About to connect to database");
-            const isDbConnected = await connectDatabase();
-            if (!isDbConnected)
-                return NextResponse.json(
-                    {
-                        result: null,
-                        success: false,
-                        errCode: "database_connection_fail",
-                    },
-                    { status: 500 }
-                );
+            const connection = await connectDatabase();
+            if (!connection) return NextResponse.json(
+                {
+                    result: null,
+                    success: false,
+                    errCode: "database_connection_fail",
+                },
+                { status: 500 }
+            );
 
             console.log("About to enter precheck");
             if (preCheck) {
@@ -250,7 +249,7 @@ export const postHandler = <T extends HandlerData>({ handler, preCheck, schema, 
             }
 
             console.log("Starting session");
-            session = await mongoose.startSession();
+            session = await connection.startSession();
             let isNsfw = false;
 
             const { files, filesData, filesToRemove, ...rest } = data;
@@ -368,8 +367,8 @@ export const deleteHandler = (
 
         try {
             console.log("Connecting Database");
-            const isDbConnected = await connectDatabase();
-            if (!isDbConnected)
+            const connection = await connectDatabase();
+            if (!connection)
                 return NextResponse.json({ success: false, errCode: "database_connection_fail" });
 
 
@@ -383,7 +382,7 @@ export const deleteHandler = (
 
             console.log("Starting session");
 
-            session = await mongoose.startSession();
+            session = await connection.startSession();
 
             console.log("Starting transaction");
             session.startTransaction();
@@ -483,8 +482,9 @@ export const updateHandler = <T extends HandlerData>({ handler, preCheck, schema
         try {
             console.log("Connecting to database");
 
-            const isDbConnected = await connectDatabase();
-            if (!isDbConnected) return NextResponse.json({
+            const connection = await connectDatabase();
+
+            if (!connection) return NextResponse.json({
                 result: null,
                 success: false,
                 errCode: "database_connection_fail",
@@ -492,7 +492,7 @@ export const updateHandler = <T extends HandlerData>({ handler, preCheck, schema
 
             console.log("starting transaction");
 
-            session = await mongoose.startSession();
+            session = await connection.startSession();
 
             // Some pre-checking eg: if the user is authorized to do this specific thing or not
             if (preCheck) {

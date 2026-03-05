@@ -1,3 +1,4 @@
+import { parseUnknownData } from "@lib/utils";
 import { ScoreMember, Redis as UpstashRedis, Pipeline, ZAddCommandOptions } from "@upstash/redis";
 import Redis, { ChainableCommander, } from "ioredis";
 
@@ -61,33 +62,6 @@ export const zaddInUpstash = async (key: string, items: ScoreMember<any>[], pipe
   return transaction.zadd(key, first, ...rest);
 }
 
-/*
-  // Listen for errors (avoid flood by not printing stack every time)
-  global._redis.on("error", (err) => {
-    console.error("Redis error:", err.message);
-  });
-
-  try {
-    await global._redis.connect();
-    console.log("💪🙌 Redis Connected Successfully 🙌💪");
-  } catch (e: any) {
-    console.error("Redis Connection Failed:", e.message);
-    global._redis.disconnect();
-  }
-}
-*/
-
-export const handleParsing = (data: any) => {
-  if (typeof data === "string") {
-    try {
-      return JSON.parse(data);
-    } catch {
-      return data;
-    }
-  }
-  return data;
-}
-
 export const handlePipelineResponse = <T = unknown>(res: T | [error: Error | null, result: unknown][] | null): T[] => {
   if (!res) throw new Error("Pipeline returned nothing");
 
@@ -97,9 +71,9 @@ export const handlePipelineResponse = <T = unknown>(res: T | [error: Error | nul
       const [e, r] = result;
       if (e) throw new Error(e.message);
       else if (Array.isArray(r)) {
-        r.map(handleParsing) as T[];
+        r.map(parseUnknownData) as T[];
       }
-      return handleParsing(r) as T;
+      return parseUnknownData(r) as T;
     });
   }
 

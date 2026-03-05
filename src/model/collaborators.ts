@@ -1,10 +1,10 @@
-import { Schema, models, model } from "mongoose";
-import { CollaboratorModelType, StrictModel } from "@type/models";
-import { StrictSchema } from "./general";
 import { getTimeInFuture, parloId } from "@lib/utils";
+import { CollaboratorModelType } from "@type/models";
+import type { StrictModel } from "@type/mongoose";
+import { model, models, StrictSchema } from "@type/mongoose";
 
 const collaboratorModel = new StrictSchema<CollaboratorModelType>({
-    _id: { type: String, default: parloId },
+    _id: { type: String, default: () => parloId(21) },
     shelf_id: {
         type: String,
         ref: "Shelf",

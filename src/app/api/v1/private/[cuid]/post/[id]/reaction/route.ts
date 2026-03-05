@@ -51,31 +51,29 @@ export const POST = postHandler<{ reaction: string }>({
 
       if (milestoneTouched) {
         await sendNotification(
-          [
-            {
-              title: `Congratulations! Your post has reached ${post.reaction_count} reactions 🙌🥳`,
-              path: `/post/${post._id}`,
-              poster: undefined,
-              message: [
-                {
-                  type: "text",
-                  text: "Congratulations! Your post",
-                },
-                {
-                  type: "link",
-                  label: post.title
-                    .slice(0, 50)
-                    .concat(post.title.length > 50 ? "..." : ""),
-                  path: `/post/${post._id}`,
-                },
-                {
-                  type: "text",
-                  text: `has reached a new milestone. It got ${post.reaction_count} reactions 🙌🥳.`,
-                },
-              ],
-              user_id: post.user_id,
-            },
-          ],
+          [post.user_id],
+          {
+            title: `Congratulations! Your post has reached ${post.reaction_count} reactions 🙌🥳`,
+            path: `/post/${post._id}`,
+            poster: undefined,
+            message: [
+              {
+                type: "text",
+                text: "Congratulations! Your post",
+              },
+              {
+                type: "link",
+                label: post.title
+                  .slice(0, 50)
+                  .concat(post.title.length > 50 ? "..." : ""),
+                path: `/post/${post._id}`,
+              },
+              {
+                type: "text",
+                text: `has reached a new milestone. It got ${post.reaction_count} reactions 🙌🥳.`,
+              },
+            ],
+          },
           session
         );
       }

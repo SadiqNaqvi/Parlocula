@@ -15,12 +15,12 @@ global.mongooseGlobal ??= {
   promise: null,
 };
 
-export async function connectDatabase(): Promise<boolean> {
-  if (global.mongooseGlobal.conn) return true;
+export async function connectDatabase() {
+  if (global.mongooseGlobal.conn) return global.mongooseGlobal.conn;
 
-  if (!process.env.MONGODB_URI) {
+  else if (!process.env.MONGODB_URI) {
     console.error("MongoDb Uri is not available");
-    return false;
+    return null;
   }
 
   try {
@@ -30,9 +30,9 @@ export async function connectDatabase(): Promise<boolean> {
 
     global.mongooseGlobal.conn = await global.mongooseGlobal.promise;
     console.log("MongoDB Connected Successfully.");
-    return true;
+    return global.mongooseGlobal.conn;
   } catch (err: any) {
     console.log("MongoDB connection failed: ", err.message);
-    return false;
+    return null;
   }
 }

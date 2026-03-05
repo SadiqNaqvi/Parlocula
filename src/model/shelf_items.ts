@@ -1,10 +1,10 @@
 import { parloId } from "@lib/utils";
-import { ShelfItemModelType, StrictModel } from "@type/models";
-import { model, models } from "mongoose";
-import { StrictSchema } from "./general";
+import { ShelfItemModelType } from "@type/models";
+import type { StrictModel } from "@type/mongoose";
+import { model, models, StrictSchema } from "@type/mongoose";
 
 const shelfItemModel = new StrictSchema<ShelfItemModelType>({
-  _id: { type: String, default: parloId },
+  _id: { type: String, default: () => parloId(21) },
   taleon_id: {
     type: String,
     ref: "Taleon",

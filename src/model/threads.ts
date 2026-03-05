@@ -1,7 +1,8 @@
 import { parloId } from "@lib/utils";
-import { StrictModel, ThreadModelType } from "@type/models";
-import { model, models } from "mongoose";
-import { basedOnModel, frameModel, linkModel, numberSchema, StrictSchema } from "./general";
+import { ThreadModelType } from "@type/models";
+import type { StrictModel, } from "@type/mongoose";
+import { model, models, StrictSchema } from "@type/mongoose";
+import { basedOnModel, frameModel, linkModel, numberSchema } from "./general";
 
 const threadModel = new StrictSchema<ThreadModelType>({
   _id: { type: String, default: parloId },

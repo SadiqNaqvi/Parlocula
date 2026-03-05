@@ -1,7 +1,8 @@
 import { parloId } from "@lib/utils";
-import { CommentModelType, StrictModel } from "@type/models";
-import { model, models } from "mongoose";
-import { numberSchema, StrictSchema } from "./general";
+import { CommentModelType } from "@type/models";
+import type { StrictModel, } from "@type/mongoose";
+import { model, models, StrictSchema } from "@type/mongoose";
+import { numberSchema } from "./general";
 
 const commentModel = new StrictSchema<CommentModelType>({
   _id: { type: String, default: parloId },

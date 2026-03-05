@@ -1,7 +1,7 @@
 import LinkToast from "@components/toasts/LinkToast"
-import { generateFingerprint } from "@lib/auth"
+import generateFingerprint from "@lib/auth/fingerprint";
 import { oneDayInSeconds, oneHourInMiliSeconds, parloculaAppURL } from "@lib/constants"
-import { getQueryClient } from "@lib/providers/queryClient"
+import { getQueryClient } from "@lib/providers/queryClient";
 import appToast from "@lib/providers/toast"
 import { codetoError, getQueryKeys, objectToFormData, parloId, trycatch } from "@lib/utils"
 import { AppNavigationInstance } from "@store/historystack"

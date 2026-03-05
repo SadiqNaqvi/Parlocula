@@ -1,3 +1,4 @@
+import "server-only";
 import { TokenPayload } from "@type/internal";
 import { JWTPayload, SignJWT, jwtVerify } from "jose";
 

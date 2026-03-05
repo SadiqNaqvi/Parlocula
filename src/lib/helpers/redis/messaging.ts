@@ -1,11 +1,11 @@
 import { oneDayInSeconds, oneHourInSeconds, queryLimit } from "@lib/constants";
-import { getUpstashRedis, handleParsing, handlePipelineResponse, redisAggregator, RedisJson, RedisStage, Stage, zaddInUpstash } from "@lib/providers/redis";
-import { createArray, getTimeInFuture } from "@lib/utils";
+import { getUpstashRedis, handlePipelineResponse, redisAggregator, RedisJson, RedisStage, Stage, zaddInUpstash } from "@lib/providers/redis";
+import { createArray, getTimeInFuture, parseUnknownData } from "@lib/utils";
 import { Message, Participant } from "@model";
 import { CachedFullRoomType, CachedParticipantType, FullRoomType, MereMessage, MereRoomType, MereUser, ParticipantEnumType, ParticipantType, RoomListResponse } from "@type/internal";
 import { MessageModelType, ParticipantModelType, RoomModelType } from "@type/models";
 import { Pipeline, ScoreMember } from "@upstash/redis";
-import { ClientSession } from "mongoose";
+import type { ClientSession } from "@type/mongoose";
 
 /*
 * rooms:{user_id} -zrevrange - ex 1d
@@ -310,7 +310,7 @@ const createPipelineForRoomList = (user_id: string, page: number, invitation?: b
             method: "transform", ref: "roomList", transform: (s, roomList: string[]) => {
                 return roomList.map(rmid => {
                     const key = `room:${rmid}`;
-                    const room: any[] = handleParsing(s.get(key));
+                    const room: any[] = parseUnknownData(s.get(key));
                     if (!room || !room[0]) throw new Error(`Aggregation failed at transform stage due to lack of data of key ${key}`);
                     return { key, value: room[0] }
                 })

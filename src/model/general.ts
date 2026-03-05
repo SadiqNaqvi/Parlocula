@@ -4,7 +4,7 @@ import {
   FrameModelType,
   LinkModelType
 } from "@type/models";
-import { Schema, SchemaDefinitionProperty, SchemaOptions, SchemaTypeOptions } from "mongoose";
+import { Schema } from "@type/mongoose";
 
 export const numberSchema = {
   type: Number,
@@ -58,14 +58,3 @@ export const frameModel = new Schema<FrameModelType>({
     required: false,
   }
 });
-
-type ExactSchemaDefinition<T> = {
-  [K in keyof T]-?: SchemaDefinitionProperty<T[K]> | SchemaTypeOptions<T[K]>;
-};
-
-// Our strict Schema class
-export class StrictSchema<T> extends Schema<T> {
-  constructor(definition: ExactSchemaDefinition<T>, options?: SchemaOptions<any>) {
-    super(definition as any, options);
-  }
-}

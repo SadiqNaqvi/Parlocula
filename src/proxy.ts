@@ -1,4 +1,5 @@
-import { generateToken, getSession, verifyToken } from "@lib/auth";
+import { getSession } from "@lib/auth/session";
+import { generateToken, verifyToken } from "@lib/auth/token";
 import { deleteAuthCookies, setCookies } from "@lib/auth/cookies";
 import { slidingWindowRateLimit } from "@lib/helpers/redis/rate_limiting";
 import { ErrorCodes } from "@type/other";

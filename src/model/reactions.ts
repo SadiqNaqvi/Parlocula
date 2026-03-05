@@ -1,10 +1,10 @@
-import { ReactionModelType, StrictModel } from "@type/models";
-import { Schema, model, models } from "mongoose";
-import { StrictSchema } from "./general";
 import { parloId } from "@lib/utils";
+import { ReactionModelType } from "@type/models";
+import type { StrictModel } from "@type/mongoose";
+import { model, models, StrictSchema } from "@type/mongoose";
 
 const reactionModel = new StrictSchema<ReactionModelType>({
-  _id: { type: String, default: parloId },
+  _id: { type: String, default: () => parloId(21) },
   reaction: {
     type: String,
     required: true,

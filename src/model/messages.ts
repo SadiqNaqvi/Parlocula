@@ -1,11 +1,11 @@
 import { oneDayInSeconds } from "@lib/constants";
 import { parloId } from "@lib/utils";
-import { MessageModelType, StrictModel } from "@type/models";
-import { model, models } from "mongoose";
-import { StrictSchema } from "./general";
+import { MessageModelType } from "@type/models";
+import type { StrictModel } from "@type/mongoose";
+import { model, models, StrictSchema } from "@type/mongoose";
 
 export const messageModel = new StrictSchema<MessageModelType>({
-  _id: { type: String, default: parloId },
+  _id: { type: String, default: () => parloId(21) },
   content: { type: String, required: true },
   createdAt: { type: Date, default: Date.now },
   room_id: {

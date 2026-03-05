@@ -45,25 +45,23 @@ export const POST = postHandler<LikeSchemaType>({
 
     if (milestoneTouched) {
       await sendNotification(
-        [
-          {
-            title: `Congratulations! Your comment has got ${comment.likes_count} likes 🙌🥳`,
-            poster: undefined,
-            message: [
-              {
-                type: "link",
-                label: "Your comment",
-                path: `/comment/${comment._id}`,
-              },
-              {
-                type: "text",
-                text: `has reached a new milestone. It got ${comment.likes_count} likes 🙌🥳`,
-              },
-            ],
-            path: `/comment/${comment._id}`,
-            user_id: comment.user_id,
-          },
-        ],
+        [comment.user_id],
+        {
+          title: `Congratulations! Your comment has got ${comment.likes_count} likes 🙌🥳`,
+          poster: undefined,
+          message: [
+            {
+              type: "link",
+              label: "Your comment",
+              path: `/comment/${comment._id}`,
+            },
+            {
+              type: "text",
+              text: `has reached a new milestone. It got ${comment.likes_count} likes 🙌🥳`,
+            },
+          ],
+          path: `/comment/${comment._id}`,
+        },
         session
       );
     }

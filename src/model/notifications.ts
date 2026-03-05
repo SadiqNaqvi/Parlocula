@@ -1,8 +1,8 @@
 import { oneWeekInSeconds } from "@lib/constants";
 import { parloId } from "@lib/utils";
-import { NotificationModelType, StrictModel } from "@type/models";
-import { Schema, model, models } from "mongoose";
-import { StrictSchema } from "./general";
+import { NotificationModelType } from "@type/models";
+import { model, models, Schema, StrictSchema } from "@type/mongoose";
+import type { StrictModel, } from "@type/mongoose";
 
 const messageItemSchema = new Schema(
   {
@@ -34,7 +34,7 @@ const messageItemSchema = new Schema(
 );
 
 const notificationModel = new StrictSchema<NotificationModelType>({
-  _id: { type: String, default: parloId },
+  _id: { type: String, default: () => parloId(21) },
   message: {
     type: [messageItemSchema],
     required: true,

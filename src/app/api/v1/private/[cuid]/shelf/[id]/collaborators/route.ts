@@ -105,7 +105,8 @@ export const POST = postHandler<SchemaType>({
     )
 
     await sendNotification(
-      users.map((u) => ({
+      users.map((u) => u),
+      {
         title: `${username} has invited you to collaborate in one of their shelfs`,
         poster: shelf.poster ? getPoster({ path: shelf.poster, type: "poster", size: "w92", external: true }) : profile,
         path: "/notifications",
@@ -118,14 +119,13 @@ export const POST = postHandler<SchemaType>({
           { type: "link", label: shelf.name, path: `/shelf/${id}` },
         ],
         type: "request",
-        user_id: u,
         metadata: {
           shelf_id: id,
           sender_id: user_id,
         },
         request_type: "collaborator_invitation",
         status: "pending",
-      })),
+      },
       session
     );
 

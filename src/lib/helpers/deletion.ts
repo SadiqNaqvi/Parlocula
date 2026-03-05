@@ -1,7 +1,7 @@
 import { deleteMediaFiles } from "@lib/providers/media";
 import { Bookmark, Comment, Like, Message, Participant, Post, Reaction, Room, Shelf, ShelfItem, User } from "@model";
 import { BookmarkModelType, CommentModelType, PostModelType, RoomModelType, ShelfModelType } from "@type/models";
-import { ClientSession, FilterQuery } from "mongoose";
+import type { ClientSession, FilterQuery } from "@type/mongoose";
 
 type Doc = { _id: string };
 

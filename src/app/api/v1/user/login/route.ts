@@ -1,7 +1,6 @@
-import { generateToken } from "@lib/auth";
 import { setCookies } from "@lib/auth/cookies";
 import { deleteSession, storeSession } from "@lib/auth/session";
-import { oneDayInSeconds } from "@lib/constants";
+import { generateToken } from "@lib/auth/token";
 import { postHandler } from "@lib/helpers/handlers";
 import { storeUserMetaInCache } from "@lib/helpers/redis/messaging";
 import { verifyCode } from "@lib/helpers/server";
@@ -11,7 +10,7 @@ import User from "@model/users";
 import { MereShelf, TokenPayload } from "@type/internal";
 import { UserModelType } from "@type/models";
 import { ErrorCodes } from "@type/other";
-import { ClientSession } from "mongoose";
+import type { ClientSession } from "@type/mongoose";
 import { cookies } from "next/headers";
 
 type ResponseType = Omit<Required<UserModelType>, "isActive" | "lastLoginAt" | "password" | "session_id"> & { predefinedShelves: MereShelf }

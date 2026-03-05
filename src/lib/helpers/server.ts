@@ -5,7 +5,7 @@ import { oneHourInSeconds } from "@lib/constants";
 import { getRedis } from "@lib/providers/redis";
 import { verificationCodeSchema } from "@lib/schemas";
 import { getTimeInFuture } from "@lib/utils";
-import { Notification, ShelfItem, Taleon } from "@model";
+import { Notification, ShelfItem, Taleon, User } from "@model";
 import { render } from "@react-email/components";
 import { GeneralGetReturn, GeneralPostReturn } from "@type/internal";
 import { NotificationModelType, ShelfItemModelType, TaleonModelType } from "@type/models";
@@ -13,9 +13,25 @@ import { PushNotificationType } from "@type/other";
 import { ConfirmedTaleon, TaleonSchemaType } from "@type/schemas";
 import Ably from "ably";
 import { randomInt } from "crypto";
-import { ClientSession } from "mongoose";
+import type { ClientSession } from "@type/mongoose";
 import { cookies } from "next/headers";
 import { createTransport } from "nodemailer";
+import webpush, { PushSubscription } from 'web-push'
+import { getAblyRest } from "@lib/providers/ably";
+
+webpush.setVapidDetails(
+  `mailto:contact.qcore@gmail.com`,
+  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
+  process.env.VAPID_PRIVATE_KEY!
+);
+
+const transportor = createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.QCORE_EMAIL,
+    pass: process.env.APP_PASSWORD,
+  },
+});
 
 type TaleonDocType = TaleonModelType & { _id: string }
 
@@ -113,13 +129,6 @@ type SendEmailProps = {
 }
 
 export const sendEmail = async ({ email, subject, template }: SendEmailProps) => {
-  const transportor = createTransport({
-    service: "gmail",
-    auth: {
-      user: process.env.QCORE_EMAIL,
-      pass: process.env.APP_PASSWORD,
-    },
-  });
 
   await transportor.sendMail({
     from: process.env.QCORE_EMAIL,
@@ -218,50 +227,158 @@ export const verifyCode = async (code: string | number, fingerprint: string): Pr
   }
 };
 
-export const sendTestNotification = async (clientId: string) => {
-  const ably = new Ably.Rest(process.env.ABLY_API_KEY!);
+export const subscribeToPush = async (user_id: string, subscription: PushSubscription): Promise<GeneralPostReturn> => {
+  try {
+    const user = await User.findByIdAndUpdate(user_id, {
+      push_endpoint: subscription.endpoint,
+      push_p256dh: subscription.keys.p256dh,
+      push_auth: subscription.keys.auth,
+    });
 
-  await ably.push.admin.publish(
-    { clientId },
-    {
-      data: {
-        title: "Test Notification",
-        body: "Click here to open",
-        path: "/notifications",
-      } as PushNotificationType,
-    },
-  );
+    if (!user) return { success: false, errCode: "resource_not_found" }
 
+    return { success: true, result: null };
+  } catch (e: any) {
+    console.warn("Error occured while subscribing to push notification", e);
+    return { success: false, errCode: "unknown_error" }
+  }
+}
+
+export const unsubscribeToPush = async (user_id: string): Promise<GeneralPostReturn> => {
+  try {
+    const user = await User.findByIdAndUpdate(user_id, {
+      $unset: {
+        push_endpoint: 1,
+        push_p256dh: 1,
+        push_auth: 1,
+      }
+    });
+
+    if (!user) return { success: false, errCode: "resource_not_found" }
+
+    return { success: true, result: null };
+  } catch (e: any) {
+    console.warn("Error occured while subscribing to push notification", e);
+    return { success: false, errCode: "unknown_error" }
+  }
+}
+
+export const sendTestNotification = async (username: string, message: string): Promise<GeneralPostReturn> => {
+  try {
+    const user = await User.findOne({ username }, { push_auth: 1, push_endpoint: 1, push_p256dh: 1, profile: 1, });
+
+    if (!user)
+      return { success: false, errCode: "resource_not_found" };
+
+    else if (!user.push_auth || !user.push_endpoint || !user.push_p256dh)
+      return { success: false, errCode: "custom_error", customError: "User is not subscribed" };
+
+
+    await webpush.sendNotification(
+      {
+        endpoint: user.push_endpoint,
+        keys: {
+          auth: user.push_auth,
+          p256dh: user.push_p256dh,
+        }
+      },
+      JSON.stringify({
+        title: `Hey ${username}! Just Testing Notification`,
+        body: message,
+        icon: user.profile?.path,
+      })
+    );
+
+    return { success: true, result: null }
+  } catch (e: any) {
+    console.error('Error sending push notification:', e);
+    return { success: false, errCode: "custom_error", customError: e.message }
+  }
+}
+
+export const sendAppNotification = async (uid: string, title: string) => {
+  return await getAblyRest().channels.get(uid)
+    .publish("notification", { title }, { client_id: uid })
+}
+
+export const sendPushNotification = async (subs: PushSubscription, n: { title: string, body?: string, icon?: string }) => {
+  await webpush.sendNotification(subs, JSON.stringify(n))
 }
 
 export const sendNotification = async (
-  notifications: NotificationModelType[],
+  user_ids: string[],
+  notification: Omit<NotificationModelType, "user_id">,
   session?: ClientSession
 ) => {
-  const createdNotifications = await Notification.create(notifications, { session, ordered: true });
-
-  console.log("Notifications created");
-
-  const ably = new Ably.Rest(process.env.ABLY_API_KEY!);
-  await Promise.all(
-    createdNotifications.map(async (n) => {
-      const channel = ably.channels.get(n.user_id as string);
-      if ((await channel.presence.get()).items.length) {
-        return channel.publish("notification", n, { client_id: n.user_id });
-      } else {
-        return ably.push.admin.publish(
-          { clientId: n.user_id },
-          {
-            data: {
-              title: "Test Notification",
-              body: "Click here to open",
-              path: "/notifications",
-            } as PushNotificationType,
-          },
-        );
-      }
-    })
+  await Notification.create(
+    user_ids.map(user_id => ({ ...notification, user_id })),
+    { session, ordered: true }
   );
+
+  const ably = getAblyRest();
+
+  let onlineUsersIds: string[] = [];
+  let offlineUsersIds: string[] = [];
+
+  await Promise.all(
+    user_ids.map(uid => ably.channels.get(uid)
+      .presence.get()
+      .then(r => {
+        if (r.items.length) onlineUsersIds.push(uid);
+        else offlineUsersIds.push(uid)
+      })
+    )
+  );
+
+  const offlineUsers = await User.find(
+    { _id: { $in: offlineUsersIds } },
+    { push_auth: 1, push_endpoint: 1, push_p256dh: 1 }
+  )
+
+  const simpleNotificationMessage = notification.message.map(n => n.type === "link" ? n.label : n.text).join(' ');
+
+  await Promise.all<any>([
+
+    ...onlineUsersIds.map(uid => sendAppNotification(uid, notification.title)),
+
+    ...offlineUsers.map(user => {
+      if (!user.push_auth || !user.push_endpoint || !user.push_p256dh) return;
+      return sendPushNotification(
+        {
+          endpoint: user.push_endpoint,
+          keys: {
+            auth: user.push_auth,
+            p256dh: user.push_p256dh,
+          }
+        },
+        {
+          title: notification.title,
+          body: simpleNotificationMessage,
+          icon: notification.poster,
+        }
+      )
+    })
+  ])
+
+  // await Promise.all(
+  //   createdNotifications.map(async (n) => {
+  //     const channel = ably.channels.get(n.user_id);
+  //     if ((await channel.presence.get()).items.length) {
+  //       return channel.publish("notification", n, { client_id: n.user_id });
+  //     } else {
+  //       return ably.push.admin.publish(
+  //         { clientId: n.user_id },
+  //         {
+  //           data: {
+  //             title: "Test Notification",
+  //             body: "Click here to open",
+  //             path: "/notifications",
+  //           } as PushNotificationType,
+  //         },
+  //       );
+  //     }
+  //   })
+  // );
 };
 
 export const deleteUserFromCookies = async () => {

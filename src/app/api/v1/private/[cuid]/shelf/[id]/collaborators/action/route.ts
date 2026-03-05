@@ -24,7 +24,8 @@ export const PATCH = updateHandler({
     if (!shelf)
       return { success: false, errCode: "resource_not_found" }
 
-    await sendNotification([
+    await sendNotification(
+      [shelf.user_id],
       {
         message: [
           { type: "text", text: "Congratulations! " },
@@ -33,10 +34,10 @@ export const PATCH = updateHandler({
         ],
         title: `New Collaborator for your shelf 🥳`,
         poster: profile ? profile : shelf.poster ? getPoster({ external: true, path: shelf.poster, size: "w92", type: "poster" }) : undefined,
-        user_id: shelf.user_id,
         metadata: { shelf_id: id },
-      }
-    ], session);
+      },
+      session
+    );
 
     return {
       success: true,

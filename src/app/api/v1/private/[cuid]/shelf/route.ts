@@ -60,7 +60,8 @@ export const POST = postHandler<ShelfSchemaType>({
       const followers = await getFollowersToNotify(user_id, 100);
 
       await sendNotification(
-        followers.map(({ follower }) => ({
+        followers.map(({ follower }) => follower),
+        {
           title: `${username} has created a new shelf`,
           path: `/shelf/${shelf._id}`,
           poster: profile,
@@ -69,8 +70,7 @@ export const POST = postHandler<ShelfSchemaType>({
             { type: "text", text: "has created a new shelf" },
             { type: "link", label: data.name, path: `/shelf/${shelf._id}` },
           ],
-          user_id: follower,
-        })),
+        },
         session
       );
 

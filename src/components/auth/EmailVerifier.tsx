@@ -3,7 +3,7 @@
 import { Form, Input, FormSubmitReturnType, OTPInput } from "@components/form";
 import Navbar from "@components/Navbar";
 import { LoadingSpinner, OptionalChildren } from "@components/ui";
-import { generateFingerprint } from "@lib/auth";
+import generateFingerprint from "@lib/auth/fingerprint";
 import { sendVerificationCode } from "@lib/helpers/server";
 import { useCustomReducer } from "@lib/hooks";
 import appToast from "@lib/providers/toast";

@@ -1,7 +1,8 @@
-import { ShelfModelType, StrictModel } from "@type/models";
-import { Schema, model, models } from "mongoose";
-import { numberSchema } from "./general";
 import { parloId } from "@lib/utils";
+import { ShelfModelType } from "@type/models";
+import { model, models, Schema, StrictSchema } from "@type/mongoose";
+import type { StrictModel, } from "@type/mongoose";
+import { numberSchema } from "./general";
 
 const shelfModel = new Schema<ShelfModelType>({
   _id: { type: String, default: parloId },

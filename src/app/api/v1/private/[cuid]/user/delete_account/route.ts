@@ -1,12 +1,12 @@
 import AccountDeletionWarning from "@components/EmailTemplates/accountDeletion";
-import { deleteSession } from "@lib/auth";
+import { deleteSession } from "@lib/auth/session";
 import { oneDayInMiliSeconds, parloculaAppURL } from "@lib/constants";
 import { updateHandler } from "@lib/helpers/handlers";
 import { sendEmail } from "@lib/helpers/server";
 import { User } from "@model";
 import { render } from "@react-email/components";
 import { Client } from "@upstash/qstash";
-import * as bcrypt from "bcrypt";
+import * as bcrypt from "bcryptjs";
 import { cookies } from "next/headers";
 
 const client = new Client({

@@ -10,20 +10,20 @@ import { getQueryKeys } from "@lib/utils";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { CurrentUser } from "@type/internal";
 import { ThemeProvider } from "next-themes";
-import { Montserrat, Roboto } from "next/font/google";
 import { cookies } from "next/headers";
 import { PropsWithChildren, Suspense } from "react";
 import { Toaster } from "sonner";
 import UserHydrator from "./UserHydrator";
+import localFont from 'next/font/local'
 
-const montserratFont = Montserrat({
+const montserratFont = localFont({
+  src: "./fonts/Montserrat.ttf",
   variable: "--font-montserrat",
-  subsets: ["latin"],
 });
 
-const robotoFont = Roboto({
-  variable: "--font-roboto",
-  subsets: ["latin"],
+const robotoFont = localFont({
+  src: "./fonts/Roboto.ttf",
+  variable: "--font-roboto"
 });
 
 export const metadata = generateDynamicMetadata({}, true);

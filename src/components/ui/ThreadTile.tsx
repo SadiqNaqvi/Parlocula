@@ -9,7 +9,9 @@ const ThreadTile = ({ name, poster, _id, member_count, post_count }: MereThread)
             <article className="flex gap-2 items-center p-2 sm:px-4">
                 <ParloImage
                     frameType="threadPoster"
-                    className="min-w-10 size-10 rounded-full object-cover"
+                    className="min-w-10 size-10 object-cover"
+                    containerClassName="rounded-full overflow-hidden"
+                    classNameForFallback="min-w-8 size-8 p-1"
                     frame={poster}
                     alt="Poster"
                     size={40}

@@ -4,7 +4,7 @@ import { convertMatchToLookupExpr } from "@lib/pipelines";
 import { getSearchParams } from "@lib/utils";
 import { Room, User } from "@model";
 import { AggregatedResponse } from "@type/internal";
-import { PipelineStage } from "mongoose";
+import type { PipelineStage } from "@type/mongoose";
 
 // Search all the rooms (private/group) of the current user
 export const GET = getHandler(async (r, params) => {

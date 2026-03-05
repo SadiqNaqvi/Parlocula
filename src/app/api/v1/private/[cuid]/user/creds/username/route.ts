@@ -1,11 +1,12 @@
-import { generateToken, getSession, storeSession } from "@lib/auth";
+import { getSession, storeSession } from "@lib/auth/session";
+import { generateToken } from "@lib/auth/token";
 import { setCookies } from "@lib/auth/cookies";
 import { updateHandler } from "@lib/helpers/handlers";
 import { usernameUpdateSchema } from "@lib/schemas";
 import { getTimeInFuture } from "@lib/utils";
 import { User } from "@model";
 import { UsernameUpdateSchemaType } from "@type/schemas";
-import * as bcrypt from "bcrypt";
+import * as bcrypt from "bcryptjs";
 import { cookies } from "next/headers";
 
 export const PATCH = updateHandler<UsernameUpdateSchemaType>({

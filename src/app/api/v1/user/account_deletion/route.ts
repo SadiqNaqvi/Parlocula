@@ -8,8 +8,8 @@ import { User } from "@model";
 import { render } from "@react-email/components";
 import { GenericDate } from "@type/internal";
 import { Client, Receiver } from "@upstash/qstash";
-import { compareSync } from "bcrypt";
-import { ClientSession, startSession } from "mongoose";
+import { compareSync } from "bcryptjs";
+import type { ClientSession } from "@type/mongoose";
 import { NextRequest, NextResponse } from "next/server";
 
 type Payload = {
@@ -50,8 +50,8 @@ export const POST = async (req: NextRequest) => {
 
     try {
 
-        const isDbConnected = await connectDatabase();
-        if (!isDbConnected) return NextResponse.json({
+        const connection = await connectDatabase();
+        if (!connection) return NextResponse.json({
             result: null,
             success: false,
             errCode: "database_connection_fail",
@@ -66,7 +66,7 @@ export const POST = async (req: NextRequest) => {
             return NextResponse.json({ error: "Deletion has been cancelled" }, { status: 200 });
 
         const now = Date.now();
-        session = await startSession();
+        session = await connection.startSession();
 
         // Check is time for deletion;
         if (now >= new Date(data.deleteOn).getTime()) {

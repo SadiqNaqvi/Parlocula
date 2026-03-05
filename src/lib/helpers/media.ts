@@ -190,6 +190,19 @@ export const binaryToBase64 = (binary: Uint8Array) => {
     return btoa(String.fromCharCode(...binary))
 }
 
+export const urlBase64ToUint8Array = (base64String: string) => {
+    const padding = '='.repeat((4 - (base64String.length % 4)) % 4)
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/')
+
+    const rawData = window.atob(base64)
+    const outputArray = new Uint8Array(rawData.length)
+
+    for (let i = 0; i < rawData.length; ++i) {
+        outputArray[i] = rawData.charCodeAt(i)
+    }
+    return outputArray
+}
+
 export const base64ToBinary = (base64: string) => {
     if (isServer())
         return new Uint8Array(Buffer.from(base64, 'base64'))

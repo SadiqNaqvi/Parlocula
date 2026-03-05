@@ -143,7 +143,7 @@ export const calculateAge = (bday: GenericDate): number => {
 export const objectToFormData = (
   object: Record<string, any>
 ): FormData | null => {
-  
+
   const formData = new FormData();
   if (!object) return formData;
 
@@ -175,6 +175,17 @@ export const formDataToObject = (formData: FormData) => {
   }
   return formDataObject;
 };
+
+export const parseUnknownData = (data: any) => {
+  if (typeof data === "string") {
+    try {
+      return JSON.parse(data);
+    } catch {
+      return data;
+    }
+  }
+  return data;
+}
 
 export const parseObject = (obj: Record<string, any>): Record<string, any> => {
   if (!obj) return {};
@@ -249,12 +260,12 @@ export const getThumbnail = (vid: string) => {
   return vidArr.join(".").concat(".jpg");
 };
 
-export const parloId = () => {
+export const parloId = (length = 12) => {
   const nanoid = customAlphabet(
     'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789',
-    12,
+    length,
   )
-  return nanoid(12);
+  return nanoid(length);
 }
 
 // export const isValidParloId = (id: string) => Boolean(id.length === 12);

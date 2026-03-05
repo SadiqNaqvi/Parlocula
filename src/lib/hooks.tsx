@@ -71,7 +71,6 @@ type UseQueryProps<T,> = {
     placeholderData?: T,
 }
 
-
 export const useQueryHook = <T,>({ queryKeys, onSuccess, queryFn, initialData, placeholderData, staleTime, enabled = true }: UseQueryProps<T>) => {
     const defaultStaleTime = Date.now() + oneHourInMiliSeconds;
     const response = useQuery<T | null>({
@@ -371,4 +370,44 @@ export const useFeedHook = () => {
         queryKeys: ["usersFeed", uid || "guest"],
         placeholderData: placeholder,
     });
+}
+
+export const useDebounce = (mutationFn: () => any, skipInSeconds = 10) => {
+    const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const initialState = useRef<any>(null);
+    const finalState = useRef<any>(undefined);
+
+    useEffect(() => {
+        return () => {
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current);
+            }
+
+            const changed = JSON.stringify(initialState.current) !== JSON.stringify(finalState.current)
+
+            if (changed) {
+                mutationFn();
+            }
+        }
+    }, []);
+
+    const mutate = () => {
+        const timeout = timeoutRef.current;
+        if (timeout) {
+            clearTimeout(timeout)
+        }
+
+        timeoutRef.current = setTimeout(mutationFn, skipInSeconds * 1000);
+    }
+
+    const setInitialState = (arg: any) => {
+        initialState.current = arg;
+    }
+
+    const setFinalState = (arg: any) => {
+        finalState.current = arg;
+    }
+
+    return { mutate, setInitialState, setFinalState }
+
 }

@@ -1,10 +1,10 @@
-import { ConnectionModelType, StrictModel } from "@type/models";
-import { model, models } from "mongoose";
-import { StrictSchema } from "./general";
+import { ConnectionModelType } from "@type/models";
+import type { StrictModel } from "@type/mongoose";
+import { model, models, StrictSchema } from "@type/mongoose";
 import { parloId } from "@lib/utils";
 
 const connectionModel = new StrictSchema<ConnectionModelType>({
-  _id: { type: String, default: parloId },
+  _id: { type: String, default: () => parloId(21) },
   followee: {
     type: String,
     ref: "User",

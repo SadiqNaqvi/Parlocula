@@ -1,11 +1,12 @@
 import { parloId } from "@lib/utils";
-import { StrictModel, UserModelType } from "@type/models";
-import { model, models } from "mongoose";
-import { StrictSchema, frameModel, linkModel, numberSchema } from "./general";
+import { UserModelType } from "@type/models";
+import type { StrictModel, } from "@type/mongoose";
+import { model, models, StrictSchema } from "@type/mongoose";
+import { frameModel, linkModel, numberSchema } from "./general";
 
 const userModel = new StrictSchema<UserModelType>(
   {
-    _id: { type: String, default: parloId },
+    _id: { type: String, default: () => parloId(21) },
     name: String,
     username: {
       type: String,
@@ -30,6 +31,10 @@ const userModel = new StrictSchema<UserModelType>(
     },
     profile: frameModel,
     isActive: { type: Boolean, default: true },
+
+    push_auth: String,
+    push_endpoint: String,
+    push_p256dh: String,
 
     // Metadata
     edited_at: { type: Date, default: null },

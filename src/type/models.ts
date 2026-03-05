@@ -1,25 +1,9 @@
-import { CreateOptions, HydratedDocument, Model } from "mongoose";
 import { Frame, GenericDate } from "./internal";
 
 type Nanoid = string;
 
-export type MongooseModel<T = any> = Model<T, T, T, T, T, T>;
-
 type DocumentExpiration = {
   expiresAt?: Date;
-}
-
-export interface StrictModel<T> extends Model<T> {
-  create(
-    docs: Array<T>,
-    options: CreateOptions & { aggregateErrors: true }
-  ): Promise<(any | Error)[]>;
-  create(
-    docs: Array<T>,
-    options?: CreateOptions
-  ): Promise<HydratedDocument<T>[]>;
-  create(doc: T): Promise<HydratedDocument<T>>;
-  create(...docs: Array<T>): Promise<HydratedDocument<T>[]>;
 }
 
 export type ReportModelType = {
@@ -69,6 +53,10 @@ export type UserModelType = {
   lastShelfCreatedAt?: GenericDate | undefined;
   lastCommentedAt?: GenericDate | undefined;
   lastLoginAt?: GenericDate;
+
+  push_endpoint?: string;
+  push_p256dh?: string
+  push_auth?: string;
 
   filterContent?: boolean;
   isBanned?: boolean;

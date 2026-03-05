@@ -7,7 +7,7 @@ import { ThreadUpdateSchema } from "@type/schemas";
 
 // Making sure that only managers are allowed to update a thread.
 export const PATCH = updateHandler<ThreadUpdateSchema>({
-  handler: async ({ data, frames, params, username, user_id, isNsfw, areFilesToDelete }) => {
+  handler: async ({ data, frames, params, session, username, user_id, isNsfw, areFilesToDelete }) => {
 
     const dataToUpdate = Object({
       ...data,
@@ -16,15 +16,15 @@ export const PATCH = updateHandler<ThreadUpdateSchema>({
       ...(frames.length && { poster: frames[0] }),
     });
 
-    console.log(dataToUpdate);
-
     const doc = await Thread.findByIdAndUpdate(
       params.id,
       {
         $set: dataToUpdate,
         ...(!frames.length && areFilesToDelete && { $unset: { poster: 1 } }),
-      }
+      },
+      session
     ).then(r => r?.toObject());
+
     if (!doc) return { success: false, errCode: "resource_not_found" }
 
     const managers = await Member.find(
@@ -33,18 +33,21 @@ export const PATCH = updateHandler<ThreadUpdateSchema>({
     );
 
     if (managers.length) {
-      await sendNotification(managers.map(manager => ({
-        title: `${username} updated the thread ${doc.name}`,
-        message: [
-          { type: "link", label: username, path: `/user/${username}` },
-          { type: "text", text: "updated the thread" },
-          { type: "link", label: doc.name, path: `/thread/${doc._id}` },
-        ],
-        poster: doc.poster?.path,
-        user_id: manager.user_id,
-        metadata: { thread_id: doc._id, user_id: manager.user_id },
-        path: `/thread/${doc._id}`,
-      })))
+      await sendNotification(
+        managers.map(({ user_id }) => user_id),
+        {
+          title: `${username} updated the thread ${doc.name}`,
+          message: [
+            { type: "link", label: username, path: `/user/${username}` },
+            { type: "text", text: "updated the thread" },
+            { type: "link", label: doc.name, path: `/thread/${doc._id}` },
+          ],
+          poster: doc.poster?.path,
+          metadata: { thread_id: doc._id },
+          path: `/thread/${doc._id}`,
+        },
+        session
+      )
     }
 
     return {

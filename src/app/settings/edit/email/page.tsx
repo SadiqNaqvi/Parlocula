@@ -3,7 +3,7 @@
 import { Navbar } from "@components";
 import { Form, Input, Password } from "@components/form";
 import { LoadingSpinner } from "@components/ui";
-import { generateFingerprint } from "@lib/auth";
+import generateFingerprint from "@lib/auth/fingerprint";
 import { updateEmail } from "@lib/helpers/mutations";
 import { sendVerificationCode } from "@lib/helpers/server";
 import { useCustomReducer } from "@lib/hooks";

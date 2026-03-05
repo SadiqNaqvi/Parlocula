@@ -3,7 +3,7 @@
 import { Navbar } from "@components";
 import EmailVerifier from "@components/auth/EmailVerifier";
 import { Form, Input } from "@components/form";
-import { generateFingerprint } from "@lib/auth";
+import generateFingerprint from "@lib/auth/fingerprint";
 import { errorCodes } from "@lib/constants";
 import { handleErrorFromMutation, invalidateSession } from "@lib/helpers/mutations";
 import { verifyCode } from "@lib/helpers/server";

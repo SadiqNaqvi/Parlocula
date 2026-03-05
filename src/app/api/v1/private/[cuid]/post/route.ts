@@ -6,7 +6,7 @@ import { postSchemaServer } from "@lib/schemas";
 import { createArray } from "@lib/utils";
 import { Post, Thread, User } from "@model";
 import { PostSchemaType } from "@type/schemas";
-import { PipelineStage } from "mongoose";
+import type { PipelineStage } from "@type/mongoose";
 
 // Checking if the current user is a member of the thread and if user is blocked by the author of the quoted post.
 const preCheck: PrecheckFunction<PostSchemaType> = async ({ user_id, data }) => {
@@ -119,7 +119,8 @@ export const POST = postHandler<PostSchemaType>({
             .map(({ follower }) => follower)
             .concat(members.map(({ user_id }) => user_id))
         )
-      ).map((u) => ({
+      ),
+      {
         title: `${username} has created a new post in ${thread.name}`,
         path: `/post/${post._id}`,
         poster: profile,
@@ -138,8 +139,7 @@ export const POST = postHandler<PostSchemaType>({
             path: `/post/${post._id}`,
           },
         ],
-        user_id: u,
-      })),
+      },
       session
     );
 

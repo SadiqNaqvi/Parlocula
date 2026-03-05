@@ -7,8 +7,8 @@ tag?: string
 }
 */
 
+
 self.addEventListener("push", (event) => {
-  console.log(event, event.data.json());
   if (!event.data) return;
 
   let payload;
@@ -18,8 +18,6 @@ self.addEventListener("push", (event) => {
   } catch (e) {
     payload = event.data;
   }
-
-  console.log(payload);
 
   const data = payload.data || payload;
   const { body, icon, title, path } = data;

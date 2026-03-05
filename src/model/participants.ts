@@ -1,11 +1,11 @@
 import { oneWeekInMiliSeconds } from "@lib/constants";
 import { parloId } from "@lib/utils";
-import { ParticipantModelType, StrictModel } from "@type/models";
-import { model, models } from "mongoose";
-import { StrictSchema } from "./general";
+import { ParticipantModelType } from "@type/models";
+import type { StrictModel } from "@type/mongoose";
+import { model, models, StrictSchema } from "@type/mongoose";
 
 const participantModel = new StrictSchema<ParticipantModelType>({
-  _id: { type: String, default: parloId },
+  _id: { type: String, default: () => parloId(21) },
   hideAt: Date,
   mute: {
     type: Boolean,

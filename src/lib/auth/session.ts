@@ -1,8 +1,10 @@
 "use server";
 
+import "server-only";
 import { oneDayInSeconds } from "@lib/constants";
-import { getRedis, handleParsing } from "@lib/providers/redis";
+import { getRedis } from "@lib/providers/redis";
 import { Session } from "@type/internal";
+import { parseUnknownData } from "@lib/utils";
 
 export const storeToRedis = async (id: string, exp: number, obj: Session) => {
   try {
@@ -30,7 +32,7 @@ export const getSession = async <T = undefined>(
   try {
     const redis = await getRedis();
     const session = (await redis.get(`session:${id}`)) as ReturnType<T>;
-    return { success: true, result: handleParsing(session) };
+    return { success: true, result: parseUnknownData(session) };
   } catch (err) {
     console.log("Error getting sessions", err);
     return { success: false, result: null };

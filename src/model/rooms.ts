@@ -1,8 +1,10 @@
 import { oneWeekInMiliSeconds } from "@lib/constants";
 import { parloId } from "@lib/utils";
-import { RoomModelType, StrictModel } from "@type/models";
-import { model, models, Schema } from "mongoose";
-import { frameModel, numberSchema, StrictSchema } from "./general";
+import { RoomModelType } from "@type/models";
+import { model, models, Schema, StrictSchema } from "@type/mongoose";
+import type { StrictModel, } from "@type/mongoose";
+
+import { frameModel, numberSchema } from "./general";
 
 const roomModel = new StrictSchema<RoomModelType>({
   _id: { type: String, default: parloId },

@@ -6,7 +6,7 @@ import { MereRoomType, CurrentUser } from "@type/internal";
 import { AblyEventParams } from "@type/other";
 import { ConnectionStateChange } from "ably";
 import { toast } from "sonner";
-import { showMessageOptimistically, updateDoc, updateDocInInfiniteQueryResult } from "./mutations";
+import { refetchQueries, showMessageOptimistically, updateDoc, updateDocInInfiniteQueryResult } from "./mutations";
 
 const setUser = (user: CurrentUser, contentFiltering: boolean) => {
 
@@ -38,8 +38,9 @@ export const setUserOnRefreshOrLogin = (user: CurrentUser, contentFiltering: boo
 
     const handleNewNotification = ({ data }: { data?: AblyEventParams["notification"] }) => {
         if (!data) return;
-        console.log("Notification received", data);
-        toast.success("New Notification has arrived.", { icon: "🔔" });
+        refetchQueries(getQueryKeys("notifications_uid", { uid: user._id }));
+        toast.success(data.title, { icon: "🔔" });
+
         useNotification.setState({ newNotification: true }, true);
     }
 

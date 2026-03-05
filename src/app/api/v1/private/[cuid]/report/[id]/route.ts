@@ -1,10 +1,13 @@
 import { getHandler, postHandler, updateHandler } from "@lib/helpers/handlers";
-import { sendNotification } from "@lib/helpers/server";
+import { sendAppNotification, sendNotification, sendPushNotification } from "@lib/helpers/server";
+import { getAblyRest } from "@lib/providers/ably";
 import { reportActionSchema } from "@lib/schemas";
 import { capitalize } from "@lib/utils";
-import { Comment, Member, Post } from "@model";
+import { Comment, Member, Notification, Post } from "@model";
 import Report from "@model/reports";
+import { NotificationModelType } from "@type/models";
 import { ReportActionSchemaType, ReportSchemaType } from "@type/schemas";
+import { PushSubscription } from "web-push";
 
 // Check if the content is reported by the current user and return report's metadata.
 // Here id is content_id
@@ -50,7 +53,15 @@ type PipelineProp = {
   key: "title" | "content"
 }
 
-type Content = { _id: string, user_id: string, title: string, content: string };
+type Content = {
+  _id: string,
+  user_id: string,
+  title: string,
+  content: string,
+  push_auth: string | undefined,
+  push_endpoint: string | undefined,
+  push_p256dh: string | undefined,
+};
 
 type PipelineResult = {
   forDeletion: Content[]
@@ -65,20 +76,58 @@ const getContents = async ({ contentsToDelete, contentsToWarnAuthor, type, key }
         postsToDelete: [
           { $match: { _id: { $in: contentsToDelete } } },
           {
+            $lookup: {
+              from: "users",
+              localField: "user_id",
+              foreignField: "_id",
+              pipeline: [{ $project: { push_auth: 1, push_endpoint: 1, push_p256dh: 1 } }],
+              as: "user",
+            }
+          },
+          {
+            $addFields: {
+              push_auth: { $arrayElemAt: ["$user.push_auth", 0] },
+              push_endpoint: { $arrayElemAt: ["$user.push_endpoint", 0] },
+              push_p256dh: { $arrayElemAt: ["$user.push_p256dh", 0] }
+            }
+          },
+          {
             $project: {
               _id: 1,
               [key]: 1,
               user_id: 1,
+              push_auth: 1,
+              push_endpoint: 1,
+              push_p256dh: 1,
             }
           }
         ],
         contentForWarning: [
           { $match: { _id: { $in: contentsToWarnAuthor } } },
           {
+            $lookup: {
+              from: "users",
+              localField: "user_id",
+              foreignField: "_id",
+              pipeline: [{ $project: { push_auth: 1, push_endpoint: 1, push_p256dh: 1 } }],
+              as: "user",
+            }
+          },
+          {
+            $addFields: {
+              push_auth: { $arrayElemAt: ["$user.push_auth", 0] },
+              push_endpoint: { $arrayElemAt: ["$user.push_endpoint", 0] },
+              push_p256dh: { $arrayElemAt: ["$user.push_p256dh", 0] }
+            }
+          },
+          {
             $project: {
               _id: 1,
               [key]: 1,
               user_id: 1,
+              push_auth: 1,
+              push_endpoint: 1,
+              push_p256dh: 1,
             }
           }
         ]
@@ -136,55 +185,101 @@ export const PATCH = updateHandler<ReportActionSchemaType>({
         }
       },
       { session }
-    )
+    );
+    
+    const ably = getAblyRest();
+
+    const uidToPushPayload: Record<string, PushSubscription> = {};
 
     // Sending notifications to the author of the content whose post/comment has been deleted
-    await sendNotification(
-      forDeletion.map(content => {
-        const content_title = type === "post" ? content.title : content.content;
-        return {
-          title: `Your ${type} has been deleted.`,
-          poster: undefined,
-          message: [
-            {
-              type: "text",
-              text: `Your ${type} 
+    let notifications: NotificationModelType[] = [];
+
+    forDeletion.forEach((content) => {
+      const content_title = type === "post" ? content.title : content.content;
+      if (content.push_auth && content.push_endpoint && content.push_p256dh) {
+        uidToPushPayload[content.user_id] = {
+          endpoint: content.push_endpoint,
+          keys: {
+            auth: content.push_auth,
+            p256dh: content.push_p256dh,
+          }
+        }
+      }
+      notifications.push({
+        title: `Your ${type} has been deleted.`,
+        poster: undefined,
+        message: [
+          {
+            type: "text",
+            text: `Your ${type} 
               '${content_title.slice(0, 50).concat(content_title.length > 50 ? "..." : '')}' 
-              has been deleted because of the reports on it.`
-            },
-          ],
-          user_id: content.user_id,
+              has been deleted.`
+          },
+        ],
+        user_id: content.user_id,
+      })
+    });
+
+    // Sending Warning to the author of the post/comment.
+    forWarning.forEach(content => {
+
+      const content_title = type === "post" ? content.title : content.content;
+      const path = `/${type}/${content._id}/reports`;
+
+      if (content.push_auth && content.push_endpoint && content.push_p256dh) {
+        uidToPushPayload[content.user_id] = {
+          endpoint: content.push_endpoint,
+          keys: {
+            auth: content.push_auth,
+            p256dh: content.push_p256dh,
+          }
         }
-      }),
-      session
-    );
+      }
 
-    // Sending Wanrning to the author of the post/comment.
-    await sendNotification(
-      forWarning.map(content => {
+      notifications.push({
+        title: `Immediate Action Required.`,
+        poster: undefined,
+        message: [
+          { type: "text", text: `You are being warned because your ${type}` },
+          {
+            type: "link",
+            label: `${content_title.slice(0, 50).concat(content_title.length > 50 ? "..." : '')}`,
+            path
+          },
+          {
+            type: "text", text: `has been reported multiple times. Please update your ${type} accordingly or actions will be taken against it.`
+          },
+        ],
+        user_id: content.user_id,
+        path,
+      })
+    });
 
-        const content_title = type === "post" ? content.title : content.content;
-        const path = `/${type}/${content._id}/reports`;
+    await Notification.create(notifications, { session });
 
-        return {
-          title: `Immediate Action Required.`,
-          poster: undefined,
-          message: [
-            { type: "text", text: `You are being warned because your ${type}` },
+    await Promise.all(
+      notifications.map(async n => {
+        const uid = n.user_id;
+        const isOnline = await ably.channels.get(uid)
+          .presence.get()
+          .then(r => !!r.items.length);
+
+        if (isOnline) {
+          return sendAppNotification(uid, n.title)
+        } else {
+          const subscription = uidToPushPayload[uid];
+          if (!subscription) return;
+          return sendPushNotification(
+            subscription,
             {
-              type: "link",
-              label: `${content_title.slice(0, 50).concat(content_title.length > 50 ? "..." : '')}`,
-              path
-            },
-            {
-              type: "text", text: `has been reported multiple times. Please update your ${type} accordingly or actions will be taken against it.`
-            },
-          ],
-          user_id: content.user_id,
-          path,
+              title: n.title,
+              body: n.message.map(n => n.type === "link" ? n.label : n.text).join(' '),
+              icon: n.poster,
+            }
+          )
         }
-      }),
-      session,
+
+      })
     )
 
     return {

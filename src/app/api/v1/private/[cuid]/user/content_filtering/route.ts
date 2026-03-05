@@ -1,4 +1,5 @@
-import { generateToken, getSession, storeSession } from "@lib/auth";
+import { getSession, storeSession } from "@lib/auth/session";
+import { generateToken } from "@lib/auth/token";
 import { setCookies } from "@lib/auth/cookies";
 import { updateHandler } from "@lib/helpers/handlers";
 import { User } from "@model";

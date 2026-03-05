@@ -1,16 +1,17 @@
 import WelcomeEmail from "@components/EmailTemplates/welcome";
-import { generateToken, storeSession } from "@lib/auth";
 import { setCookies } from "@lib/auth/cookies";
-import { oneDayInSeconds, parloculaAppURL, predefinedShelves } from "@lib/constants";
+import { storeSession } from "@lib/auth/session";
+import { generateToken } from "@lib/auth/token";
+import { parloculaAppURL, predefinedShelves } from "@lib/constants";
 import { postHandler } from "@lib/helpers/handlers";
 import { sendEmail } from "@lib/helpers/server";
 import { registerUserSchemaServer } from "@lib/schemas";
 import { Shelf, User } from "@model";
 import { render } from "@react-email/components";
-import { TokenPayload, CurrentUser } from "@type/internal";
+import { CurrentUser, TokenPayload } from "@type/internal";
 import { PredefinedShelves } from "@type/models";
 import { UserSchemaType } from "@type/schemas";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import { cookies } from "next/headers";
 
 // export const runtime = "nodejs"

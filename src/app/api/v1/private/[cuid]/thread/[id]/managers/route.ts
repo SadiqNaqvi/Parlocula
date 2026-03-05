@@ -113,7 +113,8 @@ export const POST = postHandler<SchemaType>({
       return { success: false, errCode: "resource_not_found" }
 
     await sendNotification(
-      users.map((u) => ({
+      users.map((u) => u),
+      {
         title: `${username} has invited you to become a manager of thread`,
         path: "/notifications",
         poster: thread.poster.path,
@@ -126,14 +127,13 @@ export const POST = postHandler<SchemaType>({
           { type: "link", label: thread.name, path: `/thread/${id}` },
         ],
         type: "request",
-        user_id: u,
         metadata: {
           thread_id: id,
           sender_id: user_id,
         },
         request_type: "manager_invitation",
         status: "pending",
-      })),
+      },
       session
     );
 

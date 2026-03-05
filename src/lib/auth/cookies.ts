@@ -1,3 +1,5 @@
+import "server-only";
+
 import { oneDayInSeconds } from "@lib/constants";
 import { NextResponse } from "next/server";
 

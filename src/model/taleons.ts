@@ -1,12 +1,13 @@
 import { parloId } from "@lib/utils";
-import { TaleonModelType, StrictModel } from "@type/models";
-import { model, models } from "mongoose";
-import { numberSchema, StrictSchema } from "./general";
+import { TaleonModelType } from "@type/models";
+import type { StrictModel, } from "@type/mongoose";
+import { model, models, StrictSchema } from "@type/mongoose";
+import { numberSchema } from "./general";
 
 export const taleonModel = new StrictSchema<TaleonModelType>({
   _id: {
     type: String,
-    default: parloId
+    default: () => parloId(21)
   },
   title: {
     type: String,

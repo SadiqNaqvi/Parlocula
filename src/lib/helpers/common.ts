@@ -1,14 +1,13 @@
-import { getCacheTags, objectToFormData } from "@lib/utils";
+import { getCacheTags } from "@lib/utils";
 import {
   AggregatedResponse,
   CurrentUser,
-  FullTaleonType,
   FullComment,
   FullPost,
   FullRoomType,
   FullShelf,
+  FullTaleonType,
   GeneralGetReturn,
-  GeneralMultipleReturn,
   MereComment,
   MereMessage,
   MerePost,
@@ -23,14 +22,11 @@ import {
   ShelfItemType,
   ShelvesForTaleon,
   Thread,
-  ThreadModType,
-  ParticipantType,
+  ThreadModType
 } from "@type/internal";
 import { CollaboratorModelType, MembershipModelType, NotificationModelType, ReportModelType } from "@type/models";
 import { AvailableCacheTags, CookiesType, PPGetDataProps } from "@type/other";
-import axios from "axios";
 import { oneDayInMiliSeconds, oneDayInSeconds, oneHourInSeconds, parloculaAppURL, queryFilters } from "../constants";
-import { GeneralExtReturn, RefinedMovieData, RefinedShowData } from "@type/external";
 import { createUpdateTaleon } from "./mutations";
 
 export const ppGetData = async <T, K extends AvailableCacheTags = any>(
@@ -43,10 +39,8 @@ export const ppGetData = async <T, K extends AvailableCacheTags = any>(
   const urlToFetch = new URL(url, `${parloculaAppURL}/api/v1/`);
 
   Object.entries(searchParams ?? {}).forEach(([k, v]) => {
-    urlToFetch.searchParams.set(k, `${v}`);
+    urlToFetch.searchParams.set(k, `${v} `);
   });
-
-  // console.log(urlToFetch.href, url, searchParams);
 
   try {
 
@@ -58,7 +52,7 @@ export const ppGetData = async <T, K extends AvailableCacheTags = any>(
 
   } catch (err: any) {
 
-    console.error(`Error occured at path ${url}`, err.message);
+    console.error(`Error occured at path ${url} `, err.message);
 
     return { success: false, errCode: "unstable_internet" };
   }

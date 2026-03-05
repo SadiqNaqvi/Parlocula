@@ -1,7 +1,8 @@
 import { parloId } from "@lib/utils";
-import { PostModelType, StrictModel } from "@type/models";
-import { model, models } from "mongoose";
-import { frameModel, linkModel, numberSchema, StrictSchema } from "./general";
+import { PostModelType } from "@type/models";
+import type { StrictModel, } from "@type/mongoose";
+import { model, models, StrictSchema } from "@type/mongoose";
+import { frameModel, linkModel, numberSchema } from "./general";
 
 const postModel = new StrictSchema<PostModelType>({
   _id: { type: String, default: parloId },

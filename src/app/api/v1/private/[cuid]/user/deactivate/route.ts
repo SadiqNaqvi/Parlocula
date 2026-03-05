@@ -1,8 +1,8 @@
-import { deleteSession } from "@lib/auth";
+import { deleteSession } from "@lib/auth/session";
 import { updateHandler } from "@lib/helpers/handlers";
 import { User } from "@model";
 import { cookies } from "next/headers";
-import * as bcrypt from "bcrypt"
+import * as bcrypt from "bcryptjs"
 
 // Add that user can deactivate only once a week,
 export const PATCH = updateHandler<{ passkey: string }>({

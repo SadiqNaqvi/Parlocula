@@ -107,18 +107,16 @@ export const POST = postHandler<{ notification: boolean }>({
     if (!user) return { success: false, errCode: "invalid_object_id" };
 
     await sendNotification(
-      [
-        {
-          title: `${username} started following you`,
-          path: `/user/${username}`,
-          poster: profile,
-          message: [
-            { type: "link", label: username, path: `/user/${username}` },
-            { type: "text", text: "started following you." },
-          ],
-          user_id: user._id,
-        },
-      ],
+      [user._id],
+      {
+        title: `${username} started following you`,
+        path: `/user/${username}`,
+        poster: profile,
+        message: [
+          { type: "link", label: username, path: `/user/${username}` },
+          { type: "text", text: "started following you." },
+        ],
+      },
       session
     );
 
