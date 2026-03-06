@@ -122,7 +122,7 @@ export const TaleonWikiSection = <T extends AllowedFunctionsForHorizontalList>({
         ) : children
         }
 
-    </section >
+    </section>
 )
 
 export default TaleonWikiHeader;

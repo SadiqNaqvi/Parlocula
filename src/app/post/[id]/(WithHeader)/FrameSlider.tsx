@@ -22,6 +22,8 @@ const getPath = (path: string, source: Required<Frame["extSource"]>) => {
 const FrameContainer = (frame: Frame & { id: string }) => {
     const { path, type, extSource } = frame;
 
+    console.log(extSource);
+
     if (extSource === "vimeo" || extSource === "youtube") return (
         <ParloImage
             fill
@@ -83,7 +85,7 @@ const FrameSlider = ({ frames, id }: { frames: Frame[], id: string }) => {
     return (
         <>
             {/* For Mobile devices */}
-            <FancyCarousel className="sm:hidden">
+            <FancyCarousel>
                 {frames.map(frame => (
                     <li className="f-carousel__slide" key={frame.path}>
                         <FrameContainer id={id} {...frame} />
@@ -92,13 +94,13 @@ const FrameSlider = ({ frames, id }: { frames: Frame[], id: string }) => {
             </FancyCarousel>
 
             {/* For larger devices */}
-            <ul className="hidden sm:flex gap-2 overflow-x-auto noScroll">
+            {/* <ul className="hidden sm:flex gap-2 overflow-x-auto noScroll">
                 {frames.map(frame => (
                     <li key={frame.path}>
-                        <FrameContainer id={id} {...frame} />
+                        <FrameContainer carousel={false} id={id} {...frame} />
                     </li>
                 ))}
-            </ul>
+            </ul> */}
         </>
     )
 

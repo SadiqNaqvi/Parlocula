@@ -27,7 +27,7 @@ export const searchFilters = [
 export const app_production_url = process.env.NEXT_PUBLIC_PARLOCULA_URL ?? "https://parlocula.vercel.app";
 export const parloculaAppURL =
   process.env.NODE_ENV === "development" ?
-    "https://localhost:3000" :
+    "http://localhost:3000" :
     app_production_url
 
 export const availablePostCategories = [

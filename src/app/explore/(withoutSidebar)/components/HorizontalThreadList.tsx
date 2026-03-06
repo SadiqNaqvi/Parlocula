@@ -1,5 +1,6 @@
 "use client";
 
+import { Navigate } from "@components";
 import { OptionalChildren, ShowError, ThreadBox } from "@components/ui";
 import { ThreadBoxSkeleton } from "@components/ui/loading";
 import { getThreadsForTaleonOrArtist } from "@lib/helpers/common";
@@ -67,16 +68,23 @@ const HorizontalThreadList = ({ id, type }: { id: string, type: string }) => {
     )
 
     else if (!data || !data?.data?.length) return (
-        <section className="py-4 w-full border-dashed border-zinc-500 space-x-4">
-            <p className="text-lg text-center">Nothing could be found</p>
-            <p className="text-sm text-center">{`Be the first one to create a thread on this ${type}.`}</p>
+        <section>
+            <div className="py-4 w-full border-dashed border-zinc-500 space-x-4">
+                <p className="text-lg text-center">Nothing could be found</p>
+                <p className="text-sm text-center">Be the first one to create a thread on this {type}.</p>
+            </div>
+            <Navigate comp="link" goto={`/new/thread?cnid=${id}&type=${type}`} className="mt-4 btn secondary w-full sm:w-fit">Create Thread</Navigate>
         </section>
     );
 
     return (
-        <div className="flex gap-4 pb-2 overflow-x-auto">
-            {data.data.map(el => <ThreadBox key={el._id} {...el} />)}
-        </div>
+        <section>
+            <div className="flex gap-4 pb-2 overflow-x-auto">
+                {data.data.map(el => <ThreadBox key={el._id} {...el} />)}
+            </div>
+
+            <Navigate comp="link" goto={`/new/thread?cnid=${id}&type=${type}`} className="mt-4 btn secondary w-full sm:w-fit">Create Thread</Navigate>
+        </section>
     )
 }
 

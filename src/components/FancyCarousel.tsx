@@ -2,16 +2,14 @@
 
 import { useEffect, useRef } from 'react';
 
-import { Carousel as NativeCarousel } from '@fancyapps/ui';
+import { Carousel as NativeCarousel, type CarouselOptions } from '@fancyapps/ui';
+import { Dots } from "@fancyapps/ui/dist/carousel/carousel.dots.js";
 import '@fancyapps/ui/dist/carousel/carousel.css';
 
-import type { OptionsType } from '@fancyapps/ui/types/Carousel/options';
 import { twMerge } from 'tailwind-merge';
 
-const options: Partial<OptionsType> = {
+const options: Partial<CarouselOptions> = {
     infinite: true,
-    Dots: true,
-    Navigation: false,
 };
 
 const Carousel = ({ children, className }: { children: React.ReactNode, className?: string }) => {
@@ -21,7 +19,7 @@ const Carousel = ({ children, className }: { children: React.ReactNode, classNam
         if (!containerRef.current) return;
 
         const container = containerRef.current;
-        const instance = new NativeCarousel(container, options);
+        const instance = NativeCarousel(container, options, { Dots, }).init();
 
         return () => { instance.destroy(); };
     }, []);

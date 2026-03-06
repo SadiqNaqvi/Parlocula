@@ -96,6 +96,23 @@ export const frameDataSchema = z.object({
 
 export const fileSchema = z
   .any()
+  .refine(file => file instanceof File, "Invalid File")
+  .refine(file => {
+    const [type, ext] = file.type.split("/");
+
+    const formats = allowedFormats[type];
+
+    if (formats && formats.includes(ext)) return true;
+    return false;
+
+  }, "Invalid file format!")
+  .refine(
+    (file) => file.size < allowedSizes[file.type.split("/")[0]],
+    "File size is too large!"
+  );
+
+export const formidableFileSchema = z
+  .any()
   .refine((file: FormidableFile) => {
     if (!file.mimetype) return false;
 
@@ -154,7 +171,7 @@ export const threadSchemaServer = z
       .array(linkSchema)
       .refine((l) => l.length <= 5, "At most 5 links are allowed"),
     filesData: z.array(frameDataSchema).optional().default([]),
-    files: z.array(fileSchema).optional().default([]),
+    files: z.array(formidableFileSchema).optional().default([]),
   }).merge(threadSchemaClient);
 
 export const threadUpdateSchema = threadSchemaServer
@@ -180,7 +197,7 @@ const postServerBase = z.object({
   category: categoryEnum.default(""),
   links: z.array(linkSchema),
   filesData: z.array(frameDataSchema).max(numberOfFrames.total).default([]),
-  files: z.array(fileSchema).max(numberOfFrames.total).default([]),
+  files: z.array(formidableFileSchema).max(numberOfFrames.total).default([]),
   thread_id: z.string(),
   quoted_post_id: z.string().optional(),
   quoted_post_author: z.string().optional(),
@@ -214,14 +231,14 @@ export const registerUserSchemaServer = z
     username: usernameSchema,
     email: emailSchema,
     bioLinks: z.array(linkSchema).default([]),
-    files: z.array(fileSchema).optional().default([]),
+    files: z.array(formidableFileSchema).optional().default([]),
     filesData: z.array(frameDataSchema).optional().default([]),
   })
   .merge(registerUserSchemaClient);
 
 export const userUpdateSchema = z.object({
   bioLinks: z.array(linkSchema).optional(),
-  files: z.array(fileSchema).optional().default([]),
+  files: z.array(formidableFileSchema).optional().default([]),
   filesData: z.array(frameDataSchema).optional().default([]),
 })
   .merge(registerUserSchemaServer)
@@ -388,7 +405,7 @@ export const roomSchema = z
       ),
     name: z.string().optional(),
     filesData: z.array(frameDataSchema).optional().default([]),
-    files: z.array(fileSchema).optional().default([]),
+    files: z.array(formidableFileSchema).optional().default([]),
     inviteMessage: z.string(),
   })
   .refine(({ type, name, participants }) => {
@@ -401,7 +418,7 @@ export const roomSchema = z
 
 export const roomUpdateSchema = z.object({
   name: z.string(),
-  files: z.array(fileSchema).default([]),
+  files: z.array(formidableFileSchema).default([]),
   filesData: z.array(frameDataSchema).optional().default([]),
 })
   .partial()

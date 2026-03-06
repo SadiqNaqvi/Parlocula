@@ -39,7 +39,7 @@ export const ppGetData = async <T, K extends AvailableCacheTags = any>(
   const urlToFetch = new URL(url, `${parloculaAppURL}/api/v1/`);
 
   Object.entries(searchParams ?? {}).forEach(([k, v]) => {
-    urlToFetch.searchParams.set(k, `${v} `);
+    urlToFetch.searchParams.set(k, String(v));
   });
 
   try {

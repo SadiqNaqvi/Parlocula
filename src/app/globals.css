@@ -230,6 +230,17 @@ h6 {
   backdrop-filter: blur(8px) brightness(0.8);
 }
 
+.f-carousel {
+  --f-carousel-slide-width: 100%;
+}
+
+@media screen and (width> 425px) {
+  .f-carousel {
+    --f-carousel-slide-width: fit-content !important;
+    --f-carousel-gap: 8px !important;
+  }
+}
+
 .items-end {
   align-items: flex-end;
 }
@@ -320,6 +331,20 @@ h6 {
   border-bottom-color: transparent;
   border-radius: 25px;
   animation: spin 1000ms infinite ease;
+}
+
+.notificationBadge {
+  position: relative;
+}
+
+.notificationBadge::after {
+  position: absolute;
+  padding: 0.25rem;
+  content: "";
+  background-color: red;
+  border-radius: 100%;
+  top: -0.25rem;
+  right: -0.25rem;
 }
 
 .w-stretch {

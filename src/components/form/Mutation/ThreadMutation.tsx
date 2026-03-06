@@ -133,7 +133,9 @@ const ThreadMutation = ({ isEditing, defaultValues }: Props) => {
                     <button type="submit" className="primary" onClick={requestSubmit}>{isEditing ? "Update" : "Create"}</button>
                 }
             />
-
+            <section className="px-2">
+                <Poster ref={posterRef} defaultPoster={defaultValues?.poster?.path} className="absolute" />
+            </section>
             <Form
                 schema={threadSchemaClient}
                 ref={formRef}
@@ -143,8 +145,7 @@ const ThreadMutation = ({ isEditing, defaultValues }: Props) => {
             >
 
                 <section className="flex gap-2 md:gap-4 items-center">
-                    <Poster ref={posterRef} defaultPoster={defaultValues?.poster?.path} className="mx-0 min-w-24 size-24 md:min-w-36 md:size-36" />
-
+                    <div className="min-w-24 size-24 sm:min-w-32 sm:size-32"></div>
                     <div className="flex-1 space-y-1 md:space-y-2">
                         <DisplayNameInput
                             maxLength={30}

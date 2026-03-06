@@ -2,55 +2,42 @@
 
 import React, { useEffect } from "react";
 
-import { Fancybox as NativeFancybox } from "@fancyapps/ui";
+import { Fancybox as NativeFancybox, FancyboxPlugins } from "@fancyapps/ui";
 import "@fancyapps/ui/dist/fancybox/fancybox.css";
 
 const Fancybox = ({ children }: { children: React.ReactNode }) => {
 
     useEffect(() => {
 
-        NativeFancybox.bind("[data-modal]" as any, {
-            groupAttr: false,
-            closeButton: false,
-            hideScrollbar: true
-        } as any);
+        // NativeFancybox.bind("[data-modal]" as any, {
+        //     groupAttr: false,
+        //     closeButton: false,
+        //     hideScrollbar: true
+        // } as any);
 
-        NativeFancybox.bind("[data-frame]" as any, {
+        NativeFancybox.bind("[data-frame]", {
             groupAll: false,
             hideScrollbar: true,
-            animated: true,
             closeButton: false,
             dragToClose: true,
-            Fullscreen: { autoStart: true },
-            Toolbar: {
-                items: {
-                    customDownload: {
-                        tpl: `<button class="fancybox__button" title="Download">⬇️</button>`,
-                        click: (fancybox, slide) => {
-                            const src = fancybox.instance.getSlide()?.src
-                            console.log(src)
-                            if (!src || typeof src !== "string") return;
-                            // const src = slide.src;
-                            const link = document.createElement("a");
-                            link.href = src;
-                            link.download = `image-${Date.now()}`;
-                            document.body.appendChild(link);
-                            link.click();
-                            document.body.removeChild(link);
-                        },
-
-                    }
+            fadeEffect: true,
+            groupAttr: "parlo-gallery",
+            // Fullscreen: { autoStart: true },
+            Carousel: {
+                transition:"tween",
+                // Video:{}
+                Toolbar: {
+                    display: {
+                        left: ["counter"],
+                        middle: ["reset", "rotateCCW", "rotateCW", "toggle1to1", "toggleFull"],
+                        right: ["download", "fullscreen", "slideshow", "thumbs", "close"],
+                    },
                 },
-                display: {
-                    left: ["infobar"],
-                    middle: [],
-                    right: ["slideshow", "thumbs", "close"],
-                },
-            },
+            }
         });
 
         return () => {
-            NativeFancybox.unbind("[data-modal]");
+            // NativeFancybox.unbind("[data-modal]");
             NativeFancybox.unbind("[data-frame]");
             NativeFancybox.close();
         };

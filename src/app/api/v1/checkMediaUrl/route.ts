@@ -15,6 +15,20 @@ const createThumbHash = async (buffer: ArrayBuffer) => {
 
 }
 
+const workOnWebMedia = async (resp: Response) => {
+    const body = await resp.blob();
+    const { type, size } = body;
+
+    const [mime, ext] = type.split('/');
+
+    const hash = mime === "image" ? await createThumbHash(await body.arrayBuffer()) : undefined;
+
+    if (mime === "image" || mime === "video")
+        return { size, mime, ext, hash }
+
+    return null;
+}
+
 export const GET = async (req: NextRequest) => {
 
     const { searchParams } = req.nextUrl;
@@ -75,19 +89,24 @@ export const GET = async (req: NextRequest) => {
 
             if (resp.ok) return NextResponse.json({ success: true, result: null });
         } else {
-            const resp = await fetch(path);
+            const url = new URL(path);
+            const pathWithoutSParams = url.origin + url.pathname;
 
-            if (resp.ok) {
-                const body = await resp.blob();
-                const { type, size } = body;
-
-                const [mime, ext] = type.split('/');
-
-                const hash = mime === "image" ? await createThumbHash(await body.arrayBuffer()) : undefined;
-
-                if (mime === "image" || mime === "video")
-                    return NextResponse.json({ success: true, result: { size, mime, ext, hash } });
+            const [respWithSp, respWithoutSp] = await Promise.all([
+                fetch(path),
+                fetch(pathWithoutSParams),
+            ])
+            if (respWithoutSp.ok) {
+                const result = await workOnWebMedia(respWithoutSp);
+                if (result)
+                    return NextResponse.json({ success: true, result });
             }
+            else if (respWithSp.ok) {
+                const result = await workOnWebMedia(respWithSp);
+                if (result)
+                    return NextResponse.json({ success: true, result });
+            }
+
         }
 
         return NextResponse.json({ success: false, error: "Nothing could be found" }, { status: 404 });

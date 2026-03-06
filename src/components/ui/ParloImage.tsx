@@ -113,8 +113,8 @@ const getFancyAttributes = (config: Pick<Props, "fancyGallery" | "fileNameToDown
 
     return {
         "data-src": source,
-        "data-fancybox": true,
-        "data-frame": fancyGallery,
+        "parlo-gallery": fancyGallery,
+        "data-frame": true,
         "data-download-src": fileNameToDownload ? source : undefined,
         "data-download-filename": fileNameToDownload,
     }
@@ -176,10 +176,11 @@ const ParloImage = ({ frame, alt, height, size, width, className, containerClass
                 alt={alt || ""}
                 fill={fill}
                 className={twMerge(`cursor-pointer`, commonClassName, className)}
-                blurDataURL={!isTmdbImage && frame.hash ? decodeHash(frame.hash) : undefined}
-                placeholder={!isTmdbImage && frame.hash ? "blur" : "empty"}
+                blurDataURL={frame.hash ? decodeHash(frame.hash) : undefined}
+                placeholder={frame.hash ? "blur" : "empty"}
                 {...getFancyAttributes({ frameType, fancyGallery, fileNameToDownload, fullSizeFrame }, source)}
                 crossOrigin="anonymous"
+                // loader={frame.extSource === "youtube" || frame.extSource === "vimeo" ? ({ src }) => src : undefined}
                 decoding={prioritize ? "sync" : "async"}
                 sizes={sizes ? turnSizesArrIntoString(sizes) : `${correctWidth}px`}
             />

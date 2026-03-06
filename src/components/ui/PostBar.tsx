@@ -9,6 +9,10 @@ type SectionType = "thread" | "user";
 
 type Props = { additional?: { section: SectionType } }
 
+const PosterClassName = "object-cover min-w-10 max-w-10 max-h-10 size-10";
+const containerClassName = "rounded-full overflow-hidden";
+const fallbackClassName = "size-6"
+
 const PostBarHeader = ({ poster, profile, thread_id, thread_name, username, section }: Pick<MerePost, | "username" | "profile" | "poster" | "thread_name" | "thread_id"> & { section: SectionType | "all" }) => {
 
     if (!section || section === "all") return (
@@ -17,7 +21,9 @@ const PostBarHeader = ({ poster, profile, thread_id, thread_name, username, sect
                 <ParloImage
                     frameType="userProfile"
                     frame={profile}
-                    className="inline object-cover rounded-full size-10 min-w-10"
+                    className={PosterClassName}
+                    containerClassName={containerClassName}
+                    classNameForFallback={fallbackClassName}
                     size={40}
                     alt={`Profile picture of ${username} the author of this post`} />
             </Navigate>
@@ -36,7 +42,9 @@ const PostBarHeader = ({ poster, profile, thread_id, thread_name, username, sect
             <ParloImage
                 frameType="userProfile"
                 frame={username ? profile : undefined}
-                className="size-10 min-w-10 inline object-cover rounded-full"
+                className={PosterClassName}
+                containerClassName={containerClassName}
+                classNameForFallback={fallbackClassName}
                 size={40}
                 alt={`Poster of the thread ${thread_name}`}
             />
@@ -49,7 +57,9 @@ const PostBarHeader = ({ poster, profile, thread_id, thread_name, username, sect
             <ParloImage
                 frameType="threadPoster"
                 frame={poster}
-                className="size-10 min-w-10 inline object-cover rounded-full"
+                className={PosterClassName}
+                containerClassName={containerClassName}
+                classNameForFallback={fallbackClassName}
                 size={40}
                 alt={`Poster of the thread ${thread_name}`}
 

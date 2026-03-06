@@ -21,11 +21,11 @@ const NotificationButton = ({ active }: { active: boolean }) => {
         if (!result) return;
         checkNewNotification(result.pages[0]?.results[0]);
 
-    }, [user, isHydrated, checkNewNotification, hydrated])
+    }, [user, isHydrated, checkNewNotification, hydrated]);
 
     return (
         <OptionalChildren condition={active} fallback={<BellIcon />}>
-            <BellFillIcon />
+            <BellFillIcon className={newNotification ? "notificationBadge" : undefined} />
         </OptionalChildren>
     )
 }

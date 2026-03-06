@@ -277,6 +277,7 @@ export const MediaInputPrompt = ({ type, callback }: { type: "image" | "both", c
             setLoading(false);
             return error.errors.map(err => showError(err.message));
         }
+
         try {
 
             let blob: Blob | null = null,
@@ -354,7 +355,6 @@ export const MediaInputPrompt = ({ type, callback }: { type: "image" | "both", c
         </section>
     )
 
-
     else if (section === "mega") return (
         <UploadFromMega goBack={changeSectionToAll} setUrl={handleUploadFromUrl} />
     )
@@ -388,7 +388,7 @@ export const MediaInputPrompt = ({ type, callback }: { type: "image" | "both", c
                         onChange={handleDeviceUpload}
                         className="absolute inset-0 opacity-0"
                         title="" type="file"
-                        accept={`${mediaInputConfig.image.accept}, ${mediaInputConfig.video.accept}`}
+                        accept={type === "image" ? mediaInputConfig.image.accept : `${mediaInputConfig.image.accept}, ${mediaInputConfig.video.accept}`}
                     />
                 </div>
             </div>

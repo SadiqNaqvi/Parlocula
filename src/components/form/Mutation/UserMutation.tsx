@@ -49,11 +49,11 @@ const UserMutationPage = ({ username, isEditing, defaultValues, dob, email }: Pr
     const { meta } = useCurrentUser();
 
     const submitCreation = async (data: { name: string, bio: string }) => {
-        
+
         if (!dob) return "Date of birth is required";
-        
+
         else if (!email) throw new Error(`Email is required but got ${email}`);
-        
+
         else if (!username) throw new Error(`Username is required but got ${username}`);
 
         const profile = profileRef.current?.getData();
@@ -139,12 +139,9 @@ const UserMutationPage = ({ username, isEditing, defaultValues, dob, email }: Pr
                 )}
             />
 
-            <OptionalChildren condition={!isEditing}>
-                <div className="my-4 space-y-2 text-center text-zinc-500 text-sm">
-                    <p>This is a preview of how your profile would look.</p>
-                    <p>All of the fields are optional here. You can either click on fields to edit them or skip and update them later.</p>
-                </div>
-            </OptionalChildren>
+            <section className="px-2">
+                <Poster ref={profileRef} defaultPoster={defaultValues?.profile?.path} className="absolute" />
+            </section>
 
             <Form
                 ref={formRef}
@@ -157,7 +154,7 @@ const UserMutationPage = ({ username, isEditing, defaultValues, dob, email }: Pr
 
                 <section className="flex gap-4 mb-4 items-center">
 
-                    <Poster ref={profileRef} defaultPoster={defaultValues?.profile?.path} />
+                    <div className="min-w-24 size-24 sm:min-w-32 sm:size-32"></div>
 
                     <div className="space-y-2">
                         <DisplayNameInput
