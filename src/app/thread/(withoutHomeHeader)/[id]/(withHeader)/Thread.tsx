@@ -35,7 +35,9 @@ const Component = (data: ThreadType, { id, uid }: Props) => {
 
                 <section className="flex gap-2 sm:gap-4 items-center">
                     <ParloImage
-                        className="min-w-24 size-24 sm:min-w-32 sm:size-32 object-cover rounded-full"
+                        className="min-w-24 size-24 sm:min-w-32 sm:size-32 object-cover"
+                        containerClassName="rounded-full overflow-hidden"
+                        classNameForFallback="min-w-16 size-16 sm:min-w-16 sm:size-24 p-2"
                         frame={poster}
                         sizes={[
                             { imageWidth: 96, maxScreenWidth: 480 },

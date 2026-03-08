@@ -14,6 +14,8 @@ type Props = {
     skipDisc?: boolean;
     condition?: boolean;
     href?: string;
+    nsfw?: boolean;
+    spoiler?: boolean;
 }
 
 const MetadataContentTile = ({ children, skipDisc, }: PropsWithChildren<Pick<Props, "skipDisc">>) => (
@@ -23,11 +25,15 @@ const MetadataContentTile = ({ children, skipDisc, }: PropsWithChildren<Pick<Pro
     </OptionalChildren>
 )
 
-const MetadataTile = ({ children, className, skipDisc, condition, href }: PropsWithChildren<Props>) => {
+const commonClassName = "px-2 py-1 text-sm border color-secondary rounded-md"
+const nsfwClassName = `${commonClassName} bg-purple-500/30 border-purple-500`;
+const spoilerClassName = `${commonClassName} bg-orange-500/30 border-orange-500`
+
+const MetadataTile = ({ children, className, skipDisc, condition, href, nsfw, spoiler }: PropsWithChildren<Props>) => {
 
     return (
         <OptionalChildren condition={condition ?? true}>
-            <li className={twMerge("flex gap-2 text-zinc-500 group items-center", className)}>
+            <li className={twMerge("flex gap-2 text-zinc-500 group items-center", nsfw ? nsfwClassName : '', spoiler ? spoilerClassName : '', className)}>
                 <OptionalChildren condition={href} fallback={(
                     <MetadataContentTile skipDisc={skipDisc}>{children}</MetadataContentTile>
                 )}>

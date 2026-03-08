@@ -18,6 +18,7 @@ import { cookies } from "next/headers";
 import { createTransport } from "nodemailer";
 import webpush, { PushSubscription } from 'web-push'
 import { getAblyRest } from "@lib/providers/ably";
+import { connectDatabase } from "@lib/database";
 
 webpush.setVapidDetails(
   `mailto:contact.qcore@gmail.com`,
@@ -229,6 +230,10 @@ export const verifyCode = async (code: string | number, fingerprint: string): Pr
 
 export const subscribeToPush = async (user_id: string, subscription: PushSubscription): Promise<GeneralPostReturn> => {
   try {
+    const connection = await connectDatabase();
+    if (!connection)
+      return { success: false, errCode: "database_connection_fail" }
+
     const user = await User.findByIdAndUpdate(user_id, {
       push_endpoint: subscription.endpoint,
       push_p256dh: subscription.keys.p256dh,
@@ -246,6 +251,10 @@ export const subscribeToPush = async (user_id: string, subscription: PushSubscri
 
 export const unsubscribeToPush = async (user_id: string): Promise<GeneralPostReturn> => {
   try {
+    const connection = await connectDatabase();
+    if (!connection)
+      return { success: false, errCode: "database_connection_fail" }
+
     const user = await User.findByIdAndUpdate(user_id, {
       $unset: {
         push_endpoint: 1,
@@ -265,6 +274,10 @@ export const unsubscribeToPush = async (user_id: string): Promise<GeneralPostRet
 
 export const sendTestNotification = async (username: string, message: string): Promise<GeneralPostReturn> => {
   try {
+    const connection = await connectDatabase();
+    if (!connection)
+      return { success: false, errCode: "database_connection_fail" }
+
     const user = await User.findOne({ username }, { push_auth: 1, push_endpoint: 1, push_p256dh: 1, profile: 1, });
 
     if (!user)

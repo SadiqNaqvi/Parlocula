@@ -249,7 +249,7 @@ export const postHandler = <T extends HandlerData>({ handler, preCheck, schema, 
             }
 
             console.log("Starting session");
-            session = await connection.startSession();
+            session = await connection.connection.startSession();
             let isNsfw = false;
 
             const { files, filesData, filesToRemove, ...rest } = data;
@@ -382,7 +382,7 @@ export const deleteHandler = (
 
             console.log("Starting session");
 
-            session = await connection.startSession();
+            session = await connection.connection.startSession();
 
             console.log("Starting transaction");
             session.startTransaction();
@@ -490,9 +490,9 @@ export const updateHandler = <T extends HandlerData>({ handler, preCheck, schema
                 errCode: "database_connection_fail",
             });
 
-            console.log("starting transaction");
+            console.log("starting session");
 
-            session = await connection.startSession();
+            session = await connection.connection.startSession();
 
             // Some pre-checking eg: if the user is authorized to do this specific thing or not
             if (preCheck) {

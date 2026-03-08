@@ -16,7 +16,10 @@ global.mongooseGlobal ??= {
 };
 
 export async function connectDatabase() {
-  if (global.mongooseGlobal.conn) return global.mongooseGlobal.conn;
+  if (global.mongooseGlobal.conn && mongoose.connection.readyState === 1) {
+    console.log("Mongo DB Was already connected")
+    return global.mongooseGlobal.conn;
+  }
 
   else if (!process.env.MONGODB_URI) {
     console.error("MongoDb Uri is not available");

@@ -59,7 +59,8 @@ export const useHistoryStack = create(
 export type AppNavigationInstance = {
   back: () => void,
   replace: (href: string) => void,
-  goto: (href: string) => void
+  goto: (href: string) => void,
+  pathname: string,
 }
 
 export const useNavigation = (): AppNavigationInstance => {
@@ -82,6 +83,7 @@ export const useNavigation = (): AppNavigationInstance => {
       // console.log("popping from history stack", pathname, prevPage, recentlyOpened, recentlyOpened && recentlyOpened !== pathname);
       router.replace(prevPage && prevPage !== pathname ? prevPage : recentlyOpened && recentlyOpened !== pathname ? recentlyOpened : "/home");
     },
+    pathname,
     replace: (href: string) => {
       setHistory((history) => {
         const temphistory = [...history];

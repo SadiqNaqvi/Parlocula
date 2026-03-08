@@ -69,6 +69,10 @@ const isInternalFrame = (type: ParloImageFrameType): type is Extract<ParloImageF
     return isEqual(type, "userProfile", "threadPoster");
 }
 
+const isEmbeddingFrame = (source: Frame["extSource"]) => {
+    return (source === "youtube" || source === "vimeo")
+}
+
 const getTmdbSourceSet = (src: string, type: ParloImageFrameType) => {
     if (isInternalFrame(type)) return '';
     const extType = type === "shelfPoster" ? "poster" : type;
@@ -108,8 +112,7 @@ const FallbackIcon = ({ type, className }: { type: ParloImageFrameType, classNam
 const getFancyAttributes = (config: Pick<Props, "fancyGallery" | "fileNameToDownload" | "frameType" | "fullSizeFrame">, src: string | undefined) => {
     const { fileNameToDownload, fancyGallery, frameType, fullSizeFrame } = config;
     if (!fancyGallery || !src) return {};
-    const source = isInternalFrame(frameType) ? fullSizeFrame || src
-        : getPoster({ external: true, type: frameType, size: "original", path: src })
+    const source = fullSizeFrame || isInternalFrame(frameType) ? src : getPoster({ external: true, type: frameType, size: "original", path: src })
 
     return {
         "data-src": source,
@@ -180,9 +183,9 @@ const ParloImage = ({ frame, alt, height, size, width, className, containerClass
                 placeholder={frame.hash ? "blur" : "empty"}
                 {...getFancyAttributes({ frameType, fancyGallery, fileNameToDownload, fullSizeFrame }, source)}
                 crossOrigin="anonymous"
-                // loader={frame.extSource === "youtube" || frame.extSource === "vimeo" ? ({ src }) => src : undefined}
+                loader={isEmbeddingFrame(frame.extSource) ? ({ src }) => src : undefined}
                 decoding={prioritize ? "sync" : "async"}
-                sizes={sizes ? turnSizesArrIntoString(sizes) : `${correctWidth}px`}
+                sizes={isEmbeddingFrame(frame.extSource) ? undefined : sizes ? turnSizesArrIntoString(sizes) : `${correctWidth}px`}
             />
             <OptionalChildren condition={showSize || showMediaType || showSourceIcon}>
                 <div className="absolute bottom-4 right-4 flex gap-1 items-center text-zinc-200">

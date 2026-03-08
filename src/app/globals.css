@@ -230,14 +230,35 @@ h6 {
   backdrop-filter: blur(8px) brightness(0.8);
 }
 
-.f-carousel {
-  --f-carousel-slide-width: 100%;
+@media screen and (width> 480px) {
+  .f-carousel {
+    --f-carousel-gap: 8px;
+    --f-carousel-slide-width: 240px !important;
+
+    --f-arrow-pos: 10px;
+
+    --f-arrow-width: 38px;
+    --f-arrow-height: 38px;
+
+    --f-arrow-svg-width: 16px;
+    --f-arrow-svg-height: 16px;
+    --f-arrow-svg-stroke-width: 2.5;
+
+    --f-arrow-color: #475569;
+    --f-arrow-shadow:
+      0 6px 12px -2px rgb(50 50 93 / 25%), 0 3px 7px -3px rgb(0 0 0 / 30%);
+
+    --f-arrow-border-radius: 50%;
+    --f-arrow-bg: #fff;
+    --f-arrow-hover-bg: #f9f9f9;
+    --f-arrow-active-bg: #f0f0f0;
+  }
 }
 
-@media screen and (width> 425px) {
+@media screen and (width< 480px) {
   .f-carousel {
-    --f-carousel-slide-width: fit-content !important;
-    --f-carousel-gap: 8px !important;
+    --f-arrow-width: 0;
+    --f-arrow-height: 0;
   }
 }
 

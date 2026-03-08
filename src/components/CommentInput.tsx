@@ -4,14 +4,17 @@ import { SendIcon, XmarkIcon } from "@assets/Icons";
 import BottomSheet, { BottomSheetRef } from "@components/BottomSheet";
 import { Form, Input, ToggleButton } from "@components/form";
 import GiphyComponent from "@components/GiphyComponent";
+import { GifResult } from "@giphy/js-fetch-api";
+import { parloculaAppURL } from "@lib/constants";
 import { createCommentMutation, updateCommentMutation } from "@lib/helpers/mutations";
 import { checkEditedFields, parloId } from "@lib/utils";
 import useGlobalStore from "@store/globalStore";
+import { useNavigation } from "@store/historystack";
 import useCurrentUser from "@store/user";
-import { CommentReplyType, FullComment, MessageReplyType } from "@type/internal";
-import { nanoid } from "nanoid";
+import { CommentReplyType, FullComment } from "@type/internal";
 import Image from "next/image";
 import { useRef, useState } from "react";
+import { OptionalChildren } from "./ui";
 
 type Props = {
     section: "replies" | "comments",
@@ -64,9 +67,10 @@ const ReplyBar = ({ reply }: { reply: ParentCommentType | undefined }) => {
 const CommentInput = ({ post_author, post_id, section, editing, defaultValue, cid }: Props) => {
 
     const { meta } = useCurrentUser();
-    const [gif, toggleGif] = useState(defaultValue?.attachment || "");
+    const [gif, setGif] = useState(defaultValue?.attachment || "");
     const [reply, setReply] = useGlobalStore<ParentCommentType | undefined>(`reply:post:${post_id}`, undefined);
     const gifSheetRef = useRef<BottomSheetRef>();
+    const navigation = useNavigation();
 
     if (!meta) return (
         <footer style={{ maxWidth: "100%" }} className="py-2 bg-primary fixed bottom-0 w-full">
@@ -76,8 +80,8 @@ const CommentInput = ({ post_author, post_id, section, editing, defaultValue, ci
         </footer>
     )
 
-    const setGif = (data: any) => {
-        toggleGif(data.images.fixed_height.webp);
+    const handleGif = (data: GifResult["data"]) => {
+        setGif(data.images.fixed_height.webp);
         gifSheetRef.current?.close();
     }
 
@@ -112,27 +116,30 @@ const CommentInput = ({ post_author, post_id, section, editing, defaultValue, ci
             nsfw, spoiler,
             username: meta.username,
             replied_to: reply?.replied_to,
-            parent
+            parent,
         };
 
-        createCommentMutation(comment, meta.user_id, section);
-
+        createCommentMutation(comment, section);
+        const path = new URL(parloculaAppURL, navigation.pathname);
+        path.searchParams.append("f", "latest");
+        navigation.replace(path.pathname);
+        setGif("");
         removeReply();
     }
 
     return (
-        <footer style={{ maxWidth: "100%" }} className="py-2 bg-primary fixed bottom-0 w-full">
+        <footer style={{ maxWidth: "100%" }} className="py-2 bg-primary fixed bottom-0 w-full fullScreen">
 
-            <div className="w-full max-w-screen-md mx-auto">
+            <div className="w-full max-w-screen-md mx-auto px-2">
 
                 <ReplyBar reply={reply} />
 
                 <div className="border-t space-y-3 pt-2 border-gray30">
 
-                    {gif && (
+                    <OptionalChildren condition={gif}>
                         <div className="relative w-fit">
                             <button
-                                onClick={() => toggleGif("")}
+                                onClick={() => setGif('')}
                                 className="smallBtn size-6 flex flex-cntr-all border border-gray30 bg-primary rounded-full absolute top-0 right-0 mt-1 mr-1">
                                 <XmarkIcon className="size-3" />
                             </button>
@@ -144,7 +151,7 @@ const CommentInput = ({ post_author, post_id, section, editing, defaultValue, ci
                                 width={96}
                             />
                         </div>
-                    )}
+                    </OptionalChildren>
 
                     <div>
                         <Form
@@ -156,24 +163,23 @@ const CommentInput = ({ post_author, post_id, section, editing, defaultValue, ci
 
                                 <Input
                                     containerClasses="reset"
-                                    autoFocus
                                     placeholder="Write you comment here..."
-                                    className={`bg-transparent w-full py-3`}
+                                    className={`bg-transparent border-0 w-full py-3`}
                                     name="content"
                                 />
 
-                                <div className="flex gap-4 py-2 items-center">
+                                <div className="flex gap-2 py-2 items-center">
 
                                     <BottomSheet ref={gifSheetRef} button="GIF" className="text-sm py-1 px-2 rounded-md border border-gray40">
-                                        <GiphyComponent callback={setGif} />
+                                        <GiphyComponent callback={handleGif} />
                                     </BottomSheet>
 
-                                    <ToggleButton label="nsfw" className="uppercase text-sm inline-flex w-fit gap-3" />
-                                    <ToggleButton label="spoiler" className="capitalize text-sm inline-flex w-fit gap-3" />
+                                    <ToggleButton label="nsfw" className="uppercase text-sm bg-transparent" />
+                                    <ToggleButton label="spoiler" className="capitalize text-sm bg-transparent has-[:checked]:bg-orange-500/20 has-[:checked]:border-orange-500" />
                                 </div>
 
                             </div>
-                            <button type="submit" className="pt-3">
+                            <button type="submit" className="mt-3 p-2 h-fit border border-gray10 rounded-full bg-gray10">
                                 <SendIcon className="size-4 color-secondary" />
                             </button>
                         </Form>

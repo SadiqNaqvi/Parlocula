@@ -22,8 +22,6 @@ const getPath = (path: string, source: Required<Frame["extSource"]>) => {
 const FrameContainer = (frame: Frame & { id: string }) => {
     const { path, type, extSource } = frame;
 
-    console.log(extSource);
-
     if (extSource === "vimeo" || extSource === "youtube") return (
         <ParloImage
             fill
@@ -31,7 +29,7 @@ const FrameContainer = (frame: Frame & { id: string }) => {
             frameType="poster"
             sizes={sizes}
             fancyGallery={frame.id}
-            fullSizeFrame={getPath(frame.path, frame.extSource)}
+            fullSizeFrame={getPath(path, extSource)}
             className={className}
             containerClassName={containerClassName}
             showSourceIcon
@@ -54,7 +52,7 @@ const FrameContainer = (frame: Frame & { id: string }) => {
             sizes={sizes}
             className={className}
             fancyGallery={frame.id}
-            fullSizeFrame={getPath(frame.path, frame.extSource)}
+            fullSizeFrame={getPath(path, extSource)}
             showMediaType
             showSize
             containerClassName={containerClassName}

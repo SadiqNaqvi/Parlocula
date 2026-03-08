@@ -6,6 +6,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useRef } from "react";
 import BottomSheet from "./BottomSheet";
 import { LoginModal } from "./fallbacks";
+import { OptionalChildren } from "./ui";
 
 type OnClickFunc = <M extends AvailableMutations, T>(newState: T, action: M, args: MutationFunctionAgruments<M>) => void
 
@@ -24,6 +25,7 @@ type Props<T> = {
     noUserStateChilren: React.ReactNode,
     noUserStateClassName?: string,
     Loading?: React.ReactNode,
+    ErrorComponent?: React.ReactNode,
     redirectAfterLogin?: string,
 }
 
@@ -34,7 +36,7 @@ export const LoadingButton = ({ primary = true }: { primary?: boolean }) => (
     </button>
 );
 
-const UserBasedButton = <T,>({ Button, queryFn, queryKeys, errorStateClassName, redirectAfterLogin, noUserStateChilren, noUserStateClassName, Loading, uid }: Props<T>) => {
+const UserBasedButton = <T,>({ Button, queryFn, queryKeys, errorStateClassName, ErrorComponent, redirectAfterLogin, noUserStateChilren, noUserStateClassName, Loading, uid }: Props<T>) => {
 
     const queryClient = useQueryClient();
 
@@ -67,11 +69,13 @@ const UserBasedButton = <T,>({ Button, queryFn, queryKeys, errorStateClassName, 
     if (isLoading) return LoadingComponent;
 
     else if (error) return (
-        <button
-            onClick={() => refetch()}
-            className={errorStateClassName || "secondary"}>
-            ⚠Try Again
-        </button>
+        <OptionalChildren condition={!ErrorComponent} fallback={ErrorComponent}>
+            <button
+                onClick={() => refetch()}
+                className={errorStateClassName || "secondary"}>
+                ⚠Try Again
+            </button>
+        </OptionalChildren>
     )
 
     const handleClick = <M extends AvailableMutations, T>(newState: T, action: M, args: MutationFunctionAgruments<M>) => {

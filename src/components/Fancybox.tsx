@@ -29,7 +29,7 @@ const Fancybox = ({ children }: { children: React.ReactNode }) => {
                 Toolbar: {
                     display: {
                         left: ["counter"],
-                        middle: ["reset", "rotateCCW", "rotateCW", "toggle1to1", "toggleFull"],
+                        middle: [],
                         right: ["download", "fullscreen", "slideshow", "thumbs", "close"],
                     },
                 },

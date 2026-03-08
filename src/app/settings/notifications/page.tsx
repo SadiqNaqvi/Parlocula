@@ -91,6 +91,7 @@ const NotificationPage = () => {
                     process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!
                 ),
             });
+
             const { success, errCode, customError } = await subscribeToPush(meta.user_id, JSON.parse(JSON.stringify(sub)));
 
             console.log("subscribed", success);
@@ -99,6 +100,7 @@ const NotificationPage = () => {
                 subscription.current = sub;
                 setEnabled(true);
             } else {
+                sub.unsubscribe();
                 console.log("Error occured while unsubscribing to push notification", errCode, customError);
                 appToast.error("Failed To enable Notification");
             }
@@ -113,14 +115,13 @@ const NotificationPage = () => {
     const unsubscribe = async () => {
         if (!subscription.current) return;
 
-        await subscription.current.unsubscribe();
-
         const resp = await unsubscribeToPush(meta.user_id);
         const { success, customError, errCode } = resp;
 
         console.log("unsubscribed", success);
 
         if (success) {
+            await subscription.current.unsubscribe();
             subscription.current = null;
             setEnabled(false);
         } else {

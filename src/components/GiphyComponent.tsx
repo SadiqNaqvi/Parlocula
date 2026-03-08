@@ -1,43 +1,43 @@
-import {
-    Grid, // our UI Component to display the results
-    SearchBar, // the search bar the user will type into
-    SearchContext, // the context that wraps and connects our components
-    SearchContextManager, // the context manager, includes the Context.Provider
-    SuggestionBar, // an optional UI component that displays trending searches and channel / username results
-} from '@giphy/react-components'
-import { useContext } from 'react'
+import { GifResult } from '@giphy/js-fetch-api';
+import { Grid, SearchBar, SearchContext, SearchContextManager } from '@giphy/react-components';
+import useOfflineStore from '@store/offlineStore';
+import { TypedFunction } from '@type/other';
+import { useContext } from 'react';
 
-// the search experience consists of the manager and its child components that use SearchContext
-const SearchExperience = ({ callback }: any) => (
-    <SearchContextManager apiKey={process.env.NEXT_PUBLIC_GIPHY_KEY!}>
-        <Components callback={callback} />
-    </SearchContextManager>
-)
+type GifResultData = GifResult["data"];
 
-// define the components in a separate function so we can
-// use the context hook. You could also use the render props pattern
-const Components = ({ callback }: any) => {
-    const { fetchGifs, searchKey, } = useContext(SearchContext)
+const Components = ({ callback }: { callback: TypedFunction<GifResultData> }) => {
+    const { fetchGifs, searchKey, } = useContext(SearchContext);
+    const [lastUsed, setLastUsed] = useOfflineStore<GifResultData[]>("lastUsedGifs", []);
+
+    const onGifsClick = (gif: GifResultData) => {
+        const temp = [...lastUsed];
+
+        if (temp.length >= 10) {
+            temp.pop();
+        }
+
+        setLastUsed([gif, ...temp]);
+        callback(gif);
+    }
+
     return (
         <div
-            className="bg-primary p-2 rounded-md border border-gray40 h-3/4 w-full max-w-lg"
-            onClick={e => e.stopPropagation()}>
+            className="px-2"
+        // onClick={e => e.stopPropagation()}
+        >
             <SearchBar className='mb-3' searchDebounce={1000} />
-            <SuggestionBar />
-            {/**
-                key will recreate the component,
-                this is important for when you change fetchGifs
-                e.g. changing from search term dogs to cats or type gifs to stickers
-                you want to restart the gifs from the beginning and changing a component's key does that
-            **/}
             <Grid
                 key={searchKey}
                 noLink
                 className="overflow-y-auto w-full max-w-lg h-96 rounded-md mt-4"
-                onGifClick={callback}
+                percentWidth='100%'
+                width={200}
+                layoutType='MIXED'
+                onGifClick={onGifsClick}
+                initialGifs={lastUsed}
                 columns={3}
                 hideAttribution
-                width={400}
                 fetchGifs={fetchGifs}
             />
             <div className="mt-2 py-1">
@@ -46,5 +46,11 @@ const Components = ({ callback }: any) => {
         </div>
     )
 }
+
+const SearchExperience = ({ callback }: { callback: TypedFunction<GifResultData> }) => (
+    <SearchContextManager apiKey={process.env.NEXT_PUBLIC_GIPHY_KEY!}>
+        <Components callback={callback} />
+    </SearchContextManager>
+)
 
 export default SearchExperience;

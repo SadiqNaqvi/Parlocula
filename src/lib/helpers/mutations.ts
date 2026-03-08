@@ -373,26 +373,32 @@ export const createUpdateTaleon = async (ext_id: string, type: "movie" | "show",
     return result;
 }
 
-export const createCommentMutation = async (comment: CommentSchemaType & { parent: CommentReplyType | undefined }, uid: string, section: "replies" | "comments") => {
+export const createCommentMutation = async (comment: CommentSchemaType & { parent: CommentReplyType | undefined }, section: "replies" | "comments") => {
 
-    if (section === "replies" && !comment.replied_to) return;
+    const meta = useCurrentUser(s => s.meta);
+
+    if (!meta || (section === "replies" && !comment.replied_to)) return;
 
     const { parent, ...restOfComment } = comment;
 
     const queryClient = getQueryClient();
 
     const commentsKey = getQueryKeys("commentsOfPost_pid_filter", { pid: comment.post_id, filter: "latest" });
-    const repliesKey = getQueryKeys("replies_cid_filter", { cid: comment.replied_to || "", filter: "latest" })
+    const commentsKeyToRefetch = getQueryKeys("commentsOfPost_pid_filter", { pid: comment.post_id, filter: "loved" });
+    const repliesKey = getQueryKeys("replies_cid_filter", { cid: comment.replied_to || "", filter: "latest" });
+    const repliesKeyToRefetch = getQueryKeys("replies_cid_filter", { cid: comment.replied_to || "", filter: "loved" });
 
     const keyToOptimisticallyUpdate = section === "replies" ? repliesKey : commentsKey;
 
     const queryKeysToRefetch = [
-        getQueryKeys("commentsOfUser_uid_filter", { uid, filter: "latest" }),
-        (section === "replies" ? commentsKey : repliesKey)
+        getQueryKeys("commentsOfUser_uid_filter", { uid: meta.user_id, filter: "latest" }),
+        (section === "replies" ? commentsKey : repliesKey),
+        commentsKeyToRefetch,
+        repliesKeyToRefetch,
     ]
 
     return performMutation({
-        mutationFn: () => ppPostData<FullComment>({ url: "comment", data: restOfComment, uid }),
+        mutationFn: () => ppPostData<FullComment>({ url: "comment", data: restOfComment, uid: meta.user_id }),
         onMutate: () => {
             return addDocsInInfiniteQueryResult<MereComment>(
                 keyToOptimisticallyUpdate,
@@ -402,7 +408,8 @@ export const createCommentMutation = async (comment: CommentSchemaType & { paren
                     createdAt: Date.now(),
                     updatedAt: Date.now(),
                     likes_count: 0,
-                    user_id: uid,
+                    user_id: meta.user_id,
+                    profile: meta.profile,
                     saved_count: 0,
                     edited_at: undefined,
                     parentComment: parent,
@@ -419,9 +426,9 @@ export const createCommentMutation = async (comment: CommentSchemaType & { paren
             queryClient.setQueryData(
                 getQueryKeys("comment_cid", { cid: data._id }),
                 data
-            )
+            );
 
-            queryKeysToRefetch.forEach(key => queryClient.refetchQueries({ queryKey: key }))
+            refetchQueries(queryKeysToRefetch);
         },
         onError: ({ context }) => {
             const href = section === "replies" && comment.replied_to ? `comment/${comment.replied_to}` : `post/${comment.post_id}`;

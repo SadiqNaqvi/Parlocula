@@ -39,7 +39,9 @@ const preCheck: PrecheckFunction<CommentSchemaType> = async ({ data, user_id }) 
     },
   ]);
 
-  const isBlocked = Boolean(checks[0].authorOfPost[0] || checks[0].authorOfRepliedComment[0]);
+  const { authorOfRepliedComment, authorOfPost } = checks[0] || {};
+
+  const isBlocked = Boolean(authorOfPost?.length || authorOfRepliedComment?.length);
 
   if (isBlocked)
     return { success: false, errCode: "blocked_by_author" };

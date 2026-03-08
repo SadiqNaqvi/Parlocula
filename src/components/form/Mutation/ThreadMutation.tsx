@@ -185,7 +185,7 @@ const ThreadMutation = ({ isEditing, defaultValues }: Props) => {
             <OptionMenu ButtonElement={<AddIcon className="size-5 sm:size-7" />} heading="Attach" className="fixed bottom-4 right-4 p-2 bg-secondary color-primary rounded-full">
                 <OptionList
                     disable={(linksRef.current?.length || 0) >= 5}
-                    onClick={() => linkPromptRef.current?.open()}>Bio Links</OptionList>
+                    onClick={() => linkPromptRef.current?.open()}>External Links</OptionList>
             </OptionMenu>
 
             <LinkInputManager

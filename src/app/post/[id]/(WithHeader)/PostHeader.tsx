@@ -118,24 +118,25 @@ const Component = (data: FullPost, { uid }: Props) => {
                 <LinksSection links={links} />
             </article>
 
-            <div className="px-2 flex items-center gap-3">
+            <div className="px-2 flex items-center gap-2">
                 <ReactionButton uid={uid} id={_id} count={reaction_count} />
+
+                <SaveButton
+                    className="flex gap-2 items-center py-2 px-3 rounded-full border border-gray30"
+                    author={user_id} uid={uid} type="Post" count={saved_count} id={_id} />
+
+                <Navigate
+                    comp="link"
+                    goto={`/new/post?qpid=${data._id}`}
+                    className="flex gap-2 items-center py-2 px-3 rounded-full border border-gray30">
+                    <QuoteIcon />
+                    <span>Quote</span>
+                </Navigate>
 
                 <div className="flex gap-2 text-sm items-center">
                     <span><CommentIcon /></span>
                     <span>{numberConverter(comment_count)}</span>
                 </div>
-
-                <SaveButton author={user_id} uid={uid} type="Post" count={saved_count} id={_id} />
-
-
-                <Navigate
-                    comp="link"
-                    goto={`/new/post?qpid=${data._id}`}
-                    className="flex gap-2">
-                    <QuoteIcon />
-                    <span>Quote</span>
-                </Navigate>
             </div>
 
         </>
