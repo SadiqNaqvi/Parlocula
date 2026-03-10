@@ -25,7 +25,7 @@ const reportModel = new StrictSchema<ReportModelType>({
     type: String,
     enum: ["Post", "Comment", "User", "Thread"],
   },
-}, { timestamps: true, _id: false });
+}, { timestamps: true });
 
 reportModel.index({ content_id: 1, content_type: 1, user_id: 1 });
 reportModel.index({ content_type: 1, ext_id: 1 }, { partialFilterExpression: { $exists: "$ext_id" } });

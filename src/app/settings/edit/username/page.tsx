@@ -30,8 +30,8 @@ const Page = () => {
     )
 
     const submit = async (data: { username: string, passkey: string }) => {
-        const error = await updateUsername(data);
-        if (error) return error;
+        const { success, error } = await updateUsername(data);
+        if (!success) return error;
         navigation.goto(`/user/${data.username.trim()}`);
     }
 

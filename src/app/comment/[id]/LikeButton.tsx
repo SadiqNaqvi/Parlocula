@@ -20,7 +20,7 @@ const LoadingButton = () => (
     </span>
 )
 
-const className = "inline-flex p-2 gap-2 items-center border border-gray20 rounded-lg";
+const className = "flex py-2 px-3 gap-2 items-center border border-gray20 rounded-full";
 
 const LikeButton = ({ id, likesCount, author, uid }: { id: string, likesCount: number, author: string, uid: string | undefined }) => {
 
@@ -36,16 +36,12 @@ const LikeButton = ({ id, likesCount, author, uid }: { id: string, likesCount: n
         }
 
         return (
-            <div className={className}>
-
-                <button className="smallBtn" onClick={handleClick}>
-                    {state ? <ThumbUpIconFill /> : <ThumbUpIcon />}
-                </button>
-
-                <span className="border-l border-gray20">
+            <button className={className} onClick={handleClick}>
+                {state ? <ThumbUpIconFill /> : <ThumbUpIcon />}
+                <span>
                     {numberConverter(likesCount + (state ? 1 : 0))}
                 </span>
-            </div>
+            </button>
         )
     };
 

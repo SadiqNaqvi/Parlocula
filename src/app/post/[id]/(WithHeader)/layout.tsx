@@ -104,7 +104,7 @@ const PostLayout = async ({ children, params }: PropsWithChildren<ParloPageProps
     );
 
     return (
-        <main>
+        <main className="noPadding">
             <Suspense fallback={<FullPageLoadingSpinner path={rest} />}>
                 <Fetcher id={pid}>
                     {children}

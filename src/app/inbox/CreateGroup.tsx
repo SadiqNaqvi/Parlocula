@@ -10,7 +10,6 @@ import { useNavigation } from "@store/historystack";
 import useCurrentUser from "@store/user";
 import { InputManagerType, TypedFunction } from "@type/other";
 import { InputFrame } from "@type/schemas";
-import { nanoid } from "nanoid";
 import { PropsWithChildren, useRef } from "react";
 
 type GroupMetaType = { name: string, poster: InputFrame | null, inviteMessage: string }

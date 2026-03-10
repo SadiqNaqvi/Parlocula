@@ -30,7 +30,7 @@ const participantModel = new StrictSchema<ParticipantModelType>({
     type: Date,
     default: new Date(Date.now() + oneWeekInMiliSeconds)
   },
-}, { timestamps: true, _id: false });
+}, { timestamps: true });
 
 participantModel.index({ room_id: 1, user_id: 1 }, { unique: true });
 participantModel.index({ user_id: 1, type: 1 });

@@ -63,7 +63,7 @@ const UserMutationPage = ({ username, isEditing, defaultValues, dob, email }: Pr
 
         const redirectTo = urlToRedirect && urlPattern.test(new URL(urlToRedirect, parloculaAppURL).href) ? urlToRedirect : "/home";
 
-        const error = await registerUserMutation({
+        const { success, error } = await registerUserMutation({
             ...data,
             dob: dob.getTime(),
             email,
@@ -73,9 +73,9 @@ const UserMutationPage = ({ username, isEditing, defaultValues, dob, email }: Pr
             files
         });
 
-        if (error) return error;
-        else if (error !== false)
-            navigation.replace(redirectTo);
+        if (!success) return error;
+
+        navigation.replace(redirectTo);
     }
 
     const submitUpdation = async (data: RegisterSchemaClientType) => {
@@ -113,8 +113,9 @@ const UserMutationPage = ({ username, isEditing, defaultValues, dob, email }: Pr
 
         if (!Object.keys(fieldsToUpdate).length) return;
 
-        const error = await updateUser(fieldsToUpdate);
-        if (error) return error;
+        const { success, error } = await updateUser(fieldsToUpdate);
+        if (!success) return error;
+
         navigation.goto(`/user/${user.username}`);
     }
 

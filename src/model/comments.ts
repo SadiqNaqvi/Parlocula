@@ -34,7 +34,7 @@ const commentModel = new StrictSchema<CommentModelType>({
   replies_count: numberSchema,
   nsfw: { type: Boolean, default: false },
   spoiler: { type: Boolean, default: false },
-}, { timestamps: true, _id: false });
+}, { timestamps: true });
 
 commentModel.index({ user_id: 1, nsfw: 1 });
 commentModel.index({ post_id: 1, nsfw: 1 });

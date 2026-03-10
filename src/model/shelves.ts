@@ -29,7 +29,7 @@ const shelfModel = new Schema<ShelfModelType>({
     default: "custom",
   },
   saved_count: numberSchema,
-}, { timestamps: true, _id: false });
+}, { timestamps: true });
 
 shelfModel.index({ user_id: 1, isPrivate: 1, shelf_type: 1 });
 shelfModel.index({ name: 1, isPrivate: 1, shelf_type: 1 });

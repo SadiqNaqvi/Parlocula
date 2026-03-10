@@ -2,14 +2,13 @@
 
 import { AddIcon } from "@assets/Icons";
 import { BottomSheetRef, Navbar, OptionMenu } from "@components";
+import { LoginModal } from "@components/fallbacks";
 import { Form, LinkInputManager, Poster, ToggleButton } from "@components/form";
-import ConnectionsInput from "@components/form/Mutation/ConnectionsInput";
-import LoginPopupSheet from "@components/sheets/LoginPopupSheet";
 import { MetadataTile, MetadataTileContainer, OptionalChildren, OptionList } from "@components/ui";
 import { ThreadPageMockup } from "@components/ui/mockup";
 import { createThreadMutation, editThreadMutation } from "@lib/helpers/mutations";
 import appToast from "@lib/providers/toast";
-import { threadSchemaClient, threadSchemaServer, threadUpdateSchema } from "@lib/schemas";
+import { threadSchemaClient } from "@lib/schemas";
 import { checkEditedFields, numberConverter, parloId, readyFrames, timeAgo } from "@lib/utils";
 import { useNavigation } from "@store/historystack";
 import useCurrentUser from "@store/user";
@@ -18,7 +17,7 @@ import { InputManagerType } from "@type/other";
 import { InputFrame, LinkSchema, ThreadSchemaServer, ThreadUpdateSchema } from "@type/schemas";
 import { useRef } from "react";
 import { DisplayNameInput, IDS_Heading, IDS_Section, InitialDescriptionSheet, TextAreaInput } from ".";
-import { LoginModal } from "@components/fallbacks";
+import ConnectionsInput from "./ConnectionsInput";
 
 type Props = {
     isEditing: false;
@@ -65,9 +64,10 @@ const ThreadMutation = ({ isEditing, defaultValues }: Props) => {
             connections
         }
 
-        const error = await createThreadMutation(tid, meta.user_id, finalData);
+        const { success, error } = await createThreadMutation(tid, meta.user_id, finalData);
 
-        if (error) return error;
+        if (!success) return error;
+
         navigation.goto(`/thread/${tid}-${name}`);
 
     };
@@ -108,10 +108,11 @@ const ThreadMutation = ({ isEditing, defaultValues }: Props) => {
             }
         }
 
-        const error = await editThreadMutation(_id, meta.user_id, { ...editedFields, ...additionalFields });
+        const { success, error } = await editThreadMutation(_id, meta.user_id, { ...editedFields, ...additionalFields });
 
-        if (error) return error;
-        else appToast.success("Thread Updated Successfully");
+        if (!success) return error;
+
+        appToast.success("Thread Updated Successfully");
         navigation.replace(`/thread/${_id}`);
 
     }

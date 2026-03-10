@@ -29,8 +29,7 @@ const messageItemSchema = new Schema(
         return this.type === "link";
       },
     },
-  },
-  { _id: false }
+  }
 );
 
 const notificationModel = new StrictSchema<NotificationModelType>({

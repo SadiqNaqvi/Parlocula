@@ -1,10 +1,19 @@
 "use client";
 
 import { OptionalChildren } from "@components/ui";
+import { RefObject } from "react";
 import { useFormContext } from "react-hook-form"
 import { twMerge } from "tailwind-merge";
 
-const Input = ({ label, name, description, containerClasses, className, ...args }: { label?: string, name: string, description?: string, containerClasses?: string } & React.InputHTMLAttributes<HTMLInputElement>) => {
+type Props = {
+    label?: string,
+    name: string,
+    description?: string,
+    containerClasses?: string,
+    refObject?: RefObject<HTMLInputElement>
+} & React.InputHTMLAttributes<HTMLInputElement>
+
+const Input = ({ label, name, description, containerClasses, className, refObject, ...args }: Props) => {
 
     const { register, formState: { errors, isSubmitting } } = useFormContext();
     const error = errors[name]?.message?.toString() || "";

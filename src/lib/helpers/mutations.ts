@@ -1,20 +1,21 @@
-import LinkToast from "@components/toasts/LinkToast"
+import LinkToast from "@components/toasts/LinkToast";
 import generateFingerprint from "@lib/auth/fingerprint";
-import { oneDayInSeconds, oneHourInMiliSeconds, parloculaAppURL } from "@lib/constants"
+import { oneDayInSeconds, oneHourInMiliSeconds, parloculaAppURL, queryFilters } from "@lib/constants";
 import { getQueryClient } from "@lib/providers/queryClient";
-import appToast from "@lib/providers/toast"
-import { codetoError, getQueryKeys, objectToFormData, parloId, trycatch } from "@lib/utils"
-import { AppNavigationInstance } from "@store/historystack"
-import { offlineStore } from "@store/offlineStore"
-import useRoomStore from "@store/roomStore"
-import useCurrentUser from "@store/user"
-import { CommentReplyType, CurrentUser, Frame, FullComment, FullPost, FullRoomType, FullShelf, FullTaleonType, GeneralGetReturn, GeneralPostReturn, MereComment, MereMessage, MereRoomType, MereShelf, MereUser, ModeratorType, ShelfCollaborator, ShelfCollaborators, ShelfItemType, ShelvesForTaleon, ThreadModType, UserConnectionType } from "@type/internal"
-import { CollaboratorModelType, NotificationModelType } from "@type/models"
-import { ErrorCodes, InfiniteScrollerDataType } from "@type/other"
-import { BookmarkSchemaType, CommentSchemaType, CommentSchemaUpdateType, EmailUpdateSchemaType, ItemsForShelfSchemaType, LikeSchemaType, MessageSchemaType, PostSchemaType, PostUpdateSchemaType, ReportActionSchemaType, ReportSchemaType, ReportTypeEnum, RoomSchemaType, SessionInvalidationServerSchemaType, ShelfEditSchemaType, ShelfSchemaType, TaleonSchemaType, TaleonToAddAndRemoveType, ThreadSchemaServer, ThreadUpdateSchema, UsernameUpdateSchemaType, UserSchemaType, UserUpdateSchemaType } from "@type/schemas"
-import axios from "axios"
-import { setUserOnRefreshOrLogin } from "./user"
-import { GeneralExtReturn, RefinedMovieData, RefinedShowData } from "@type/external"
+import appToast from "@lib/providers/toast";
+import { codetoError, getQueryKeys, objectToFormData, parloId, trycatch } from "@lib/utils";
+import { AppNavigationInstance } from "@store/historystack";
+import { offlineStore } from "@store/offlineStore";
+import useRoomStore from "@store/roomStore";
+import useCurrentUser from "@store/user";
+import { GeneralExtReturn, RefinedMovieData, RefinedShowData } from "@type/external";
+import { CommentReplyType, CurrentUser, Frame, FullComment, FullPost, FullRoomType, FullShelf, FullTaleonType, GeneralGetReturn, GeneralPostReturn, MereComment, MereMessage, MereRoomType, MereShelf, MereUser, ModeratorType, ShelfCollaborator, ShelfCollaborators, ShelfItemType, ShelvesForTaleon, ThreadModType, UserConnectionType } from "@type/internal";
+import { CollaboratorModelType, NotificationModelType } from "@type/models";
+import { ErrorCodes, InfiniteScrollerDataType } from "@type/other";
+import { BookmarkSchemaType, CommentSchemaType, CommentSchemaUpdateType, EmailUpdateSchemaType, ItemsForShelfSchemaType, LikeSchemaType, MessageSchemaType, PostSchemaType, PostUpdateSchemaType, ReportActionSchemaType, ReportSchemaType, ReportTypeEnum, RoomSchemaType, SessionInvalidationServerSchemaType, ShelfEditSchemaType, ShelfSchemaType, TaleonToAddAndRemoveType, ThreadSchemaServer, ThreadUpdateSchema, UsernameUpdateSchemaType, UserSchemaType, UserUpdateSchemaType } from "@type/schemas";
+import axios from "axios";
+import { setUserOnRefreshOrLogin } from "./user";
+import { ZodIssue } from "zod";
 
 type MutationFunction<R> = () => Promise<GeneralPostReturn<R>>
 
@@ -84,7 +85,7 @@ export const handleErrorFromMutation = (data: GeneralPostReturn) => {
     else if (formError) return formError;
     else if (customError) appToast.error(customError);
     else appToast.error(codetoError(errCode));
-    return false;
+    return undefined;
 }
 
 const unstableInternetError = () => {
@@ -93,35 +94,43 @@ const unstableInternetError = () => {
     return errMsg;
 }
 
-const performMutation = async <T, M = undefined>({ mutationFn, onError, beforeMutation, onSettle, onMutate, onSuccess, codeToReturn }: PerformMutationProps<T, M>) => {
-    if (navigator && !navigator.onLine) return unstableInternetError();
+type PerformMutationReturn = {
+    success: true, result: any, error?: unknown;
+} | {
+    success: false, error: string | ZodIssue[] | undefined; result?: unknown
+}
+
+const performMutation = async <T, M = undefined>({ mutationFn, onError, beforeMutation, onSettle, onMutate, onSuccess, codeToReturn }: PerformMutationProps<T, M>): Promise<PerformMutationReturn> => {
+    if (navigator && !navigator.onLine) {
+        appToast.error(unstableInternetError());
+        return { success: false, error: undefined }
+    }
 
     const context = await onMutate?.();
-
-    console.log("context", context);
 
     try {
         beforeMutation?.();
         const response = await mutationFn();
 
-        if (response.success)
+        if (response.success) {
             onSuccess?.({ context, data: response.result });
+            return { success: true, result: response.result }
+        }
 
         else {
             onError?.({ error: response.errCode, context });
             if (codeToReturn && response.errCode === codeToReturn)
-                return response.errCode;
+                return { success: false, error: response.errCode };
 
-            return handleErrorFromMutation(response);
+            return { success: false, error: handleErrorFromMutation(response) };
         }
     } catch (err: any) {
         console.error("Error occured while performing mutation:", err.message);
-        return unstableInternetError();
+        return { success: false, error: unstableInternetError() };
     } finally {
         onSettle?.();
     }
 }
-
 
 // Optimistic Mutation Helper
 type Matcher<T> = (result: T) => boolean;
@@ -318,8 +327,6 @@ export const loginUserMutation = async (data: { email: string, code: number }) =
             .catch(r => r.response.data),
 
         onSuccess: ({ data }: { data: CurrentUser }) => {
-
-            console.log(data);
             setUserOnRefreshOrLogin(data, Boolean(data.filterContent));
 
             getQueryClient().setQueryData(
@@ -373,28 +380,30 @@ export const createUpdateTaleon = async (ext_id: string, type: "movie" | "show",
     return result;
 }
 
-export const createCommentMutation = async (comment: CommentSchemaType & { parent: CommentReplyType | undefined }, section: "replies" | "comments") => {
+export const createCommentMutation = async (comment: CommentSchemaType & { parent: CommentReplyType | undefined }, section: "replies" | "comments", filter: string | null) => {
 
-    const meta = useCurrentUser(s => s.meta);
+    const meta = useCurrentUser.getState().meta;
 
-    if (!meta || (section === "replies" && !comment.replied_to)) return;
+    if (!meta || (section === "replies" && !comment.replied_to))
+        return { success: false, error: undefined };
 
     const { parent, ...restOfComment } = comment;
 
+    const filterForComments = queryFilters["comments"];
+    const chosenFilter = filter && filterForComments.some(f => f === filter) ? filter : filterForComments[0];
+
     const queryClient = getQueryClient();
 
-    const commentsKey = getQueryKeys("commentsOfPost_pid_filter", { pid: comment.post_id, filter: "latest" });
-    const commentsKeyToRefetch = getQueryKeys("commentsOfPost_pid_filter", { pid: comment.post_id, filter: "loved" });
-    const repliesKey = getQueryKeys("replies_cid_filter", { cid: comment.replied_to || "", filter: "latest" });
-    const repliesKeyToRefetch = getQueryKeys("replies_cid_filter", { cid: comment.replied_to || "", filter: "loved" });
+    const commentsKey = getQueryKeys("commentsOfPost_pid_filter", { pid: comment.post_id, filter: chosenFilter });
+    const repliesKey = getQueryKeys("replies_cid_filter", { cid: comment.replied_to || "", filter: chosenFilter });
 
     const keyToOptimisticallyUpdate = section === "replies" ? repliesKey : commentsKey;
 
     const queryKeysToRefetch = [
         getQueryKeys("commentsOfUser_uid_filter", { uid: meta.user_id, filter: "latest" }),
         (section === "replies" ? commentsKey : repliesKey),
-        commentsKeyToRefetch,
-        repliesKeyToRefetch,
+        ...filterForComments.map(f => getQueryKeys("commentsOfPost_pid_filter", { pid: comment.post_id, filter: f })),
+        ...filterForComments.map(f => getQueryKeys("replies_cid_filter", { cid: comment.replied_to || "", filter: f })),
     ]
 
     return performMutation({
@@ -419,7 +428,10 @@ export const createCommentMutation = async (comment: CommentSchemaType & { paren
         onSuccess: ({ data }) => {
             updateDocInInfiniteQueryResult<{ status: string, _id: string }>(
                 keyToOptimisticallyUpdate,
-                (r) => r._id === comment._id,
+                (r) => {
+                    console.log(r, comment);
+                    return r._id === comment._id
+                },
                 { status: "sent" }
             );
 

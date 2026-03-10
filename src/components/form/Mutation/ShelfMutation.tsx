@@ -89,12 +89,11 @@ const ShelfMutation = ({ defaultVals, taleons, isEditing }: Props) => {
 
         const data = { ...formdata, items }
 
-        // console.log("lal", shelfServerSchema.safeParse(data));
-
-        return await createShelfMutation(meta.user_id, data, navigation);
+        const { success, error } = await createShelfMutation(meta.user_id, data, navigation);
+        if (!success) return error;
     }
 
-    const submitUpdation = (updatedData: Partial<{ name: string, isPrivate: boolean }>) => {
+    const submitUpdation = async (updatedData: Partial<{ name: string, isPrivate: boolean }>) => {
         if (!isEditing || !defaultVals) return;
 
         const items = itemsRef.current?.() || [];
@@ -112,8 +111,8 @@ const ShelfMutation = ({ defaultVals, taleons, isEditing }: Props) => {
 
         if (!(itemsToDelete.length || Object.keys(editedFields).length)) return;
 
-        const errors = editShelfMutation(id, meta.user_id, { ...editedFields, itemsToDelete });
-        if (errors) return errors;
+        const { success, error } = await editShelfMutation(id, meta.user_id, { ...editedFields, itemsToDelete });
+        if (!success) return error;
 
         navigation.replace(`/shelf/${id}`);
     }

@@ -29,6 +29,7 @@ import {
   userUpdateSchema
 } from "@lib/schemas";
 import { z } from "zod";
+import { CommentReplyType } from "./internal";
 
 export type ExtMediaSource = "mega" | "youtube" | "vimeo" | "web";
 
@@ -82,6 +83,8 @@ type CommanInputFrame = {
 
 export type InputFrame = CommanInputFrame &
   ({ blob: null; isExternal: true } | { blob: Blob; isExternal: false });
+
+export type ReplyInputType = CommentReplyType & { replied_to: string | undefined, username: string|undefined }
 
 export type TaleonSchemaType = z.infer<typeof itemSchema>
 

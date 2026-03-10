@@ -1,7 +1,7 @@
 "use client";
 
 import { RightChevron } from "@assets/Icons";
-import { BottomSheet, BottomSheetRef, InfiniteScroller, LoadingButton, Navigate, NestedSheet } from "@components";
+import { BottomSheet, BottomSheetRef, InfiniteScroller, LoadingButton, Navigate } from "@components";
 import { LoginModal } from "@components/fallbacks";
 import { ShelfSelector } from "@components/form";
 import { getAllShelvesOfUser, getShelvesForTaleon } from "@lib/helpers/common";
@@ -18,7 +18,6 @@ import AddToCollaborativeShelf from "./AddToCollaborativeShelf";
 const buttonClassName = "w-full py-2 flex flex-cntr-between";
 
 type ShelfClickActions = "added" | "removed" | "none";
-
 
 const AddToShelf = ({ className, taleon, released }: { className?: string, taleon: ConfirmedTaleon, released: boolean }) => {
 

@@ -24,7 +24,7 @@ const memberModel = new StrictSchema<MembershipModelType>({
     default: "member",
   },
   actionsTaken: { type: Number, default: 0 },
-}, { timestamps: true, _id: false });
+}, { timestamps: true });
 
 memberModel.index({ thread_id: 1, user_id: 1 }, { unique: true });
 memberModel.index({ user_id: 1, banned: 1, role: 1, thread_id: 1 });

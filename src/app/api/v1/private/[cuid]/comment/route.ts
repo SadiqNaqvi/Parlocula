@@ -10,20 +10,25 @@ import { CommentSchemaType } from "@type/schemas";
 
 const preCheck: PrecheckFunction<CommentSchemaType> = async ({ data, user_id }) => {
 
+  if ((data.comment_author ? data.comment_author === user_id : true) && data.post_author === user_id)
+    return { success: true };
+
   const checks = await Connection.aggregate([
     {
       $facet: {
-        authorOfPost: [
-          {
-            $match: {
-              followee: data.post_author,
-              follower: user_id,
-              blocked: true,
+        ...(data.post_author !== user_id && {
+          authorOfPost: [
+            {
+              $match: {
+                followee: data.post_author,
+                follower: user_id,
+                blocked: true,
+              },
             },
-          },
-          { $project: { _id: 1 } },
-        ],
-        ...(data.comment_author && {
+            { $project: { _id: 1 } },
+          ]
+        }),
+        ...(data.comment_author && data.comment_author !== user_id && {
           authorOfRepliedComment: [
             {
               $match: {
@@ -86,54 +91,55 @@ export const POST = postHandler<CommentSchemaType>({
     }
 
     await Promise.all(
-      createArray(
-        sendNotification([post_author], {
-          message: [
-            { type: "link", label: username, path: `/user/${username}` },
-            { type: "text", text: "commented on your post" },
-            {
-              type: "link",
-              label: `${post.title.slice(0, 10).concat(post.title.length > 10 ? "..." : ".")}`,
-              path: `/post/${rest.post_id}?f=latest`,
+      createArray([] as Promise<void>[])
+        .concatConditionally(post_author !== user_id,
+          () => sendNotification([post_author], {
+            message: [
+              { type: "link", label: username, path: `/user/${username}` },
+              { type: "text", text: "commented on your post" },
+              {
+                type: "link",
+                label: `${post.title.slice(0, 10).concat(post.title.length > 10 ? "..." : ".")}`,
+                path: `/post/${rest.post_id}?f=latest`,
+              },
+              {
+                type: "link",
+                label: "Open Comment.",
+                path: `/comment/${comment._id}`,
+              },
+            ],
+            title: `${username} commented on your post.`,
+            poster: profile,
+            path: `/post/${rest.post_id}?f=latest`,
+            metadata: {
+              post_id: rest.post_id,
+              comment_id: comment._id,
             },
-            {
-              type: "link",
-              label: "Open Comment.",
-              path: `/comment/${comment._id}`,
+          }, session)
+        ).concatConditionally(comment_author && comment_author !== user_id, () =>
+          sendNotification([comment_author||''], {
+            message: [
+              { type: "link", label: username, path: `/user/${username}` },
+              { type: "text", text: "replied to your" },
+              {
+                type: "link",
+                label: "comment.",
+                path: `/comment/${rest.replied_to}?f=latest`,
+              },
+            ],
+            title: `${username} replied to your comment.`,
+            poster: profile,
+            path: `/comment/${rest.replied_to}?f=latest`,
+            metadata: {
+              post_id: rest.post_id,
+              comment_id: comment._id,
             },
-          ],
-          title: `${username} commented on your post.`,
-          poster: profile,
-          path: `/post/${rest.post_id}?f=latest`,
-          metadata: {
-            post_id: rest.post_id,
-            comment_id: comment._id,
-          },
-        }, session)
-      ).concatConditionally(comment_author, (author) =>
-        sendNotification([author], {
-          message: [
-            { type: "link", label: username, path: `/user/${username}` },
-            { type: "text", text: "replied to your" },
-            {
-              type: "link",
-              label: "comment.",
-              path: `/comment/${rest.replied_to}?f=latest`,
-            },
-          ],
-          title: `${username} replied to your comment.`,
-          poster: profile,
-          path: `/comment/${rest.replied_to}?f=latest`,
-          metadata: {
-            post_id: rest.post_id,
-            comment_id: comment._id,
-          },
-        }, session)
-      ))
+          }, session)
+        ))
 
     return {
       success: true,
-      result: null,
+      result: comment,
       revalidateQueue: createArray([
         `comments-user-${username}`,
         `comments-post-${data.post_id}`,

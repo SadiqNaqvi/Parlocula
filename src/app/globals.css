@@ -219,6 +219,34 @@ h6 {
   font-weight: 600 !important;
 }
 
+summary:not(.allowMarker) {
+  display: block;
+  list-style: none;
+}
+
+summary:not(.allowMarker)::marker {
+  display: none;
+}
+
+.commentInputOptionsBar {
+  height: 0;
+  overflow: hidden;
+}
+
+form:has(.commentInputOptionsBar) {
+  transition: height 0.5s ease;
+}
+
+form:where(
+    :focus-within,
+    :has(input:checked),
+    :not(:has(input:placeholder-shown)),
+    :active
+  )
+  .commentInputOptionsBar {
+  height: fit-content;
+}
+
 .fancybox__content {
   padding: 0 !important;
   background: inherit !important;
@@ -230,9 +258,24 @@ h6 {
   backdrop-filter: blur(8px) brightness(0.8);
 }
 
+.f-carousel:not(:has(.f-carousel__dots)) {
+  flex-direction: row;
+  gap: 8px;
+  overflow: hidden;
+}
+
+.f-carousel:not(:has(.f-carousel__dots)) .f-carousel__slide {
+    height: auto;
+    min-width: 100%;
+  }
+
+.f-button.is-arrow{
+  z-index:2 !important;
+}
+
 @media screen and (width> 480px) {
   .f-carousel {
-    --f-carousel-gap: 8px;
+    --f-carousel-slide-gap: 8px;
     --f-carousel-slide-width: 240px !important;
 
     --f-arrow-pos: 10px;
@@ -252,6 +295,11 @@ h6 {
     --f-arrow-bg: #fff;
     --f-arrow-hover-bg: #f9f9f9;
     --f-arrow-active-bg: #f0f0f0;
+  }
+
+  .f-carousel:not(:has(.f-carousel__dots)) .f-carousel__slide {
+    height: 240px;
+    min-width: 240px;
   }
 }
 
@@ -561,6 +609,7 @@ a.btn {
   gap: 0.5rem;
   border: var(--borderWidth) solid transparent;
   border-radius: var(--globalRadius);
+  white-space: nowrap;
 }
 
 button.primary,

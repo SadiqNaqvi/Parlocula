@@ -1,7 +1,7 @@
 "use client";
 
 import { GenericWrapper, Navbar, Navigate, SaveButton } from "@components";
-import { BreadCrumbs, BreadCrumbTile, MetadataTile, MetadataTileContainer, ParloImage, TabContainer, TabList } from "@components/ui";
+import { BreadCrumbs, BreadCrumbTile, MetadataTile, MetadataTileContainer, OptionalChildren, ParloImage, TabContainer, TabList } from "@components/ui";
 import { getCommentById } from "@lib/helpers/common";
 import { getQueryKeys, timeAgo } from "@lib/utils";
 import { FullComment } from "@type/internal";
@@ -41,14 +41,6 @@ const Component = (data: FullComment, { uid, id }: Props) => {
 
             <article className="space-y-4">
 
-                <BreadCrumbs>
-                    <BreadCrumbTile href={thread_id}>Thread</BreadCrumbTile>
-                    <BreadCrumbTile href={post_id}>Post</BreadCrumbTile>
-                    {parentComment && replied_to && (
-                        <BreadCrumbTile href={replied_to}>{parentComment.content || "Parent Comment"}</BreadCrumbTile>
-                    )}
-                </BreadCrumbs>
-
                 <header className="flex items-center gap-3">
 
                     <ParloImage
@@ -60,19 +52,16 @@ const Component = (data: FullComment, { uid, id }: Props) => {
                         alt="Profile Picture of the author of comment"
                     />
 
-                    {username ? (
-                        <Navigate
-                            comp="link"
-                            type="button"
-                            className="font-semibold"
-                            goto={`/user/${username}`}
-                        >
-                            {username}
-                        </Navigate>
-                    )
-                        :
-                        <span className="font-semibold">Parlocula User</span>
-                    }
+                    <BreadCrumbs>
+                        <BreadCrumbTile href={thread_id}>Thread</BreadCrumbTile>
+                        <BreadCrumbTile href={post_id}>Post</BreadCrumbTile>
+                        <OptionalChildren condition={parentComment && replied_to}>
+                            <BreadCrumbTile href={replied_to}>Parent Comment</BreadCrumbTile>
+                        </OptionalChildren>
+                        <BreadCrumbTile
+                            className={username ? undefined : "text-gray-500"}
+                            href={username ? `/user/${username}` : undefined}>{username || "*Deleted User*"}</BreadCrumbTile>
+                    </BreadCrumbs>
 
                 </header>
 
@@ -83,28 +72,30 @@ const Component = (data: FullComment, { uid, id }: Props) => {
                     <MetadataTile className="px-2 py-1 bg-gray10 border-orange-500 text-orange-500 rounded-md" condition={spoiler}>Spoiler</MetadataTile>
                 </MetadataTileContainer>
 
-                <section className="flex gap-4 flex-col sm:flex-row py-4 border-t border-gray30">
+                <section className="flex gap-4 flex-col sm:flex-row py-4">
 
                     <p>{content}</p>
 
-                    {attachment && (
+                    <OptionalChildren condition={attachment}>
                         <Image
                             height={250}
                             width={250}
                             src={attachment}
                             alt="Attachment"
                             className="size-[250px] rounded-md border border-gray30 object-contain"
-                        />)
-                    }
+                        />
+                    </OptionalChildren>
                 </section>
 
             </article>
 
-            <div className="flex gap-2 pb-4 mb-4 border-y border-gray30 items-center">
+            <div className="flex gap-2 pb-4 mb-4 items-center">
 
                 <LikeButton uid={uid} author={post_author} id={_id} likesCount={likes_count} />
 
-                <SaveButton author={user_id} uid={uid} count={saved_count} id={_id} type="Comment" />
+                <SaveButton
+                    className="flex gap-2 items-center py-2 px-3 rounded-full border border-gray30"
+                    author={user_id} uid={uid} count={saved_count} id={_id} type="Comment" />
 
             </div>
 

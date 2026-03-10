@@ -1,20 +1,12 @@
 "use client";
 
-import { EditIcon } from "@assets/Icons";
-import { DateInput, Form, Input, LinkInputManager, Poster, Textarea } from "@components/form";
+import { DateInput, Form, Input } from "@components/form";
 import UserMutationPage from "@components/form/Mutation/UserMutation";
 import Navbar from "@components/Navbar";
-import { MockupButton, UserPageMockup } from "@components/ui/mockup";
-import { urlPattern } from "@lib/constants";
 import { isUsernameAvailable } from "@lib/helpers/common";
-import { registerUserMutation } from "@lib/helpers/mutations";
 import { useCustomReducer } from "@lib/hooks";
-import { registerUserSchemaClient, usernameSchema } from "@lib/schemas";
-import { codetoError, readyFrames } from "@lib/utils";
-import { useNavigation } from "@store/historystack";
-import { InputManagerType } from "@type/other";
-import { InputFrame, LinkSchema } from "@type/schemas";
-import { useSearchParams } from "next/navigation";
+import { usernameSchema } from "@lib/schemas";
+import { codetoError } from "@lib/utils";
 import { useRef } from "react";
 import z from "zod";
 
@@ -22,30 +14,6 @@ const Register = ({ email }: { email: string }) => {
 
     const { username, page, dob, setter } = useCustomReducer({ username: "", page: 0, dob: undefined as Date | undefined });
     const dobRef = useRef<{ get: () => Date | undefined }>(null);
-
-    // const submit = async (data: { name: string, bio: string }) => {
-    //     if (!dob) return "Date of birth is required";
-    //     const profile = profileRef.current?.getData();
-
-    //     const { files, filesData } = await readyFrames(profile ? [profile] : []);
-    //     const bioLinks = linkRef.current?.getData() ?? [];
-
-    //     const redirectTo = urlToRedirect && urlPattern.test(urlToRedirect) ? urlToRedirect : "/home";
-
-    //     const error = await registerUserMutation({
-    //         ...data,
-    //         dob: dob.getTime(),
-    //         email,
-    //         username,
-    //         bioLinks,
-    //         filesData,
-    //         files
-    //     });
-
-    //     if (error) return error;
-    //     else if (error !== false)
-    //         navigation.replace(redirectTo);
-    // }
 
     const storeDob = () => {
         const dob = dobRef.current?.get();

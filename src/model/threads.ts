@@ -40,7 +40,7 @@ const threadModel = new StrictSchema<ThreadModelType>({
   lastCommentedAt: Date,
   lastPostedAt: Date,
   member_count: { ...numberSchema, default: 0 },
-}, { timestamps: true, _id: false });
+}, { timestamps: true });
 
 threadModel.index({ name: 1 }, { unique: true });
 threadModel.index({ created_by: 1 });

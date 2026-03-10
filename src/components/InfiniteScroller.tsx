@@ -137,7 +137,7 @@ export default function InfiniteScroller({ Loading, showFooter, onSuccess, place
                 {data.pages.
                     flatMap(page => page.results)
                     .map((content, ind) => (
-                        <li key={content.id || content._id || content.tmdb_id || ind} className="list-none">
+                        <li key={content.id || content._id || content.tmdb_id || ind} className="list-none group">
                             <Component {...content} callback={callback} additional={additional} user={meta} />
                         </li>
                     ))}

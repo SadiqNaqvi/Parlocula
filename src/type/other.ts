@@ -1,7 +1,6 @@
 import { RequestCookies } from "next/dist/compiled/@edge-runtime/cookies";
 import { ReadonlyRequestCookies } from "next/dist/server/web/spec-extension/adapters/request-cookies";
 import { Frame, GenericDate, InfiniteQueryResponse, MereMessage } from "./internal";
-import { NotificationModelType } from "./models";
 import { ExtMediaSource } from "./schemas";
 
 export type ParloPageProps<

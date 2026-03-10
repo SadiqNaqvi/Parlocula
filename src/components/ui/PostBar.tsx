@@ -13,7 +13,7 @@ const PosterClassName = "object-cover min-w-10 max-w-10 max-h-10 size-10";
 const containerClassName = "rounded-full overflow-hidden";
 const fallbackClassName = "size-6"
 
-const PostBarHeader = ({ poster, profile, thread_id, thread_name, username, section }: Pick<MerePost, | "username" | "profile" | "poster" | "thread_name" | "thread_id"> & { section: SectionType | "all" }) => {
+const PostbarBreadCrumbs = ({ poster, profile, thread_id, thread_name, username, section }: Pick<MerePost, | "username" | "profile" | "poster" | "thread_name" | "thread_id"> & { section: SectionType | "all" }) => {
 
     if (!section || section === "all") return (
         <div className="flex gap-3 items-center">
@@ -85,7 +85,7 @@ const PostBar = ({ _id, comment_count, nsfw, createdAt, editedAt, poster, reacti
         <article className="px-2 py-4 space-y-4 w-full border-b group-last:border-0 border-gray10">
 
             <header className="space-y-2">
-                <PostBarHeader poster={poster} profile={profile} thread_id={thread_id} thread_name={thread_name} username={username} section={additional?.section || "all"} />
+                <PostbarBreadCrumbs poster={poster} profile={profile} thread_id={thread_id} thread_name={thread_name} username={username} section={additional?.section || "all"} />
                 <MetadataTileContainer>
                     <MetadataTile>{timeAgo(createdAt)}</MetadataTile>
 
@@ -98,9 +98,9 @@ const PostBar = ({ _id, comment_count, nsfw, createdAt, editedAt, poster, reacti
 
                     <MetadataTile className="px-2 py-1 bg-gray10 border-gray20 rounded-md" condition={Boolean(editedAt)}>Edited: {timeAgo(editedAt || 0)}</MetadataTile>
 
-                    <MetadataTile className="px-2 py-1 bg-gray10 border-purple-500 text-purple-500 rounded-md" condition={nsfw}>NSFW</MetadataTile>
+                    <MetadataTile nsfw condition={nsfw}>NSFW</MetadataTile>
 
-                    <MetadataTile className="px-2 py-1 bg-gray10 border-orange-500 text-orange-500 rounded-md" condition={spoiler}>Spoiler</MetadataTile>
+                    <MetadataTile spoiler condition={spoiler}>Spoiler</MetadataTile>
 
                 </MetadataTileContainer>
             </header>

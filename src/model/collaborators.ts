@@ -24,7 +24,7 @@ const collaboratorModel = new StrictSchema<CollaboratorModelType>({
         type: Date,
         default: new Date(getTimeInFuture({ unit: "d", timeVal: 7 })),
     }
-}, { timestamps: true, _id: false });
+}, { timestamps: true });
 
 collaboratorModel.index({ shelf_id: 1, user_id: 1 }, { unique: true });
 collaboratorModel.index({ user_id: 1, type: 1 });

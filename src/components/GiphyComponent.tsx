@@ -11,7 +11,11 @@ const Components = ({ callback }: { callback: TypedFunction<GifResultData> }) =>
     const [lastUsed, setLastUsed] = useOfflineStore<GifResultData[]>("lastUsedGifs", []);
 
     const onGifsClick = (gif: GifResultData) => {
-        const temp = [...lastUsed];
+        let temp = [...lastUsed];
+
+        if (lastUsed.some(g => g.id !== gif.id)) {
+            temp = temp.filter(g => g.id !== gif.id);
+        }
 
         if (temp.length >= 10) {
             temp.pop();

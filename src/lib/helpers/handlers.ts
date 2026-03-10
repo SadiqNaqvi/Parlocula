@@ -341,6 +341,7 @@ export const postHandler = <T extends HandlerData>({ handler, preCheck, schema, 
             }, { status: 500 });
         } finally {
             session?.endSession();
+            console.log("revalidateTags", revalidateTags);
             revalidateTags.forEach((tag) => revalidateTag(tag, "max"));
         }
     };
@@ -436,6 +437,7 @@ export const deleteHandler = (
             });
         } finally {
             session?.endSession();
+            console.log("revalidateTags", revalidateTags);
             revalidateTags.forEach((tag) => revalidateTag(tag, "max"));
         }
     };
@@ -613,6 +615,7 @@ export const updateHandler = <T extends HandlerData>({ handler, preCheck, schema
             );
         } finally {
             session?.endSession();
+            console.log("revalidateTags", revalidateTags);
             revalidateTags.forEach((tag) => revalidateTag(tag, "max"));
         }
     };

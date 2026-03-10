@@ -61,7 +61,7 @@ const userModel = new StrictSchema<UserModelType>(
     savedContents: numberSchema,
     rooms: numberSchema,
   },
-  { timestamps: true, _id: false }
+  { timestamps: true }
 );
 
 userModel.index({ username: 1, isActive: 1 });

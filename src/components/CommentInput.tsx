@@ -5,21 +5,27 @@ import BottomSheet, { BottomSheetRef } from "@components/BottomSheet";
 import { Form, Input, ToggleButton } from "@components/form";
 import GiphyComponent from "@components/GiphyComponent";
 import { GifResult } from "@giphy/js-fetch-api";
-import { parloculaAppURL } from "@lib/constants";
 import { createCommentMutation, updateCommentMutation } from "@lib/helpers/mutations";
+import appToast from "@lib/providers/toast";
 import { checkEditedFields, parloId } from "@lib/utils";
 import useGlobalStore from "@store/globalStore";
-import { useNavigation } from "@store/historystack";
 import useCurrentUser from "@store/user";
-import { CommentReplyType, FullComment } from "@type/internal";
+import { FullComment } from "@type/internal";
+import { ReplyInputType } from "@type/schemas";
 import Image from "next/image";
+import { useSearchParams } from "next/navigation";
 import { useRef, useState } from "react";
 import { OptionalChildren } from "./ui";
+
+export type CommentInputRefType = {
+    focus: () => void;
+    setValue: (v: string) => void;
+}
 
 type Props = {
     section: "replies" | "comments",
     post_id: string,
-    post_author: string,
+    post_author: string
 } & ({
     editing?: false
     defaultValue?: undefined,
@@ -36,47 +42,86 @@ type CommentFormData = {
     spoiler: boolean
 }
 
-type ParentCommentType = (CommentReplyType & { replied_to: string });
-
-const ReplyBar = ({ reply }: { reply: ParentCommentType | undefined }) => {
+const ReplyBar = ({ reply, removeReply }: { reply: ReplyInputType | undefined, removeReply: () => void }) => {
 
     if (!reply || !reply.replied_to || !(reply.attachment || reply.content)) return null;
 
     const { attachment, content } = reply;
 
     if (!content && attachment) return (
-        <div className="space-y-3 p-2 border border-gray20 rounded-md w-full">
-            <Image
-                height={48}
-                width={48}
-                alt="GIF attached with the comment"
-                src={attachment}
-                className="object-contain size-12 rounded-md"
-            />
-        </div>
+        <section className="p-1 border border-gray20 rounded-md">
+            <OptionalChildren condition={reply.username}>
+                <p className="text-xs mb-1 text-gray-500">Replying to: @{reply.username}</p>
+            </OptionalChildren>
+            <div className="flex flex-cntr-between gap-2 w-full">
+                <Image
+                    height={48}
+                    width={48}
+                    alt="GIF attached with the comment"
+                    src={attachment}
+                    className="object-contain size-12 rounded-md"
+                />
+                <button
+                    onClick={removeReply}
+                    className="p-2 rounded-full bg-gray20 border border-gray30">
+                    <XmarkIcon className="size-2" />
+                </button>
+            </div>
+        </section>
     )
 
     else if (content) return (
-        <div className="space-y-3 p-2 border border-gray20 rounded-md w-full">
-            <p className="text-sm line-clamp-2">{content}</p>
-        </div>
+        <section className="p-1 border border-gray20 rounded-md">
+            <OptionalChildren condition={reply.username}>
+                <p className="text-xs mb-1 text-gray-500">Replying to: @{reply.username}</p>
+            </OptionalChildren>
+            <div className="flex flex-cntr-between gap-2 w-full">
+                <p className="text-sm line-clamp-2">{content}</p>
+                <button
+                    onClick={removeReply}
+                    className="p-2 rounded-full bg-gray20 border border-gray30">
+                    <XmarkIcon className="size-2" />
+                </button>
+            </div>
+        </section>
     )
 
+}
+
+const setCommentValue = (value: string) => {
+    const input = document.querySelector<HTMLInputElement>("input[data-testid=commentInput]");
+    if (input) {
+        input.value = value;
+    }
+}
+
+const getElement = () => {
+    return document.querySelector<HTMLInputElement>("input[data-testid=commentInput]");
 }
 
 const CommentInput = ({ post_author, post_id, section, editing, defaultValue, cid }: Props) => {
 
     const { meta } = useCurrentUser();
     const [gif, setGif] = useState(defaultValue?.attachment || "");
-    const [reply, setReply] = useGlobalStore<ParentCommentType | undefined>(`reply:post:${post_id}`, undefined);
+    const [reply, setReply] = useGlobalStore<ReplyInputType | undefined>(`reply:post:${post_id}`, undefined);
     const gifSheetRef = useRef<BottomSheetRef>();
-    const navigation = useNavigation();
+    const sp = useSearchParams();
 
     if (!meta) return (
-        <footer style={{ maxWidth: "100%" }} className="py-2 bg-primary fixed bottom-0 w-full">
-            <div className="w-full max-w-screen-md mx-auto">
-                <p className="text-center">You need to log-in to post a comment</p>
-            </div>
+        <footer className="py-2 bg-primary border-t border-gray30 sticky bottom-0 w-full fullScreen">
+            <Form skipReset submit={() => { appToast.error("Uh Oh! You need to Log-in to comment") }} className="flex gap-2 items-center">
+
+                <Input
+                    containerClasses="flex-1"
+                    placeholder="Write your comment here..."
+                    className={`bg-transparent border-0 py-2 w-full`}
+                    name="content"
+                />
+
+                <button type="submit" className="p-2 h-fit border border-gray10 rounded-full bg-gray10">
+                    <SendIcon className="size-4 color-secondary" />
+                </button>
+            </Form>
         </footer>
     )
 
@@ -85,7 +130,7 @@ const CommentInput = ({ post_author, post_id, section, editing, defaultValue, ci
         gifSheetRef.current?.close();
     }
 
-    const removeReply = () => setReply(undefined)
+    const removeReply = () => setReply(undefined);
 
     const handleCommentEdit = (newData: Partial<CommentFormData>) => {
         if (!defaultValue || !editing || !cid) return;
@@ -119,31 +164,54 @@ const CommentInput = ({ post_author, post_id, section, editing, defaultValue, ci
             parent,
         };
 
-        createCommentMutation(comment, section);
-        const path = new URL(parloculaAppURL, navigation.pathname);
-        path.searchParams.append("f", "latest");
-        navigation.replace(path.pathname);
+        const parentCommentAuthor = reply?.username
+        createCommentMutation(comment, section, sp.get("f") || sp.get("filter"))
+            .then(resp => {
+                const { success } = resp;
+                console.log(resp);
+                if (success) return;
+
+                const input = getElement();
+
+                console.log(input, input?.value, !!reply, !!gif)
+                if (!input) return;
+
+                // Check if user started creating a new comment, if yes then do nothing;
+                if (input.value !== "" || reply || gif) return;
+
+                // Otherwise, set the old comment.
+                if (comment.content) setCommentValue(comment.content);
+                if (comment.attachment) setGif(comment.attachment);
+                if (parent)
+                    setReply({
+                        attachment: parent.attachment,
+                        content: parent.content,
+                        replied_to: comment.replied_to,
+                        username: parentCommentAuthor,
+                    })
+            });
         setGif("");
         removeReply();
     }
 
     return (
-        <footer style={{ maxWidth: "100%" }} className="py-2 bg-primary fixed bottom-0 w-full fullScreen">
+        <footer className="py-2 bg-primary sticky bottom-0 border-t border-gray20 w-full fullScreen">
 
-            <div className="w-full max-w-screen-md mx-auto px-2">
+            <div className="w-full px-2 space-y-2">
 
-                <ReplyBar reply={reply} />
+                <ReplyBar reply={reply} removeReply={removeReply} />
 
-                <div className="border-t space-y-3 pt-2 border-gray30">
+                <div className="space-y-2">
 
                     <OptionalChildren condition={gif}>
                         <div className="relative w-fit">
                             <button
                                 onClick={() => setGif('')}
-                                className="smallBtn size-6 flex flex-cntr-all border border-gray30 bg-primary rounded-full absolute top-0 right-0 mt-1 mr-1">
-                                <XmarkIcon className="size-3" />
+                                className="p-2 border border-gray30 bg-primary rounded-full absolute top-0 right-0 mt-1 mr-1">
+                                <XmarkIcon className="size-2" />
                             </button>
                             <Image
+                                unoptimized
                                 src={gif}
                                 alt="Chosen GIF"
                                 className="size-24 rounded-md border border-gray30"
@@ -157,31 +225,32 @@ const CommentInput = ({ post_author, post_id, section, editing, defaultValue, ci
                         <Form
                             submit={postComment}
                             defaultVals={defaultValue}
-                            className={`flex w-full px-2 gap-2`}
+                            className="w-full group"
                         >
-                            <div className="flex-1">
+                            <div className="flex gap-2 items-center">
 
                                 <Input
-                                    containerClasses="reset"
-                                    placeholder="Write you comment here..."
-                                    className={`bg-transparent border-0 w-full py-3`}
+                                    data-testid="commentInput"
+                                    containerClasses="flex-1"
+                                    placeholder="Write your comment here..."
+                                    className={`bg-transparent border-0 px-0 w-full`}
                                     name="content"
                                 />
 
-                                <div className="flex gap-2 py-2 items-center">
-
-                                    <BottomSheet ref={gifSheetRef} button="GIF" className="text-sm py-1 px-2 rounded-md border border-gray40">
-                                        <GiphyComponent callback={handleGif} />
-                                    </BottomSheet>
-
-                                    <ToggleButton label="nsfw" className="uppercase text-sm bg-transparent" />
-                                    <ToggleButton label="spoiler" className="capitalize text-sm bg-transparent has-[:checked]:bg-orange-500/20 has-[:checked]:border-orange-500" />
-                                </div>
-
+                                <button type="submit" className="p-2 h-fit border border-gray10 rounded-full bg-gray10">
+                                    <SendIcon className="size-4 color-secondary" />
+                                </button>
                             </div>
-                            <button type="submit" className="mt-3 p-2 h-fit border border-gray10 rounded-full bg-gray10">
-                                <SendIcon className="size-4 color-secondary" />
-                            </button>
+
+                            <div className="flex gap-2 items-center commentInputOptionsBar transition-all">
+
+                                <BottomSheet ref={gifSheetRef} button="GIF" className="text-sm py-1 px-2 rounded-md border border-gray40">
+                                    <GiphyComponent callback={handleGif} />
+                                </BottomSheet>
+
+                                <ToggleButton label="nsfw" className="uppercase text-sm bg-transparent" />
+                                <ToggleButton label="spoiler" className="capitalize text-sm bg-transparent has-[:checked]:bg-orange-500/20 has-[:checked]:border-orange-500" />
+                            </div>
                         </Form>
                     </div>
                 </div>

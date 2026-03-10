@@ -19,8 +19,8 @@ const FinalSection = ({ uid, callback }: { uid: string, callback: (passkey: stri
     }
 
     const handleDeactivation = async ({ passkey }: { passkey: string }) => {
-        const errors = await deactivateAccount(uid, passkey);
-        if (errors) return errors;
+        const { success, error } = await deactivateAccount(uid, passkey);
+        if (!success) return error;
         navigation.replace('/join');
     }
 

@@ -36,7 +36,6 @@ export const threadProjection = {
 export const commentProjection = {
   user: 0,
   reply: 0,
-  post_id: 0,
   edited_at: 0,
 }
 

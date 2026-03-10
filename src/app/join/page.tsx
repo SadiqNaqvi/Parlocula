@@ -19,12 +19,15 @@ const Page = () => {
 
         const redirectTo = urlToRedirect && urlPattern.test(urlToRedirect) ? urlToRedirect : "/home";
 
-        if (response === undefined) return navigation.replace(redirectTo);
+        if (response.success) {
+            navigation.replace(redirectTo);
+        }
 
-        if (typeof response === "string" && response === "unregistered_user")
+        else if (response.error === "unregistered_user") {
             setEmail(email);
-
-        return response;
+        }
+        
+        else return response.error;
     }
 
     if (email) return <Register email={email} />

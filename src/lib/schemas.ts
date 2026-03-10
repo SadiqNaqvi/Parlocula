@@ -282,7 +282,7 @@ export const userPrefrenceSchema = z
 
 const commentSchemaBase = z.object({
   _id: z.string(),
-  content: z.string().min(2).max(1000).default(""),
+  content: z.string().trim().max(500),
   post_id: z.string(),
   nsfw: z.boolean().default(false),
   spoiler: z.boolean().default(false),
@@ -293,7 +293,8 @@ const commentSchemaBase = z.object({
 });
 
 export const commentSchema = commentSchemaBase.refine((data) =>
-  Boolean(data.content || data.attachment)
+  Boolean(data.content || data.attachment),
+  "Either write a comment or attach a gif"
 );
 
 export const commentSchemaUpdate = commentSchemaBase.partial().strict();

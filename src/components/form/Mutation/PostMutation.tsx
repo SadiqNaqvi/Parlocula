@@ -2,13 +2,12 @@
 
 import { AddIcon, BookmarkIcon, CommentIcon, ReactIcon } from "@assets/Icons";
 import { BottomSheet, BottomSheetRef, LinkInputManager, Navbar, OptionMenu } from "@components";
-import { LoginModal } from "@components/fallbacks";
 import { Form, MediaInputManager, PostCategoryPicker, ToggleButton } from "@components/form";
 import ChooseThreadButton from "@components/form/Mutation/ThreadSelectionSheet";
 import { OptionalChildren, OptionList } from "@components/ui";
 import PostPageMockup from "@components/ui/mockup/PostPageMockup";
 import { createPostMutation, updatePostMutation } from "@lib/helpers/mutations";
-import { postClientSchema, postSchemaServer, postUpdateSchema } from "@lib/schemas";
+import { postClientSchema } from "@lib/schemas";
 import { checkEditedFields, readyFrames } from "@lib/utils";
 import { useNavigation } from "@store/historystack";
 import useCurrentUser from "@store/user";
@@ -57,7 +56,7 @@ const PostMutationPage = ({ defaultVal, isEditing, defaultThread, quotedPost }: 
 
         const { files, filesData } = await readyFrames(frames);
 
-        return await createPostMutation(
+        const { success, error } = await createPostMutation(
             meta.user_id,
             {
                 ...postData,
@@ -71,6 +70,8 @@ const PostMutationPage = ({ defaultVal, isEditing, defaultThread, quotedPost }: 
             },
             navigation
         );
+
+        if (!success) return error;
     }
 
     const submitUpdation = async (updatedData: PostClientSchemaType) => {

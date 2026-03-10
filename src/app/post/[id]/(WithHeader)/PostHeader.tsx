@@ -19,7 +19,11 @@ const getQueryProps = ({ id }: Props) => ({
     queryKeys: getQueryKeys("post_id", { id }),
     args: [id],
     queryFn: getPostById,
-})
+});
+
+const handleFocus = () => {
+    document.querySelector<HTMLInputElement>("input[data-testid=commentInput]")?.focus();
+}
 
 const Component = (data: FullPost, { uid }: Props) => {
 
@@ -39,7 +43,6 @@ const Component = (data: FullPost, { uid }: Props) => {
             />
 
             <article className="px-2">
-
 
                 <header className="px-2 flex gap-2 items-center">
                     <Navigate comp="link" role="button" goto={`/thread/${thread_id}`}>
@@ -110,7 +113,7 @@ const Component = (data: FullPost, { uid }: Props) => {
                 </article>
 
                 <OptionalChildren condition={frames?.length}>
-                    <section className="px-2 my-2 w-full">
+                    <section className="my-2 w-full">
                         <FrameSlider id={_id} frames={frames} />
                     </section>
                 </OptionalChildren>
@@ -118,26 +121,27 @@ const Component = (data: FullPost, { uid }: Props) => {
                 <LinksSection links={links} />
             </article>
 
-            <div className="px-2 flex items-center gap-2">
+            <section className="px-2 flex items-center gap-2">
                 <ReactionButton uid={uid} id={_id} count={reaction_count} />
 
-                <SaveButton
-                    className="flex gap-2 items-center py-2 px-3 rounded-full border border-gray30"
-                    author={user_id} uid={uid} type="Post" count={saved_count} id={_id} />
+                <button onClick={handleFocus} className="gap-2 text-sm items-center py-2 px-3 rounded-full border border-gray30">
+                    <span><CommentIcon /></span>
+                    <span>{numberConverter(comment_count)}</span>
+                </button>
+
 
                 <Navigate
                     comp="link"
                     goto={`/new/post?qpid=${data._id}`}
-                    className="flex gap-2 items-center py-2 px-3 rounded-full border border-gray30">
+                    className="flex gap-2 items-center py-2 px-3 text-sm rounded-full border border-gray30">
                     <QuoteIcon />
                     <span>Quote</span>
                 </Navigate>
 
-                <div className="flex gap-2 text-sm items-center">
-                    <span><CommentIcon /></span>
-                    <span>{numberConverter(comment_count)}</span>
-                </div>
-            </div>
+                <SaveButton
+                    className="flex gap-2 items-center py-2 px-3 rounded-full border border-gray30"
+                    author={user_id} uid={uid} type="Post" count={saved_count} id={_id} />
+            </section>
 
         </>
     )

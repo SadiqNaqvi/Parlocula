@@ -30,7 +30,7 @@ export const POST = postHandler<{ reaction: string }>({
         post_id: id,
       },
       { $set: { reaction } },
-      { session, upsert: true, order: true }
+      { session, upsert: true, order: true, new: true }
     );
 
     if (!doc) return { success: false, errCode: "data_storing_fail" }

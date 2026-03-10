@@ -100,7 +100,7 @@ const CommentLayout = async ({ children, params }: PropsWithChildren<ParloPagePr
     );
 
     return (
-        <main>
+        <main className="noPadding">
             <Suspense fallback={<FullPageLoadingSpinner />}>
                 <Fetcher cid={cid}>{children}</Fetcher>
             </Suspense>

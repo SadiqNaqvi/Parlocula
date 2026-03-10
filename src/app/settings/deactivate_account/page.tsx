@@ -9,9 +9,7 @@ import useCurrentUser from "@store/user";
 import { z } from "zod";
 
 const schema = z.object({
-
     passkey: z.string().min(30).max(36),
-
 });
 
 const DeactivateAccountPage = () => {
@@ -23,8 +21,8 @@ const DeactivateAccountPage = () => {
     else if (!user) return null;
 
     const handleDeactivation = async ({ passkey }: { passkey: string }) => {
-        const errors = await deactivateAccount(user._id, passkey);
-        if (errors) return errors;
+        const { success, error } = await deactivateAccount(user._id, passkey);
+        if (!success) return error;
         navigation.replace('/join');
     }
 

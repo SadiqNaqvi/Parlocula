@@ -2,11 +2,12 @@ import { BookmarkIcon, ThumbUpIcon } from "@assets/Icons";
 import { Navigate } from "@components";
 import { numberConverter, timeAgo } from "@lib/utils";
 import useGlobalStore from "@store/globalStore";
-import { CommentReplyType, CurrentUser, MereComment } from "@type/internal";
+import { CurrentUser, MereComment } from "@type/internal";
 import Image from "next/image";
-import ParloImage from "./ParloImage";
-import OptionalChildren from "./OptionalChildren";
 import MetadataTile, { MetadataTileContainer } from "./MetaDataTile";
+import OptionalChildren from "./OptionalChildren";
+import ParloImage from "./ParloImage";
+import { ReplyInputType } from "@type/schemas";
 
 type LinkProps = {
     children: React.ReactNode,
@@ -26,9 +27,7 @@ type Props = MereComment & {
     restrictReply?: boolean
 }
 
-type ParentCommentType = (CommentReplyType & { replied_to: string | undefined });
-
-const ParentCommentBar = ({ parentComment }: { parentComment: ParentCommentType | undefined }) => {
+const ParentCommentBar = ({ parentComment }: { parentComment: ReplyInputType | undefined }) => {
 
     if (!parentComment || !parentComment.replied_to || !(parentComment.attachment || parentComment.content)) return null;
 
@@ -36,15 +35,17 @@ const ParentCommentBar = ({ parentComment }: { parentComment: ParentCommentType 
 
     if (!content && attachment) return (
         <Navigate
-            className="p-2 border border-gray20 rounded-md w-full"
+            className="block my-1 p-2 border border-gray20 rounded-md w-full"
             comp="link" type="button" goto={`/comment/${replied_to}`}>
-            <div className="space-y-3">
+            <p className="mb-1 text-xs sm:text-sm text-zinc-500">Replied to:</p>
+            <div className="w-full">
                 <Image
-                    height={24}
-                    width={24}
+                    height={48}
+                    width={48}
                     alt="GIF attached with the comment"
                     src={attachment}
-                    className="object-contain size-6 rounded-md"
+                    unoptimized
+                    className="object-contain size-12 rounded-md"
                 />
             </div>
         </Navigate>
@@ -53,75 +54,76 @@ const ParentCommentBar = ({ parentComment }: { parentComment: ParentCommentType 
     else if (content)
         return (
             <Navigate
-                className="p-2 border border-gray20 rounded-md w-full"
+                className="block my-1 p-2 border border-gray20 rounded-md w-full"
                 comp="link" type="button" goto={`/comment/${replied_to}`}>
-                <div className="space-y-3">
-                    <p className="text-sm line-clamp-2">{content}</p>
-                </div>
+                <p className="mb-1 text-xs sm:text-sm text-zinc-500">Replied to:</p>
+                <p className="text-sm line-clamp-2">{content}</p>
             </Navigate>
         )
 
 }
 
-const CommentBar = ({ _id, attachment, nsfw, spoiler, post_id, user, content, status, saved_count, likes_count, profile, parentComment, replied_to, username, createdAt, edited_at, restrictReply }: Props) => {
+const CommentBar = ({ _id, attachment, nsfw, spoiler, post_id, content, status, saved_count, likes_count, profile, parentComment, replied_to, username, createdAt, edited_at, restrictReply }: Props) => {
 
-    const [, setReply] = useGlobalStore<ParentCommentType | undefined>(`reply:post:${post_id}`, undefined);
+    const [, setReply] = useGlobalStore<ReplyInputType | undefined>(`reply:post:${post_id}`, undefined);
 
     const handleReply = () => {
-        if (user && status !== "sending" && !restrictReply)
-            setReply({
-                content: content,
-                replied_to: _id,
-                attachment,
-            })
+        if (status === "sending" || restrictReply) return;
+
+        setReply({
+            content: content,
+            replied_to: _id,
+            attachment,
+            username,
+        })
     }
 
     return (
-        <article className="w-full my-2 group-last:border-0 border border-gray30">
+        <article className="w-full my-2 group-last:border-0 border-b border-gray30">
+            <details className="w-full p-2" open={!Boolean(nsfw || spoiler)}>
 
-            <ParentCommentBar parentComment={parentComment ? { ...parentComment, replied_to } : undefined} />
+                <summary className="marker:hidden">
+                    <div className="flex gap-3 items-center">
+                        <ParloImage
+                            frameType="userProfile"
+                            frame={profile}
+                            className="min-w-8 size-8 rounded-full object-cover"
+                            size={32}
+                            alt={`profile picture of ${username}`}
+                        />
+                        <OptionalChildren condition={username} fallback={(
+                            <span className="text-gray-500 font-semibold">*Deleted User*</span>
+                        )}>
+                            <Navigate comp="link" role="button" goto={`/user/${username}`} className="font-semibold">{username}</Navigate>
+                        </OptionalChildren>
+                    </div>
 
-            <details className="w-full p-2 border-l border-gray30" open={!Boolean(nsfw || spoiler)}>
+                    <MetadataTileContainer className="mt-2">
+                        <MetadataTile className="text-xs">{timeAgo(createdAt)}</MetadataTile>
 
-                <summary className="flex gap-3 items-center">
+                        <MetadataTile className="text-xs" condition={!!edited_at}>Edited</MetadataTile>
 
-                    <ParloImage
-                        frameType="userProfile"
-                        frame={profile}
-                        className="min-w-8 size-8 rounded-full object-cover"
-                        size={32}
-                        alt={`profile picture of ${username}`}
-                    />
-
-                    <OptionalChildren condition={username} fallback={(
-                        <span className="text-gray-500 font-semibold">[deleted]</span>
-                    )}>
-                        <Navigate comp="link" role="button" goto={`/user/${username}`} className="font-semibold">{username}</Navigate>
-                    </OptionalChildren>
-
-                    <MetadataTileContainer>
-                        <MetadataTile>{timeAgo(createdAt)}</MetadataTile>
-
-                        <MetadataTile condition={!!edited_at}>Edited</MetadataTile>
-
-                        <MetadataTile condition={nsfw} nsfw>NSFW</MetadataTile>
-                        <MetadataTile condition={spoiler} spoiler>Spoiler</MetadataTile>
+                        <MetadataTile condition={nsfw} className="py-1 px-2 text-xs" nsfw>NSFW</MetadataTile>
+                        <MetadataTile condition={spoiler} className="py-1 px-2 text-xs" spoiler>Spoiler</MetadataTile>
 
                     </MetadataTileContainer>
                 </summary>
 
+                <ParentCommentBar parentComment={parentComment ? { ...parentComment, replied_to, username: undefined } : undefined} />
+
                 <div className="my-2 space-y-4">
                     <Link status={status} link={`/comment/${_id}`} className="space-y-4 my-2">
-                        <p className="text-sm">{content}</p>
                         <OptionalChildren condition={attachment}>
                             <Image
                                 src={attachment}
                                 alt="Attachment"
-                                className="size-12 rounded-md border border-gray30 object-contain"
-                                height={48}
-                                width={48}
+                                className="size-24 rounded-md border border-gray30 object-contain"
+                                unoptimized
+                                height={96}
+                                width={96}
                             />
                         </OptionalChildren>
+                        <p className="text-sm">{content}</p>
                     </Link>
 
                     <section className="flex mt-2 gap-3">
