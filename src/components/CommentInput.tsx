@@ -104,7 +104,7 @@ const CommentInput = ({ post_author, post_id, section, editing, defaultValue, ci
     const { meta } = useCurrentUser();
     const [gif, setGif] = useState(defaultValue?.attachment || "");
     const [reply, setReply] = useGlobalStore<ReplyInputType | undefined>(`reply:post:${post_id}`, undefined);
-    const gifSheetRef = useRef<BottomSheetRef>();
+    const gifSheetRef = useRef<BottomSheetRef>(null);
     const sp = useSearchParams();
 
     if (!meta) return (

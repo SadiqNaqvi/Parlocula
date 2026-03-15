@@ -1,7 +1,7 @@
 import appToast from "@lib/providers/toast";
 import { dobSchema } from "@lib/schemas";
 import { GenericDate } from "@type/internal";
-import React, { useRef, useState, useEffect, MutableRefObject, useImperativeHandle } from "react";
+import React, { useImperativeHandle, useRef } from "react";
 
 type DateInputValue = {
   day: string;
@@ -12,7 +12,7 @@ type DateInputValue = {
 type DateInputProps = {
   defaultVal?: GenericDate;
   onComplete?: (value: GenericDate) => void;
-  dateRef?: React.RefObject<{ get: () => Date | undefined }>
+  dateRef?: React.RefObject<{ get: () => Date | undefined }|null>,
 }
 
 const DateInput: React.FC<DateInputProps> = ({ defaultVal, onComplete, dateRef }) => {
@@ -26,7 +26,7 @@ const DateInput: React.FC<DateInputProps> = ({ defaultVal, onComplete, dateRef }
   const handleInput = (
     e: React.ChangeEvent<HTMLInputElement>,
     max: number,
-    nextRef?: React.RefObject<HTMLInputElement>
+    nextRef?: React.RefObject<HTMLInputElement | null>
   ) => {
     let value = e.target.value.replace(/\D/g, "").slice(0, max);
     const numVal = Number(value);
@@ -50,7 +50,7 @@ const DateInput: React.FC<DateInputProps> = ({ defaultVal, onComplete, dateRef }
     console.log(success, error, data);
 
     if (!success) {
-      appToast.error(error.errors[0].message);
+      appToast.error(error.issues[0].message);
       return;
     }
 

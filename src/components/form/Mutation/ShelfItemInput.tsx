@@ -28,11 +28,11 @@ const ShallowShelfItemBar = () => (
     </>
 )
 
-const ShelfItemInput = ({ itemsRef, defaultTaleons }: { itemsRef: RefObject<ListSelectorRef<ItemType>>, defaultTaleons?: ItemType[] }) => {
+const ShelfItemInput = ({ itemsRef, defaultTaleons }: { itemsRef: RefObject<ListSelectorRef<ItemType>|null>, defaultTaleons?: ItemType[] }) => {
 
     const [items, setItems] = useState<ItemType[]>(defaultTaleons ?? []);
     const callbackRef = useRef<ListSelectorRef<ItemType>>(null);
-    const sheetRef = useRef<BottomSheetRef>();
+    const sheetRef = useRef<BottomSheetRef>(null);
 
     useImperativeHandle<ListSelectorRef<ItemType>, ListSelectorRef<ItemType>>(itemsRef, () => () => items)
 

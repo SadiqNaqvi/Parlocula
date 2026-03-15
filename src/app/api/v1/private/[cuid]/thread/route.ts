@@ -22,7 +22,7 @@ export const POST = postHandler<ThreadSchemaServer>({
       connections,
     }], { session });
 
-    const result = resp[0]?.toObject();
+    const result = resp[0];
 
     if (!result) return {
       success: false,

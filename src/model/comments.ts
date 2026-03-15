@@ -40,7 +40,6 @@ commentModel.index({ user_id: 1, nsfw: 1 });
 commentModel.index({ post_id: 1, nsfw: 1 });
 
 const Comment: StrictModel<CommentModelType> =
-  (models.Comment as any) ||
-  (model("Comment", commentModel) as StrictModel<CommentModelType>);
+  (models.Comment as any) || model("Comment", commentModel);
 
 export default Comment;

@@ -269,7 +269,7 @@ export const emailUpdateSchema = z.object({
 });
 
 export const userPrefrenceSchema = z
-  .record(z.boolean())
+  .record(z.string(), z.boolean())
   .transform((val) => Object.keys(val).filter((el) => val[el]))
   .refine((arr: string[]) => arr.length >= 3, {
     path: ["custom"],

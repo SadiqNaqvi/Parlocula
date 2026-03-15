@@ -42,7 +42,7 @@ const TaleonWikiHeader = ({ className, posterClassName, title, frameType, titleT
                             { maxScreenWidth: 768, imageWidth: "100vw" },
                             { imageWidth: 768 },
                         ]}
-                        className={twMerge("w-full rounded-md aspect-[16/9] h-auto max-h-[250px] object-cover object-top")}
+                        className={twMerge("w-full rounded-md aspect-video h-auto max-h-[250px] object-cover object-top")}
                         alt="Backdrop"
                         frame={backdrop}
                     />

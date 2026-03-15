@@ -11,6 +11,7 @@ import useCurrentUser from "@store/user";
 import { ThreadModType } from "@type/internal";
 import { TypedFunction } from "@type/other";
 import { InviteManagers, RemoveManagers } from "./EditManagers";
+import { OptionalChildren } from "@components/ui";
 
 type Props = {
     tid: string,
@@ -21,20 +22,19 @@ const ManagerNavbar = ({ managersCount, isCreator, onInvite, onRemove }: { manag
     <Navbar
         navTitle="Manage Managers"
         OptionButton={
-            <div className="flex gap-2">
 
-                {managersCount < threadManagersLimit && (
+            <div className="flex gap-2">
+                <OptionalChildren condition={managersCount < threadManagersLimit}>
                     <button onClick={onInvite}>
                         <AddIcon />
                     </button>
-                )}
+                </OptionalChildren>
 
-                {isCreator && (
+                <OptionalChildren condition={isCreator}>
                     <button onClick={onRemove}>
                         <EditIcon />
                     </button>
-                )}
-
+                </OptionalChildren>
             </div>
         }
     />
@@ -66,7 +66,7 @@ const Component = (data: ThreadModType, { tid, uid }: Props) => {
                 onRemove={() => setSection("remove")}
                 managersCount={managersCount}
             />
-            <div className="forceCenter">
+            <div className="h-size-screen flex flex-cntr-all px-2">
                 <p className="mt-32">No Managers has been chosen yet</p>
             </div>
         </>
@@ -81,7 +81,7 @@ const Component = (data: ThreadModType, { tid, uid }: Props) => {
                 managersCount={managersCount}
             />
 
-            <section className="space-y-4">
+            <section className="space-y-4 px-2">
 
                 <div className="space-y-2">
                     <h4 className="uppercase text-sm font-semibold">Managers</h4 >

@@ -16,7 +16,7 @@ type ReasonProps = {
     buttonLabel?: string,
 }
 
-const Reason = ({ description, title, active, href, buttonLabel, textareaRef, onClick }: ReasonProps & { textareaRef?: RefObject<HTMLTextAreaElement>, active: boolean, onClick: (reason: string) => void }) => {
+const Reason = ({ description, title, active, href, buttonLabel, textareaRef, onClick }: ReasonProps & { textareaRef?: RefObject<HTMLTextAreaElement | null>, active: boolean, onClick: (reason: string) => void }) => {
 
     const handleClick = () => {
         onClick(title);

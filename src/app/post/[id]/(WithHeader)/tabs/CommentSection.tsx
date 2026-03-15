@@ -45,6 +45,7 @@ const CommentSection = ({ id, page, filter, allowNSFW }: Props) => {
                     queryKeys={getQueryKeys('commentsOfPost_pid_filter', { pid: id, filter })}
                     initialPage={page}
                     paginate={true}
+                    className="space-y-0"
                 />
 
             </section>

@@ -73,7 +73,7 @@ export const POST = async (req: NextRequest) => {
 
             // Its time for deletion
 
-            await deleteUser(user._id, session, user.profile?.path);
+            await deleteUser(user._id!, session, user.profile?.path);
 
             await sendEmail({
                 email: user.email,

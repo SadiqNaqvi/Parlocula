@@ -18,6 +18,6 @@ const likeModel = new StrictSchema<LikesModelType>({
 likeModel.index({ user_id: 1, comment_id: 1 }, { unique: true });
 
 const Like: StrictModel<LikesModelType> =
-  (models.Like as any) || (model<LikesModelType>("Like", likeModel) as StrictModel<LikesModelType>);
+  (models.Like as any) || model<LikesModelType>("Like", likeModel);
 
 export default Like;

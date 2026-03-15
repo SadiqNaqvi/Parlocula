@@ -38,7 +38,7 @@ const Page = async ({ params, searchParams }: ParloPageProps) => {
 
     return (
         <HydrationBoundary state={dehydrate(queryClient)}>
-            <div className="my-2">
+            <div className="my-2 px-2">
                 <FilterTiles type="shelves" />
             </div>
             <ShelfSection current={Boolean(currentUser && user._id === currentUser.user_id)} user={user} filter={filter} page={page} />

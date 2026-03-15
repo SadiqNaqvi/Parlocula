@@ -27,7 +27,7 @@ type Props<T, P extends PropType> = {
     props: P,
     needUser?: boolean,
     skipNotFound?: undefined | false,
-    component: (data: T, props: P) => JSX.Element | null | undefined,
+    component: (data: T, props: P) => React.ReactElement | null | undefined,
 }
 
 

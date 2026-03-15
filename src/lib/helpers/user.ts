@@ -41,7 +41,7 @@ export const setUserOnRefreshOrLogin = (user: CurrentUser, contentFiltering: boo
         refetchQueries(getQueryKeys("notifications_uid", { uid: user._id }));
         toast.success(data.title, { icon: "🔔" });
 
-        useNotification.setState({ newNotification: true }, true);
+        useNotification.setState({ newNotification: true });
     }
 
     const handleMessageArrival = ({ data }: { data?: AblyEventParams["message"] }) => {

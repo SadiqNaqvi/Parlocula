@@ -23,7 +23,7 @@ export const PATCH = updateHandler<ThreadUpdateSchema>({
         ...(!frames.length && areFilesToDelete && { $unset: { poster: 1 } }),
       },
       session
-    ).then(r => r?.toObject());
+    ).exec();
 
     if (!doc) return { success: false, errCode: "resource_not_found" }
 

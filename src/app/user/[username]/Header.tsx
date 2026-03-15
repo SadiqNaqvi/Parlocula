@@ -7,6 +7,7 @@ import useCurrentUser from "@store/user";
 import { RequestedUser } from "@type/internal";
 import { ActionButton, MessageButton } from "./";
 import { OptionalChildren, InteractiveDetailSection, TabContainer, TabList, LinksSection, ParloImage } from "@components/ui";
+import { HamburgerIcon } from "@assets/Icons";
 
 type Props = { username: string, uid: string | undefined };
 
@@ -24,7 +25,7 @@ const SettingButton = ({ uid }: { uid: string }) => {
 
     return (
         <Navigate comp="link" goto="/settings" type="button">
-            ⚙
+            <HamburgerIcon />
         </Navigate>
     )
 

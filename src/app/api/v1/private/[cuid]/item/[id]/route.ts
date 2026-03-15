@@ -36,7 +36,7 @@ export const GET = getHandler(async (r, params) => {
   if (!items)
     return { success: true, result: { data: [], total: 0 } };
 
-  const shelf = shelfResponse.toObject();
+  const shelf = shelfResponse;
 
   if (shelf.isPrivate && !((key && (key === shelf.shelfKey)) || (cuid && shelf.user_id === cuid)))
     return { success: false, errCode: "unauthorized_access" };

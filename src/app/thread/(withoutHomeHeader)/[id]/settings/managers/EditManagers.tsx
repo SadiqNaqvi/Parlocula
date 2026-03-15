@@ -44,7 +44,7 @@ export const RemoveManagers = ({ back, tid, managers, uid }: Props & { managers:
     }
 
     return (
-        <div className="min-h-screen">
+        <>
 
             <Navbar
                 navTitle="Remove Managers"
@@ -59,17 +59,19 @@ export const RemoveManagers = ({ back, tid, managers, uid }: Props & { managers:
                     mode="static-refiner"
                     data={managers}
                     callbackRef={callbackRef}
+                    className="mt-4"
+                    frameType="userProfile"
                     returnIds
                     refiner={refiner}
                 />
             </section>
-        </div>
+        </>
     )
 }
 
 export const InviteManagers = ({ back, uid, tid, managersCount }: Props & { managersCount: number }) => {
 
-    const callbackRef = useRef<ListSelectorRef<ModeratorType>>(null);
+    const callbackRef = useRef<ListSelectorRef<MereUser>>(null);
 
     const handleSubmit = () => {
         const users = callbackRef.current?.() ?? [];
@@ -80,7 +82,7 @@ export const InviteManagers = ({ back, uid, tid, managersCount }: Props & { mana
             uid,
             users.map(user => ({
                 username: user.username,
-                user_id: user.user_id,
+                user_id: user._id,
                 profile: user.profile,
                 role: "moderator_invitees",
             })),
@@ -90,30 +92,31 @@ export const InviteManagers = ({ back, uid, tid, managersCount }: Props & { mana
     }
 
     return (
-        <div className="min-h-screen space-y-4">
+        <>
             <Navbar
                 navTitle="Invite Managers"
                 onGoBack={back}
+                OptionButton={(
+                    <button className="primary" onClick={handleSubmit}>
+                        Invite
+                    </button>
+                )}
             />
 
-            <section className="pb-8 px-4">
+            <section className="px-2">
                 <ListSelector
                     mode="search"
-                    queryFn={(q, p) => searchMembers(q, uid, p)}
+                    queryFn={(q, p) => searchMembers(tid, q, p)}
                     queryKeys={(query) => getQueryKeys("searchMembers_tid_query", { tid, query })}
                     callbackRef={callbackRef}
                     inputPlaceholder="Search Members"
+                    className="mt-4"
+                    frameType="userProfile"
                     refiner={refiner}
                     limit={threadManagersLimit - managersCount}
                 />
             </section>
-
-            <footer className="fixed bottom-0 p-2 bg-primary">
-                <button className="primary w-full sm:w-fit sm:mx-auto" onClick={handleSubmit}>
-                    Invite
-                </button>
-            </footer>
-        </div>
+        </>
     )
 
 }

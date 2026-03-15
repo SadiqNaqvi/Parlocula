@@ -113,11 +113,11 @@ export const POST = postHandler<SchemaType>({
       return { success: false, errCode: "resource_not_found" }
 
     await sendNotification(
-      users.map((u) => u),
+      users,
       {
         title: `${username} has invited you to become a manager of thread`,
         path: "/notifications",
-        poster: thread.poster.path,
+        poster: thread.poster?.path,
         message: [
           { type: "link", label: username, path: `/user/${username}` },
           {
@@ -140,6 +140,8 @@ export const POST = postHandler<SchemaType>({
     return {
       success: true,
       result: null,
+      available: "threadManagersMutation_tid_uid",
+      options: { tid: id, uid: user_id },
       revalidateQueue: users.map((u) => `notifications-user-${u}`),
     };
   },

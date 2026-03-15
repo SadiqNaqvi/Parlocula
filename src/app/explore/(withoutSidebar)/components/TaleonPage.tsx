@@ -178,7 +178,7 @@ const TaleonPage = ({ content, type }: Props) => {
                 heading="Connected Threads"
                 hrefForMoreButton={`${content.tmdb_id}/threads`}
             >
-                <HorizontalThreadList id={content.tmdb_id} type="movie" />
+                <HorizontalThreadList id={content.tmdb_id} type={type} />
             </TaleonWikiSection>
 
             <TaleonWikiSection

@@ -1,9 +1,9 @@
 "use client";
 
-import { ShowError } from "@components/ui";
-import { Metadata } from "next"
 import "@/app/globals.css";
 import { Sidebar } from "@components";
+import { ShowError } from "@components/ui";
+import { Metadata } from "next";
 
 export const metadata: Metadata = {
     title: "Uh Oh! | Parlocula",
@@ -12,8 +12,6 @@ export const metadata: Metadata = {
 const GlobalErrorBoundary = ({ error, reset }: { error: Error; reset: () => void }) => {
 
     return (
-        // <html>
-        //     <body>
         <>
             <Sidebar />
             <main className="noPadding flex">
@@ -24,8 +22,6 @@ const GlobalErrorBoundary = ({ error, reset }: { error: Error; reset: () => void
                 />
             </main>
         </>
-        //     </body>
-        // </html>
     )
 
 

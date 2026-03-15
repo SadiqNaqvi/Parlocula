@@ -7,7 +7,7 @@ import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { cookies } from "next/headers";
 import { PropsWithChildren, Suspense } from "react";
 import Header from "./Header";
-import { Sidebar } from "@components";
+import { PullToRefresh, Sidebar } from "@components";
 import { OptionalChildren } from "@components/ui";
 
 export const generateMetadata = async ({ params }: { params: Promise<{ username: string }> }) => {
@@ -36,7 +36,6 @@ const Fetcher = async ({ username, children }: PropsWithChildren<{ username: str
 
     const rUser = await fetchQuery({
         queryKey: userKeys,
-        // queryFn: () => user && current ? getCurrentUser(user.user_id, jar) : getUserByUsername(username),
         queryFn: () => getUserByUsername(username),
         queryClient,
     });
@@ -62,8 +61,10 @@ const Fetcher = async ({ username, children }: PropsWithChildren<{ username: str
             </OptionalChildren>
             <main>
                 <HydrationBoundary state={dehydrate(queryClient)}>
-                    <Header uid={user?.user_id} username={username} />
-                    {children}
+                    <PullToRefresh>
+                        <Header uid={user?.user_id} username={username} />
+                        {children}
+                    </PullToRefresh>
                 </HydrationBoundary>
             </main>
         </>

@@ -1,5 +1,3 @@
-// "use client";
-
 import { defaultShouldDehydrateQuery, isServer, Query, QueryClient } from "@tanstack/react-query";
 import { GeneralGetReturn, GeneralMultipleReturn } from "@type/internal";
 import { refineResponseForInfiniteQuery, refineResponseForQuery } from "../utils";

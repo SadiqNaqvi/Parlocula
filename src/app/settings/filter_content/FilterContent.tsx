@@ -3,32 +3,18 @@
 import { Navbar } from "@components";
 import ToggleButtonBar from "@components/ui/ToggleButtonBar";
 import { toggleContentFiltering } from "@lib/helpers/mutations";
-import { useEffect, useRef, useState } from "react";
+import { useDebounce } from "@lib/hooks";
+import { useState } from "react";
 
 const FilterContentTogglePage = ({ status }: { status: boolean }) => {
 
     const [checked, SetChecked] = useState(status);
-    const timeoutRef = useRef<NodeJS.Timeout | null>(null)
-
-    useEffect(() => {
-        return () => {
-            if (timeoutRef.current) {
-                clearTimeout(timeoutRef.current);
-                toggleContentFiltering();
-            }
-        }
-    }, []);
+    const { mutate, setFinalState } = useDebounce(toggleContentFiltering, { initial: status });
 
     const handleToggle = () => {
-        if (timeoutRef.current) {
-            clearTimeout(timeoutRef.current);
-        }
-
+        setFinalState(!checked);
         SetChecked(!checked);
-
-        timeoutRef.current = setTimeout(() => {
-            toggleContentFiltering();
-        }, 5000);
+        mutate();
     }
 
     return (

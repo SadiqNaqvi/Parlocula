@@ -33,14 +33,10 @@ const CreateShelfPage = async ({ searchParams }: ParloPageProps<any, SearchParam
     const jar = await cookies();
     const user = await getUserFromToken(jar);
 
-    console.log("user in /new/shelf page", !!user);
-
     if (!user) return;
 
     const sp = await searchParams;
     const taleons = await getTaleonsToStoreInShelf(sp);
-
-    console.log(taleons);
 
     return (
         <ShelfMutation isEditing={false} taleons={taleons} />

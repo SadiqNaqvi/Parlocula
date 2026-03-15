@@ -306,8 +306,6 @@ const getTmdbSlides = async (p: number): Promise<Omit<TmdbSlide, "isSlide">[]> =
         fetchTrendingShows(p)
     ]);
 
-    console.log("firstSlide", firstSlide, "secondSlide", secondSlide);
-
     return [
         { data: firstSlide?.results || [], title: "Trending Movies", _id: `trending_movies_page_${p}` },
         { data: secondSlide?.results || [], title: "Trending Shows", _id: `trending_shows_page_${p}` }
@@ -331,19 +329,20 @@ export const useFeedHook = () => {
         const trendingPosts = refineResponse(trending);
         const curatedPosts = refineResponse(curated);
 
+        const uniqurePostsMap = new Map([...trendingPosts.data, ...curatedPosts.data].map(el => [el._id, el]));
+
         let finalFeed: FeedPost[] = [];
 
         const interval = Math.floor((trendingPosts.data.length + curatedPosts.data.length) / 2);
 
         if (interval) {
-            trendingPosts.data.concat(curatedPosts.data)
+            Array.from(uniqurePostsMap.values())
                 .sort((a, b) => b.score - a.score)
                 .forEach((post, i) => {
                     finalFeed.push(post);
 
                     if ((i + 1) % interval === 0) {
                         const index = ((i + 1) / interval) - 1;
-                        console.log(index)
                         const slide = slides[index];
                         if (slide.data.length) {
                             finalFeed.push({ ...slide, isSlide: true })
@@ -372,10 +371,11 @@ export const useFeedHook = () => {
     });
 }
 
-export const useDebounce = (mutationFn: () => any, skipInSeconds = 10) => {
+export const useDebounce = (mutationFn: () => any, config?: { skipInSeconds?: number, initial?: any }) => {
+    const { skipInSeconds = 10, initial } = config ?? {};
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const initialState = useRef<any>(null);
-    const finalState = useRef<any>(undefined);
+    const initialState = useRef<any>(initial ?? null);
+    const finalState = useRef<any>(initial);
 
     useEffect(() => {
         return () => {

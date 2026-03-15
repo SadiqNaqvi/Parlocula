@@ -118,6 +118,7 @@ const performMutation = async <T, M = undefined>({ mutationFn, onError, beforeMu
         }
 
         else {
+            console.log("context", context);
             onError?.({ error: response.errCode, context });
             if (codeToReturn && response.errCode === codeToReturn)
                 return { success: false, error: response.errCode };
@@ -402,8 +403,12 @@ export const createCommentMutation = async (comment: CommentSchemaType & { paren
     const queryKeysToRefetch = [
         getQueryKeys("commentsOfUser_uid_filter", { uid: meta.user_id, filter: "latest" }),
         (section === "replies" ? commentsKey : repliesKey),
-        ...filterForComments.map(f => getQueryKeys("commentsOfPost_pid_filter", { pid: comment.post_id, filter: f })),
-        ...filterForComments.map(f => getQueryKeys("replies_cid_filter", { cid: comment.replied_to || "", filter: f })),
+        ...filterForComments
+            .filter(f => f !== filter)
+            .map(f => getQueryKeys("commentsOfPost_pid_filter", { pid: comment.post_id, filter: f })),
+        ...filterForComments
+            .filter(f => f !== filter)
+            .map(f => getQueryKeys("replies_cid_filter", { cid: comment.replied_to || "", filter: f })),
     ]
 
     return performMutation({

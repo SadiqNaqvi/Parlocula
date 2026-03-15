@@ -11,7 +11,7 @@ import { useRef } from "react";
 
 const PostCategoryPicker = ({ func, defaultCategory = "" }: { func: TypedFunction<string>, defaultCategory?: string }) => {
 
-    const sheetRef = useRef<BottomSheetRef>();
+    const sheetRef = useRef<BottomSheetRef>(null);
 
     const submitcategory = (category: string) => {
         func(category === "none" ? "" : category);

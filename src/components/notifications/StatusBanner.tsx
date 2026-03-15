@@ -1,18 +1,29 @@
 "use client";
 
 import Navigate from "@components/Navigate";
-import { checkPushStatus } from "@lib/providers/pushNotification";
 import useCurrentUser from "@store/user";
+import { useEffect, useState } from "react";
 
 const StatusBanner = () => {
 
+    const [isEnabled, setIsEnabled] = useState(false);
     const { meta } = useCurrentUser();
+
+    useEffect(() => {
+        if (!meta) return;
+        navigator.serviceWorker.register('/sw.js', {
+            scope: '/',
+            updateViaCache: 'none',
+        }).then(reg => reg.pushManager.getSubscription())
+            .then(r => {
+                if (r) setIsEnabled(true);
+            });
+
+    }, [meta]);
 
     if (!meta) return null;
 
-    const status = checkPushStatus(meta.user_id);
-
-    if (!status) return (
+    if (!isEnabled) return (
         <section className="my-4 py-4 border border-dashed border-gray40 space-y-3">
 
             <h2 className="sm:text-xl">You{"'"}re missing out big time 😨</h2>

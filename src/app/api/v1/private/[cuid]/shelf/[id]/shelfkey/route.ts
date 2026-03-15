@@ -32,7 +32,7 @@ export const PATCH = updateHandler({
         const { id } = params;
 
         const shelf = await Shelf.findById(id, { user_id: 1 })
-            .exec().then(doc => doc?.toObject());
+            .exec();
 
         if (!shelf) return {
             success: false, errCode: "resource_not_found"

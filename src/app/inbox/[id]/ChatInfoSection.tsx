@@ -13,18 +13,18 @@ type Props = { rmid: string, uid: string }
 const MuteButton = ({ mute, rmid, uid }: { mute: boolean } & Props) => {
 
     const [isMute, setIsMute] = useState(mute);
-    const timeoutRef = useRef<NodeJS.Timeout>();
+    const timeoutRef = useRef<NodeJS.Timeout>(null);
 
     useEffect(() => {
         return () => {
             if (process.env.NODE_ENV === "development" || isMute === mute) return;
-            clearTimeout(timeoutRef.current)
+            if (timeoutRef.current) clearTimeout(timeoutRef.current)
             updateNotificationOfRoom(rmid, uid, isMute);
         }
     });
 
     const debounceMute = () => {
-        clearTimeout(timeoutRef.current);
+        if (timeoutRef.current) clearTimeout(timeoutRef.current);
 
         const newState = !isMute;
 

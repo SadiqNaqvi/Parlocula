@@ -1,6 +1,6 @@
 import { Comment, Connection, Member, Post, Shelf, Thread, User } from "@model";
 import { GeneralGetReturn } from "@type/internal";
-import { PipelineFunc, FilterQuery, PipelineStage } from "@type/mongoose";
+import { PipelineFunc, PipelineStage, QueryFilter } from "@type/mongoose";
 import { NextRequest } from "next/server";
 import { queryLimit } from "./constants";
 import { createArray, getSearchParams } from "./utils";
@@ -95,7 +95,7 @@ const projectionMap: Record<Collections, { [field: string]: number }> = {
   users: userProjection
 }
 
-export const convertMatchToLookupExpr = <T = any>(matchObj: FilterQuery<T>): PipelineStage.Match => {
+export const convertMatchToLookupExpr = <T = any>(matchObj: QueryFilter<T>): PipelineStage.Match => {
   const convertCondition = (key: string, value: any) => {
     // Primitive -> $eq
     if (typeof value !== "object" || value === null) {
@@ -132,11 +132,11 @@ export const convertMatchToLookupExpr = <T = any>(matchObj: FilterQuery<T>): Pip
     return expressions.length === 1 ? expressions[0] : { $and: expressions };
   }
 
-  const parse = (match: FilterQuery<T>): FilterQuery<T>["$expr"] => {
+  const parse = (match: QueryFilter<T>): any => {
     const exprConditions = [];
 
     for (const key in match) {
-      const value = match[key] as FilterQuery<T>[];
+      const value = match[key] as QueryFilter<T>[];
 
       // Handle logical operators at root
       if (key === "$and" || key === "$or") {

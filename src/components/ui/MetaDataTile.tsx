@@ -38,7 +38,7 @@ const MetadataTile = ({ children, className, skipDisc, condition, href, nsfw, sp
                     <MetadataContentTile skipDisc={skipDisc}>{children}</MetadataContentTile>
                 )}>
                     <Navigate className="contents" goto={href || ""} comp="link">
-                        <MetadataContentTile skipDisc={nsfw || spoiler || skipDisc}>{children}</MetadataContentTile>
+                        <MetadataContentTile skipDisc={!!nsfw || !!spoiler || skipDisc}>{children}</MetadataContentTile>
                     </Navigate>
                 </OptionalChildren>
             </li>

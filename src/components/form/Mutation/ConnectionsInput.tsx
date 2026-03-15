@@ -20,11 +20,11 @@ const refiner = ({ id, media_type, image, name }: RefinedSearchData): RefinedVal
     } as CType
 });
 
-const ConnectionsInput = ({ defaultConnections, connectionsRef }: { defaultConnections?: CType[], connectionsRef: RefObject<InputManagerType<CType[]>> }) => {
+const ConnectionsInput = ({ defaultConnections, connectionsRef }: { defaultConnections?: CType[], connectionsRef: RefObject<InputManagerType<CType[]>|null> }) => {
 
     const [connections, setConnections] = useState<CType[]>(defaultConnections ?? []);
     const callbackRef = useRef<ListSelectorRef<CType>>(null);
-    const sheetRef = useRef<BottomSheetRef>();
+    const sheetRef = useRef<BottomSheetRef>(null);
 
     useImperativeHandle<InputManagerType<CType[]>, InputManagerType<CType[]>>(connectionsRef, () => ({
         getData: () => connections,

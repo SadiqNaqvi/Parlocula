@@ -8,8 +8,6 @@ import { NextRequest } from "next/server";
 // Get threads by filters
 export const GET = getHandler(async (r: NextRequest) => {
 
-  console.log("LALALALALLALALA");
-
   const { filter, nsfw, page } = getSearchParams(r.nextUrl, 0, "latest");
   const sort = filterToSort.threads[filter] ?? filterToSort.threads.latest;
 

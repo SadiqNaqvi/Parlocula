@@ -3,7 +3,7 @@
 import { useQueryHook } from "@lib/hooks";
 import { AvailableMutations, MutationFunctionAgruments, performMutation, setMutation } from "@lib/providers/mutationStore";
 import { useQueryClient } from "@tanstack/react-query";
-import { useRef } from "react";
+import { ReactElement, useRef } from "react";
 import BottomSheet from "./BottomSheet";
 import { LoginModal } from "./fallbacks";
 import { OptionalChildren } from "./ui";
@@ -20,7 +20,7 @@ type Props<T> = {
     queryKeys: string[],
     uid: string | undefined,
     queryFn: (user_id: string) => Promise<any>,
-    Button: (arg: UserBasedButtonProps<T>) => JSX.Element,
+    Button: (arg: UserBasedButtonProps<T>) => ReactElement,
     errorStateClassName?: string,
     noUserStateChilren: React.ReactNode,
     noUserStateClassName?: string,

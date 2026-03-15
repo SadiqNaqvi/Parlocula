@@ -35,7 +35,7 @@ const NotFound = ({ title, paras, ActionButton, fullScreen, redirectTo, redirect
     return (
         <>
             {fullScreen && <Navbar />}
-            <section className={`${fullScreen ? "screen-full flex flex-cntr-all" : "forceCenter"} flex-col gap-3`}>
+            <section className="h-size-screen flex flex-col flex-cntr-all gap-3">
 
                 <div className="inline-flex mx-auto flex-cntr-all gap-4">
                     <span className="text-9xl font-extralight select-none">4</span>
@@ -45,11 +45,13 @@ const NotFound = ({ title, paras, ActionButton, fullScreen, redirectTo, redirect
 
                 <h3 className="text-xl text-center">{title}</h3>
 
-                {
-                    paras.map((para: string, ind: number) => (
-                        <p key={ind} className="text-zinc-500 sapce-y-2 text-sm text-center">{para}</p>
-                    ))
-                }
+                <div>
+                    {
+                        paras.map((para: string, ind: number) => (
+                            <p key={ind} className="text-zinc-500 sapce-y-2 text-sm text-center">{para}</p>
+                        ))
+                    }
+                </div>
 
                 <PrimaryButton ActionButton={ActionButton} redirectTo={redirectTo} redirectToExplore={redirectToExplore} />
 

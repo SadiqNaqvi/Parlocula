@@ -2,6 +2,8 @@
 
 import VerifyEmail from "@components/EmailTemplates/verification";
 import { oneHourInSeconds } from "@lib/constants";
+import { connectDatabase } from "@lib/database";
+import { getAblyRest } from "@lib/providers/ably";
 import { getRedis } from "@lib/providers/redis";
 import { verificationCodeSchema } from "@lib/schemas";
 import { getTimeInFuture } from "@lib/utils";
@@ -9,16 +11,12 @@ import { Notification, ShelfItem, Taleon, User } from "@model";
 import { render } from "@react-email/components";
 import { GeneralGetReturn, GeneralPostReturn } from "@type/internal";
 import { NotificationModelType, ShelfItemModelType, TaleonModelType } from "@type/models";
-import { PushNotificationType } from "@type/other";
-import { ConfirmedTaleon, TaleonSchemaType } from "@type/schemas";
-import Ably from "ably";
-import { randomInt } from "crypto";
 import type { ClientSession } from "@type/mongoose";
+import { ConfirmedTaleon, TaleonSchemaType } from "@type/schemas";
+import { randomInt } from "crypto";
 import { cookies } from "next/headers";
 import { createTransport } from "nodemailer";
-import webpush, { PushSubscription } from 'web-push'
-import { getAblyRest } from "@lib/providers/ably";
-import { connectDatabase } from "@lib/database";
+import webpush, { PushSubscription } from 'web-push';
 
 webpush.setVapidDetails(
   `mailto:contact.qcore@gmail.com`,
@@ -195,9 +193,9 @@ export const verifyCode = async (code: string | number, fingerprint: string): Pr
     const { success, data, error } = verificationCodeSchema.safeParse(`${code}`);
 
     if (!success)
-      return { success: false, errCode: "form_error", formError: error.errors }
+      return { success: false, errCode: "form_error", formError: error.issues }
 
-    if (process.env.NODE_ENV === "test") {
+    if (process.env.NODE_ENV === "test" || process.env.IS_TESTING) {
       if (data === 123456) return {
         success: true,
         result: null
@@ -314,14 +312,18 @@ export const sendAppNotification = async (uid: string, title: string) => {
     .publish("notification", { title }, { client_id: uid })
 }
 
-export const sendPushNotification = async (subs: PushSubscription, n: { title: string, body?: string, icon?: string }) => {
-  await webpush.sendNotification(subs, JSON.stringify(n))
+export const sendPushNotification = async (subs: PushSubscription, n: { title: string, body?: string, icon?: string }, urgent: boolean) => {
+  await webpush.sendNotification(subs, JSON.stringify(n), {
+    urgency: urgent ? "high" : "normal",
+    TTL: urgent ? 0 : 3600,
+  })
 }
 
 export const sendNotification = async (
   user_ids: string[],
   notification: Omit<NotificationModelType, "user_id">,
-  session?: ClientSession
+  session?: ClientSession,
+  urgent = true,
 ) => {
   await Notification.create(
     user_ids.map(user_id => ({ ...notification, user_id })),
@@ -368,7 +370,8 @@ export const sendNotification = async (
           title: notification.title,
           body: simpleNotificationMessage,
           icon: notification.poster,
-        }
+        },
+        urgent
       )
     })
   ])

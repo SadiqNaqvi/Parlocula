@@ -107,7 +107,7 @@ export const POST = postHandler<PostSchemaType>({
     if (!user)
       return { success: false, errCode: "unauthenticated_access" }
 
-    const tid = thread._id;
+    const tid = thread._id!;
 
     const followers = await getFollowersToNotify(user_id);
     const members = await getMembersToNotify(tid, 50, user_id);

@@ -2,6 +2,7 @@ import { parloId } from "@lib/utils";
 import { ReactionModelType } from "@type/models";
 import type { StrictModel } from "@type/mongoose";
 import { model, models, StrictSchema } from "@type/mongoose";
+import { Document } from "mongoose";
 
 const reactionModel = new StrictSchema<ReactionModelType>({
   _id: { type: String, default: () => parloId(21) },
@@ -23,7 +24,7 @@ const reactionModel = new StrictSchema<ReactionModelType>({
 
 reactionModel.index({ post_id: 1, user_id: 1 }, { unique: true });
 
-const Reaction: StrictModel<ReactionModelType> =
+const Reaction: StrictModel<Document & ReactionModelType> =
   (models.Reaction as any) || model("Reaction", reactionModel);
 
 export default Reaction;

@@ -46,11 +46,10 @@ const NotificationPage = () => {
     const subscription = useRef<PushSubscription | null>(null);
 
     const { mutate, setFinalState, setInitialState } = useDebounce(async () => {
-        console.log("in debounce", subscription);
         if (!meta) return;
         else if (enabled) await unsubscribe();
         else await subscribe();
-    })
+    });
 
     useEffect(() => {
         if ('serviceWorker' in navigator && 'PushManager' in window) {
@@ -151,7 +150,6 @@ const NotificationPage = () => {
 
     const togglePushNotification = async () => {
         mutate();
-        // console.log("in toggle", enabled, subscription);
         if (enabled) {
             setEnabled(false);
             setFinalState(false);

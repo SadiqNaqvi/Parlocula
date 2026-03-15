@@ -1,6 +1,7 @@
 "use client";
 
 import { SendIcon, XmarkIcon } from "@assets/Icons";
+import { OptionalChildren } from "@components/ui";
 import { acceptRoomInvitation, rejectRoomInvitation, sendMessage } from "@lib/helpers/mutations";
 import { getAblyOnClient } from "@lib/providers/ably";
 import { parloId } from "@lib/utils";
@@ -29,8 +30,8 @@ const InputBar = ({ rmid, room }: Props) => {
     const { meta } = useCurrentUser();
 
     const formRef = useRef<HTMLFormElement>(null);
-    const typingIndicatorInterval = useRef<NodeJS.Timeout>();
-    const channel = useRef<RealtimeChannel>();
+    const typingIndicatorInterval = useRef<NodeJS.Timeout>(null);
+    const channel = useRef<RealtimeChannel>(null);
 
     const isRoomPending = Boolean(room.participant_count === 1 && room.participantType === "creator");
 
@@ -94,7 +95,6 @@ const InputBar = ({ rmid, room }: Props) => {
     }
 
     const indicateTyping = async () => {
-        console.log("Typing indicator me AAYA")
         if (!typingIndicatorInterval.current) {
             console.log("Started typing");
             channel.current?.presence.update({ status: "started_typing", room_id: rmid })
@@ -105,7 +105,7 @@ const InputBar = ({ rmid, room }: Props) => {
         typingIndicatorInterval.current = setTimeout(() => {
             console.log("Stopped Typing");
             channel.current?.presence.update({ status: "stopped_typing", room_id: rmid })
-            typingIndicatorInterval.current = undefined;
+            typingIndicatorInterval.current = null;
         }, 5000);
 
     }
@@ -113,14 +113,14 @@ const InputBar = ({ rmid, room }: Props) => {
     return (
         <FooterWrapper>
 
-            {reply && (
+            <OptionalChildren condition={reply}>
                 <div className="py-2 px-2 flex gap-2 flex-cntr-between border-t border-gray40">
-                    <p className="line-clamp-2">{reply.replied_content}</p>
+                    <p className="line-clamp-2">{reply?.replied_content}</p>
                     <button className="p-2 bg-gray20 rounded-full" onClick={() => setReply(undefined)}>
                         <XmarkIcon className="size-2" />
                     </button>
                 </div>
-            )}
+            </OptionalChildren>
 
             <form
                 ref={formRef}

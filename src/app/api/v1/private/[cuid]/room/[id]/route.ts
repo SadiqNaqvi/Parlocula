@@ -154,14 +154,14 @@ export const POST = postHandler<RoomSchemaType>({
         ],
         { session, ordered: true }
       )
-    )[0].toObject();
+    )[0];
 
     if (!room)
       return { success: false, errCode: "data_storing_fail" };
 
     const now = new Date(Date.now() - 1000 * 3600 * 24);
 
-    const userParticipant = (await Participant.create(
+    const userParticipant = await Participant.create(
       [
         {
           hideAt: now,
@@ -173,9 +173,9 @@ export const POST = postHandler<RoomSchemaType>({
         },
       ],
       { session }
-    )).map(d => d.toObject());
+    );
 
-    const otherParticipants = (await Participant.create(
+    const otherParticipants = await Participant.create(
       participants.map((uid) => ({
         hideAt: now,
         mute: false,
@@ -185,7 +185,7 @@ export const POST = postHandler<RoomSchemaType>({
         user_id: uid,
       })),
       { session }
-    )).map(d => d.toObject());
+    );
 
     await User.findByIdAndUpdate(user_id,
       { $inc: { rooms: 1 } },

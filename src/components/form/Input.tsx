@@ -21,7 +21,7 @@ const Input = ({ label, name, description, containerClasses, className, refObjec
     return (
         <div className={twMerge(`space-y-2`, containerClasses)}>
             <OptionalChildren condition={label}>
-                <label htmlFor={name}>
+                <label className="block" htmlFor={name}>
                     {label}
                 </label>
             </OptionalChildren>

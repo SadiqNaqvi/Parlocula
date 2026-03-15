@@ -13,7 +13,7 @@ export const PATCH = updateHandler<SessionInvalidationServerSchemaType>({
         const user = await User.findOne(
             { email },
             { session_id: 1, passkey: 1 }
-        ).exec().then(u => u?.toObject());
+        ).exec();
 
         if (!user)
             return { success: false, errCode: "resource_not_found" }

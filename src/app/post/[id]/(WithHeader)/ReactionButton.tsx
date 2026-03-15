@@ -19,7 +19,7 @@ const NoUserStateButton = ({ count }: { count: number }) => (
 
 const ReactionButton = ({ id, count, uid }: { id: string, count: number, uid: string | undefined }) => {
 
-    const sheetRef = useRef<BottomSheetRef>();
+    const sheetRef = useRef<BottomSheetRef>(null);
     const { resolvedTheme } = useTheme();
 
     const Button = ({ onClick, state, user_id }: UserBasedButtonProps<string>) => {

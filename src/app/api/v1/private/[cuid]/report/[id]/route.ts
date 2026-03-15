@@ -186,7 +186,7 @@ export const PATCH = updateHandler<ReportActionSchemaType>({
       },
       { session }
     );
-    
+
     const ably = getAblyRest();
 
     const uidToPushPayload: Record<string, PushSubscription> = {};
@@ -275,7 +275,8 @@ export const PATCH = updateHandler<ReportActionSchemaType>({
               title: n.title,
               body: n.message.map(n => n.type === "link" ? n.label : n.text).join(' '),
               icon: n.poster,
-            }
+            },
+            true
           )
         }
 

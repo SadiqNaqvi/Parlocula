@@ -1,9 +1,8 @@
 "use client";
 
-import { InfiniteScroller, Navbar, Navigate } from "@components";
+import { InfiniteScroller, Navbar } from "@components";
 import LoginModal from "@components/fallbacks/LoginModal";
 import StatusBanner from "@components/notifications/StatusBanner";
-import { ShowError } from "@components/ui";
 import NotificationTile from "@components/ui/NotificationTile";
 import { getNotificationsOfUser } from "@lib/helpers/common";
 import { getQueryKeys } from "@lib/utils";
@@ -17,7 +16,7 @@ const NotificationPage = () => {
 
     useEffect(() => {
         if (meta)
-            useNotification.setState({ newNotification: false }, true);
+            useNotification.setState({ newNotification: false });
     }, []);
 
     if (!meta) return (
@@ -36,7 +35,6 @@ const NotificationPage = () => {
                 />
             </section>
         </main>
-
     )
 
 }

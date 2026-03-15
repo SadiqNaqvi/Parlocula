@@ -5,7 +5,7 @@ interface OTPInputProps {
     onFilled?: (value: string) => void;
     onSubmit?: (value: string) => void;
     value?: string;
-    getterRef: RefObject<{ otp: string }>
+    getterRef: RefObject<{ otp: string } | null>
 }
 
 const OTPInput = ({

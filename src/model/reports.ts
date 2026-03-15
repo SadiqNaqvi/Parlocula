@@ -31,6 +31,6 @@ reportModel.index({ content_id: 1, content_type: 1, user_id: 1 });
 reportModel.index({ content_type: 1, ext_id: 1 }, { partialFilterExpression: { $exists: "$ext_id" } });
 
 const Report: StrictModel<ReportModelType> =
-  (models.Report as any) || (model("Report", reportModel) as StrictModel<ReportModelType>);
+  (models.Report as any) || model("Report", reportModel);
 
 export default Report;

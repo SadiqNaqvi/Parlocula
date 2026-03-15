@@ -15,16 +15,16 @@ import "@fancyapps/ui/dist/carousel/carousel.arrows.css";
 import { twMerge } from 'tailwind-merge';
 
 const options: Partial<CarouselOptions> = {
-    infinite: true,
-    style: {
-        "--f-carousel-slide-width": "100%",
-    },
+    infinite: false,
+    // style: {
+    //     "--f-carousel-slide-width": "100%",
+    // },
     breakpoints: {
         "(min-width: 480px)": {
             style: {
-                "--f-carousel-slide-gap": "8px",
-                "--f-carousel-gap": "8px",
-                "--f-carousel-slide-width": "calc(240px + 8px)",
+                // "--f-carousel-slide-gap": "8px",
+                // "--f-carousel-gap": "8px",
+                "--f-carousel-slide-width": "248px",
             },
         },
     }

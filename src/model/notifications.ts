@@ -1,10 +1,10 @@
 import { oneWeekInSeconds } from "@lib/constants";
 import { parloId } from "@lib/utils";
 import { NotificationModelType } from "@type/models";
+import type { StrictModel } from "@type/mongoose";
 import { model, models, Schema, StrictSchema } from "@type/mongoose";
-import type { StrictModel, } from "@type/mongoose";
 
-const messageItemSchema = new Schema(
+const messageItemSchema = new StrictSchema(
   {
     type: {
       type: String,

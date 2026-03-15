@@ -87,7 +87,9 @@ const CommentBar = ({ _id, attachment, nsfw, spoiler, post_id, content, status, 
                         <ParloImage
                             frameType="userProfile"
                             frame={profile}
-                            className="min-w-8 size-8 rounded-full object-cover"
+                            className="min-w-10 size-10 object-cover"
+                            containerClassName="rounded-full overflow-hidden"
+                            classNameForFallback="size-6"
                             size={32}
                             alt={`profile picture of ${username}`}
                         />
@@ -123,7 +125,7 @@ const CommentBar = ({ _id, attachment, nsfw, spoiler, post_id, content, status, 
                                 width={96}
                             />
                         </OptionalChildren>
-                        <p className="text-sm">{content}</p>
+                        <p>{content}</p>
                     </Link>
 
                     <section className="flex mt-2 gap-3">

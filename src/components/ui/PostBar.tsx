@@ -105,7 +105,7 @@ const PostBar = ({ _id, comment_count, nsfw, createdAt, editedAt, poster, reacti
                 </MetadataTileContainer>
             </header>
 
-            <section className="space-y-2">
+            <section className="space-y-2 mb-4">
 
                 <Navigate role="button" comp="link" goto={`/post/${_id}-${makeUrlSafe(title)}`} className="w-full">
                     <h3 className="customize text-lg font-semibold line-clamp-4">{title}</h3>

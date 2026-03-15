@@ -1,5 +1,5 @@
 const MockupShelfBar = () => (
-    <article className="flex items-center gap-3 py-2 px-4 border border-gray30 rounded-md">
+    <article className="flex items-center gap-3 p-2 rounded-md">
 
         <span className="size-12 bg-gray60 rounded-full"></span>
 

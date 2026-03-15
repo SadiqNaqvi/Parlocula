@@ -51,7 +51,7 @@ type SectionProps = { content_id: string } &
 const ReportSection = ({ content_id, isThread, uid }: SectionProps) => {
 
     const reasons = useRef<ReportReasonType[]>([]);
-    const reasonDetailsMap = useRef<Map<ReportReasonType, string[]>>()
+    const reasonDetailsMap = useRef<Map<ReportReasonType, string[]>>(null);
 
     const Component = (data: { reports: ReportsType[] }) => {
 

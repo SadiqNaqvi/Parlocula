@@ -25,10 +25,10 @@ const RoleBasedActionButtons = ({ role, tid }: { tid: string, role: ThreadMember
     if (role === "moderator_invitee") return (
         <>
             <div className="contents">
-                <button onClick={acceptInvite} className="primary flex-1 sm:flex-0">Accept</button>
-                <button onClick={rejectInvite} className="secondary flex-1 sm:flex-0">Deny</button>
+                <button onClick={acceptInvite} className="primary">Accept</button>
+                <button onClick={rejectInvite} className="secondary">Reject</button>
             </div>
-            <p className="text-sm text-zinc-500 col-span-4">You are invited to become a Manager of this thread.</p>
+            <p className="text-sm text-zinc-500 col-span-2 sm:col-span-4 text-center">You are invited to become a Manager of this thread.</p>
         </>
     )
 

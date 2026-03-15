@@ -26,7 +26,7 @@ type ComponentToRender<T, R> = FunctionComponent<T & { checked: boolean; onClick
 
 type BaseProps<R> = {
     inputPlaceholder?: string;
-    callbackRef: RefObject<ListSelectorRef<R>>;
+    callbackRef: RefObject<ListSelectorRef<R> | null>;
     limit?: number;
     className?: string;
     alreadySelectedValues?: { id: string, val?: R }[],
@@ -91,7 +91,7 @@ export const ListSelectorBar = ({ disable, checked, poster, frameType, className
     return (
         <label
             htmlFor={id}
-            className={twMerge("inline-flex flex-cntr-between w-full capitalize px-4 py-2 pointer", disable ? "brightness-50" : '', className)}
+            className={twMerge("inline-flex flex-cntr-between w-full capitalize py-2 pointer", disable ? "brightness-50" : '', className)}
             onClick={() => onClick(id, returnVal)}
         >
 
@@ -112,6 +112,7 @@ export const ListSelectorBar = ({ disable, checked, poster, frameType, className
                     size={48}
                     alt={`Poster of ${title}`}
                     className="min-w-12 size-12 object-cover"
+                    classNameForFallback="min-w-8 size-8 p-1"
                     containerClassName="rounded-full overflow-hidden"
                     frame={poster}
                 />

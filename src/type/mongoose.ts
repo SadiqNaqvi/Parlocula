@@ -1,9 +1,10 @@
-import type { CreateOptions, HydratedDocument, Model, PipelineStage, ClientSession, FilterQuery, SchemaDefinitionProperty, SchemaTypeOptions, SchemaOptions } from "mongoose";
+import type { _QueryFilter, QueryFilter, CreateOptions, HydratedDocument, Model, PipelineStage, ClientSession, SchemaDefinitionProperty, SchemaTypeOptions, SchemaOptions } from "mongoose";
 import { Schema, model, models } from "mongoose";
 
 export type MongooseModel<T = any> = Model<T, T, T, T, T, T>;
 
-export interface StrictModel<T> extends Model<T> {
+export interface StrictModel<T> extends MongooseModel<T> {
+    create(): Promise<any>;
     create(
         docs: Array<T>,
         options: CreateOptions & { aggregateErrors: true }
@@ -14,6 +15,8 @@ export interface StrictModel<T> extends Model<T> {
     ): Promise<HydratedDocument<T>[]>;
     create(doc: T): Promise<HydratedDocument<T>>;
     create(...docs: Array<T>): Promise<HydratedDocument<T>[]>;
+    create(doc: T): Promise<HydratedDocument<T>>;
+    create(docs: Array<T>): Promise<HydratedDocument<T>[]>;
 }
 
 export type PipelineFunc<T = { [key: string]: any }> = (__0: {
@@ -39,4 +42,4 @@ export class StrictSchema<T> extends Schema<T> {
 
 export { Schema, model, models }
 
-export type { FilterQuery, PipelineStage, ClientSession }
+export type { _QueryFilter, QueryFilter, PipelineStage, ClientSession }

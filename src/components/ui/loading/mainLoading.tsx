@@ -4,7 +4,7 @@ const MainLoader = () => (
     <div className="size-screen flex flex-cntr-all">
         <div>
             <div className="mx-auto relative">
-                <AppIcon className="size-12 md:size-24" />
+                <AppIcon className="size-12 md:size-24 customSize" />
             </div>
         </div>
         <div className="w-full absolute left-[50%] -translate-x-[50%] bottom-10 text-center">

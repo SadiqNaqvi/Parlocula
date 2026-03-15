@@ -61,7 +61,7 @@ export type HandlerResponse = {
     errCode?: null;
     options: Partial<RevalidateTagsArgs<RT>>;
     available: RT;
-    revalidateQueue?: undefined;
+    revalidateQueue?: string[];
 } | {
     result: any;
     success: true;
@@ -175,8 +175,8 @@ const getDataFromRequest = async <T>(req: NextRequest, schema: ZodSchema | undef
     if (schema) {
         const { success, data, error } = schema.safeParse({ ...parsedFields, files: uploadedFiles });
 
-        if (success) return { success, result: data }
-        else return { success: false, errCode: "form_error", formError: error.errors }
+        if (success) return { success, result: data as T }
+        else return { success: false, errCode: "form_error", formError: error.issues }
     }
 
     return { success: true, result: { ...parsedFields, files: uploadedFiles } as T };
@@ -249,7 +249,19 @@ export const postHandler = <T extends HandlerData>({ handler, preCheck, schema, 
             }
 
             console.log("Starting session");
-            session = await connection.connection.startSession();
+            session = await connection.startSession()
+                .then((s) => {
+                    console.log("Session successfully started");
+                    return s
+                })
+                .catch((e) => {
+                    console.log("Failed to start session", e)
+                    return null;
+                });
+
+            if (!session)
+                return NextResponse.json({ success: false, errCode: "uncaught_error" });
+
             let isNsfw = false;
 
             const { files, filesData, filesToRemove, ...rest } = data;
@@ -291,7 +303,8 @@ export const postHandler = <T extends HandlerData>({ handler, preCheck, schema, 
                 await deleteFiles(frames);
                 console.log("About to abort transaction");
 
-                await session.abortTransaction().catch(console.error);
+                await session.abortTransaction();
+                console.log("transaction aborted");
             } else {
                 if (warnTeamParlocula) {
                     console.log("About to warn creators");
@@ -304,15 +317,14 @@ export const postHandler = <T extends HandlerData>({ handler, preCheck, schema, 
                 }
 
                 if (revalidateQueue && revalidateQueue.length) {
-                    revalidateTags = revalidateQueue;
+                    revalidateTags.concat(revalidateQueue);
                 } else if (available && options) {
-                    revalidateTags = getRevalidateTags(available, options);
+                    revalidateTags.concat(getRevalidateTags(available, options));
                 }
 
                 console.log("commiting transaction");
-                await session.commitTransaction().catch(console.error);
-
-
+                await session.commitTransaction();
+                console.log("transaction commited");
             }
 
             return NextResponse.json(
@@ -326,9 +338,11 @@ export const postHandler = <T extends HandlerData>({ handler, preCheck, schema, 
 
             console.log("aborting transaction.");
 
-            if (session?.inTransaction())
+            if (session?.inTransaction()) {
                 await session.abortTransaction().catch(console.error);
+                console.log("transaction aborted");
 
+            }
             console.error(
                 `Error occurred while POST at path ${req.nextUrl.pathname}:`,
                 err.message
@@ -340,7 +354,10 @@ export const postHandler = <T extends HandlerData>({ handler, preCheck, schema, 
                 errCode: "unknown_error",
             }, { status: 500 });
         } finally {
-            session?.endSession();
+            if (session) {
+                session.endSession();
+                console.log("session ended");
+            }
             console.log("revalidateTags", revalidateTags);
             revalidateTags.forEach((tag) => revalidateTag(tag, "max"));
         }
@@ -383,7 +400,19 @@ export const deleteHandler = (
 
             console.log("Starting session");
 
-            session = await connection.connection.startSession();
+            session = await connection.connection.startSession()
+                .then((s) => {
+                    console.log("Session started");
+                    return s
+                })
+                .catch((e) => {
+                    console.log("Failed to start session", e)
+                    return null;
+                });
+
+            if (!session)
+                return NextResponse.json({ success: false, errCode: "uncaught_error" });
+
 
             console.log("Starting transaction");
             session.startTransaction();
@@ -414,11 +443,12 @@ export const deleteHandler = (
 
                 await session.commitTransaction();
 
-                if (revalidateQueue && revalidateQueue.length)
-                    revalidateTags = revalidateQueue;
+                if (revalidateQueue && revalidateQueue.length) {
+                    revalidateTags.concat(revalidateQueue);
+                } else if (available && options) {
+                    revalidateTags.concat(getRevalidateTags(available, options));
+                }
 
-                else if (available && options)
-                    revalidateTags = getRevalidateTags(available, options);
             } else {
                 console.log("Aborting transaction");
 
@@ -494,7 +524,19 @@ export const updateHandler = <T extends HandlerData>({ handler, preCheck, schema
 
             console.log("starting session");
 
-            session = await connection.connection.startSession();
+            session = await connection.connection.startSession()
+                .then((s) => {
+                    console.log("Session started");
+                    return s
+                })
+                .catch((e) => {
+                    console.log("Failed to start session", e)
+                    return null;
+                });
+
+            if (!session)
+                return NextResponse.json({ success: false, errCode: "uncaught_error" });
+
 
             // Some pre-checking eg: if the user is authorized to do this specific thing or not
             if (preCheck) {
@@ -568,10 +610,11 @@ export const updateHandler = <T extends HandlerData>({ handler, preCheck, schema
                     await deleteFiles(filesToRemove);
                 }
 
-                if (revalidateQueue && revalidateQueue.length)
-                    revalidateTags = revalidateQueue;
-                else if (available && options)
-                    revalidateTags = getRevalidateTags(available, options);
+                if (revalidateQueue && revalidateQueue.length) {
+                    revalidateTags.concat(revalidateQueue);
+                } else if (available && options) {
+                    revalidateTags.concat(getRevalidateTags(available, options));
+                }
 
                 console.log("commiting transaction");
                 await session.commitTransaction();

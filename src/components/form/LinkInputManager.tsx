@@ -58,8 +58,8 @@ type Props = {
     title?: string,
     limit?: number,
     defaultLinks?: LinkSchema[],
-    getterRef: React.RefObject<InputManagerType<LinkSchema[]>>;
-    promptRef?: React.RefObject<BottomSheetRef>;
+    getterRef: React.RefObject<InputManagerType<LinkSchema[]> | null>;
+    promptRef?: React.RefObject<BottomSheetRef | null>;
     className?: string;
 }
 

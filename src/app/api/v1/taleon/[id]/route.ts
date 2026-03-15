@@ -31,7 +31,7 @@ export const POST = postHandler<TaleonSchemaType>({
     }
 
     return {
-      result: taleonDoc.toObject(),
+      result: taleonDoc,
       success: true,
       available: "taleon_extid",
       options: { extid: id },
@@ -56,10 +56,8 @@ export const PATCH = updateHandler<TaleonSchemaType>({
       success: false, errCode: "data_storing_fail"
     }
 
-    console.log("Taleon is updated and about to be returned");
-
     return {
-      result: taleonDoc.toObject(),
+      result: taleonDoc,
       success: true,
       available: "taleon_extid",
       options: { extid: id },

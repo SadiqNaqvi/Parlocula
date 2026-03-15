@@ -1,10 +1,10 @@
 import { parloId } from "@lib/utils";
 import { ShelfModelType } from "@type/models";
-import { model, models, Schema, StrictSchema } from "@type/mongoose";
 import type { StrictModel, } from "@type/mongoose";
+import { model, models, StrictSchema } from "@type/mongoose";
 import { numberSchema } from "./general";
 
-const shelfModel = new Schema<ShelfModelType>({
+const shelfModel = new StrictSchema<ShelfModelType>({
   _id: { type: String, default: parloId },
   name: {
     type: String,

@@ -31,7 +31,7 @@ const SearchInList = <T,>({ queryFn, queryKeys, className, Component, inputPlace
     const [query, setQuery] = useState('');
 
     const updateQuery = (data: { query: string }) => {
-        const input = data.query;
+        const input = data.query?.trim();
 
         if (!input || input.length < 3) return;
 
@@ -55,7 +55,7 @@ const SearchInList = <T,>({ queryFn, queryKeys, className, Component, inputPlace
     else if (!query) return (
         <>
             <SearchInput onUpdate={updateQuery} query={query} inputPlaceholder={inputPlaceholder} />
-            <div className={twMerge("flex flex-cntr-all h-stretch min-h-[50dvh]", className)}>
+            <div className={twMerge("flex flex-cntr-all h-size-screen", className)}>
                 <p>Results would appear here</p>
             </div>
         </>

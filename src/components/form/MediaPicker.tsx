@@ -82,7 +82,7 @@ const UploadFromRest = ({ setUrl, goBack, section }: { setUrl: TypedFunction<str
         }
         else {
             const { success, error } = urlSchema.safeParse(url);
-            if (!success) return error.errors[0]?.message;
+            if (!success) return error.issues[0]?.message;
             else if ((section === "youtube" && !youtubeLinkPattern.test(url)) || (section === "vimeo" && !vimeoLinkPattern.test(url)))
                 return `Invalid Url! Please provide a valid ${section} shareable url.`
         }
@@ -121,7 +121,7 @@ const UploadFromMega = ({ setUrl, goBack }: { setUrl: TypedFunction<string>, goB
         const { success, data, error } = megaFileSchema.safeParse(url);
         console.log(success, data, error)
         if (success) setUrl(data);
-        else return error.errors[0].message;
+        else return error.issues[0].message;
     }
 
     return (
@@ -275,7 +275,7 @@ export const MediaInputPrompt = ({ type, callback }: { type: "image" | "both", c
 
         if (!success) {
             setLoading(false);
-            return error.errors.map(err => showError(err.message));
+            return error.issues.map(err => showError(err.message));
         }
 
         try {
@@ -402,8 +402,8 @@ type ManagerProps = {
     allowBoth?: true,
     defaultFrames?: Frame[];
     className?: string;
-    getterRef: React.RefObject<InputManagerType<InputFrame[]>>;
-    promptRef?: React.RefObject<BottomSheetRef>;
+    getterRef: React.RefObject<InputManagerType<InputFrame[]>|null>;
+    promptRef?: React.RefObject<BottomSheetRef|null>;
 };
 
 const convertFrameToInputFrame = (frame: Frame[] | undefined): InputFrame[] => {

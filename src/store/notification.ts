@@ -3,7 +3,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 type NotificationStoreType = {
-  last: string | null;
+  last: string | null | undefined;
   isHydrated: boolean;
   newNotification: boolean;
   checkNewNotification: (n: { _id: string } | null | undefined) => void;
@@ -31,10 +31,9 @@ const useNotification = create(
             useNotification.setState({ isHydrated: true });
           }, 0);
       },
-      partialize: (state: NotificationStoreType) =>
-        ({
-          last: state.last,
-        }) as Partial<NotificationStoreType>,
+      partialize: (state:NotificationStoreType) => ({
+        last: state.last || null,
+      }),
     }
   )
 );

@@ -60,7 +60,7 @@ export const PATCH = updateHandler<PostUpdateSchemaType>({
         },
       },
       { session, new: true }
-    ).then(r => r?.toObject());
+    ).exec();
 
     if (!post)
       return { success: false, errCode: "resource_not_found" };

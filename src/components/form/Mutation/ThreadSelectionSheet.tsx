@@ -69,7 +69,7 @@ const ThreadChoice = ({ submitChoice }: { submitChoice: (chosenThread: MereThrea
 const ChooseThreadButton = ({ defaultVal, submit }: Props & { submit: (tid: string) => void }) => {
 
     const [thread, setThread] = useState<MereThread>();
-    const sheetRef = useRef<BottomSheetRef>();
+    const sheetRef = useRef<BottomSheetRef>(null);
 
     useEffect(() => {
         if (defaultVal) setThread(defaultVal);

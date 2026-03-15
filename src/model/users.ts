@@ -68,6 +68,6 @@ userModel.index({ username: 1, isActive: 1 });
 userModel.index({ email: 1 }, { unique: true });
 
 const User: StrictModel<UserModelType> =
-  (models.User as any) || (model("User", userModel) as StrictModel<UserModelType>);
+  (models.User as any) || model("User", userModel);
 
 export default User;

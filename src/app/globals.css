@@ -1,6 +1,10 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme {
+  --breakpoint-xs: 375px;
+  --breakpoint-sm: 480px;
+  --breakpoint-md: 640px;
+}
 
 * {
   box-sizing: border-box !important;
@@ -233,7 +237,8 @@ summary:not(.allowMarker)::marker {
   overflow: hidden;
 }
 
-form:has(.commentInputOptionsBar) {
+/* To hide the options bar in the comment input intially and show it on focus */
+/* form:has(.commentInputOptionsBar) {
   transition: height 0.5s ease;
 }
 
@@ -241,11 +246,10 @@ form:where(
     :focus-within,
     :has(input:checked),
     :not(:has(input:placeholder-shown)),
-    :active
   )
   .commentInputOptionsBar {
   height: fit-content;
-}
+} */
 
 .fancybox__content {
   padding: 0 !important;
@@ -265,18 +269,18 @@ form:where(
 }
 
 .f-carousel:not(:has(.f-carousel__dots)) .f-carousel__slide {
-    height: auto;
-    min-width: 100%;
-  }
+  height: auto;
+  min-width: 100%;
+}
 
-.f-button.is-arrow{
-  z-index:2 !important;
+.f-button.is-arrow {
+  z-index: 2 !important;
 }
 
 @media screen and (width> 480px) {
   .f-carousel {
-    --f-carousel-slide-gap: 8px;
-    --f-carousel-slide-width: 240px !important;
+    /* --f-carousel-slide-gap: 8px;
+    --f-carousel-slide-width: 240px !important; */
 
     --f-arrow-pos: 10px;
 
@@ -638,10 +642,6 @@ button.iconBtn {
 img,
 svg {
   aspect-ratio: 1;
-}
-svg {
-  height: 20px;
-  display: inline;
 }
 
 button.disable {

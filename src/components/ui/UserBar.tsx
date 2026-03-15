@@ -1,19 +1,26 @@
 import Navigate from "@components/Navigate";
 import { MereUser } from "@type/internal";
-import ParloImage from "./ParloImage";
+import { MetadataTile, MetadataTileContainer, ParloImage } from "./";
+import { numberConverter } from "@lib/utils";
 
-export const SimpleUserBar = ({ profile, username }: MereUser) => (
-    <article className="flex items-center gap-3 py-2 px-4 border border-gray30 rounded-md">
+export const SimpleUserBar = ({ profile, username, followers, posts }: MereUser) => (
+    <article className="flex items-center gap-2 py-2">
         <ParloImage
             frameType="userProfile"
             className="min-w-8 size-8 object-cover"
-            classNameForFallback="size-8 min-w-8 overflow-hidden"
+            classNameForFallback="size-6 min-w-6 overflow-hidden"
             containerClassName="rounded-full"
             size={32}
             alt={`Profile picture of ${username}`}
             frame={profile}
         />
-        <h5 className="line-clamp-1">{username}</h5>
+        <div>
+            <h5 className="line-clamp-1">{username}</h5>
+            <MetadataTileContainer>
+                <MetadataTile className="text-xs" condition={!!followers}>{numberConverter(followers)} Followers</MetadataTile>
+                <MetadataTile className="text-xs" condition={!!posts}>{numberConverter(posts)} Posts</MetadataTile>
+            </MetadataTileContainer>
+        </div>
     </article>
 )
 

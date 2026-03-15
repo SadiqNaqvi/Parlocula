@@ -36,10 +36,10 @@ const Register = ({ email }: { email: string }) => {
 
     if (page === 0) return (
         <>
-            <Navbar className="p-0 !h-fit mt-4 sm:mt-0 bg-transparent" navTitle="Create Account" />
+            <Navbar className="p-0 h-fit! mt-4 sm:mt-0 bg-transparent" navTitle="Create Account" />
 
             <div className="space-y-2 my-4">
-                <label htmlFor="Date">Date of birth</label>
+                <label htmlFor="Date" className="block">Date of birth</label>
                 <DateInput dateRef={dobRef} onComplete={storeDob} />
             </div>
 
@@ -78,7 +78,7 @@ const Register = ({ email }: { email: string }) => {
     )
 
     return (
-        <div id="profilePreview" className="bg-primary">
+        <div id="profilePreview" className="bg-primary max-w-[768px] sm:mx-auto">
             <UserMutationPage isEditing={false} dob={dob} email={email} username={username} />
         </div>
     )

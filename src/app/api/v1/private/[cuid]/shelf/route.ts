@@ -93,7 +93,7 @@ export const POST = postHandler<ShelfSchemaType>({
           `private-shelves-user-${user_id}`,
           `allShelves-user-${user_id}`
         ]),
-      result: shelf.toObject(),
+      result: shelf,
     };
   },
   schema: shelfServerSchema,

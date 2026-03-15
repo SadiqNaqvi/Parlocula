@@ -6,6 +6,7 @@ import { parloculaAppURL, predefinedShelves } from "@lib/constants";
 import { postHandler } from "@lib/helpers/handlers";
 import { sendEmail } from "@lib/helpers/server";
 import { registerUserSchemaServer } from "@lib/schemas";
+import { parloId } from "@lib/utils";
 import { Shelf, User } from "@model";
 import { render } from "@react-email/components";
 import { CurrentUser, TokenPayload } from "@type/internal";
@@ -20,12 +21,12 @@ export const POST = postHandler<UserSchemaType>({
   handler: async ({ data, frames, session, isNsfw }) => {
     const { name, dob, email, bio, username, bioLinks } = data;
 
-    const passkey = crypto.randomUUID().split("-").join("");
-    
+    const passkey = crypto.randomUUID().replace(/-/g, '');
     const encryptedPasskey = await bcrypt.hash(
       passkey,
       await bcrypt.genSalt(10)
     );
+
 
     const session_id = crypto.randomUUID();
 
@@ -40,31 +41,30 @@ export const POST = postHandler<UserSchemaType>({
       profile: frames[0],
       session_id,
       filterContent: true,
-
     }], {
       session,
       ordered: true,
     });
 
-    const user = response[0].toObject();
+    const user = response[0];
     if (!user) return { success: false, errCode: "data_storing_fail" };
 
+    const user_id = user._id;
+
     const shelvesToCreate = predefinedShelves.map((s) => ({
+      _id: parloId(),
       name: s,
-      user_id: user._id,
+      user_id,
       isPrivate: s !== "recommended",
       shelfKey:
-        s === "recommended" ? undefined : crypto.randomUUID().split("-").join(""),
+        s === "recommended" ? undefined : crypto.randomUUID().replace(/-/g, ''),
       item_count: 0,
       shelf_type: s,
     }));
 
-    const shelves = await Shelf.create(shelvesToCreate, {
-      session,
-      ordered: true,
-    });
+    const shelves = await Shelf.insertMany(shelvesToCreate, { session, throwOnValidationError: true });
 
-    const user_id = user._id;
+    if (!shelves || !Array.isArray(shelves)) return { success: false, errCode: "data_storing_fail" }
 
     const tokenPayload: TokenPayload & { email: string } = {
       user_id,
@@ -77,9 +77,11 @@ export const POST = postHandler<UserSchemaType>({
       dob,
     }
 
+
     const sessionStored = await storeSession(session_id, tokenPayload);
 
     if (!sessionStored) return { success: false, errCode: "session_store_fail" };
+
 
     const token = await generateToken(tokenPayload);
 
@@ -88,12 +90,13 @@ export const POST = postHandler<UserSchemaType>({
     setCookies(jar, "token", token);
     setCookies(jar, "sid", session_id);
 
+
     const template = await render(WelcomeEmail({ passkey }));
 
     await sendEmail({ email, template, subject: "Welcome to Parlocula" });
 
     const result: CurrentUser = {
-      _id: user._id,
+      _id: user_id,
       name: user.name,
       username: user.username,
       email: user.email,
@@ -101,7 +104,6 @@ export const POST = postHandler<UserSchemaType>({
       bio: user.bio,
       dob: user.dob,
       bioLinks: user.bioLinks,
-      edited_at: undefined,
       followers: 0,
       following: 0,
       posts: 0,
@@ -109,7 +111,7 @@ export const POST = postHandler<UserSchemaType>({
       publicShelves: 0,
       predefinedShelves: shelves.map(({ name, _id, poster, shelf_type, isPrivate, last_added, shelfKey }) => ({
         name: name as PredefinedShelves,
-        _id: _id.toString(),
+        _id: String(_id),
         poster,
         shelf_type,
         isPrivate,

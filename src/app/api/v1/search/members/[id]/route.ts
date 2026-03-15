@@ -1,14 +1,20 @@
+import { getUserFromToken } from "@lib/auth/utils";
 import { getHandler } from "@lib/helpers/handlers";
 import { convertMatchToLookupExpr, searchHandler } from "@lib/pipelines";
+import { cookies } from "next/headers";
 
 // Search Members of a thread with thread_id (id)
 
 export const GET = getHandler(async (r, params) => {
   const { id } = params;
 
+  const user = await getUserFromToken(await cookies());
+  const cuid = user?.user_id;
+
   return await searchHandler({
     r,
     filters: [
+      ...(cuid ? [{ $match: { _id: { $ne: cuid } } }] : []),
       {
         $lookup: {
           from: "members",
