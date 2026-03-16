@@ -9,12 +9,6 @@ const Fancybox = ({ children }: { children: React.ReactNode }) => {
 
     useEffect(() => {
 
-        // NativeFancybox.bind("[data-modal]" as any, {
-        //     groupAttr: false,
-        //     closeButton: false,
-        //     hideScrollbar: true
-        // } as any);
-
         NativeFancybox.bind("[data-frame]", {
             groupAll: false,
             hideScrollbar: true,
@@ -25,7 +19,6 @@ const Fancybox = ({ children }: { children: React.ReactNode }) => {
             // Fullscreen: { autoStart: true },
             Carousel: {
                 transition:"tween",
-                // Video:{}
                 Toolbar: {
                     display: {
                         left: ["counter"],

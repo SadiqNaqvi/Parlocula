@@ -2,8 +2,8 @@ import "@/app/globals.css";
 import { FancyBoxProvider } from "@components";
 import { MainLoading } from "@components/ui/loading";
 import { getUserFromToken } from "@lib/auth/utils";
-import { getCurrentUser } from "@lib/helpers/common";
-import { fetchQuery, getQueryClient } from "@lib/providers/queryClient";
+import { getCurrentUser, getNotificationsOfUser, getRooms } from "@lib/helpers/common";
+import { fetchQuery, getQueryClient, prefetchInfiniteQuery } from "@lib/providers/queryClient";
 import ReactQueryProvider from "@lib/providers/ReactQueryWrapper";
 import generateDynamicMetadata from "@lib/seo/metadata";
 import { getQueryKeys } from "@lib/utils";
@@ -39,11 +39,11 @@ const NotificationFetcher = async ({ children }: PropsWithChildren) => {
   if (payload) {
     const { user_id, username } = payload;
 
-    //   queryClient.prefetchInfiniteQuery({
-    //     queryKey: getQueryKeys("rooms_uid", { uid: user_id }),
-    //     queryFn: () => queryFunction(getRooms, [user_id, 1, jar], 1),
-    //     initialPageParam: 1,
-    //   });
+    queryClient.prefetchInfiniteQuery({
+      queryKey: getQueryKeys("rooms_uid", { uid: user_id }),
+      queryFn: () => getRooms(user_id, 1, jar),
+      initialPageParam: 1,
+    });
 
     const [resp] = await Promise.all([
       fetchQuery({
@@ -51,12 +51,12 @@ const NotificationFetcher = async ({ children }: PropsWithChildren) => {
         queryKey: getQueryKeys("user_username", { username }),
         queryFn: () => getCurrentUser(user_id, jar),
       }),
-      // prefetchInfiniteQuery({
-      //   queryClient,
-      //   initialPageParam: 1,
-      //   queryKey: getQueryKeys("notifications_uid", { uid: user_id }),
-      //   queryFn: () => getNotificationsOfUser(user_id, 1, jar)
-      // }),
+      prefetchInfiniteQuery({
+        queryClient,
+        initialPageParam: 1,
+        queryKey: getQueryKeys("notifications_uid", { uid: user_id }),
+        queryFn: () => getNotificationsOfUser(user_id, 1, jar)
+      }),
     ]);
 
     currentUser = resp;
@@ -74,7 +74,6 @@ const RootLayout = async ({ children }: PropsWithChildren) => {
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${robotoFont.variable} ${montserratFont.variable} antialiased`}>
-        {/* <body className="antialiased"> */}
         <Toaster swipeDirections={["bottom", "left", "right"]} />
         <ReactQueryProvider>
           <ThemeProvider enableSystem defaultTheme="system" attribute={"class"}>

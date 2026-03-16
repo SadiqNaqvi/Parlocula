@@ -239,9 +239,9 @@ export const getPoster = <T extends ExternalImageType>(config: GetPosterFunction
     }
   }
 
-  else if (config.extSource === "vimeo")
-    return `https://vumbnail.com/${path}.jpg`;
-
+  else if (config.extSource === "vimeo") {
+    return `/api/v1/vimeo/${path}`;
+  }
   else if (config.extSource === "youtube")
     return `https://i.ytimg.com/vi/${path}/hqdefault.jpg`
 

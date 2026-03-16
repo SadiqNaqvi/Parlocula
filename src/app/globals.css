@@ -589,13 +589,13 @@ input[type="search"]::-webkit-search-cancel-button {
   width: 20px;
 }
 
-button {
+button:not(.customStyling) {
   display: flex;
   outline: none;
-  text-wrap: nowrap;
   user-select: none;
   cursor: pointer;
   transition: border-color 500ms;
+  text-wrap: nowrap;
 }
 
 button:focus-visible {

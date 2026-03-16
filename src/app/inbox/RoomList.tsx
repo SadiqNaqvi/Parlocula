@@ -36,23 +36,24 @@ type RoomListProps = { uid: string, changeRoom: TypedFunction<PageType> };
 const RoomListHeader = ({ changeRoom, uid }: RoomListProps) => (
     <>
         <Navbar
-            OptionButton={
+            OptionButton={(
                 <div className="flex gap-3">
                     <button
                         onClick={() => changeRoom("search")}
-                        className="p-2 rounded-full bg-gray40">
-                        <SearchIcon />
+                        className="p-2 rounded-full bg-gray10 border border-gray20">
+                        <SearchIcon className="size-4" />
                     </button>
                     <button
                         onClick={() => changeRoom("create")}
-                        className="rounded-full p-2 bg-gray40">
-                        <AddIcon />
+                        className="rounded-full p-2 bg-gray10 border border-gray20">
+                        <AddIcon className="size-4" />
                     </button>
                 </div>
-            }
+            )}
             navTitle="Inbox"
+            className="px-2"
         />
-        <header className="mt-4 flex flex-cntr-between">
+        <header className="px-2 mt-4 flex flex-cntr-between">
             <h2>Rooms</h2>
             <button className="text-sm" onClick={() => changeRoom("invitations")}>
                 <InvitationsCount uid={uid} />
@@ -137,7 +138,7 @@ const RoomsList = ({ uid, changeRoom }: RoomListProps) => {
     else if (!rooms.length) return (
         <>
             <RoomListHeader uid={uid} changeRoom={changeRoom} />
-            <div className="forceCenter space-y-2">
+            <div className="flex-1 flex flex-col flex-cntr-all space-y-2">
                 <h2>No rooms yet</h2>
                 <p>Click on the + icon and start chatting</p>
             </div>
@@ -148,7 +149,7 @@ const RoomsList = ({ uid, changeRoom }: RoomListProps) => {
         <>
             <RoomListHeader uid={uid} changeRoom={changeRoom} />
 
-            <section className="h-full mt-2 sm:w-60 md:w-80 px-2">
+            <section className="h-stretch overflow-y-auto mt-2 sm:w-60 md:w-80 px-2">
                 <ul>
                     {rooms.map(room => (
                         <li key={room.room_id}>
@@ -174,7 +175,7 @@ const RoomsList = ({ uid, changeRoom }: RoomListProps) => {
 }
 
 const RoomListWrapper = ({ id, children }: PropsWithChildren<{ id: string | string[] | undefined }>) => (
-    <div className={twMerge("w-full md:max-w-96 border-right border-gray30", id ? "hidden md:block" : '')}>
+    <div className={twMerge("md:border-r border-gray20 w-full flex flex-col md:max-w-96 border-right border-gray30", id ? "hidden md:block" : '')}>
         {children}
     </div>
 )

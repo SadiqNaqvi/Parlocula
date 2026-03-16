@@ -2,12 +2,12 @@ import { RightChevron } from "@assets/Icons";
 import Navigate from "@components/Navigate";
 import { TypedFunction } from "@type/other";
 import { PropsWithChildren } from "react";
-import {twMerge} from "tailwind-merge";
+import { twMerge } from "tailwind-merge";
 
 type BreadCrumbProps = { className?: string }
 
 const BreadCrumb = ({ children, className }: PropsWithChildren<BreadCrumbProps>) => (
-    <div className={twMerge("text-sm space-x-2 items-center hover:underline whitespace-nowrap line-clamp-1", className)}>
+    <div style={{ display: "flex" }} className={twMerge("text-sm gap-2 items-center hover:underline whitespace-nowrap line-clamp-1", className)}>
         <strong>{children}</strong>
         <RightChevron className="size-4 group-last:rotate-90" />
     </div>

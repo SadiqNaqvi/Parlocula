@@ -95,10 +95,26 @@ const projectionMap: Record<Collections, { [field: string]: number }> = {
   users: userProjection
 }
 
+const operatorMap: Record<string, string> = {
+  $eq: "$eq",
+  $ne: "$ne",
+  $gt: "$gt",
+  $lt: "$lt",
+  $gte: "$gte",
+  $lte: "$lte",
+  $in: "$in",
+  $nin: "$nin",
+};
+
 export const convertMatchToLookupExpr = <T = any>(matchObj: QueryFilter<T>): PipelineStage.Match => {
+
   const convertCondition = (key: string, value: any) => {
     // Primitive -> $eq
-    if (typeof value !== "object" || value === null) {
+    if (operatorMap[key]) {
+      return { [key]: value }
+    }
+
+    else if (typeof value !== "object" || value === null) {
       return { $eq: [`$${key}`, value] };
     }
 
@@ -108,16 +124,6 @@ export const convertMatchToLookupExpr = <T = any>(matchObj: QueryFilter<T>): Pip
     for (const op in value) {
       const val = value[op];
 
-      const operatorMap: Record<string, string> = {
-        $eq: "$eq",
-        $ne: "$ne",
-        $gt: "$gt",
-        $lt: "$lt",
-        $gte: "$gte",
-        $lte: "$lte",
-        $in: "$in",
-        $nin: "$nin",
-      };
 
       if (!operatorMap[op]) {
         throw new Error(`Unsupported operator: ${op}`);
@@ -887,7 +893,6 @@ export const roomAggregationPipeline = ({ invitation, page, cuid, }: { invitatio
           as: "room",
         },
       },
-      // { $match: { "room.0": { $exists: true } } },
     ],
     preProjection: [
       {

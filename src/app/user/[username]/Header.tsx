@@ -36,9 +36,11 @@ const Component = (data: RequestedUser, props: Props) => {
     const { _id, followers, following, posts, bio, name, username, profile, bioLinks, comments, publicShelves } = data;
 
     const userMeta = [
-        { label: "posts", value: posts },
         { label: "followers", value: followers },
         { label: "following", value: following },
+        { label: "posts", value: posts },
+        // { label: "comments", value: comments },
+        // { label: "shelves", value: publicShelves },
     ];
 
     return (
@@ -73,10 +75,10 @@ const Component = (data: RequestedUser, props: Props) => {
                     </div>
                 </section>
                 <section className="mt-4">
-                    <ul className="flex gap-3">
+                    <ul className="flex gap-3 overflow-x-auto">
                         {userMeta.map(({ label, value }) => (
-                            <li className="gap-1 flex items-center" key={label}>
-                                <span className="text-base sm:text-xl text-center">{numberConverter(value)}</span>
+                            <li className="gap-1 flex items-center text-nowrap" key={label}>
+                                <span className="text-base">{numberConverter(value)}</span>
                                 <span className="text-sm text-zinc-500">{label}</span>
                             </li>
                         ))}
@@ -97,9 +99,9 @@ const Component = (data: RequestedUser, props: Props) => {
 
 
             <TabContainer className="my-3">
-                <TabList href={`/user/${username}`}>Posts ( {posts || 0} ) </TabList>
-                <TabList href={`/user/${username}/comments`}>Comments ( {comments || 0} ) </TabList>
-                <TabList href={`/user/${username}/shelves`}>Shelves ( {publicShelves || 0} ) </TabList>
+                <TabList href={`/user/${username}`}>Posts</TabList>
+                <TabList href={`/user/${username}/comments`}>Comments</TabList>
+                <TabList href={`/user/${username}/shelves`}>Shelves</TabList>
             </TabContainer>
         </>
     )

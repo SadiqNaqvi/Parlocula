@@ -15,7 +15,7 @@ import "@fancyapps/ui/dist/carousel/carousel.arrows.css";
 import { twMerge } from 'tailwind-merge';
 
 const options: Partial<CarouselOptions> = {
-    infinite: false,
+    // infinite: false,
     // style: {
     //     "--f-carousel-slide-width": "100%",
     // },

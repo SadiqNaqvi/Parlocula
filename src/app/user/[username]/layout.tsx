@@ -59,14 +59,14 @@ const Fetcher = async ({ username, children }: PropsWithChildren<{ username: str
             <OptionalChildren condition={current}>
                 <Sidebar />
             </OptionalChildren>
-            <main>
+            {/* <main> */}
+            <PullToRefresh>
                 <HydrationBoundary state={dehydrate(queryClient)}>
-                    <PullToRefresh>
-                        <Header uid={user?.user_id} username={username} />
-                        {children}
-                    </PullToRefresh>
+                    <Header uid={user?.user_id} username={username} />
+                    {children}
                 </HydrationBoundary>
-            </main>
+            </PullToRefresh>
+            {/* </main> */}
         </>
     )
 }

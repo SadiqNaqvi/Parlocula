@@ -28,12 +28,10 @@ const PostbarBreadCrumbs = ({ poster, profile, thread_id, thread_name, username,
                     alt={`Profile picture of ${username} the author of this post`} />
             </Navigate>
 
-            <div className="flex gap-2 items-center">
-                <BreadCrumbs>
-                    <BreadCrumbTile href={`/thread/${thread_id}`}>Thread</BreadCrumbTile>
-                    <BreadCrumbTile href={`/user/${username}`}>{username}</BreadCrumbTile>
-                </BreadCrumbs>
-            </div>
+            <BreadCrumbs>
+                <BreadCrumbTile href={`/thread/${thread_id}`}>Thread</BreadCrumbTile>
+                <BreadCrumbTile href={`/user/${username}`}>{username}</BreadCrumbTile>
+            </BreadCrumbs>
         </div>
     )
 

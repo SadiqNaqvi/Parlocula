@@ -68,7 +68,7 @@ const Component = (data: ThreadType, { id, uid }: Props) => {
                         </div>
                     </OptionalChildren>
 
-                    <BottomSheet className="text-sm line-clamp-2 whitespace-break-spaces text-left" button={description}>
+                    <BottomSheet className="text-sm line-clamp-2 whitespace-break-spaces text-left customStyling" button={description}>
                         <ThreadDetailsSheet
                             connections={connections}
                             createdAt={createdAt}
