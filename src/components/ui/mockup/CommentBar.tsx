@@ -23,7 +23,7 @@ const MockupCommentBar = ({ username }: { username?: string }) => (
         <ul className="mt-2 flex gap-2">
             {Array(4).fill(0).map((_, i) => (
                 <li key={i}
-                    className={`h-2 w-10 rounded-md ${i < 2 ? "bg-gray60" : i === 2 ? "bg-red-400 bg-opacity-20" : "bg-purple-400 bg-opacity-20"}`}></li>
+                    className={`h-2 w-10 rounded-md ${i < 2 ? "bg-gray60" : i === 2 ? "bg-purple-400/20" : "bg-orange-400/20"}`}></li>
             ))}
         </ul>
 

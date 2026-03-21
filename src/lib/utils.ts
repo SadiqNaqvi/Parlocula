@@ -180,9 +180,7 @@ export const parseUnknownData = (data: any) => {
   if (typeof data === "string") {
     try {
       return JSON.parse(data);
-    } catch {
-      return data;
-    }
+    } catch { }
   }
   return data;
 }
@@ -196,6 +194,15 @@ export const parseObject = (obj: Record<string, any>): Record<string, any> => {
       return { ...prev, [cur]: obj[cur] }
     }
   }, {})
+}
+
+export const removeNullishFields = <T extends Record<string, any>>(obj: T): T => {
+  if (!obj) return {} as T;
+  return Object.keys(obj).reduce((prev, key) => {
+    const val = obj[key];
+    if (val === null || val === undefined) return prev;
+    else return { ...prev, [key]: val }
+  }, {}) as T
 }
 
 export const makeUrlSafe = (str: string) => {

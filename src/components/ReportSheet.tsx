@@ -23,7 +23,7 @@ const ReportSheet = ({ id, type, uid, ext_id }: { type: ReportTypeEnum, id: stri
     if (data) return (
         <section className="py-4 px-2 sm:px-4">
             <div className="my-4">
-                <span className="inline p-4 bg-green-500 bg-opacity-20 rounded-full">
+                <span className="inline p-4 bg-green-500/20 rounded-full">
                     <CheckIcon className="color-invert size-20" />
                 </span>
             </div>

@@ -10,11 +10,13 @@ const RoomSearchList = ({ goBack, uid }: { goBack: TypedFunction, uid: string })
     return (
         <>
             <Navbar navTitle="Search Rooms" onGoBack={goBack} />
-            <SearchInList
-                Component={RoomBar}
-                queryFn={(q, p) => searchRooms(uid, q, p)}
-                queryKeys={(q) => ["search", "rooms", q]}
-            />
+            <section className="px-2">
+                <SearchInList
+                    Component={RoomBar}
+                    queryFn={(q, p) => searchRooms(uid, q, p)}
+                    queryKeys={(q) => ["search", "rooms", q]}
+                />
+            </section>
         </>
     )
 }

@@ -3,6 +3,7 @@ import Image from "next/image";
 import { PropsWithChildren } from "react";
 import FramesCarousel from "../FramesCarousel";
 import Navigate from "../Navigate";
+import MetadataTile, { MetadataTileContainer } from "./MetaDataTile";
 
 const ReasonTiles = ({ reasons, total }: Pick<ReportedContent, "reasons" | "total">) => {
     return (
@@ -43,11 +44,11 @@ const ContentBar = ({ content, content_type }: ReportedContent) => {
         <>
             <div className="space-y-2 flex-1">
                 <h4>{content.title}</h4>
-                <ul className="flex gap-2">
-                    <li className="p-1 bg-gray-30">{content.tag}</li>
-                    {content.nsfw && <li className="p-1 bg-purple-500 bg-opacity-30">NSFW</li>}
-                    {content.spoiler && <li className="p-1 bg-orange-500 bg-opacity-30">NSFW</li>}
-                </ul>
+                <MetadataTileContainer>
+                    <MetadataTile className="text-xs sm:text-sm">{content.tag}</MetadataTile>
+                    <MetadataTile nsfw className="text-xs sm:text-sm" condition={content.nsfw}>NSFW</MetadataTile>
+                    <MetadataTile spoiler className="text-xs sm:text-sm" condition={content.spoiler}>Spoiler</MetadataTile>
+                </MetadataTileContainer>
             </div>
             <FramesCarousel frames={content.frames} />
         </>

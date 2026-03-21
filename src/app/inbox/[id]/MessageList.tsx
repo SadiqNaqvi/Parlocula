@@ -70,7 +70,7 @@ const MessageList = ({ uid, room }: { uid: string, room: FullRoomType }) => {
         />
     )
 
-    else if (invitationMessage && (participantType === "invitee" || participant_count === 1)) return (
+    else if (invitationMessage && (participantType === "invitee" || participant_count < 2)) return (
         <section className="mt-4 px-2">
             <MessageBar
                 _id=""

@@ -635,12 +635,49 @@ export const getManagers = async (tid: string, uid: string, cookies?: CookiesTyp
     cookies,
   });
 
-export const getRooms = async (uid: string, page = 1, cookies?: CookiesType) =>
-  await ppGetData<AggregatedResponse<MereRoomType>>({
-    url: `private/${uid}/room`,
-    searchParams: { p: page },
-    cookies,
-  });
+export const getRooms = async (uid: string, page = 1, cookies?: CookiesType) => {
+  return {
+    success: true,
+    result: {
+      data: [
+        {
+          display_name: 'redpool08',
+          poster: undefined,
+          type: 'creator',
+          room_type: 'private',
+          otherParticipant_seenAt: '2026-03-18T10:00:17.766Z',
+          room_id: 'XoRAZcgMe9JP',
+          invitationMessage: {
+            content: 'oiii',
+            user_id: 'fzbgNuxfBc',
+            username: 'deapool_parody',
+            createdAt: 1773914417339,
+            _id: '69bbc9317e90bd1e59101f34'
+          },
+          lastMessage: 'oiii',
+          lastMessageAt: '2026-03-19T10:00:17.339Z',
+          lastMessageBy: 'fzbgNuxfBc',
+          mute: false,
+          otherParticipant_id: 'QUi0Fe8hhY',
+          seenAt: 1773914643562,
+          createdAt: undefined
+        }
+      ],
+      total: 1
+    }
+  } as GeneralGetReturn
+}
+// await ppGetData<AggregatedResponse<MereRoomType>>({
+//   url: `private/${uid}/room`,
+//   searchParams: { p: page },
+//   cookies,
+// });
+
+export const getInvitedRoomsCount = async (uid: string, cookies?: CookiesType) => ({ success: true, result: 0 } as GeneralGetReturn )
+// await ppGetData<number>({
+//   url: `private/${uid}/room/invitation/count`,
+//   cookies,
+// });
 
 export const getInvitedRooms = async (
   uid: string,
@@ -730,7 +767,7 @@ export const getReportedContents = async (tid: string, uid: string, type: "post"
 
 export const searchRooms = async (uid: string, query: string, page = 1) =>
   await ppGetData<AggregatedResponse<SearchedRoom>>({
-    url: `private/${uid}"search/rooms" `,
+    url: `private/${uid}/search/rooms`,
     searchParams: { q: query, p: page },
   });
 

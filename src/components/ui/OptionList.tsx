@@ -7,7 +7,7 @@ import { twMerge } from "tailwind-merge";
 import { Drawer } from "vaul";
 import OptionalChildren from "./OptionalChildren";
 
-const defaultClassName = "px-2 py-3 capitalize hover:bg-zinc-500 hover:bg-opacity-20 transition-colors flex flex-cntr-between w-full";
+const defaultClassName = "px-2 py-3 capitalize hover:bg-zinc-500/20 transition-colors flex flex-cntr-between w-full";
 
 export const NestedSheetTrigger = ({ children, button, className }: PropsWithChildren<{ button: React.ReactNode, className?: string }>) => {
     return (

@@ -1,5 +1,5 @@
 import { deleteHandler, updateHandler } from "@lib/helpers/handlers";
-import { Member } from "@model";
+import { Member, Notification } from "@model";
 
 // Invitee accepts manager invitation
 export const PATCH = updateHandler({
@@ -9,6 +9,12 @@ export const PATCH = updateHandler({
     await Member.findOneAndUpdate(
       { thread_id: id, user_id, role: "invitee" },
       { $set: { role: "moderator" } },
+      { session }
+    );
+
+    await Notification.findOneAndUpdate(
+      { content_id: id, user_id },
+      { $set: { status: "accepted" } },
       { session }
     );
 
@@ -32,6 +38,11 @@ export const DELETE = deleteHandler(async ({ user_id, params, session }) => {
     { session }
   );
 
+  await Notification.findOneAndUpdate(
+    { content_id: id, user_id },
+    { $set: { status: "rejected" } },
+    { session }
+  );
   return {
     success: true,
     result: null,

@@ -113,8 +113,10 @@ export function useCustomReducer<T>(initialValue: T) {
     return { ...state, setter };
 }
 
+type PresenceEnum = "offline" | "online" | "typing";
+
 export const useAblyPresence = (client_id: string, id?: string, room_id?: string) => {
-    const [presence, setPresence] = useState("offline");
+    const [presence, setPresence] = useState<PresenceEnum>("offline");
 
     useEffect(() => {
         if (!id) return;
@@ -132,7 +134,7 @@ export const useAblyPresence = (client_id: string, id?: string, room_id?: string
             else if (action === "update" && room_id) {
                 if (!("status" in data) || !("room_id" in data)) return;
                 else if (data.status === "started_typing" && data.room_id === room_id)
-                    setPresence("typing...");
+                    setPresence("typing");
                 else setPresence("online")
             }
 
@@ -155,7 +157,6 @@ export const useAblyPresence = (client_id: string, id?: string, room_id?: string
     }, [client_id, id, room_id]);
 
     if (!id) return "";
-
 
     return presence;
 

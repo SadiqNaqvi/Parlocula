@@ -39,10 +39,10 @@ const NotificationFetcher = async ({ children }: PropsWithChildren) => {
   if (payload) {
     const { user_id, username } = payload;
 
-    queryClient.prefetchInfiniteQuery({
+    prefetchInfiniteQuery({
       queryKey: getQueryKeys("rooms_uid", { uid: user_id }),
       queryFn: () => getRooms(user_id, 1, jar),
-      initialPageParam: 1,
+      queryClient,
     });
 
     const [resp] = await Promise.all([
@@ -53,7 +53,6 @@ const NotificationFetcher = async ({ children }: PropsWithChildren) => {
       }),
       prefetchInfiniteQuery({
         queryClient,
-        initialPageParam: 1,
         queryKey: getQueryKeys("notifications_uid", { uid: user_id }),
         queryFn: () => getNotificationsOfUser(user_id, 1, jar)
       }),

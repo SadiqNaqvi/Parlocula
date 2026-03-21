@@ -121,10 +121,10 @@ const IndexPage = async () => {
 
         <div>
           <h1 className="text-4xl font-semibold text-center">Parlocula</h1>
-          <p className="text-center">Where Stories Bring Us Together.</p>
+          <p className="text-center">The Cinematic Planet</p>
         </div>
 
-        <div className="flex gap-2 flex-col sm:flex-row fixed sm:static bottom-0 w-full sm:w-fit sm:mx-auto p-4 bg-primarylight bg-opacity-50 sm:bg-transparent rounded-t-md">
+        <div className="flex gap-2 flex-col sm:flex-row fixed sm:static bottom-0 w-full sm:w-fit sm:mx-auto p-4 bg-primarylight sm:bg-transparent rounded-t-md">
           <Navigate
             comp="link"
             goto="/join"

@@ -132,25 +132,25 @@ const TaleonPage = ({ content, type }: Props) => {
             <TaleonWikiSection heading="Deciding Factors">
                 <div className="flex overflow-x-auto gap-4 pb-2">
                     <article className="h-44 lg:h-52 px-4 rounded-lg flex flex-col aspect-video flex-cntr-even border border-[var(--gray40)]">
-                        <span className="p-4 rounded-full bg-orange-500 bg-opacity-20">
+                        <span className="p-4 rounded-full bg-orange-500/20">
                             <CrownIcon className="h-10 text-orange-600" />
                         </span>
                         <p className="text-center">{checkAndReturn(content.awards, null, "NA") || "No Awards Yet"}</p>
                     </article>
                     <article className="h-44 lg:h-52 px-4 rounded-lg flex flex-col aspect-video flex-cntr-even border border-[var(--gray40)]">
-                        <span className="p-4 rounded-full bg-pink-500 bg-opacity-20">
+                        <span className="p-4 rounded-full bg-pink-500/20">
                             <HeartIcon className="h-10 text-pink-600" />
                         </span>
                         <p className="text-center">Touched the heart of {numberConverter(content.favourite)}</p>
                     </article>
                     <article className="h-44 lg:h-52 px-4 rounded-lg flex flex-col aspect-video flex-cntr-even border border-[var(--gray40)]">
-                        <span className="p-4 rounded-full bg-purple-500 bg-opacity-20">
+                        <span className="p-4 rounded-full bg-purple-500/20">
                             <StarIcon className="h-10 text-purple-600" />
                         </span>
                         <p className="text-center">Recommended by {numberConverter(content.recommended)}</p>
                     </article>
                     <article className="h-44 lg:h-52 px-4 rounded-lg flex flex-col aspect-video flex-cntr-even border border-[var(--gray40)]">
-                        <span className="p-4 rounded-full bg-sky-500 bg-opacity-20">
+                        <span className="p-4 rounded-full bg-sky-500/20">
                             <EyesIcon className="h-10 text-sky-600" />
                         </span>
                         <p className="text-center">Watched by {numberConverter(content.watched)}</p>
@@ -165,7 +165,7 @@ const TaleonPage = ({ content, type }: Props) => {
                             comp="link"
                             goto={`/explore/collection/${content.collection.id}-${makeUrlSafe(content.collection.name)}`}
                             className="h-24 sm:h-32 w-full px-4 flex flex-cntr-all gap-3 rounded-lg border border-gray40">
-                            <span className="p-4 rounded-full bg-lime-400 bg-opacity-20">
+                            <span className="p-4 rounded-full bg-lime-400/20">
                                 <CollectionIcon className="h-6 text-lime-600" />
                             </span>
                             <span className="text-lg">{content.collection.name}</span>

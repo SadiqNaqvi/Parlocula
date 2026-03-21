@@ -1,6 +1,6 @@
 import { deleteRooms } from "@lib/helpers/deletion";
 import { deleteHandler, getHandler, postHandler, updateHandler } from "@lib/helpers/handlers";
-import { getParticipant, getParticipantsOfRoom, getRoomDetails, setDataWhileCreatingRoom, setRoomDetail } from "@lib/helpers/redis/messaging";
+import { checkIfUserMetaExists, getParticipant, getParticipantsOfRoom, getRoomDetails, setDataWhileCreatingRoom, setRoomDetail } from "@lib/helpers/redis/messaging";
 import { convertMatchToLookupExpr } from "@lib/pipelines";
 import { roomSchema, roomUpdateSchema } from "@lib/schemas";
 import { Connection, Participant, Room, User } from "@model";
@@ -12,6 +12,8 @@ export const GET = getHandler(async (_, params) => {
   const { cuid, id } = params;
 
   const room = await getRoomDetails(id, cuid);
+
+  console.log("room details from cache", room)
   if (room) return { success: true, result: room };
 
   const resp = await Room.aggregate([
@@ -112,12 +114,14 @@ export const GET = getHandler(async (_, params) => {
 
   const result: FullRoomType = resp[0];
 
+  // console.log("room details from db", result)
+
   // Rare case
   if (result?.participant_count === 0) return {
     success: false, errCode: "resource_not_found"
   };
 
-  if (result) await setRoomDetail(id, result, false);
+  // if (result) await setRoomDetail(id, result);
 
   return { success: true, result };
 });
@@ -132,36 +136,36 @@ export const POST = postHandler<RoomSchemaType>({
     const isPrivate = type === "private";
     const poster = frames[0];
 
-    const room = (
-      await Room.create(
-        [
-          {
-            _id: id,
-            participants: isPrivate ? [...participants, user_id].sort() : [],
-            type,
-            name: isPrivate ? undefined : name,
-            poster: !isPrivate && poster ? poster : undefined,
-            lastMessage: inviteMessage,
-            lastMessageAt: Date.now(),
-            lastMessageBy: user_id,
-            invitationMessage: {
-              content: inviteMessage,
-              createdAt: Date.now(),
-              username,
-              user_id,
-            },
+    const resp = await Room.create(
+      [
+        {
+          _id: id,
+          participants: isPrivate ? [...participants, user_id].sort() : [],
+          type,
+          name: isPrivate ? undefined : name,
+          poster: !isPrivate && poster ? poster : undefined,
+          lastMessage: inviteMessage,
+          lastMessageAt: Date.now(),
+          lastMessageBy: user_id,
+          invitationMessage: {
+            content: inviteMessage,
+            createdAt: Date.now(),
+            username,
+            user_id,
           },
-        ],
-        { session, ordered: true }
-      )
-    )[0];
+        },
+      ],
+      { session, ordered: true }
+    )
+
+    const room = resp[0]?.toObject();
 
     if (!room)
       return { success: false, errCode: "data_storing_fail" };
 
     const now = new Date(Date.now() - 1000 * 3600 * 24);
 
-    const userParticipant = await Participant.create(
+    const creatorParticiantDoc = await Participant.create(
       [
         {
           hideAt: now,
@@ -192,7 +196,9 @@ export const POST = postHandler<RoomSchemaType>({
       { session }
     );
 
-    await setDataWhileCreatingRoom(room, user_id, userParticipant.concat(otherParticipants));
+    await setDataWhileCreatingRoom(room, user_id, creatorParticiantDoc.concat(otherParticipants));
+
+    await checkIfUserMetaExists([...participants, user_id]);
 
     return {
       success: true,
@@ -244,7 +250,7 @@ export const PATCH = updateHandler<RoomUpdateSchemaType>({
 
     }, { session });
 
-    await setRoomDetail(id, fieldsToUpdate, true);
+    await setRoomDetail(id, fieldsToUpdate);
 
     return {
       success: true,

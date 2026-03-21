@@ -522,7 +522,7 @@ body:has(#sidebar) main {
   margin-left: var(--sidebarWidth);
 }
 main.noPadding {
-  --paddingBottom: 0;
+  --paddingBottom: 0px;
 }
 
 main:not(.noPadding) {

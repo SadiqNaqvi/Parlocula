@@ -99,7 +99,7 @@ export const POST = postHandler<CommentSchemaType>({
               { type: "text", text: "commented on your post" },
               {
                 type: "link",
-                label: `${post.title.slice(0, 10).concat(post.title.length > 10 ? "..." : ".")}`,
+                label: `${post.title.slice(0, 40).concat(post.title.length > 40 ? "..." : ".")}`,
                 path: `/post/${rest.post_id}?f=latest`,
               },
               {

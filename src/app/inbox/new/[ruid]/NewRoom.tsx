@@ -1,19 +1,22 @@
 "use client";
 
-import { LeftChevron, SendIcon } from "@assets/Icons";
+import { SendIcon } from "@assets/Icons";
 import { Form, Input } from "@components/form";
-import { ParloImage } from "@components/ui";
+import { MessageBar, OptionalChildren, ParloImage } from "@components/ui";
 import { createRoomMutation } from "@lib/helpers/mutations";
 import { parloId } from "@lib/utils";
-import { useNavigation } from "@store/historystack";
+import useGlobalStore from "@store/globalStore";
+import useCurrentUser from "@store/user";
 import { MereUser } from "@type/internal";
 import { useRef } from "react";
-import { Drawer } from "vaul";
 
 const NewRoom = ({ ruser }: { ruser: MereUser }) => {
 
     const formRef = useRef<HTMLFormElement>(null);
-    const navigation = useNavigation();
+    const { meta } = useCurrentUser();
+    const [invitationMessage, setInvitationMessage] = useGlobalStore(`invitationMessage:${ruser._id}`, '');
+
+    if (!meta) return null;
 
     const createRoom = async ({ content }: { content: string }) => {
 
@@ -22,8 +25,9 @@ const NewRoom = ({ ruser }: { ruser: MereUser }) => {
         const ruid = ruser._id;
 
         const rmid = parloId();
+        setInvitationMessage(inviteMessage);
 
-        createRoomMutation(
+        const { success } = await createRoomMutation(
             rmid,
             {
                 files: [],
@@ -37,50 +41,64 @@ const NewRoom = ({ ruser }: { ruser: MereUser }) => {
             ruid
         );
 
-        navigation.goto(`/inbox/${rmid}`);
-
-        formRef.current?.reset();
+        if (!success) {
+            setInvitationMessage('');
+        }
     }
 
     return (
         <>
-            <header className="border-b border-gray40 flex py-4 px-2 items-center gap-4">
-                <Drawer.Close>
-                    <LeftChevron />
-                </Drawer.Close>
-                <div className="flex gap-4 items-center">
-                    <ParloImage
-                        frameType="userProfile"
-                        className="min-w-12 size-12 object-cover rounded-full"
-                        containerClassName="max-h-12 overflow-hidden"
-                        frame={ruser.profile}
-                        size={48}
-                        alt="Poster of room"
-                    />
+            <header className="border-b border-gray20 flex p-2 items-center gap-4">
+                <ParloImage
+                    frameType="userProfile"
+                    className="min-w-12 size-12 object-cover"
+                    containerClassName="max-h-12 overflow-hidden rounded-full"
+                    classNameForFallback="min-w-8 size-8 p-1"
+                    frame={ruser.profile}
+                    size={48}
+                    alt="Poster of room"
+                />
 
-                    <h1>{ruser.username}</h1>
-                </div>
+                <h1>{ruser.username}</h1>
             </header>
-            <section className="p-4 min-h-[25dvh]">
-                <p className="text-center text-zinc-500">Invite this user to chat with you. You can only send 1 message, make it worth.</p>
+            <section className="p-4 min-h-[50dvh]">
+                <OptionalChildren condition={invitationMessage} fallback={(
+                    <p className="text-sm text-center text-zinc-500">Invite this user to chat with you. You can only send 1 message, make it worth.</p>
+                )}>
+                    <MessageBar
+                        _id=""
+                        content={invitationMessage}
+                        createdAt={Date.now()}
+                        room_type="private"
+                        cuid={meta.user_id}
+                        room_id=""
+                        user_id={meta.user_id}
+                        username={meta.username}
+                        seenAt={Date.now() - 86400}
+                    />
+                </OptionalChildren>
             </section>
             <footer className="w-stretch sticky bottom-0 px-2 py-4">
-                <Form
-                    ref={formRef}
-                    className="flex items-center gap-2"
-                    submit={createRoom}>
-                    <Input
-                        placeholder="Send Message"
-                        enterKeyHint="send"
-                        name="content"
-                        maxLength={3000}
-                        containerClasses="flex-1"
-                        className="flex-1 border border-invert p-3 bg-transparent rounded-2xl"
-                    />
-                    <button type="submit" className="size-fit p-2">
-                        <SendIcon />
-                    </button>
-                </Form>
+                <OptionalChildren condition={!invitationMessage} fallback={(
+                    <p className="text-center text-sm text-zinc-500">You have already invited this @{ruser.username}. Please wait for the acceptance your invitation.</p>
+                )}>
+                    <Form
+                        ref={formRef}
+                        className="flex items-center gap-2"
+                        submit={createRoom}>
+                        <Input
+                            placeholder="Send Message"
+                            enterKeyHint="send"
+                            name="content"
+                            maxLength={3000}
+                            containerClasses="flex-1"
+                            className="flex-1 border border-invert p-3 bg-transparent rounded-2xl"
+                        />
+                        <button type="submit" className="size-fit p-2">
+                            <SendIcon />
+                        </button>
+                    </Form>
+                </OptionalChildren>
             </footer>
         </>
     )

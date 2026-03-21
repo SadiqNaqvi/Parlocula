@@ -1,9 +1,7 @@
 import type { _QueryFilter, QueryFilter, CreateOptions, HydratedDocument, Model, PipelineStage, ClientSession, SchemaDefinitionProperty, SchemaTypeOptions, SchemaOptions } from "mongoose";
 import { Schema, model, models } from "mongoose";
 
-export type MongooseModel<T = any> = Model<T, T, T, T, T, T>;
-
-export interface StrictModel<T> extends MongooseModel<T> {
+export interface StrictModel<T> extends Model<T> {
     create(): Promise<any>;
     create(
         docs: Array<T>,

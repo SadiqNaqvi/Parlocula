@@ -23,7 +23,7 @@ export const setUserOnRefreshOrLogin = (user: CurrentUser, contentFiltering: boo
     console.log("user in setUserAndRefresh Func", user);
     setUser(user, contentFiltering);
 
-    const ably = getAblyOnClient(user._id)
+    const ably = getAblyOnClient(user._id);
     const channel = ably.channels.get(user._id);
     channel.presence.enter({ status: "online" });
 
@@ -49,7 +49,7 @@ export const setUserOnRefreshOrLogin = (user: CurrentUser, contentFiltering: boo
 
         const { room_id, room, ...rest } = data;
 
-        showMessageOptimistically({ message: { ...rest, room_id }, room, uid: user._id })
+        showMessageOptimistically({ message: { ...rest, room_id }, uid: user._id });
 
         if (typeof "window" === undefined) return;
 
@@ -101,7 +101,19 @@ export const setUserOnRefreshOrLogin = (user: CurrentUser, contentFiltering: boo
         document?.removeEventListener("visibilitychange", handleVisibility)
         channel.unsubscribe("notification", handleNewNotification);
         channel.unsubscribe("message", handleMessageArrival);
+        channel.unsubscribe("entered_chat", handleEnterChat);
         channel.presence.leave();
         ably.connection.off(handleConnectionStateChange);
     }
+}
+
+export const logOutOnClient = (uid: string) => {
+    const ably = getAblyOnClient(uid);
+    const channel = ably.channels.get(uid);
+    channel.presence.leave();
+    ably.connection.off();
+    channel.unsubscribe("notification");
+    channel.unsubscribe("message");
+    channel.unsubscribe("entered_chat");
+    useCurrentUser.setState({ user: null, meta: null, filterContent: true, dataSaver: false });
 }

@@ -1,6 +1,6 @@
 import { parseUnknownData } from "@lib/utils";
-import { ScoreMember, Redis as UpstashRedis, Pipeline, ZAddCommandOptions } from "@upstash/redis";
-import Redis, { ChainableCommander, } from "ioredis";
+import { ScoreMember, Redis as UpstashRedis, ZAddCommandOptions } from "@upstash/redis";
+import Redis, { ChainableCommander } from "ioredis";
 
 declare global {
   // allow global `redis` in dev
@@ -49,7 +49,15 @@ export const getUpstashRedis = async () => {
       token: process.env.UPSTASH_TOKEN,
     });
   }
+
   return global._upstash_redis;
+}
+
+export type Pipeline = ReturnType<UpstashRedis["pipeline"]>;
+
+const isUpstashPipeline = (instance: Redis | Pipeline | ChainableCommander): instance is Pipeline => {
+
+  return !(instance instanceof Redis || "zrevrange" in instance)
 }
 
 export const zaddInUpstash = async (key: string, items: ScoreMember<any>[], pipeline?: Pipeline, opts?: ZAddCommandOptions) => {
@@ -62,22 +70,54 @@ export const zaddInUpstash = async (key: string, items: ScoreMember<any>[], pipe
   return transaction.zadd(key, first, ...rest);
 }
 
-export const handlePipelineResponse = <T = unknown>(res: T | [error: Error | null, result: unknown][] | null): T[] => {
-  if (!res) throw new Error("Pipeline returned nothing");
+export const handleUpstashPipelineResponse = <T = unknown>(res: T | (T | T[])[] | null): T[] => {
 
-  else if (Array.isArray(res)) {
+  console.log("pipeline response", res);
 
-    return res.map(result => {
-      const [e, r] = result;
-      if (e) throw new Error(e.message);
-      else if (Array.isArray(r)) {
-        r.map(parseUnknownData) as T[];
-      }
-      return parseUnknownData(r) as T;
-    });
+  if (!res) {
+    console.log("Pipline returned nothing");
+    throw new Error("Pipeline returned nothing");
   }
 
-  return res as T[];
+  else if (!Array.isArray(res)) return [res] as T[]
+
+  return res.map(result => {
+
+    if (!Array.isArray(result)) return result;
+
+    return result.map(r => {
+      if (!r) return r;
+      else if (Array.isArray(r)) {
+        return r.map(parseUnknownData) as T;
+      }
+      return parseUnknownData(r) as T;
+    })
+  }) as T[];
+}
+
+export const handlePipelineResponse = <T = unknown>(res: T | [err: Error | null, res: unknown][] | null): T[] => {
+
+  console.log("pipeline response", res);
+
+  if (!res) {
+    console.log("Pipline returned nothing");
+    throw new Error("Pipeline returned nothing");
+  }
+
+  else if (!Array.isArray(res)) return [res] as T[]
+
+  return res.map(result => {
+
+    if (!Array.isArray(result)) return result;
+
+    const [e, r] = result;
+
+    if (e) throw new Error(e.message);
+    else if (Array.isArray(r)) {
+      return r.map(parseUnknownData) as T;
+    }
+    return parseUnknownData(r) as T;
+  });
 }
 
 type RedisJsonCommands =
@@ -119,9 +159,6 @@ interface RedisJsonOptionsMap extends Record<RedisJsonCommands, [...BaseOptions,
   toggle: [...BaseOptions, index?: number]
 }
 
-
-
-
 type RedisJsonPath = "root" | string
 
 type RedisJsonReturnType<T = unknown, E extends ChainableCommander | Redis = Redis> = E extends Redis ? Promise<T[]> : E
@@ -130,8 +167,9 @@ const resolvePath = (path: RedisJsonPath, index?: number) => {
   return `$${index ? `[${index}]` : ''}${path === "root" ? '' : `.${path}`}`
 }
 
-export const RedisJson = <E extends Redis | ChainableCommander, T extends RedisJsonCommands = RedisJsonCommands>(redis: E): Record<T, (...options: RedisJsonOptionsMap[T]) => unknown> => {
+export const RedisJson = <E extends Redis | ChainableCommander | Pipeline, T extends RedisJsonCommands = RedisJsonCommands>(redis: E): Record<T, (...options: RedisJsonOptionsMap[T]) => unknown> => {
   if (!redis) throw new Error("You need to pass redis instance to use Redis JSON.")
+  else if (isUpstashPipeline(redis)) throw new Error("Upstash redis is passed for Redis JSON");
   return {
 
     /**
@@ -144,10 +182,10 @@ export const RedisJson = <E extends Redis | ChainableCommander, T extends RedisJ
      */
 
     get: <T,>(path: RedisJsonPath, key: string, index?: number) =>
-      redis.call("JSON.GET", key, resolvePath(path, index)) as RedisJsonReturnType<T, E>,
+      redis.call("JSON.GET", key, resolvePath(path, index)),
 
     set: (path: RedisJsonPath, key: string, value: any) =>
-      redis.call("JSON.SET", key, resolvePath(path), JSON.stringify(value)) as RedisJsonReturnType<"ok", E>,
+      redis.call("JSON.SET", key, resolvePath(path), JSON.stringify(value)),
 
     /**
      * Pass index only if the type is array and you want to delete a single element of the array at the given index.
@@ -227,6 +265,20 @@ export type AllowedRedisMethods =
   | "smembers"
   | "exists"
 
+export type RedisMethodProps = {
+  get: [],
+  zrange: [min: number, max: number],
+  zrevrange: [start: number, stop: number],
+  zrangebyscore: [min: number, max: number],
+  zrevrangebyscore: [start: number, stop: number,],
+  lrange: [start: number, stop: number],
+  hgetall: [],
+  hget: [field: string],
+  hmget: [...fields: string[]],
+  smembers: [],
+  exists: [],
+}
+
 export type TypedStore = Map<string, unknown>
 
 export interface BaseStage {
@@ -239,7 +291,8 @@ export interface RedisStage<M extends AllowedRedisMethods = AllowedRedisMethods>
   method: M;
   key: string;
   ref?: string;
-  options?: Tail<Parameters<RedisInstance[M]>>;
+  // options?: Tail<Parameters<RedisInstance[M]>>;
+  options?: RedisMethodProps[M];
 }
 
 export interface RedisJsonStage<C extends RedisJsonCommands = RedisJsonCommands> extends BaseStage {
@@ -324,20 +377,50 @@ const mapResults = (stack: ExtendedRedisStage[], results: unknown[], store: Type
   });
 }
 
+const execUpstashStage = <M extends AllowedRedisMethods>(
+  multi: Pipeline,
+  stage: RedisStage<M>,
+) => {
+  const options = (stage.options ?? []);
+  const { method, key } = stage;
+
+  switch (method) {
+    case "exists": return multi.exists(key);
+    case "get": return multi.get(key);
+    case "hgetall": return multi.hgetall(key);
+    case "smembers": return multi.smembers(key);
+
+    case "hget": return multi.hget(key, ...options as RedisMethodProps["hget"]);
+    case "hmget": return multi.hmget(key, ...options as RedisMethodProps["hmget"]);
+    case "lrange": return multi.lrange(key, ...options as RedisMethodProps["lrange"]);
+    case "zrange": return multi.zrange(key, ...options as RedisMethodProps["zrange"]);
+    case "zrangebyscore": return multi.zrange(key, ...options as RedisMethodProps["zrangebyscore"]);
+    case "zrevrange": return multi.zrange(key, ...options as RedisMethodProps["zrevrange"]);
+    case "zrevrangebyscore": return multi.zrange(key, ...options as RedisMethodProps["zrevrangebyscore"]);
+  }
+}
+
 function execStage<M extends AllowedRedisMethods>(
-  multi: ChainableCommander,
+  multi: ChainableCommander | Pipeline,
   stage: RedisStage<M>,
 ) {
   const options = (stage.options ?? []);
+  if (isUpstashPipeline(multi))
+    return execUpstashStage(multi, stage);
+
   return (multi[stage.method] as any)(stage.key, ...options);
 }
 
-const executeStack = async (redis: Redis, stack: ExtendedRedisStage[]) => {
+const executeStack = async (redis: Redis | UpstashRedis, stack: ExtendedRedisStage[], isUpstash: boolean) => {
   const multi = redis.multi();
-  const ins = RedisJson(multi);
+  const ins = isUpstash ? null : RedisJson(multi);
 
   stack.forEach(stage => {
-    if (isRedisJsonStage(stage)) {
+    const redisJsonStage = isRedisJsonStage(stage);
+    if (redisJsonStage && ins === null)
+      throw new Error("Redis json is not available in Upstash Redis");
+    else if (redisJsonStage) {
+      if (!ins) return;
       const command = stage.method.replace('json.', '') as RedisJsonCommands;
       const method = ins[command];
       method(...stage.options)
@@ -345,12 +428,18 @@ const executeStack = async (redis: Redis, stack: ExtendedRedisStage[]) => {
     else execStage(multi, stage);
   });
 
-  return await multi.exec().then(handlePipelineResponse);
+  const resp = await multi.exec().then((r) => {
+    console.log("AGGREGATOR RESPONSE");
+    return handleUpstashPipelineResponse(r);
+  });
+
+  // console.log("resp", resp);
+  return resp;
 }
 
-export const redisAggregator = async <T,>(stages: Stage<T>[]): Promise<T | null> => {
+export const redisAggregator = async <T,>(stages: Stage<T>[], upstash?: UpstashRedis): Promise<T | null> => {
 
-  const redis = await getRedis();
+  const redis = upstash ?? await getRedis();
 
   if (!stages.length || stages[0].method === "execute" || stages[0].method === "return" || stages.at(-1)?.method !== "return") return null;
 
@@ -392,7 +481,7 @@ export const redisAggregator = async <T,>(stages: Stage<T>[]): Promise<T | null>
 
         if (!stageStack.length) throw new Error("Unexpected execute stage. There must be at least one stage before an execute stage or between two execute stages.")
 
-        const results = await executeStack(redis, stageStack);
+        const results = await executeStack(redis, stageStack, !!upstash);
 
         mapResults(stageStack, results, store);
         stageStack = [];
@@ -403,10 +492,11 @@ export const redisAggregator = async <T,>(stages: Stage<T>[]): Promise<T | null>
       }
     }
 
-    store.clear();
+    // store.clear();
+    console.log("returnVal", returnVal);
     return returnVal;
   } catch (err: any) {
-    console.error(err.message);
+    console.error("Error occured in Redis Aggregator", err.message);
     return null;
   }
 }

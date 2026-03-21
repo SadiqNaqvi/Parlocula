@@ -31,7 +31,7 @@ const SectionList = ({ children, href, className = '' }: PropsWithChildren<{ hre
 
 const Sections = ({ heading, children }: PropsWithChildren<{ heading: string }>) => (
     <section className="space-y-3 mb-4 px-2 last:mb-0">
-        <h2 className="parloHeading pl-2">{heading}</h2>
+        <h2 className="parloHeading pl-2 mt-6">{heading}</h2>
         <ul className="border rounded-lg border-gray30">{children}</ul>
     </section>
 )
@@ -97,7 +97,7 @@ const SettingPage = () => {
 
             <Sections heading="actions for your account">
                 <SectionList>
-                    <BottomSheet button="Logout">
+                    <BottomSheet className="w-full" button="Logout">
                         <WarningModal
                             action="logout"
                             dangerButton="Logout"

@@ -374,6 +374,7 @@ export const queryKeys: Record<AvailableQueryKeys, string[]> = {
   room_rmid_uid: ["room", "{rmid}", "{uid}"],
   participantsOfRoom_rmid_uid: ["parrticipantsOfRoom", "{rmid}", "{uid}"],
   roomInvitations_uid: ["roomInvitations", "{uid}"],
+  roomInvitationsCount_uid: ["roomInvitationsCount", "{uid}"],
   roomExists_ruid_uid: ["roomExists", "{ruid}", "{uid}"],
   reports_cnid: ["reports", "{cnid}"],
   reportedContents_type_tid: ["reportedContents", "{type}", "threads", "{tid}"],

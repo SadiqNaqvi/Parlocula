@@ -2,7 +2,7 @@ import { threadManagersLimit } from "@lib/constants";
 import { getHandler, postHandler, PrecheckResponse, updateHandler } from "@lib/helpers/handlers";
 import { sendNotification } from "@lib/helpers/server";
 import { createArrayOfUidsSchema } from "@lib/schemas";
-import { Member, Thread } from "@model";
+import { Member, Notification, Thread } from "@model";
 import { ModeratorType } from "@type/internal";
 
 const schema = createArrayOfUidsSchema(threadManagersLimit);
@@ -167,6 +167,12 @@ export const PATCH = updateHandler<SchemaType>({
       },
       { session }
     );
+
+    await Notification.deleteMany({
+      content_id: id,
+      user_id: { $in: users }
+    }, { session });
+
     return {
       success: true,
       result: null,

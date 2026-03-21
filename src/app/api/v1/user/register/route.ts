@@ -4,6 +4,7 @@ import { storeSession } from "@lib/auth/session";
 import { generateToken } from "@lib/auth/token";
 import { parloculaAppURL, predefinedShelves } from "@lib/constants";
 import { postHandler } from "@lib/helpers/handlers";
+import { storeUserMetaInCache } from "@lib/helpers/redis/messaging";
 import { sendEmail } from "@lib/helpers/server";
 import { registerUserSchemaServer } from "@lib/schemas";
 import { parloId } from "@lib/utils";
@@ -77,7 +78,6 @@ export const POST = postHandler<UserSchemaType>({
       dob,
     }
 
-
     const sessionStored = await storeSession(session_id, tokenPayload);
 
     if (!sessionStored) return { success: false, errCode: "session_store_fail" };
@@ -94,6 +94,8 @@ export const POST = postHandler<UserSchemaType>({
     const template = await render(WelcomeEmail({ passkey }));
 
     await sendEmail({ email, template, subject: "Welcome to Parlocula" });
+
+    await storeUserMetaInCache({ _id: user._id, username: user.username, profile: user.profile });
 
     const result: CurrentUser = {
       _id: user_id,

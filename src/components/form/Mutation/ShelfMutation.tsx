@@ -50,7 +50,7 @@ const refiner = (item: ShelfItemType | TaleonSchemaType): RefinedValues => {
     }
 }
 
-const ItemsSection = ({ isEditing, itemsRef, defaultVals, taleons, uid }: Omit<Props, "isEditing"> & { itemsRef: React.RefObject<ListSelectorRef<TaleonSchemaType>|null>, uid: string; isEditing: boolean }) => {
+const ItemsSection = ({ isEditing, itemsRef, defaultVals, taleons, uid }: Omit<Props, "isEditing"> & { itemsRef: React.RefObject<ListSelectorRef<TaleonSchemaType> | null>, uid: string; isEditing: boolean }) => {
 
     if (isEditing && defaultVals) return (
         <section>
@@ -143,12 +143,11 @@ const ShelfMutation = ({ defaultVals, taleons, isEditing }: Props) => {
             >
                 <section className="flex gap-4 items-center">
                     <ShelfPoster
-                        className="min-w-24 size-24 sm:min-w-32 sm:size-32"
-                        iconsClassName="min-w-16 size-16 p-2 sm:min-w-24 sm:size-24"
                         poster={isEditing ? defaultVals.poster : taleons[0]?.poster}
                         name={defaultVals?.name || ''}
                         shelf_type={defaultVals?.shelf_type || "custom"}
                         useClassNameForBoth
+                        bigSize
                     />
 
                     <div className="space-y-2 flex-1">

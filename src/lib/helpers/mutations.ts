@@ -10,12 +10,13 @@ import useRoomStore from "@store/roomStore";
 import useCurrentUser from "@store/user";
 import { GeneralExtReturn, RefinedMovieData, RefinedShowData } from "@type/external";
 import { CommentReplyType, CurrentUser, Frame, FullComment, FullPost, FullRoomType, FullShelf, FullTaleonType, GeneralGetReturn, GeneralPostReturn, MereComment, MereMessage, MereRoomType, MereShelf, MereUser, ModeratorType, ShelfCollaborator, ShelfCollaborators, ShelfItemType, ShelvesForTaleon, ThreadModType, UserConnectionType } from "@type/internal";
-import { CollaboratorModelType, NotificationModelType } from "@type/models";
+import { CollaboratorModelType, MembershipModelType, NotificationModelType } from "@type/models";
 import { ErrorCodes, InfiniteScrollerDataType } from "@type/other";
 import { BookmarkSchemaType, CommentSchemaType, CommentSchemaUpdateType, EmailUpdateSchemaType, ItemsForShelfSchemaType, LikeSchemaType, MessageSchemaType, PostSchemaType, PostUpdateSchemaType, ReportActionSchemaType, ReportSchemaType, ReportTypeEnum, RoomSchemaType, SessionInvalidationServerSchemaType, ShelfEditSchemaType, ShelfSchemaType, TaleonToAddAndRemoveType, ThreadSchemaServer, ThreadUpdateSchema, UsernameUpdateSchemaType, UserSchemaType, UserUpdateSchemaType } from "@type/schemas";
 import axios from "axios";
 import { setUserOnRefreshOrLogin } from "./user";
 import { ZodIssue } from "zod";
+import useGlobalStore from "@store/globalStore";
 
 type MutationFunction<R> = () => Promise<GeneralPostReturn<R>>
 
@@ -743,6 +744,7 @@ export const acceptManagerInvitation = async (tid: string) => {
     const managersKey = getQueryKeys("threadManagers_tid", { tid });
     const notificationsKey = getQueryKeys("notifications_uid", { uid });
     const createdThreadsKey = getQueryKeys("createdThreadsOfUser_uid", { uid });
+    const membershipKey = getQueryKeys("membership_tid", { tid })
 
     await performMutation({
         mutationFn: () => ppUpdateData({ url: `thread/${tid}/managers/action`, uid }),
@@ -764,7 +766,12 @@ export const acceptManagerInvitation = async (tid: string) => {
                 }
             });
 
-            return { managers, notifications }
+            const membership = updateDoc<MembershipModelType>(membershipKey, (prev) => {
+                if (!prev) return prev;
+                return { ...prev, role: "moderator" }
+            })
+
+            return { managers, notifications, membership }
         },
         onSuccess: () => {
             queryClient.refetchQueries({ queryKey: createdThreadsKey });
@@ -776,6 +783,7 @@ export const acceptManagerInvitation = async (tid: string) => {
             if (!context) return;
             queryClient.setQueryData(managersKey, context.managers);
             queryClient.setQueryData(notificationsKey, context.notifications);
+            queryClient.setQueryData(membershipKey, context.membership);
         }
     })
 }
@@ -790,6 +798,7 @@ export const rejectManagerInvitation = async (tid: string) => {
 
     const managersKey = getQueryKeys("threadManagers_tid", { tid });
     const notificationsKey = getQueryKeys("notifications_uid", { uid });
+    const membershipKey = getQueryKeys("membership_tid", { tid })
 
     await performMutation({
         mutationFn: () => ppDeleteData(`thread/${tid}/managers/action`, uid),
@@ -812,7 +821,12 @@ export const rejectManagerInvitation = async (tid: string) => {
                 }
             });
 
-            return { managers, notifications }
+            const membership = updateDoc<MembershipModelType>(membershipKey, (prev) => {
+                if (!prev) return prev;
+                return { ...prev, role: "moderator" }
+            })
+
+            return { managers, notifications, membership }
         },
         onError: ({ context }) => {
             appToast.error(
@@ -821,6 +835,7 @@ export const rejectManagerInvitation = async (tid: string) => {
             if (!context) return;
             queryClient.setQueryData(managersKey, context.managers);
             queryClient.setQueryData(notificationsKey, context.notifications);
+            queryClient.setQueryData(membershipKey, context.membership);
         }
     })
 }
@@ -1250,11 +1265,12 @@ export const createRoomMutation = async (rmid: string, room: RoomSchemaType & { 
     const roomKey = getQueryKeys("room_rmid_uid", { rmid, uid });
     const roomListKey = getQueryKeys("rooms_uid", { uid });
     const messagesKey = getQueryKeys("messages_rmid", { rmid });
+    const exists = ruid ? getQueryKeys("roomExists_ruid_uid", { ruid, uid }) : [];
 
-    await performMutation({
+    return await performMutation({
         mutationFn: () => ppPostData({ url: `room/${rmid}`, uid, data: dataToPost }),
         onMutate: () => {
-            const roomList = addDocsInInfiniteQueryResult(roomListKey, rmid);
+            const roomList = addDocsInInfiniteQueryResult(roomListKey, { room_id: rmid, lastMessageAt: Date.now() });
 
             updateRoom({ ...roomForRoomList, type: "creator" }, rmid);
 
@@ -1264,7 +1280,7 @@ export const createRoomMutation = async (rmid: string, room: RoomSchemaType & { 
             return roomList;
         },
         onSuccess: () => {
-            refetchQueries(roomListKey);
+            refetchQueries([roomListKey, exists]);
             updateDocInInfiniteQueryResult<MereMessage>(
                 messagesKey,
                 (m) => m._id === messageToSet._id,
@@ -1281,7 +1297,6 @@ export const createRoomMutation = async (rmid: string, room: RoomSchemaType & { 
                     () => LinkToast({ title: `Unable to create group "${display_name}"`, href: `/inbox` })
                 )
             }
-
             if (!context) return;
             setDoc(roomListKey, context);
             deleteQueires([roomKey, messagesKey]);
@@ -1301,7 +1316,7 @@ export const acceptRoomInvitation = async (rmid: string, uid: string, room: Full
         mutationFn: () => ppUpdateData({ url: `room/${rmid}/invitation`, uid }),
         onMutate: () => {
             const invitations = filterDocsInInfiniteQueryResult<MereRoomType>(invitationListKey, [], (room) => room.room_id !== rmid);
-            const roomList = addDocsInInfiniteQueryResult(roomListKey, rmid);
+            const roomList = addDocsInInfiniteQueryResult(roomListKey, { room_id: rmid, lastMessageAt: room.lastMessageAt });
             const roomData = updateDoc<FullRoomType>(roomKey, { participantType: "participant" });
 
             const { type, ...rest } = room;
@@ -1340,13 +1355,8 @@ export const rejectRoomInvitation = async (rmid: string, uid: string) => {
     })
 }
 
-export const showMessageOptimistically = ({ message, room, uid }: {
+export const showMessageOptimistically = ({ message, uid }: {
     message: MereMessage,
-    room: {
-        display_name: string;
-        poster?: Frame | undefined;
-        mute: boolean;
-    },
     uid: string,
 }) => {
 
@@ -1362,29 +1372,17 @@ export const showMessageOptimistically = ({ message, room, uid }: {
             lastMessageAt: message.createdAt,
             lastMessageBy: message.user_id,
         }, room_id);
+
+        addDocsInInfiniteQueryResult(roomKey, { room_id, lastMessageAt: Date.now() });
+
     } else {
-        updateRoom({
-            display_name: room.display_name,
-            poster: room.poster,
-            lastMessage: message.content,
-            lastMessageAt: message.createdAt,
-            lastMessageBy: message.user_id,
-            otherParticipant_id: message.user_id,
-            otherParticipant_seenAt: message.createdAt,
-            room_id,
-            type: "participant",
-            seenAt: Date.now() - oneHourInMiliSeconds,
-            mute: room.mute,
-        }, room_id)
+        refetchQueries(roomKey);
     }
 
     addDocsInInfiniteQueryResult<MereMessage>(
         getQueryKeys("messages_rmid", { rmid: message.room_id }),
         message,
     );
-
-    addDocsInInfiniteQueryResult(roomKey, room_id);
-
 }
 
 export const sendMessage = async (rmid: string, uid: string, message: MessageSchemaType) => {

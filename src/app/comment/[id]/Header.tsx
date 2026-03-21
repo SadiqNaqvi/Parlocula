@@ -39,13 +39,14 @@ const Component = (data: FullComment, { uid, id }: Props) => {
                 }
             />
 
-            <article className="space-y-4">
+            <article className="space-y-4 px-2">
 
                 <header className="flex items-center gap-3">
 
                     <ParloImage
-                        containerClassName="max-h-6 overflow-hidden"
-                        className="min-w-6 size-6 object-cover rounded-full"
+                        className="min-w-10 size-10 object-cover"
+                        containerClassName="rounded-full overflow-hidden"
+                        classNameForFallback="size-6"
                         frame={profile}
                         frameType="userProfile"
                         size={24}
@@ -67,12 +68,12 @@ const Component = (data: FullComment, { uid, id }: Props) => {
 
                 <MetadataTileContainer>
                     <MetadataTile>{timeAgo(createdAt)}</MetadataTile>
-                    <MetadataTile className="px-2 py-1 bg-gray10 border-gray20 rounded-md" condition={Boolean(edited_at)}>Edited: {timeAgo(edited_at)}</MetadataTile>
+                    <MetadataTile className="px-2 py-1 bg-gray10 border-gray20 rounded-md" condition={!!edited_at}>Edited: {timeAgo(edited_at)}</MetadataTile>
                     <MetadataTile className="px-2 py-1 bg-gray10 border-purple-500 text-purple-500 rounded-md" condition={nsfw}>NSFW</MetadataTile>
                     <MetadataTile className="px-2 py-1 bg-gray10 border-orange-500 text-orange-500 rounded-md" condition={spoiler}>Spoiler</MetadataTile>
                 </MetadataTileContainer>
 
-                <section className="flex gap-4 flex-col sm:flex-row py-4">
+                <section className="flex gap-4 flex-col sm:flex-row">
 
                     <p>{content}</p>
 
@@ -82,14 +83,14 @@ const Component = (data: FullComment, { uid, id }: Props) => {
                             width={250}
                             src={attachment}
                             alt="Attachment"
-                            className="size-[250px] rounded-md border border-gray30 object-contain"
+                            className="size-64 rounded-md border border-gray30 object-contain"
                         />
                     </OptionalChildren>
                 </section>
 
             </article>
 
-            <div className="flex gap-2 pb-4 mb-4 items-center">
+            <div className="flex gap-2 my-4 items-center px-2">
 
                 <LikeButton uid={uid} author={post_author} id={_id} likesCount={likes_count} />
 

@@ -1,0 +1,14 @@
+{
+    "background_color": "#020514",
+    "description":"Parlocula is The Cinematic Planet where movies and shows stay alive through people. Collect taleons into shelves, join meaningful threads, and live the moment after the credits roll.",
+    "display": "standalone",
+    "icons": [
+        { "src": "/android-chrome-192x192.png", "sizes": "192x192", "type": "image/png" },
+        { "src": "/android-chrome-512x512.png", "sizes": "512x512", "type": "image/png" }
+    ],
+    "name": "Parlocula - The Cinematic Planet",
+    "orientation": "portrait-primary",
+    "short_name": "Parlocula",
+    "start_url": "/",
+    "theme_color": "#020514"
+}

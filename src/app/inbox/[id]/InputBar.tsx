@@ -33,7 +33,7 @@ const InputBar = ({ rmid, room }: Props) => {
     const typingIndicatorInterval = useRef<NodeJS.Timeout>(null);
     const channel = useRef<RealtimeChannel>(null);
 
-    const isRoomPending = Boolean(room.participant_count === 1 && room.participantType === "creator");
+    const isRoomPending = Boolean(room.participant_count <2 && room.participantType === "creator");
 
     useEffect(() => {
         if (!meta) return;

@@ -7,17 +7,10 @@ tag?: string
 }
 */
 
-
 self.addEventListener("push", (event) => {
   if (!event.data) return;
 
-  let payload;
-
-  try {
-    payload = event.data.json();
-  } catch (e) {
-    payload = event.data;
-  }
+  const payload = event.data.json();
 
   const data = payload.data || payload;
   const { body, icon, title, path } = data;
@@ -36,16 +29,26 @@ self.addEventListener("push", (event) => {
   event.waitUntil(self.registration.showNotification(title, options));
 });
 
-const baseUrl = "https://parlocula.vercel.app";
-
 self.addEventListener("notificationclick", function (event) {
-  const data = event.notification.data;
-  const path =
-    data && data.path
-      ? new URL(data.path, baseUrl)
-      : `${baseUrl}/notifications`;
-
   console.log("Notification click received.", event);
   event.notification.close();
-  event.waitUntil(clients.openWindow(path));
+  
+  const data = event.notification.data;
+  const path = data && data.path ? data.path : "/notifications";
+
+
+  event.waitUntil(
+    clients.matchAll({ type: "window", includeUncontrolled: true })
+      .then((clientsArr) => {
+
+        for (const client of clientsArr) {
+          if (client.url.includes(self.location.origin)) {
+            client.navigate(path);
+            return client.focus();
+          }
+        }
+
+        return clients.openWindow(url);
+      })
+    )
 });

@@ -227,6 +227,7 @@ export type NotificationModelType = {
   path?: string;
   user_id: Nanoid;
   metadata?: Record<string, any>;
+  content_id?: string;
   type?: "request" | "informative";
   status?: "pending" | "accepted" | "denied";
   request_type?: "manager_invitation" | "collaborator_invitation";

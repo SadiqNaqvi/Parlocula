@@ -31,16 +31,14 @@ const RepliesSection = ({ cid, filter, page }: Props) => {
 
     return (
         <>
-            <section className="h-stretch">
-                <InfiniteScroller
-                    Component={CommentBar}
-                    fetchData={(p) => getRepliesOnComment(cid, p, filter, !filterContent)}
-                    queryKeys={qkeys}
-                    initialPage={page}
-                    Loading={CommentSectionSkeleton}
-                    enabled={Boolean(isHydrated && !dataSaver)}
-                />
-            </section>
+            <InfiniteScroller
+                Component={CommentBar}
+                fetchData={(p) => getRepliesOnComment(cid, p, filter, !filterContent)}
+                queryKeys={qkeys}
+                initialPage={page}
+                Loading={CommentSectionSkeleton}
+                enabled={Boolean(isHydrated && !dataSaver)}
+            />
 
             <CommentInput
                 post_author={data.post_author}

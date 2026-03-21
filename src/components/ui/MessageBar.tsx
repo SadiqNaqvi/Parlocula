@@ -1,6 +1,7 @@
 import { GenericDate, MereMessage, RoomEnumType } from "@type/internal";
 import Link from "next/link";
 import { MouseEventHandler } from "react";
+import OptionalChildren from "./OptionalChildren";
 
 type MessageParam = MereMessage & {
     prevMsgUid?: string,
@@ -40,22 +41,23 @@ const MessageBar = ({ prevMsgUid, otherParticipantSeenAt, cuid, room_type, onMes
                 <p className="mb-2">{currentAuthor ? "You" : username}</p>
             )}
             <div
-                className={`p-2 w-fit max-w-[50%] border border-gray80 rounded-xl`}
+                className={`w-fit max-w-[50%] border border-gray80 rounded-xl`}
             // ${sameAuthor ? "" : currentAuthor ? "rounded-br-none" : "rounded-bl-none"}
             >
-                {(replied_content && replied_to) && (
-                    <Link href={`#${replied_to}`} className="none">
+                <OptionalChildren condition={replied_content && replied_to}>
+                    <Link href={`#${replied_to}`} className="no-underline">
                         <div className="p-2 line-clamp-2 rounded-md text-sm mb-2 bg-gray20 border border-gray20">
                             {replied_content}
                         </div>
                     </Link>
-                )}
+                </OptionalChildren>
 
                 <button
+                    className="flex-col p-2 space-y-1"
                     onContextMenu={handleContextMenu}
                 >
                     <p className="max-w-full">{content}</p>
-                    <span className="ml-auto text-xs text-zinc-500">{correctStatus}</span>
+                    <p className="text-right text-xs text-zinc-500">{correctStatus}</p>
                 </button>
 
             </div>

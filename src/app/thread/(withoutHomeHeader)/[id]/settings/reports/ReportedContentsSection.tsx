@@ -64,19 +64,19 @@ const ReportedContentsSection = ({ tid, type, uid }: Props) => {
                 <section className="mt-4">
                     <div>
                         <button
-                            className="bg-green-500 bg-opacity-50 p-2"
+                            className="bg-green-500/50 p-2"
                             onClick={() => handleDecision(content._id, "keep")}
                         >
                             Keep
                         </button>
                         <button
-                            className="bg-orange-500 bg-opacity-50 p-2"
+                            className="bg-orange-500/50 p-2"
                             onClick={() => handleDecision(content._id, "warn")}
                         >
                             Warn
                         </button>
                         <button
-                            className="bg-red-500 bg-opacity-50 p-2"
+                            className="bg-red-500/50 p-2"
                             onClick={() => handleDecision(content._id, "delete")}
                         >
                             Delete

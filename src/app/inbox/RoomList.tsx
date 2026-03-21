@@ -2,14 +2,15 @@
 
 import { AddIcon, SearchIcon } from "@assets/Icons";
 import { Navbar } from "@components";
-import { LoadingSpinner, RoomBar, ShowError } from "@components/ui";
-import { getInvitedRooms, getRooms } from "@lib/helpers/common";
-import { useInfiniteQueryHook } from "@lib/hooks";
-import { getQueryKeys, infiniteScrollerResponse } from "@lib/utils";
+import { LoadingSpinner, ShowError } from "@components/ui";
+import { RichRoomBar } from "@components/ui/RoomBar";
+import { getInvitedRoomsCount, getRooms } from "@lib/helpers/common";
+import { useInfiniteQueryHook, useQueryHook } from "@lib/hooks";
+import { getQueryKeys } from "@lib/utils";
 import useOfflineStore from "@store/offlineStore";
 import useRoomStore from "@store/roomStore";
 import useCurrentUser from "@store/user";
-import { InfiniteQueryResponse } from "@type/internal";
+import { InfiniteQueryResponse, MereRoomType } from "@type/internal";
 import { TypedFunction } from "@type/other";
 import { useParams } from "next/navigation";
 import React, { PropsWithChildren, useEffect, useRef, useState } from "react";
@@ -21,14 +22,14 @@ import RoomSearchList from "./RoomSearchList";
 type PageType = "rooms" | "invitations" | "search" | "create";
 
 const InvitationsCount = ({ uid }: { uid: string }) => {
-    const { data } = useInfiniteQueryHook({
-        queryFn: () => getInvitedRooms(uid, 1),
-        queryKeys: getQueryKeys("roomInvitations_uid", { uid }),
+    const { data } = useQueryHook({
+        queryFn: () => getInvitedRoomsCount(uid),
+        queryKeys: getQueryKeys("roomInvitationsCount_uid", { uid }),
     });
 
-    if (!data || !data.pages[0]?.total_results) return "Invitations"
+    if (!data) return "Invitations"
 
-    return `Invitations ${data.pages[0].total_results || ''}`
+    return `Invitations ${data}`
 }
 
 type RoomListProps = { uid: string, changeRoom: TypedFunction<PageType> };
@@ -65,28 +66,35 @@ const RoomListHeader = ({ changeRoom, uid }: RoomListProps) => (
 const RoomsList = ({ uid, changeRoom }: RoomListProps) => {
 
     const qkeys = getQueryKeys("rooms_uid", { uid });
-    const { room, setRooms } = useRoomStore();
+    const { setRooms } = useRoomStore.getState();
     const { isHydrated, dataSaver } = useCurrentUser();
     const [roomList, setRoomList] = useOfflineStore<InfiniteQueryResponse<any> | undefined>(qkeys, undefined);
     const container = useRef<HTMLDivElement>(null);
 
-    const { data, isError, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage, refetch } = useInfiniteQueryHook<string>({
-        queryFn: (p) => getRooms(uid, p).then(response => {
-            const { success, errCode, result } = response;
-            if (!success) return { success, errCode }
+    const { data, isError, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage, refetch } = useInfiniteQueryHook<MereRoomType>({
+        queryFn: (p) => getRooms(uid, p),
+        onSuccess: (response) => {
+            console.log("onSuccess me aaya");
+            const { pages, pageParams } = response;
 
-            else if (p === 1) setRoomList(infiniteScrollerResponse(result, 1));
+            const [firstPage] = pages;
+            setRooms(pages.flatMap(page => page.results));
 
-            const ids = setRooms(result.data);
-            return { success, result: { data: ids, total: result.total } };
-        }),
-        queryKeys: qkeys,
-        placeholderData: roomList && {
-            ...roomList,
-            results: setRooms(roomList?.results || [])
+            if (pageParams.length === 1 && pageParams[0] === 1)
+                setRoomList(firstPage);
         },
+        queryKeys: qkeys,
+        placeholderData: roomList ? {
+            ...roomList,
+            results: roomList.results.map(el => el.room_id)
+        } : undefined,
         initialPage: 1,
     });
+
+    useEffect(() => {
+        setRooms(roomList?.results || []);
+        // roomMeta.current = { ...roomMeta.current, ...resultsToRecord(roomList?.results || []) };
+    }, [roomList]);
 
     useEffect(() => {
         if (!isHydrated || dataSaver) return;
@@ -105,13 +113,12 @@ const RoomsList = ({ uid, changeRoom }: RoomListProps) => {
         }
     }, [dataSaver, isHydrated]);
 
-    const rooms = React.useMemo(() =>
-        data?.pages
-            .flatMap(result => Array.from(new Set(result.results)))
-            .map(room_id => room[room_id])
-            .filter(Boolean)
-            .sort((a, b) => new Date(b.lastMessageAt).getTime() - new Date(a.lastMessageAt).getTime()),
-        [data, room]);
+    const rooms = React.useMemo(() => {
+        return data.pages?.flatMap(result => result.results)
+            .sort((a, b) => new Date(b.lastMessageAt).getTime() - new Date(a.lastMessageAt).getTime())
+            .map(r => r.room_id);
+    },
+        [data]);
 
     const manuallyLoadNextPage = () => {
         fetchNextPage();
@@ -151,9 +158,9 @@ const RoomsList = ({ uid, changeRoom }: RoomListProps) => {
 
             <section className="h-stretch overflow-y-auto mt-2 sm:w-60 md:w-80 px-2">
                 <ul>
-                    {rooms.map(room => (
-                        <li key={room.room_id}>
-                            <RoomBar {...room} _id={room.room_id} />
+                    {rooms.map(rmid => (
+                        <li key={rmid}>
+                            <RichRoomBar room_id={rmid} />
                         </li>
                     ))}
                 </ul>

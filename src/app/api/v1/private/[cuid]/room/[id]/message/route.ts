@@ -14,9 +14,11 @@ export const GET = getHandler(async (r, params) => {
   const page = getPageParams(r) - 1;
 
   const participant = await getParticipant(id, cuid);
+  
   if (!participant) return { success: false, errCode: "unauthorized_access" }
 
   const response = await getMessagesFromCache(id, cuid, page);
+  
   if (response && response.data.length) return { success: true, result: response };
 
   const resp = await Message.aggregate(createPipeline({
@@ -48,7 +50,7 @@ export const GET = getHandler(async (r, params) => {
 // Post message in a room
 export const POST = postHandler<MessageSchemaType>({
   handler: async ({ params, user_id, data, username, session }) => {
-    
+
     const room_id = params.id;
 
     const { room, ...rest } = data;

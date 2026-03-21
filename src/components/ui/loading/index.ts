@@ -5,3 +5,4 @@ export { default as SearchSkeleton } from "./SearchResultSkeleton";
 export { default as MainLoading } from "./mainLoading";
 export { default as ThreadBoxSkeleton } from "./ThreadBoxSkeleton";
 export { default as TaleonWikiSkeleton } from "./TaleonWikiSkeleton";
+export { default as RoomBarSkeleton } from "./RoomBarSkeleton";

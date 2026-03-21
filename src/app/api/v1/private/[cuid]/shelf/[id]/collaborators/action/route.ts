@@ -1,7 +1,7 @@
 import { deleteHandler, updateHandler } from "@lib/helpers/handlers";
 import { sendNotification } from "@lib/helpers/server";
 import { getPoster } from "@lib/utils";
-import { Shelf } from "@model";
+import { Notification, Shelf } from "@model";
 import Collaborator from "@model/collaborators";
 
 // User accepted the invitation to become a collaborator
@@ -39,6 +39,12 @@ export const PATCH = updateHandler({
       session
     );
 
+    await Notification.findOneAndUpdate(
+      { content_id: id, user_id },
+      { $set: { status: "accepted" } },
+      { session }
+    );
+
     return {
       success: true,
       result: null,
@@ -53,6 +59,12 @@ export const DELETE = deleteHandler(async ({ params, user_id, session }) => {
   const { id } = params;
 
   await Collaborator.deleteOne({ shelf_id: id, user_id }, { session });
+
+  await Notification.findOneAndUpdate(
+    { content_id: id, user_id },
+    { $set: { status: "rejected" } },
+    { session }
+  );
 
   return {
     success: true,

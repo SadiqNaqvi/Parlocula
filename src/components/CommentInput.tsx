@@ -233,7 +233,7 @@ const CommentInput = ({ post_author, post_id, section, editing, defaultValue, ci
                                     data-testid="commentInput"
                                     containerClasses="flex-1"
                                     placeholder="Write your comment here..."
-                                    className={`bg-transparent border-0 px-0 w-full`}
+                                    className={`bg-gray10 border-0 px-0 w-full`}
                                     name="content"
                                 />
 
@@ -242,14 +242,14 @@ const CommentInput = ({ post_author, post_id, section, editing, defaultValue, ci
                                 </button>
                             </div>
 
-                            <div className="flex gap-2 items-center commentInputOptionsBar transition-all">
+                            <div className="flex gap-2 items-center py-2">
 
                                 <BottomSheet ref={gifSheetRef} button="GIF" className="text-sm py-1 px-2 rounded-md border border-gray40">
                                     <GiphyComponent callback={handleGif} />
                                 </BottomSheet>
 
                                 <ToggleButton label="nsfw" className="uppercase text-sm bg-transparent" />
-                                <ToggleButton label="spoiler" className="capitalize text-sm bg-transparent has-[:checked]:bg-orange-500/20 has-[:checked]:border-orange-500" />
+                                <ToggleButton label="spoiler" className="capitalize text-sm bg-transparent has-checked:bg-orange-500/20 has-checked:border-orange-500" />
                             </div>
                         </Form>
                     </div>

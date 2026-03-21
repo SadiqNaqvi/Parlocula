@@ -613,7 +613,6 @@ const getSearchPipelineForThreads = (query: string, allowNsfw: boolean): Pipelin
       }
     }
   },
-  { $sort: { finalScore: -1 } },
 ]
 
 const getSearchPipelineForPosts = (query: string, allowNsfw = false): PipelineStage[] => [
@@ -697,7 +696,7 @@ const getSearchPipelineForPosts = (query: string, allowNsfw = false): PipelineSt
   },
 ]
 
-const getSearchPipelineForUsers = (query: string): PipelineStage[] => [
+export const getSearchPipelineForUsers = (query: string): PipelineStage[] => [
   {
     $search: {
       index: "user",
@@ -833,6 +832,44 @@ const getSearchPipelineForShelves = (query: string): PipelineStage[] => {
 
 }
 
+export const getSearchPipelineForRooms = (query: string, uid: string, page: number): PipelineStage[] => {
+  const tokens = query
+    .trim()
+    .toLowerCase()
+    .split(/\s+/)
+    .filter(Boolean);
+
+  const regex = tokens.map(token => ({ name: { $regex: token, $options: 'i' } }));
+
+  return [
+    { $match: { user_id: uid, $or: regex } },
+    { $skip: page * queryLimit },
+    { $limit: queryLimit },
+    {
+      $project: {
+        _id: 1,
+        poster: 1,
+        display_name: "$name"
+      }
+    },
+    {
+      $facet: {
+        total: [{ $count: "total" }],
+        data: [],
+      }
+    },
+    {
+      $project: {
+        total: {
+          $arrayElemAt: ["$total.total", 0]
+        },
+        data: 1
+      }
+    }
+  ]
+
+}
+
 export const searchHandler = async ({ r, type, filters }: SearchHandlerProps): Promise<GeneralGetReturn> => {
 
   const sp = r.nextUrl.searchParams;
@@ -860,7 +897,7 @@ export const searchHandler = async ({ r, type, filters }: SearchHandlerProps): P
     ...(type !== "shelves" ? filters : [])
   ];
 
-  const response = await performAggregation({ filters: pipeline, page, type });
+  const response = await performAggregation({ filters: pipeline, page, type, sort: { finalScore: -1 } });
 
   return { success: true, result: response[0] ?? { data: [], total: 0 } }
 

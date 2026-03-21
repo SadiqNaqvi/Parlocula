@@ -72,11 +72,11 @@ const PostbarBreadCrumbs = ({ poster, profile, thread_id, thread_name, username,
 const PostBar = ({ _id, comment_count, nsfw, createdAt, editedAt, poster, reaction_count, frames_count, links_count, spoiler, category, thread_id, title, frames, saved_count, username, profile, thread_name, additional }: Props & MerePost) => {
 
     const statisticList = [
-        { value: frames_count, Icon: FrameIcon },
-        { value: links_count, Icon: LinkIcon },
         { value: reaction_count, Icon: ThumbUpIcon },
         { value: comment_count, Icon: CommentIcon },
         { value: saved_count, Icon: BookmarkIcon },
+        { value: frames_count, Icon: FrameIcon },
+        { value: links_count, Icon: LinkIcon },
     ]
 
     return (

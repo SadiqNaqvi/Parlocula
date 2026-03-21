@@ -438,6 +438,7 @@ export type CachedFullRoomType = {
   type: "private" | "group";
   name: string;
   poster: Frame | undefined;
+  participants?: string[],
   invitationMessage: InvitationMessageType;
   lastMessage: string;
   lastMessageBy: string;

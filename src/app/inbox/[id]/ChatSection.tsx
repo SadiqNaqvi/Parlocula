@@ -23,40 +23,60 @@ const PresenceStatus = ({ otherParticipant, uid, rmid, room_type }: PresenceProp
 
     const presence = useAblyPresence(uid, otherParticipant, rmid);
 
-    return room_type === "private" && otherParticipant ? presence : ""
+    if (room_type !== "private" || !otherParticipant) return;
+
+    if (presence === "online") return (
+        <div className="flex gap-1 items-center text-left text-lime-500">
+            <span className="text-lg leading-3">•</span>
+            <span className="text-xs">Online</span>
+        </div>
+    )
+
+    else if (presence === "typing") return (
+        <div className="flex gap-1 items-center text-left text-orange-500">
+            <span className="text-lg leading-3">•</span>
+            <span className="text-xs">Typing...</span>
+        </div>
+    )
+
+    return (
+        <div className="flex gap-1 items-center text-left text-gray-500">
+        <span className="text-lg leading-3">•</span>
+            <span className="text-xs">Offline</span>
+        </div>
+    )
 
 }
 
 type Props = { rmid: string, uid: string }
 
 const Component = (data: FullRoomType, { rmid, uid }: Props) => {
-
     return (
         <>
-            <header className="sticky top-0 bg-primary border-b border-gray40 flex h-16 px-2 items-center gap-4">
+            <header className="sticky top-0 bg-primary border-b border-gray40 flex h-16 px-2 items-center gap-2">
                 <Navigate comp="button" goto="back">
                     <LeftChevron />
                 </Navigate>
                 <ChatInfoSection room={data} uid={uid}>
-                    <div className="flex gap-4 items-center">
+                    <div className="flex gap-3 items-center">
                         <ParloImage
                             frameType="userProfile"
-                            className="min-w-12 size-12 object-cover rounded-full"
-                            containerClassName="max-h-12 overflow-hidden"
+                            className="min-w-12 size-12 object-cover"
+                            containerClassName="max-h-12 overflow-hidden rounded-full"
+                            classNameForFallback="min-w-8 size-8 p-1"
                             frame={data.poster}
                             size={48}
                             alt="Poster of room"
                         />
-
-                        <h1>{data.display_name || "Unavailable"}</h1>
-                    </div>
-                    <div>
-                        <PresenceStatus
-                            otherParticipant={data.otherParticipant_id}
-                            uid={uid}
-                            rmid={rmid}
-                            room_type={data.type}
-                        />
+                        <div>
+                            <h1>{data.display_name || "Unavailable"}</h1>
+                            <PresenceStatus
+                                otherParticipant={data.otherParticipant_id}
+                                uid={uid}
+                                rmid={rmid}
+                                room_type={data.type}
+                            />
+                        </div>
                     </div>
                 </ChatInfoSection>
             </header>

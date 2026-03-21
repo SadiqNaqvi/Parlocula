@@ -4,7 +4,7 @@ import { sendNotification } from "@lib/helpers/server";
 import { convertMatchToLookupExpr } from "@lib/pipelines";
 import { createArrayOfUidsSchema } from "@lib/schemas";
 import { getPoster } from "@lib/utils";
-import { Connection, Shelf } from "@model";
+import { Connection, Notification, Shelf } from "@model";
 import Collaborator from "@model/collaborators";
 
 // Get all the collaborators and invitees of a shelf, only creator can see it.
@@ -102,7 +102,7 @@ export const POST = postHandler<SchemaType>({
         type: "invitee",
       })),
       { session }
-    )
+    );
 
     await sendNotification(
       users.map((u) => u),
@@ -118,6 +118,7 @@ export const POST = postHandler<SchemaType>({
           },
           { type: "link", label: shelf.name, path: `/shelf/${id}` },
         ],
+        content_id: id,
         type: "request",
         metadata: {
           shelf_id: id,
@@ -141,14 +142,19 @@ export const POST = postHandler<SchemaType>({
 
 // Kick collaborators or invitees
 export const PATCH = updateHandler<SchemaType>({
-  handler: async ({ data, params }) => {
+  handler: async ({ data, params, session }) => {
     const { id } = params;
     const { users } = data;
 
     await Collaborator.deleteMany({
       shelf_id: id,
       user_id: { $in: users }
-    });
+    }, { session });
+
+    await Notification.deleteMany({
+      content_id: id,
+      user_id: { $in: users }
+    }, { session });
 
     return {
       success: true,

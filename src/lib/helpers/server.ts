@@ -1,6 +1,8 @@
 "use server";
 
 import VerifyEmail from "@components/EmailTemplates/verification";
+import { getSession } from "@lib/auth/session";
+import { verifyToken } from "@lib/auth/token";
 import { oneHourInSeconds } from "@lib/constants";
 import { connectDatabase } from "@lib/database";
 import { getAblyRest } from "@lib/providers/ably";
@@ -375,26 +377,6 @@ export const sendNotification = async (
       )
     })
   ])
-
-  // await Promise.all(
-  //   createdNotifications.map(async (n) => {
-  //     const channel = ably.channels.get(n.user_id);
-  //     if ((await channel.presence.get()).items.length) {
-  //       return channel.publish("notification", n, { client_id: n.user_id });
-  //     } else {
-  //       return ably.push.admin.publish(
-  //         { clientId: n.user_id },
-  //         {
-  //           data: {
-  //             title: "Test Notification",
-  //             body: "Click here to open",
-  //             path: "/notifications",
-  //           } as PushNotificationType,
-  //         },
-  //       );
-  //     }
-  //   })
-  // );
 };
 
 export const deleteUserFromCookies = async () => {
@@ -404,3 +386,34 @@ export const deleteUserFromCookies = async () => {
   jar.delete("sid");
   jar.delete("token");
 };
+
+export const authenticateUser = async () => {
+  const jar = await cookies();
+  const token = jar.get("token")?.value;
+  const session_id = jar.get("sid")?.value;
+
+  if (!token || !session_id) return false;
+
+  const payload = await verifyToken(token);
+
+  // If token is invalid or tampered
+  if (!payload) return false;
+
+  // If token is neither tampered nor expired, return true;
+  if (payload.exp && (payload.exp * 1000) > Date.now())
+    return true
+
+  // If token is expired, check user session
+  const { result, success } = await getSession(session_id);
+
+  // If session could not be fetched possibly because of network 
+  if (!success) return false;
+
+  // If session is not available, delete cookies
+  else if (!result) {
+    deleteUserFromCookies();
+    return false;
+  }
+
+  return true;
+}

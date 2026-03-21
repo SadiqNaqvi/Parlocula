@@ -16,11 +16,10 @@ const InstallPrompt = () => {
         setIsStandalone(window.matchMedia('(display-mode: standalone)').matches);
 
         const handleBeforeInstallPrompt = (event: any) => {
-            console.log("entered hand;eBeforeInstallPrompt");
+            console.log("entered handle BeforeInstallPrompt");
             console.log(event)
             // Prevent the default browser prompt
             event.preventDefault();
-
 
             // Store the event for later use
             installPrompt.current = event;
@@ -47,8 +46,8 @@ const InstallPrompt = () => {
     }
 
     return (
-        <section className="my-4">
-            <div className="flex flex-col flex-cntr-all py-4 mx-2 sm:mx-4 border border-gray30 rounded-md">
+        <section className="my-4 px-2">
+            <div className="flex flex-col flex-cntr-all">
                 <div className="space-y-1 mb-4">
                     <h3 className="text-center text-lg font-semibold">We don{"'"}t need the browser between us.</h3>
                     <p className="text-sm text-center">You can actually install Parlocula on your Home Screen.</p>

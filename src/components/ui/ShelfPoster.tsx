@@ -42,7 +42,7 @@ type Props = {
 }
 
 const smallSizeClass = "min-w-12 size-12";
-const bigSizeClass = "min-w-20 size-20 sm:size-32 sm:min-w-32";
+const bigSizeClass = "min-w-20 size-20 sm:size-24 sm:min-w-24";
 
 const ShelfPoster = ({ fancy, poster, shelf_type, name, className, iconsClassName, bigSize, useClassNameForBoth }: Props) => {
 
@@ -63,7 +63,7 @@ const ShelfPoster = ({ fancy, poster, shelf_type, name, className, iconsClassNam
     )
 
     return (
-        <ShelfPosterIcons className={twMerge(bigSize ? `${bigSizeClass} p-6` : smallSizeClass, useClassNameForBoth ? className : "", iconsClassName)} type={shelf_type} />
+        <ShelfPosterIcons className={twMerge(bigSize ? `${bigSizeClass} sm:p-6` : smallSizeClass, useClassNameForBoth ? className : "", iconsClassName)} type={shelf_type} />
     )
 
 }

@@ -56,6 +56,13 @@ const notificationModel = new StrictSchema<NotificationModelType>({
     type: Schema.Types.Mixed,
     default: {},
   },
+  content_id: {
+    type: String,
+    required: function (this: any) {
+      return this.type === "request";
+    },
+
+  },
   createdAt: {
     type: Date,
     default: new Date(),
@@ -63,6 +70,7 @@ const notificationModel = new StrictSchema<NotificationModelType>({
 });
 
 notificationModel.index({ user_id: 1, type: 1 });
+notificationModel.index({ content_id: 1, user_id: 1 }, { partialFilterExpression: { $exists: true } });
 notificationModel.index({ createdAt: 1 }, { expireAfterSeconds: oneWeekInSeconds });
 
 const Notification: StrictModel<NotificationModelType> =

@@ -1,11 +1,13 @@
+// import "server-only";
+
 import { oneDayInSeconds, oneHourInSeconds, queryLimit } from "@lib/constants";
-import { getUpstashRedis, handlePipelineResponse, redisAggregator, RedisJson, RedisStage, Stage, zaddInUpstash } from "@lib/providers/redis";
-import { createArray, getTimeInFuture, parseUnknownData } from "@lib/utils";
-import { Message, Participant } from "@model";
+import { ExecuteStage, getUpstashRedis, handleUpstashPipelineResponse, redisAggregator, RedisStage, Stage, zaddInUpstash } from "@lib/providers/redis";
+import { createArray, getTimeInFuture, parseUnknownData, removeNullishFields } from "@lib/utils";
+import { Message, Participant, User } from "@model";
 import { CachedFullRoomType, CachedParticipantType, FullRoomType, MereMessage, MereRoomType, MereUser, ParticipantEnumType, ParticipantType, RoomListResponse } from "@type/internal";
 import { MessageModelType, ParticipantModelType, RoomModelType } from "@type/models";
-import { Pipeline, ScoreMember } from "@upstash/redis";
 import type { ClientSession } from "@type/mongoose";
+import { Pipeline, ScoreMember } from "@upstash/redis";
 
 /*
 * rooms:{user_id} -zrevrange - ex 1d
@@ -24,17 +26,21 @@ import type { ClientSession } from "@type/mongoose";
 
 // Helper functions for multiple use
 
-const addRoomsInList = async ({ items, user_id, pipeline, total }: { pipeline?: Pipeline, user_id: string, items: ScoreMember<any>[], total?: number }) => {
+const addRoomsInList = async ({ items, user_id, pipeline, total, updating }: { pipeline?: Pipeline, user_id: string, items: ScoreMember<any>[], total?: number, updating?: boolean }) => {
     const transaction = pipeline ?? (await getUpstashRedis()).multi();
 
     zaddInUpstash(`rooms:${user_id}`, items, transaction);
     transaction.zremrangebyrank(`rooms:${user_id}`, 0, -(queryLimit * 2));
-    transaction.incrby(`rooms:${user_id}:total`, total || items.length);
+    if (updating) {
+        transaction.set(`rooms:${user_id}:total`, total || items.length);
+    } else {
+        transaction.incrby(`rooms:${user_id}:total`, total || items.length);
+    }
     transaction.expire(`rooms:${user_id}`, oneDayInSeconds, "NX");
     transaction.expire(`rooms:${user_id}:total`, oneDayInSeconds, "NX");
 
     if (pipeline) return pipeline;
-    return await transaction.exec().then(handlePipelineResponse);
+    return await transaction.exec().then(handleUpstashPipelineResponse);
 }
 
 export const removeRoomFromList = async (user_id: string, rmid: string, pipeline?: Pipeline) => {
@@ -44,7 +50,7 @@ export const removeRoomFromList = async (user_id: string, rmid: string, pipeline
     transaction.decr(`rooms:${user_id}:total`);
 
     if (pipeline) return pipeline;
-    return await transaction.exec().then(handlePipelineResponse);
+    return await transaction.exec().then(handleUpstashPipelineResponse);
 }
 
 const addMessageInList = async ({ items, room_id, total, pipeline }: { pipeline?: Pipeline<[]>, room_id: string, items: ScoreMember<any>[], total?: number }) => {
@@ -57,7 +63,7 @@ const addMessageInList = async ({ items, room_id, total, pipeline }: { pipeline?
     transaction.expire(`room:${room_id}:messages:total`, oneDayInSeconds);
 
     if (pipeline) return pipeline;
-    return await transaction.exec().then(handlePipelineResponse);
+    return await transaction.exec().then(handleUpstashPipelineResponse);
 }
 
 const addInvitationInList = async ({ items, pipeline, user_id, total }: { pipeline?: Pipeline, user_id: string, items: ScoreMember<any>[], total?: number }) => {
@@ -71,7 +77,7 @@ const addInvitationInList = async ({ items, pipeline, user_id, total }: { pipeli
     transaction.expire(`user:${user_id}:invitations:total`, oneDayInSeconds, "NX");
 
     if (pipeline) return pipeline;
-    return await transaction.exec().then(handlePipelineResponse);
+    return await transaction.exec().then(handleUpstashPipelineResponse);
 }
 
 const removeInvitationFromList = async (uid: string, rmid: string, pipeline?: Pipeline) => {
@@ -81,7 +87,7 @@ const removeInvitationFromList = async (uid: string, rmid: string, pipeline?: Pi
     transaction.decr(`user:${uid}:invitations:total`);
 
     if (pipeline) return pipeline;
-    return await transaction.exec().then(handlePipelineResponse);
+    return await transaction.exec().then(handleUpstashPipelineResponse);
 }
 
 const pushParticipantInList = async (room_id: string, items: { uid: string, type: ParticipantEnumType }[], pipeline?: Pipeline) => {
@@ -101,9 +107,8 @@ const pushParticipantInList = async (room_id: string, items: { uid: string, type
         }
     });
 
-
     if (pipeline) return pipeline;
-    return await transaction.exec().then(handlePipelineResponse);
+    return await transaction.exec().then(handleUpstashPipelineResponse);
 }
 
 export const getParticipantsOfRoom = async (room_id: string): Promise<{ uid: string, type: ParticipantEnumType }[]> => {
@@ -123,7 +128,7 @@ export const checkIfParticipantExists = async (room_id: string, user_id: string)
 }
 
 export const getParticipant = async (room_id: string, user_id: string, pipeline?: Pipeline) => {
-    return (pipeline ?? await getUpstashRedis()).hgetall(`participant:room-${room_id}:user-${user_id}`) as unknown as CachedParticipantType;
+    return (pipeline ?? await getUpstashRedis()).hgetall(`room:${room_id}:participant:${user_id}`) as unknown as CachedParticipantType;
 }
 
 export const storeParticipantInCache = async (room_id: string, user_id: string, participant: Partial<CachedParticipantType>, pipeline?: Pipeline) => {
@@ -144,7 +149,7 @@ const removeParticipant = async (room_id: string, user_id: string, type: Partici
     else transaction.srem(`room:${room_id}:participants`, `${user_id}-${type}`);
 
     if (pipeline) return pipeline;
-    return await transaction.exec().then(handlePipelineResponse);
+    return await transaction.exec().then(handleUpstashPipelineResponse);
 }
 
 export const getUserMetaFromCache = async (user_id: string, pipeline?: Pipeline) => {
@@ -153,10 +158,27 @@ export const getUserMetaFromCache = async (user_id: string, pipeline?: Pipeline)
 
 export const storeUserMetaInCache = async (user: MereUser) => {
     const redis = await getUpstashRedis();
-    const dataToStore = Object.entries(user)
-        .filter(([k, v]) => Boolean(v))
-        .reduce((obj, [k, v]) => ({ ...obj, [k]: v }), {})
-    await redis.hset(`user:${user._id}`, dataToStore);
+    await redis.hset(`user:${user._id}`, removeNullishFields(user));
+}
+
+export const checkIfUserMetaExists = async (user_ids: string[]) => {
+    const redis = await getUpstashRedis().then(r => r.pipeline());
+
+    user_ids.map(uid => redis.hget(`user:${uid}`, "_id"));
+
+    const storedUsers = await redis.exec().then(handleUpstashPipelineResponse);
+
+    const usersToStore = user_ids.map(uid => storedUsers.includes(uid) ? null : uid).filter(e => e !== null);
+
+    const users = !usersToStore.length ? [] : await User.find(
+        { _id: { $in: usersToStore } },
+        { _id: 1, username: 1, profile: 1 }
+    )
+        .exec();
+
+    users.forEach(u => redis.hset(`user:${u._id}`, u.toObject()));
+
+    await redis.exec().then(handleUpstashPipelineResponse);
 }
 
 const removeRoomFromCache = async (rmid: string, pipeline?: Pipeline) => {
@@ -173,7 +195,7 @@ const removeRoomFromCache = async (rmid: string, pipeline?: Pipeline) => {
     transaction.del(`room:${rmid}`);
 
     if (pipeline) return pipeline;
-    return await transaction.exec().then(handlePipelineResponse);
+    return await transaction.exec().then(handleUpstashPipelineResponse);
 }
 
 
@@ -192,7 +214,7 @@ export const getParticipantsFromCache = async (rmid: string) => {
     participants.forEach(({ uid }) => getUserMetaFromCache(uid, pipeline));
 
     return {
-        data: await pipeline.exec().then(handlePipelineResponse),
+        data: await pipeline.exec().then(handleUpstashPipelineResponse),
         total: typeof total === "number" ? total : parseInt(total || "0") || participants.length,
     }
 
@@ -213,7 +235,7 @@ export const addParticipantInRoom = async (uid: string, rmid: string) => {
         user_id: uid,
         items: [{ score: Date.now(), member: rmid }]
     });
-    await pipeline.exec().then(handlePipelineResponse);
+    await pipeline.exec().then(handleUpstashPipelineResponse);
 }
 
 export const addInvitedParticipants = async (rmid: string, participants: string[]) => {
@@ -239,7 +261,7 @@ export const addInvitedParticipants = async (rmid: string, participants: string[
 
     pipeline.set(`room:${rmid}:participants:total`, total);
 
-    await pipeline.exec().then(handlePipelineResponse);
+    await pipeline.exec().then(handleUpstashPipelineResponse);
 }
 
 export const removeRoomFromInvitation = async (uid: string, rmid: string, removeRoom: boolean, pipeline?: Pipeline) => {
@@ -251,7 +273,7 @@ export const removeRoomFromInvitation = async (uid: string, rmid: string, remove
 
     if (pipeline) return pipeline;
 
-    await transaction.exec().then(handlePipelineResponse);
+    await transaction.exec().then(handleUpstashPipelineResponse);
 }
 
 export const removeParticipantsFromCache = async (rmid: string, participants: string[]) => {
@@ -267,7 +289,7 @@ export const removeParticipantsFromCache = async (rmid: string, participants: st
 
     pipeline.set(`room:${rmid}:participants:total`, total);
 
-    await pipeline.exec().then(handlePipelineResponse)
+    await pipeline.exec().then(handleUpstashPipelineResponse)
 }
 
 const createPipelineForRoomList = (user_id: string, page: number, invitation?: boolean) => {
@@ -284,17 +306,18 @@ const createPipelineForRoomList = (user_id: string, page: number, invitation?: b
         {
             method: "condition", ref: "roomList",
             validate: (s, roomList: string[] | undefined) => {
-                const total = parseInt(s.get("totalRooms") as string);
+
+                const total = parseInt(s.get("totalRooms") as string || '0');
                 return Boolean(roomList && roomList.length !== 0 && total && !isNaN(total))
             }
         },
         {
-            method: "lookup", ref: "roomList", explore: (_, roomList: string[]) => {
-                return roomList.map(room_id => ({ method: "json.get", key: `room:${room_id}`, options: ["root", `room:${room_id}`] }))
+            method: "lookup", ref: "roomList", explore: (s, roomList: string[]) => {
+                return roomList.map(room_id => ({ method: "hgetall", key: `room:${room_id}` }))
             }
         },
         {
-            method: "lookup", ref: "roomList", explore: (_, roomList: string[] | undefined) => {
+            method: "lookup", ref: "roomList", explore: (s, roomList: string[] | undefined) => {
                 if (!roomList) throw Error();
                 return roomList.map(room_id => ({ method: "smembers", key: `room:${room_id}:participants` }))
             }
@@ -303,6 +326,7 @@ const createPipelineForRoomList = (user_id: string, page: number, invitation?: b
         {
             method: "condition", ref: "roomList", validate: (s, roomList: string[]) => {
                 const rooms = roomList.map(room_id => s.has(`room:${room_id}`)).filter(Boolean);
+
                 return rooms.length === roomList.length;
             }
         },
@@ -310,9 +334,12 @@ const createPipelineForRoomList = (user_id: string, page: number, invitation?: b
             method: "transform", ref: "roomList", transform: (s, roomList: string[]) => {
                 return roomList.map(rmid => {
                     const key = `room:${rmid}`;
-                    const room: any[] = parseUnknownData(s.get(key));
-                    if (!room || !room[0]) throw new Error(`Aggregation failed at transform stage due to lack of data of key ${key}`);
-                    return { key, value: room[0] }
+                    const room = parseUnknownData(s.get(key));
+
+                    if (!room)
+                        throw new Error(`Aggregation failed at transform stage due to lack of data of key ${key}`);
+
+                    return { key, value: room }
                 })
             }
         },
@@ -324,7 +351,6 @@ const createPipelineForRoomList = (user_id: string, page: number, invitation?: b
         },
         {
             method: "addField", field: "otherParticipantMap", val: (store) => {
-
                 // Add a record field in the store for faster lookup of other participant id
                 const roomList = store.get("roomList") as string[];
                 const roomToOtherParticipantMap: Record<string, string> = {};
@@ -332,8 +358,10 @@ const createPipelineForRoomList = (user_id: string, page: number, invitation?: b
                     const participants = store.get(`room:${room_id}:participants`) as string[]
                     const room = store.get(`room:${room_id}`) as CachedFullRoomType;
 
-                    const otherParticipant_id = room.type === "private" && participants.filter(uid => uid.split('-')[0] !== user_id).at(0);
-                    if (otherParticipant_id) roomToOtherParticipantMap[room_id] = otherParticipant_id;
+                    const otherParticipant_id = room.type === "private" && participants.filter(uid => uid.split('-')[0] !== user_id).at(0)?.split('-')[0];
+                    if (otherParticipant_id) {
+                        roomToOtherParticipantMap[room_id] = otherParticipant_id;
+                    }
                 });
                 return roomToOtherParticipantMap;
             }
@@ -355,6 +383,7 @@ const createPipelineForRoomList = (user_id: string, page: number, invitation?: b
         { method: "execute" },
         {
             method: "return", value: (store) => {
+
                 const roomList = store.get("roomList") as string[];
                 const total = parseInt(store.get("totalRooms") as string);
                 const otherParticipantMap = store.get("otherParticipantMap") as Record<string, string>
@@ -371,7 +400,7 @@ const createPipelineForRoomList = (user_id: string, page: number, invitation?: b
                     const otherParticipantData = otherParticipant_id ? store.get(`room:${room_id}:participant:${otherParticipant_id}`) as ParticipantType : undefined;
                     const otherParticipantMetaData = otherParticipant_id ? store.get(`user:${otherParticipant_id}`) as MereUser : undefined;
 
-                    if (type === "private" && !(otherParticipantMetaData || otherParticipantMetaData))
+                    if (type === "private" && !(otherParticipantMetaData || otherParticipantData))
                         throw new Error("Participant data missing");
 
                     return {
@@ -388,13 +417,15 @@ const createPipelineForRoomList = (user_id: string, page: number, invitation?: b
             }
         }
     ];
+
     return stage;
 
 }
 
 export const getRoomListFromCache = async (user_id: string, page: number): Promise<{ data: MereRoomType[], total: number } | null> => {
     try {
-        return await redisAggregator(createPipelineForRoomList(user_id, page));
+        const redis = await getUpstashRedis();
+        return await redisAggregator(createPipelineForRoomList(user_id, page), redis);
     } catch (e: any) {
         console.error("Error occured while getting room list form cache", e.message);
         return null;
@@ -403,16 +434,26 @@ export const getRoomListFromCache = async (user_id: string, page: number): Promi
 
 export const getInvitationListFromCache = async (user_id: string): Promise<{ data: MereRoomType[], total: number } | null> => {
     try {
-        return await redisAggregator(createPipelineForRoomList(user_id, 0, true));
+        return await redisAggregator(createPipelineForRoomList(user_id, 0, true), await getUpstashRedis());
     } catch (e: any) {
         console.error("Error occured while getting invitation list from cache", e.message);
         return null;
     }
 };
 
-export const storeInvitationInCache = async (user_id: string, list: { data: RoomListResponse[], total: number }) => {
+export const getInvitationCount = async (uid:string)=>{
+    const redis = await getUpstashRedis();
 
-    console.log("Storing Invitation List");
+    return await redis.get(`user:${uid}:invitations:total`) as string|undefined;
+}
+
+export const setInvitationCount = async (uid:string, count: number)=>{
+    const redis = await getUpstashRedis();
+
+    await redis.set(`user:${uid}:invitations:total`, count);
+}
+
+export const storeInvitationInCache = async (user_id: string, list: { data: RoomListResponse[], total: number }) => {
 
     const redis = await getUpstashRedis();
 
@@ -431,15 +472,15 @@ export const storeInvitationInCache = async (user_id: string, list: { data: Room
     list.data.forEach(room => {
         const { room_id, display_name, invitationMessage, lastMessage, lastMessageAt, lastMessageBy, otherParticipant_id, poster, room_type, createdAt } = room;
 
-        redis.set(`room:${room_id}`, {
+        setRoomDetail(room_id, {
             type: room_type, invitationMessage, lastMessage, lastMessageAt, lastMessageBy,
             name: display_name, poster,
             participants: otherParticipant_id ? [user_id, otherParticipant_id] : [],
             createdAt
-        } as CachedFullRoomType);
+        }, pipeline);
     });
 
-    await pipeline.exec().then(handlePipelineResponse);
+    await pipeline.exec().then(handleUpstashPipelineResponse);
 };
 
 export const storeRoomList = async (user_id: string, data: RoomListResponse[], total: number) => {
@@ -456,53 +497,67 @@ export const storeRoomList = async (user_id: string, data: RoomListResponse[], t
         items: data.map(room => ({
             score: new Date(room.lastMessageAt).getTime(),
             member: room.room_id.toString(),
-        })), total
+        })), total,
+        updating: true,
     });
 
     data.forEach(room => {
         const { room_id, display_name, invitationMessage, lastMessage, lastMessageAt, lastMessageBy, otherParticipant_id, poster, room_type, createdAt } = room;
-
-        redis.set(`room:${room_id}`, {
+        setRoomDetail(room_id, {
             type: room_type, invitationMessage, lastMessage, lastMessageAt, lastMessageBy,
             name: display_name, poster,
             participants: otherParticipant_id ? [user_id, otherParticipant_id] : [],
             createdAt
-        } as CachedFullRoomType);
+        }, pipeline)
     });
 
-    await pipeline.exec().then(handlePipelineResponse);
+    await pipeline.exec().then(handleUpstashPipelineResponse);
 }
 
 export const getRoomDetails = async (room_id: string, user_id: string): Promise<FullRoomType | null> => {
     try {
         const redis = await getUpstashRedis();
         const getPipeline = redis.multi();
-        getPipeline.get(`room:${room_id}`);
+        getPipeline.hgetall(`room:${room_id}`);
         getPipeline.smembers(`room:${room_id}:participants`);
-        const [room, participants] = await getPipeline.exec().then(handlePipelineResponse) as [CachedFullRoomType, string[]];
+        const [room, participants] = await getPipeline.exec().then(handleUpstashPipelineResponse) as [CachedFullRoomType, string[]];
+
+        // console.log("room and participant", room, participants);
 
         if (!room) return null;
 
         const { invitationMessage, lastMessage, lastMessageAt, lastMessageBy, name, poster, type, createdAt } = room;
 
-        const otherParticipant_id = type === "private" ? participants.filter(uid => uid.split('-')[0] !== user_id).at(0) : undefined;
+        const otherParticipant_id = type === "private" ? participants.filter(uid => uid.split('-')[0] !== user_id).at(0)?.split('-')[0] : undefined;
+
+        console.log("otherParticipant_id", otherParticipant_id);
 
         return await redisAggregator<FullRoomType>([
             { method: "hgetall", key: `room:${room_id}:participant:${user_id}`, ref: "currentUser" },
             { method: "get", key: `room:${room_id}:participants:total`, ref: "total" },
-            { method: "condition", ref: "currentUser", validate: (_, val) => Boolean(val) },
-
-            ...createArray<RedisStage>([])
-                .concatConditionally(otherParticipant_id, (uid) => ({ method: "hgetall", key: `room:${room_id}:participant:${uid}`, ref: "otherParticipantData" }))
-                .concatConditionally(otherParticipant_id, (uid) => ({ method: "hgetall", key: `user:${uid}`, ref: "otherParticipantMeta" })),
-
             { method: "execute" },
             {
+                method: "condition", ref: "currentUser", validate: (s, val) => {
+                    console.log("sotre", s);
+                    return Boolean(val);
+                }
+            },
+
+            ...createArray<RedisStage | ExecuteStage>([])
+                .concatConditionally(otherParticipant_id, (uid) => ({ method: "hgetall", key: `room:${room_id}:participant:${uid}`, ref: "otherParticipantData" }))
+                .concatConditionally(otherParticipant_id, (uid) => ({ method: "hgetall", key: `user:${uid}`, ref: "otherParticipantMeta" }))
+                .concatConditionally(otherParticipant_id, () => ({ method: "execute" })),
+
+            {
                 method: "return", value: (store) => {
+                    console.log("store in return", store);
                     const participantData = store.get("otherParticipantData") as ParticipantType | undefined;
                     const participantMeta = store.get("otherParticipantMeta") as MereUser;
                     const { mute, participantType, seenAt } = store.get("currentUser") as ParticipantType;
                     const total = parseInt(store.get("total") as string || "0") || 0;
+
+                    console.log("participant lala", participantData, participantMeta, total, mute, participantType, seenAt);
+
                     return {
                         _id: room_id,
                         display_name: (type === "private" ? participantMeta.username : name) || "Not Found",
@@ -515,22 +570,19 @@ export const getRoomDetails = async (room_id: string, user_id: string): Promise<
                     }
                 }
             }
-        ]);
+        ], redis);
     } catch (e: any) {
         console.log("Error occured while fetching room details from cache:", e.message);
         return null;
     }
 }
 
-export const setRoomDetail = async (room_id: string, room: Partial<CachedFullRoomType>, isUpdating: boolean, pipeline?: any) => {
+export const setRoomDetail = async (room_id: string, room: Partial<CachedFullRoomType>, pipeline?: Pipeline) => {
 
     const redis = pipeline ?? (await getUpstashRedis()).multi();
-    const instance = RedisJson(redis);
-    if (isUpdating) instance.objUpdateMulti(`room:${room_id}`, room);
-    // if (isUpdating) instance.set(`room:${room_id}`, room);
-    else instance.set("root", `room:${room_id}`, room);
+    redis.hset(`room:${room_id}`, removeNullishFields(room));
 
-    if (!pipeline) await redis.exec().then(handlePipelineResponse);
+    if (!pipeline) await redis.exec().then(handleUpstashPipelineResponse);
 
 }
 
@@ -548,9 +600,7 @@ const updateLastMessageFieldsOfRoom = async (room_id: string, message: MessageMo
         lastMessageBy: message.user_id.toString()
     };
 
-    await redis.json.merge(`room:${room_id}`, '$', update);
-
-    // setRoomDetail(`room:${room_id}`, update, true, pipeline);
+    setRoomDetail(room_id, update, pipeline);
 
     participants.forEach(participant => {
         const [uid] = participant.split('-');
@@ -558,7 +608,7 @@ const updateLastMessageFieldsOfRoom = async (room_id: string, message: MessageMo
 
     });
 
-    await pipeline.exec().then(handlePipelineResponse);
+    await pipeline.exec().then(handleUpstashPipelineResponse);
 }
 
 export const setDataWhileCreatingRoom = async (room: RoomModelType & { _id: string }, creator: string, participants: ParticipantModelType[]) => {
@@ -586,7 +636,7 @@ export const setDataWhileCreatingRoom = async (room: RoomModelType & { _id: stri
             type: room.type,
             name: room.name || "Unavailable",
             poster: room.poster,
-        }, false, pipeline);
+        }, pipeline);
 
         // 4. Store participant metadata seperately
         // 5. Add room in the invitation list of each participant except creator
@@ -598,7 +648,7 @@ export const setDataWhileCreatingRoom = async (room: RoomModelType & { _id: stri
             if (user_id !== creator) addInvitationInList({ pipeline, user_id, items: itemsForSortedSet });
         });
 
-        await pipeline.exec().then(handlePipelineResponse);
+        await pipeline.exec().then(handleUpstashPipelineResponse);
     } catch (error: any) {
         console.log("Error at redis while creating room", error);
         throw new Error(error);
@@ -619,9 +669,10 @@ export const getMessagesFromCache = async (room_id: string, user_id: string, pag
         pipeline.get(`room:${room_id}:messages:total`);
         getParticipant(room_id, user_id, pipeline);
 
-        const [messageIds, total, participant] = await pipeline.exec().then(handlePipelineResponse) as [MessageItem[], number, CachedParticipantType];
+        const [messageIds, total, participant] = await pipeline.exec().then(handleUpstashPipelineResponse) as [MessageItem[], number, CachedParticipantType];
+        console.log(messageIds, total, participant);
 
-        if (!messageIds.length || !participant) return null;
+        if (!messageIds?.length || !participant) return null;
 
         const messages = await redis
             .mget<MessageModelType[]>(messageIds.map(({ msg_id }) => `message:${msg_id}`))
@@ -636,7 +687,7 @@ export const getMessagesFromCache = async (room_id: string, user_id: string, pag
                 .filter(Boolean)
             )
 
-        return { data: messages, total }
+        return { data: messages, total: total || 0 }
 
     } catch (err: any) {
         console.error("Error occured while getting messages from cache", err.message);
@@ -660,7 +711,7 @@ export const storeMessagesInCache = async (room_id: string, data: MereMessage[],
             total
         });
 
-        await pipeline.exec().then(handlePipelineResponse);
+        await pipeline.exec().then(handleUpstashPipelineResponse);
 
     } catch (err: any) {
         console.log(`Error occured while storing messages in cache: ${err.message}`)
@@ -675,7 +726,7 @@ const checkIfTimeToSyncMessageBuffer = async (room_id: string) => {
         pipeline.llen(`room:${room_id}:messageBuffer`);
         pipeline.lrange(`room:${room_id}:messageBuffer`, 0, 1);
 
-        const [length, firstMessage] = await pipeline.exec().then(handlePipelineResponse) as [number, MessageItem];
+        const [length, firstMessage] = await pipeline.exec().then(handleUpstashPipelineResponse) as [number, MessageItem];
 
         return Boolean(length >= queryLimit || firstMessage.createdAt > getTimeInFuture({ unit: 'm' }))
     } catch (e: any) {
@@ -745,7 +796,7 @@ const storeNewMessageInList = async (room_id: string, message: MessageModelType)
     await updateLastMessageFieldsOfRoom(room_id, message);
     console.log("done updating last message fields");
 
-    await pipeline.exec().then(handlePipelineResponse);
+    await pipeline.exec().then(handleUpstashPipelineResponse);
 }
 
 export const handleNewMessage = async (room_id: string, user_id: string, message: MessageModelType, session: ClientSession) => {

@@ -1,33 +1,24 @@
-import { Navbar } from "@components"
-import { NotFound } from "@components/ui"
-import { Metadata } from "next"
-import "@/app/globals.css";
+import { NotFound } from "@components/ui";
+import { Metadata } from "next";
 
 export const metadata: Metadata = {
-    title: "4😅4 - Parlocula",
+    title: "4😅4",
 }
 
 const GlobalNotFoundPage = () => {
 
     return (
-        // <html lang="en">
-        // <body className={`${fontFam.className}`}>}
-        // <body>
-        <main className="flex flex-col overflow-hidden">
-            <Navbar />
-            <div className="flex-1 flex flex-cntr-all px-2 sm:px-0">
-                <NotFound
-                    title="Oops! Looks like you came across a new path"
-                    paras={[
-                        "It happens when you type the url by yourself or it could be a typo by us",
-                        "Either ways, let's explore the rest of Parlocula"
-                    ]}
-                    redirectToExplore
-                />
-            </div>
+        <main className="overflow-hidden">
+            <NotFound
+                title="Oops! Looks like you came across a new path"
+                paras={[
+                    "It happens when you type the url by yourself or it could be a typo by us",
+                    "Either ways, let's explore the rest of Parlocula"
+                ]}
+                redirectToExplore
+                fullScreen
+            />
         </main>
-        //     </body>
-        // </html>
     )
 
 }

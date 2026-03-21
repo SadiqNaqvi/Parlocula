@@ -1,6 +1,7 @@
 import { NotFoundFaceIcon } from "@assets/Icons"
 import Navbar from "@components/Navbar"
 import Navigate from "@components/Navigate"
+import { OptionalChildren } from "@components/ui"
 
 type ActionButtonProps = {
     ActionButton?: React.ReactNode
@@ -34,13 +35,15 @@ const PrimaryButton = ({ ActionButton, redirectTo, redirectToExplore }: ActionBu
 const NotFound = ({ title, paras, ActionButton, fullScreen, redirectTo, redirectToExplore }: Props) => {
     return (
         <>
-            {fullScreen && <Navbar />}
+            <OptionalChildren condition={fullScreen}>
+                <Navbar />
+            </OptionalChildren>
             <section className="h-size-screen flex flex-col flex-cntr-all gap-3">
 
                 <div className="inline-flex mx-auto flex-cntr-all gap-4">
-                    <span className="text-9xl font-extralight select-none">4</span>
-                    <NotFoundFaceIcon className="size-32" />
-                    <span className="text-9xl font-extralight select-none">4</span>
+                    <span className="text-6xl sm:text-9xl font-extralight select-none">4</span>
+                    <NotFoundFaceIcon className="size-15 sm:size-32" />
+                    <span className="text-6xl sm:text-9xl font-extralight select-none">4</span>
                 </div>
 
                 <h3 className="text-xl text-center">{title}</h3>

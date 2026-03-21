@@ -1,4 +1,3 @@
-import "server-only";
 import WarnTeamParlocula from "@components/EmailTemplates/warnParlocula";
 import { getUserFromToken } from "@lib/auth/utils";
 import { attachedFramesLimit, oneMb } from "@lib/constants";
@@ -7,12 +6,13 @@ import { deleteMediaFiles, uploadMediaFiles } from "@lib/providers/media";
 import { getRevalidateTags, parseObject } from "@lib/utils";
 import { render } from "@react-email/components";
 import { Frame, GeneralGetReturn, GeneralPostReturn } from "@type/internal";
+import type { ClientSession } from "@type/mongoose";
 import { AvailableRevalidateTags, ErrorCodes, RevalidateTagsArgs } from "@type/other";
 import { FrameDataSchemaType } from "@type/schemas";
 import formidable, { File as FormidableFile } from "formidable";
-import type { ClientSession } from "@type/mongoose";
-import { revalidateTag } from "next/cache";
+import { updateTag } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
+import "server-only";
 import { Readable } from "stream";
 import { ZodSchema } from "zod";
 import { updateQuotaLimit } from "./redis/rate_limiting";
@@ -359,7 +359,7 @@ export const postHandler = <T extends HandlerData>({ handler, preCheck, schema, 
                 console.log("session ended");
             }
             console.log("revalidateTags", revalidateTags);
-            revalidateTags.forEach((tag) => revalidateTag(tag, "max"));
+            revalidateTags.forEach((tag) => updateTag(tag));
         }
     };
 };
@@ -468,7 +468,7 @@ export const deleteHandler = (
         } finally {
             session?.endSession();
             console.log("revalidateTags", revalidateTags);
-            revalidateTags.forEach((tag) => revalidateTag(tag, "max"));
+            revalidateTags.forEach((tag) => updateTag(tag));
         }
     };
 };
@@ -659,7 +659,7 @@ export const updateHandler = <T extends HandlerData>({ handler, preCheck, schema
         } finally {
             session?.endSession();
             console.log("revalidateTags", revalidateTags);
-            revalidateTags.forEach((tag) => revalidateTag(tag, "max"));
+            revalidateTags.forEach((tag) => updateTag(tag));
         }
     };
 };

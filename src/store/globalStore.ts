@@ -8,7 +8,7 @@ type GlobalStoreType<T = any> = {
   getter: (key: string) => T | undefined;
 };
 
-const globalStore = create<GlobalStoreType>((set, get) => ({
+export const globalStore = create<GlobalStoreType>((set, get) => ({
   store: {},
   setter: (key, val) => {
     set((state) => ({
