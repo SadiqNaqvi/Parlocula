@@ -7,6 +7,7 @@ import { AblyEventParams } from "@type/other";
 import { ConnectionStateChange } from "ably";
 import { toast } from "sonner";
 import { refetchQueries, showMessageOptimistically, updateDoc, updateDocInInfiniteQueryResult } from "./mutations";
+import useRoomStore from "@store/roomStore";
 
 const setUser = (user: CurrentUser, contentFiltering: boolean) => {
 
@@ -54,6 +55,9 @@ export const setUserOnRefreshOrLogin = (user: CurrentUser, contentFiltering: boo
         if (typeof "window" === undefined) return;
 
         else if (window.location.pathname.startsWith(`/inbox/${room_id}`)) {
+            useRoomStore.getState().updateRoom({
+                seenAt: Date.now(),
+            }, room_id);
             ably.channels.get(data.user_id).publish("entered_chat", {
                 room_id,
                 time: Date.now(),

@@ -19,7 +19,7 @@ type Props = {
 }
 
 const FooterWrapper = ({ children }: PropsWithChildren) => (
-    <footer className="w-stretch fixed bottom-0 px-2 py-4 bg-primary">
+    <footer className="w-stretch absolute bottom-0 px-2 py-4 border-t border-gray40 bg-primary">
         {children}
     </footer>
 );
@@ -114,8 +114,8 @@ const InputBar = ({ rmid, room }: Props) => {
         <FooterWrapper>
 
             <OptionalChildren condition={reply}>
-                <div className="py-2 px-2 flex gap-2 flex-cntr-between border-t border-gray40">
-                    <p className="line-clamp-2">{reply?.replied_content}</p>
+                <div className="pb-3 px-2 flex gap-2 flex-cntr-between">
+                    <p className="line-clamp-2 text-sm">{reply?.replied_content}</p>
                     <button className="p-2 bg-gray20 rounded-full" onClick={() => setReply(undefined)}>
                         <XmarkIcon className="size-2" />
                     </button>
@@ -132,7 +132,7 @@ const InputBar = ({ rmid, room }: Props) => {
                     name="content"
                     onChangeCapture={indicateTyping}
                     maxLength={3000}
-                    className="flex-1 border border-invert p-3 bg-transparent rounded-2xl"
+                    className="flex-1 p-3 border border-gray10 bg-gray10 rounded-full"
                 />
                 <button type="submit" className="size-fit p-2">
                     <SendIcon />

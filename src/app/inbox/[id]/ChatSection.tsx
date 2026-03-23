@@ -11,6 +11,7 @@ import { FullRoomType, RoomEnumType } from "@type/internal";
 import ChatInfoSection from "./ChatInfoSection";
 import InputBar from "./InputBar";
 import MessageList from "./MessageList";
+import { ChatSectionSkeleton } from "@components/ui/loading";
 
 type PresenceProps = {
     uid: string,
@@ -41,7 +42,7 @@ const PresenceStatus = ({ otherParticipant, uid, rmid, room_type }: PresenceProp
 
     return (
         <div className="flex gap-1 items-center text-left text-gray-500">
-        <span className="text-lg leading-3">•</span>
+            <span className="text-lg leading-3">•</span>
             <span className="text-xs">Offline</span>
         </div>
     )
@@ -93,9 +94,10 @@ const ChatSection = ({ rmid, uid }: Props) => {
     const qkey = getQueryKeys("room_rmid_uid", { rmid, uid })
     const [room, setRoom] = useOfflineStore<FullRoomType | undefined>(qkey, undefined);
 
-
-    return <GenericWrapper
+    return (
+    <GenericWrapper
         component={Component}
+        loadingComponent={<ChatSectionSkeleton />}
         getQueryProps={() => ({
             args: [uid, rmid],
             queryFn: getRoomById,
@@ -106,6 +108,7 @@ const ChatSection = ({ rmid, uid }: Props) => {
         placeholderData={room}
         needUser
     />
+)
 
 }
 

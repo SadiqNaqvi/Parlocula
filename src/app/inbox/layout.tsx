@@ -1,7 +1,7 @@
 import LoginModal from "@components/fallbacks/LoginModal";
 import { LoadingSpinner } from "@components/ui";
 import { getUserFromToken } from "@lib/auth/utils";
-import { getInvitedRoomsCount, getRooms } from "@lib/helpers/common";
+import { getInvitedRooms, getInvitedRoomsCount, getRooms } from "@lib/helpers/common";
 import { getQueryClient, prefetchInfiniteQuery, prefetchQuery } from "@lib/providers/queryClient";
 import { getQueryKeys } from "@lib/utils";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
@@ -20,20 +20,26 @@ const InboxLayout = async ({ children }: PropsWithChildren) => {
 
     const queryClient = getQueryClient();
 
-    await prefetchInfiniteQuery({
-        queryClient,
-        queryFn: () => getRooms(user.user_id, 1, jar),
-        queryKey: getQueryKeys("rooms_uid", { uid: user.user_id }),
-    });
-
     prefetchQuery({
         queryClient,
         queryFn: () => getInvitedRoomsCount(user.user_id, jar),
         queryKey: getQueryKeys("roomInvitationsCount_uid", { uid: user.user_id }),
     });
 
+    prefetchInfiniteQuery({
+        queryClient,
+        queryFn: () => getInvitedRooms(user.user_id, 1, jar),
+        queryKey: getQueryKeys("roomInvitations_uid", { uid: user.user_id }),
+    });
+
+    await prefetchInfiniteQuery({
+        queryClient,
+        queryFn: () => getRooms(user.user_id, 1, jar),
+        queryKey: getQueryKeys("rooms_uid", { uid: user.user_id }),
+    });
+
     return (
-        <main className="flex noPadding fullScreen">
+        <main className="flex noPadding fullScreen overflow-hidden h-screen">
             <HydrationBoundary state={dehydrate(queryClient)}>
                 <RoomList uid={user.user_id} />
                 <Suspense fallback={<LoadingSpinner className="mt-8" />}>

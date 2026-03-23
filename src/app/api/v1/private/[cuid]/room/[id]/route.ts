@@ -114,14 +114,14 @@ export const GET = getHandler(async (_, params) => {
 
   const result: FullRoomType = resp[0];
 
-  // console.log("room details from db", result)
+  console.log("room details from db", result);
 
   // Rare case
   if (result?.participant_count === 0) return {
     success: false, errCode: "resource_not_found"
   };
 
-  // if (result) await setRoomDetail(id, result);
+  if (result) await setRoomDetail(id, result);
 
   return { success: true, result };
 });
@@ -180,14 +180,16 @@ export const POST = postHandler<RoomSchemaType>({
     );
 
     const otherParticipants = await Participant.create(
-      participants.map((uid) => ({
-        hideAt: now,
-        mute: false,
-        room_id: id,
-        seenAt: now,
-        type: "invitee",
-        user_id: uid,
-      })),
+      participants
+        .filter(uid => uid !== user_id)
+        .map((uid) => ({
+          hideAt: now,
+          mute: false,
+          room_id: id,
+          seenAt: now,
+          type: "invitee",
+          user_id: uid,
+        })),
       { session }
     );
 
@@ -196,7 +198,16 @@ export const POST = postHandler<RoomSchemaType>({
       { session }
     );
 
-    await setDataWhileCreatingRoom(room, user_id, creatorParticiantDoc.concat(otherParticipants));
+    const totalParticipants = creatorParticiantDoc.concat(otherParticipants)
+    const uniqueParticipants = new Map(
+      totalParticipants
+        .map(doc => [doc.user_id, doc.toObject()])
+    )
+
+    await setDataWhileCreatingRoom(room, user_id,
+      Array.from(uniqueParticipants.keys())
+        .map(k => uniqueParticipants.get(k)!)
+    );
 
     await checkIfUserMetaExists([...participants, user_id]);
 

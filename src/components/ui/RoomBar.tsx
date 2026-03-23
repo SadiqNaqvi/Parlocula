@@ -1,25 +1,21 @@
 import { BellSlashIcon } from "@assets/Icons";
 import Navigate from "@components/Navigate";
 import { timeAgo } from "@lib/utils";
+import useRoomStore from "@store/roomStore";
 import useCurrentUser from "@store/user";
 import { MereRoomType, SearchedRoom } from "@type/internal";
-import ParloImage from "./ParloImage";
-import useRoomStore from "@store/roomStore";
 import { RoomBarSkeleton } from "./loading";
 import OptionalChildren from "./OptionalChildren";
+import ParloImage from "./ParloImage";
 
-type RoomBarProps = Partial<Omit<MereRoomType, "display_name" | "poster">> & SearchedRoom;
-
-const RoomBar = ({ lastMessageAt, lastMessageBy, mute, otherParticipant_seenAt, display_name, poster, room_id, _id, seenAt, lastMessage, type, }: RoomBarProps) => {
+const RoomBar = ({ lastMessageAt, lastMessageBy, mute, otherParticipant_seenAt, display_name, poster, room_id, _id, seenAt, lastMessage, type, status }: Partial<MereRoomType>) => {
 
     const { meta } = useCurrentUser();
 
     const userIslastSender = lastMessageBy && lastMessageBy === meta?.user_id;
     const participantHasSeen = lastMessageAt && otherParticipant_seenAt && new Date(otherParticipant_seenAt) > new Date(lastMessageAt);
     const newMessage = seenAt && lastMessageAt && !userIslastSender && new Date(seenAt) < new Date(lastMessageAt);
-    const textToShow = (type === "invitee" || !lastMessage ? "Tap to see" : (userIslastSender ? (participantHasSeen ? "Seen" : "Sent") : lastMessage));
-
-    console.log(userIslastSender, participantHasSeen, newMessage, textToShow);
+    const textToShow = status || (type === "invitee" || !lastMessage ? "Tap to see" : (userIslastSender ? (participantHasSeen ? "Seen" : "Sent") : lastMessage));
 
     return (
         <Navigate
@@ -44,7 +40,7 @@ const RoomBar = ({ lastMessageAt, lastMessageBy, mute, otherParticipant_seenAt, 
                             <li>{timeAgo(lastMessageAt)}</li>
                             <li>•</li>
                         </OptionalChildren>
-                        <li className="line-clamp-1">{textToShow}</li>
+                        <li className={`line-clamp-1 ${status === "error" ? "text-red-500" : ''}`}>{textToShow}</li>
                     </ul>
                 </div>
                 {mute && (

@@ -3,12 +3,12 @@
 import { useState } from "react";
 import { Form, Input } from "./form";
 import InfiniteScroller, { InfiniteScrollerProps } from "./InfiniteScroller";
-import { GeneralGetReturn, GeneralMultipleReturn } from "@type/internal";
+import { AggregatedResponse, GeneralGetReturn, GeneralMultipleReturn } from "@type/internal";
 import { TypedFunction } from "@type/other";
 import { PaginatedData } from "@type/external";
 import { twMerge } from "tailwind-merge";
 
-export type QueryFnReturn<T> = Promise<GeneralMultipleReturn<T> | GeneralGetReturn<PaginatedData<T>>>
+export type QueryFnReturn<T> = Promise<GeneralMultipleReturn<T> | GeneralGetReturn<AggregatedResponse<T>> | GeneralGetReturn<PaginatedData<T>>>
 
 export type SearchInListProps<T> = {
     Component: React.ComponentType<T>,

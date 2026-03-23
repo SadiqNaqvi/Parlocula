@@ -11,16 +11,16 @@ import { toast } from "sonner";
 const MessageDetailsSection = ({ createdAt, content, status, children }: PropsWithChildren<{ createdAt: GenericDate, content: string, status: string | undefined }>) => {
 
     return (
-        <aside className="p-4 mb-2">
-            <section className="bg-primarylight rounded-md p-3 mb-4">
-                <MetadataTileContainer>
+        <>
+            <section className="bg-gray10 border border-gray10 rounded-md p-2 mx-2 mb-4">
+                <MetadataTileContainer className="">
                     <MetadataTile>{new Date(createdAt).toLocaleString()}</MetadataTile>
                     <MetadataTile condition={!!status}>{status}</MetadataTile>
                 </MetadataTileContainer>
                 <div className="mt-3 line-clamp-2">{content}</div>
             </section>
-            <ul className="bg-primarylight rounded-md py-4">{children}</ul>
-        </aside>
+            <ul className="sm:bg-gray10 sm:border border-gray10 rounded-md py-4 px-2">{children}</ul>
+        </>
     )
 
 }

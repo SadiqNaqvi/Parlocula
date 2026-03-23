@@ -18,6 +18,7 @@ import { twMerge } from "tailwind-merge";
 import CreateGroup from "./CreateGroup";
 import InvitationRoomsList from "./InvitationRoomList";
 import RoomSearchList from "./RoomSearchList";
+import { RoomBarSkeleton } from "@components/ui/loading";
 
 type PageType = "rooms" | "invitations" | "search" | "create";
 
@@ -114,9 +115,9 @@ const RoomsList = ({ uid, changeRoom }: RoomListProps) => {
     }, [dataSaver, isHydrated]);
 
     const rooms = React.useMemo(() => {
-        return data.pages?.flatMap(result => result.results)
+        return Array.from(new Set(data?.pages?.flatMap(result => result.results)
             .sort((a, b) => new Date(b.lastMessageAt).getTime() - new Date(a.lastMessageAt).getTime())
-            .map(r => r.room_id);
+            .map(r => r.room_id)));
     },
         [data]);
 
@@ -127,7 +128,11 @@ const RoomsList = ({ uid, changeRoom }: RoomListProps) => {
     if (isLoading) return (
         <>
             <RoomListHeader uid={uid} changeRoom={changeRoom} />
-            <LoadingSpinner />
+            <div className="space-y-2 overflow-hidden">
+                {Array(10).fill(0).map((_, i) => (
+                    <RoomBarSkeleton key={i} />
+                ))}
+            </div>
         </>
     )
 
@@ -156,7 +161,7 @@ const RoomsList = ({ uid, changeRoom }: RoomListProps) => {
         <>
             <RoomListHeader uid={uid} changeRoom={changeRoom} />
 
-            <section className="h-stretch overflow-y-auto mt-2 sm:w-60 md:w-80 px-2">
+            <section className="mt-2 px-2">
                 <ul>
                     {rooms.map(rmid => (
                         <li key={rmid}>
@@ -182,7 +187,7 @@ const RoomsList = ({ uid, changeRoom }: RoomListProps) => {
 }
 
 const RoomListWrapper = ({ id, children }: PropsWithChildren<{ id: string | string[] | undefined }>) => (
-    <div className={twMerge("md:border-r border-gray20 w-full flex flex-col md:max-w-96 border-right border-gray30", id ? "hidden md:block" : '')}>
+    <div className={twMerge("md:border-r border-gray20 w-full flex flex-col md:max-w-96 border-right border-gray30 overflow-y-auto", id ? "hidden md:block" : '')}>
         {children}
     </div>
 )

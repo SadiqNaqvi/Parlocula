@@ -374,6 +374,7 @@ export type InvitationMessageType = {
 };
 
 export type MereRoomType = {
+  _id: string
   room_id: string;
   display_name: string;
   poster: Frame | undefined;
@@ -386,6 +387,7 @@ export type MereRoomType = {
   lastMessageAt: GenericDate;
   lastMessage: string;
   createdAt?: GenericDate;
+  status?: "sending" | "error";
 };
 
 export type RoomListResponse = MereRoomType & {

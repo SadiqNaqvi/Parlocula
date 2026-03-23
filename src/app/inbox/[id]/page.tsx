@@ -36,7 +36,7 @@ const RoomSection = async ({ params }: ParloPageProps) => {
         </div>
     )
 
-    Promise.all([
+    await Promise.all([
         prefetchQuery({
             queryClient,
             queryFn: () => getRoomById(user.user_id, rmid, jar),

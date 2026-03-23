@@ -1,9 +1,10 @@
 import { getHandler, postHandler } from "@lib/helpers/handlers";
 import { checkIfParticipantExists, getMessagesFromCache, getParticipant, getParticipantsOfRoom, handleNewMessage, storeMessagesInCache } from "@lib/helpers/redis/messaging";
+import { sendNotificationForMessage, sendPushNotification } from "@lib/helpers/server";
 import { createPipeline } from "@lib/pipelines";
-import { publishAblyEvent } from "@lib/providers/ably";
+import { getAblyRest, publishAblyEvent } from "@lib/providers/ably";
 import { messageSchema } from "@lib/schemas";
-import { getPageParams } from "@lib/utils";
+import { getPageParams, getPoster } from "@lib/utils";
 import { Message } from "@model";
 import { MessageModelType } from "@type/models";
 import { MessageSchemaType } from "@type/schemas";
@@ -14,11 +15,13 @@ export const GET = getHandler(async (r, params) => {
   const page = getPageParams(r) - 1;
 
   const participant = await getParticipant(id, cuid);
-  
+
   if (!participant) return { success: false, errCode: "unauthorized_access" }
 
   const response = await getMessagesFromCache(id, cuid, page);
-  
+
+  console.log("Messages from cache", response);
+
   if (response && response.data.length) return { success: true, result: response };
 
   const resp = await Message.aggregate(createPipeline({
@@ -40,6 +43,8 @@ export const GET = getHandler(async (r, params) => {
 
   const result = resp[0] ?? { data: [], total: 0 };
 
+  console.log("Messages from db", result);
+
   if (result.data.length) {
     await storeMessagesInCache(id, result.data, result.total);
   }
@@ -57,11 +62,17 @@ export const POST = postHandler<MessageSchemaType>({
 
     const participants = await getParticipantsOfRoom(room_id);
 
-    await publishAblyEvent(
-      "message",
-      { ...rest, room, room_id, user_id },
-      participants.filter(p => p.type !== "invitee").map(p => p.uid)
-    )
+    await sendNotificationForMessage(
+      participants.filter(p => p.type !== "invitee").map(p => p.uid),
+      {
+        title: `New message • ${room.display_name}`,
+        body: rest.content,
+        icon: room.poster ? getPoster({ external: false, path: room.poster.path, extSource: room.poster.extSource }) : undefined,
+        path: `/inbox/${room_id}-${room.display_name}`,
+        tag: `message-${room_id}`,
+      },
+      { ...rest, room, room_id, user_id }
+    );
 
     const message: MessageModelType = { ...rest, room_id, user_id, username };
     await handleNewMessage(room_id, user_id, message, session);

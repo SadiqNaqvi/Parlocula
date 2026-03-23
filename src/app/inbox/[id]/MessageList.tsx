@@ -58,6 +58,8 @@ const MessageList = ({ uid, room }: { uid: string, room: FullRoomType }) => {
 
     }, []);
 
+    useEffect(() => { console.log("selectedMessage", selectedMessage) }, [selectedMessage]);
+
     const container = useRef<HTMLDivElement>(null);
 
     if (isLoading) return <MessageSkeleton />
@@ -96,14 +98,8 @@ const MessageList = ({ uid, room }: { uid: string, room: FullRoomType }) => {
     const closeSheet = () => setSelectedMessage(undefined)
 
     return (
-        <section className="pb-16 px-2">
-            <div className="my-4 mx-auto" ref={container}>
-                {isFetchingNextPage && (
-                    <MessageSkeleton />
-                )}
-            </div>
-
-            <ul className="w-full">
+        <section className="h-size-screen overflow-y-auto pb-22">
+            <ul className="w-full px-2">
                 {data.pages.map((page, i) => (
                     <React.Fragment key={i}>
                         {page.results.map((msg, ind) => (
@@ -122,8 +118,14 @@ const MessageList = ({ uid, room }: { uid: string, room: FullRoomType }) => {
                 ))}
             </ul>
 
+            <div className="my-4 mx-auto" ref={container}>
+                {isFetchingNextPage && (
+                    <MessageSkeleton />
+                )}
+            </div>
+
             <BottomSheet
-                state={Boolean(selectedMessage)}
+                state={!!selectedMessage}
                 onClose={closeSheet}
                 allowHandle
             >

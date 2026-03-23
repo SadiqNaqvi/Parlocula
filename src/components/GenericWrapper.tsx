@@ -7,7 +7,7 @@ import { GeneralGetReturn } from "@type/internal";
 import { ErrorCodes } from "@type/other";
 import { usePathname } from "next/navigation";
 import LoginModal from "./fallbacks/LoginModal";
-import { NotFound, ShowError } from "./ui";
+import { NotFound, OptionalChildren, ShowError } from "./ui";
 import { FullPageLoadingSpinner } from "./ui/loading/LoadingSpinner";
 
 type Func<T> = (...args: any[]) => Promise<GeneralGetReturn<T>>;
@@ -28,11 +28,12 @@ type Props<T, P extends PropType> = {
     needUser?: boolean,
     skipNotFound?: undefined | false,
     component: (data: T, props: P) => React.ReactElement | null | undefined,
+    loadingComponent?: React.ReactNode;
 }
 
 
 const GenericWrapper = <T, P extends PropType>(
-    { component, getQueryProps, props, needUser, skipNotFound, placeholderData }: Props<T, P>
+    { component, getQueryProps, props, needUser, skipNotFound, placeholderData, loadingComponent }: Props<T, P>
 ) => {
     const objectId = props?.id?.split('-')[0];
     const userObj = useCurrentUser();
@@ -56,8 +57,10 @@ const GenericWrapper = <T, P extends PropType>(
         />
     );
 
-    else if (isLoading) return (
-        <FullPageLoadingSpinner />
+    else if (isLoading || (needUser && !userObj.isHydrated)) return (
+        <OptionalChildren condition={!!loadingComponent} fallback={<FullPageLoadingSpinner />}>
+            {loadingComponent}
+        </OptionalChildren>
     )
 
     else if (needUser && !userObj.meta) return (

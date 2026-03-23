@@ -1,6 +1,6 @@
 "use client";
 
-import { forwardRef, MutableRefObject, PropsWithChildren, useImperativeHandle, useState } from "react";
+import { forwardRef, MutableRefObject, PropsWithChildren, useEffect, useImperativeHandle, useState } from "react";
 import { Content, Drawer, Handle, Overlay, Portal, Root } from "vaul";
 import { OptionalChildren } from "./ui";
 
@@ -72,7 +72,11 @@ export type BottomSheetRef = {
 
 export const BottomSheet = forwardRef(({ children, description, title, state, onClose, snapPoints, allowHandle, button, className }: BottomSheetProps, ref) => {
 
-  const [open, setOpen] = useState<boolean | undefined>(state);
+  const [open, setOpen] = useState<boolean>(false);
+
+  useEffect(() => {
+    setOpen(!!state)
+  }, [state])
 
   useImperativeHandle(ref, () => ({
     open: () => setOpen(true),

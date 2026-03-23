@@ -21,7 +21,7 @@ export const getRedis = async () => {
       retryStrategy(times) {
         if (times > 5) {
           // Stop retrying
-          console.log("❌ Too many attempts to connect to Redis, giving up.");
+          console.warn("❌ Too many attempts to connect to Redis, giving up.");
           return;
         }
         console.warn(`⚠️ Redis retry attempt #${times}`);
@@ -72,8 +72,6 @@ export const zaddInUpstash = async (key: string, items: ScoreMember<any>[], pipe
 
 export const handleUpstashPipelineResponse = <T = unknown>(res: T | (T | T[])[] | null): T[] => {
 
-  console.log("pipeline response", res);
-
   if (!res) {
     console.log("Pipline returned nothing");
     throw new Error("Pipeline returned nothing");
@@ -96,8 +94,6 @@ export const handleUpstashPipelineResponse = <T = unknown>(res: T | (T | T[])[] 
 }
 
 export const handlePipelineResponse = <T = unknown>(res: T | [err: Error | null, res: unknown][] | null): T[] => {
-
-  console.log("pipeline response", res);
 
   if (!res) {
     console.log("Pipline returned nothing");
@@ -428,12 +424,7 @@ const executeStack = async (redis: Redis | UpstashRedis, stack: ExtendedRedisSta
     else execStage(multi, stage);
   });
 
-  const resp = await multi.exec().then((r) => {
-    console.log("AGGREGATOR RESPONSE");
-    return handleUpstashPipelineResponse(r);
-  });
-
-  // console.log("resp", resp);
+  const resp = await multi.exec().then(handleUpstashPipelineResponse);
   return resp;
 }
 
@@ -492,8 +483,7 @@ export const redisAggregator = async <T,>(stages: Stage<T>[], upstash?: UpstashR
       }
     }
 
-    // store.clear();
-    console.log("returnVal", returnVal);
+    store.clear();
     return returnVal;
   } catch (err: any) {
     console.error("Error occured in Redis Aggregator", err.message);

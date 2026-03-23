@@ -404,6 +404,7 @@ const createPipelineForRoomList = (user_id: string, page: number, invitation?: b
                         throw new Error("Participant data missing");
 
                     return {
+                        _id: room_id,
                         display_name: (type === "private" ? otherParticipantMetaData?.username : name) || "Not found",
                         poster: type === "private" ? otherParticipantMetaData?.profile : poster,
                         type: participantType,
@@ -441,13 +442,13 @@ export const getInvitationListFromCache = async (user_id: string): Promise<{ dat
     }
 };
 
-export const getInvitationCount = async (uid:string)=>{
+export const getInvitationCount = async (uid: string) => {
     const redis = await getUpstashRedis();
 
-    return await redis.get(`user:${uid}:invitations:total`) as string|undefined;
+    return await redis.get(`user:${uid}:invitations:total`) as string | undefined;
 }
 
-export const setInvitationCount = async (uid:string, count: number)=>{
+export const setInvitationCount = async (uid: string, count: number) => {
     const redis = await getUpstashRedis();
 
     await redis.set(`user:${uid}:invitations:total`, count);
@@ -485,8 +486,6 @@ export const storeInvitationInCache = async (user_id: string, list: { data: Room
 
 export const storeRoomList = async (user_id: string, data: RoomListResponse[], total: number) => {
 
-    console.log("Storing Room list");
-
     const redis = await getUpstashRedis();
 
     const pipeline = redis.multi();
@@ -522,25 +521,18 @@ export const getRoomDetails = async (room_id: string, user_id: string): Promise<
         getPipeline.smembers(`room:${room_id}:participants`);
         const [room, participants] = await getPipeline.exec().then(handleUpstashPipelineResponse) as [CachedFullRoomType, string[]];
 
-        // console.log("room and participant", room, participants);
-
         if (!room) return null;
 
         const { invitationMessage, lastMessage, lastMessageAt, lastMessageBy, name, poster, type, createdAt } = room;
 
         const otherParticipant_id = type === "private" ? participants.filter(uid => uid.split('-')[0] !== user_id).at(0)?.split('-')[0] : undefined;
 
-        console.log("otherParticipant_id", otherParticipant_id);
-
         return await redisAggregator<FullRoomType>([
             { method: "hgetall", key: `room:${room_id}:participant:${user_id}`, ref: "currentUser" },
             { method: "get", key: `room:${room_id}:participants:total`, ref: "total" },
             { method: "execute" },
             {
-                method: "condition", ref: "currentUser", validate: (s, val) => {
-                    console.log("sotre", s);
-                    return Boolean(val);
-                }
+                method: "condition", ref: "currentUser", validate: (s, val) => Boolean(val)
             },
 
             ...createArray<RedisStage | ExecuteStage>([])
@@ -550,14 +542,11 @@ export const getRoomDetails = async (room_id: string, user_id: string): Promise<
 
             {
                 method: "return", value: (store) => {
-                    console.log("store in return", store);
                     const participantData = store.get("otherParticipantData") as ParticipantType | undefined;
                     const participantMeta = store.get("otherParticipantMeta") as MereUser;
                     const { mute, participantType, seenAt } = store.get("currentUser") as ParticipantType;
                     const total = parseInt(store.get("total") as string || "0") || 0;
-
-                    console.log("participant lala", participantData, participantMeta, total, mute, participantType, seenAt);
-
+                    const participants = otherParticipant_id && participantData?.participantType !== "invitee" ? [otherParticipant_id, user_id] : undefined;
                     return {
                         _id: room_id,
                         display_name: (type === "private" ? participantMeta.username : name) || "Not Found",
@@ -566,13 +555,14 @@ export const getRoomDetails = async (room_id: string, user_id: string): Promise<
                         otherParticipant_id,
                         otherParticipant_seenAt: participantData?.seenAt,
                         createdAt,
-                        participant_count: total
+                        participant_count: type === "group" ? total : participants?.length || 0,
+                        participants,
                     }
                 }
             }
         ], redis);
     } catch (e: any) {
-        console.log("Error occured while fetching room details from cache:", e.message);
+        console.warn("Error occured while fetching room details from cache:", e.message);
         return null;
     }
 }
@@ -597,7 +587,7 @@ const updateLastMessageFieldsOfRoom = async (room_id: string, message: MessageMo
     const update = {
         lastMessage: message.content,
         lastMessageAt: time,
-        lastMessageBy: message.user_id.toString()
+        lastMessageBy: message.user_id,
     };
 
     setRoomDetail(room_id, update, pipeline);
@@ -650,7 +640,7 @@ export const setDataWhileCreatingRoom = async (room: RoomModelType & { _id: stri
 
         await pipeline.exec().then(handleUpstashPipelineResponse);
     } catch (error: any) {
-        console.log("Error at redis while creating room", error);
+        console.warn("Error at redis while creating room", error);
         throw new Error(error);
     }
 }
@@ -670,22 +660,25 @@ export const getMessagesFromCache = async (room_id: string, user_id: string, pag
         getParticipant(room_id, user_id, pipeline);
 
         const [messageIds, total, participant] = await pipeline.exec().then(handleUpstashPipelineResponse) as [MessageItem[], number, CachedParticipantType];
-        console.log(messageIds, total, participant);
-
+        console.log("message ids", messageIds);
         if (!messageIds?.length || !participant) return null;
 
         const messages = await redis
             .mget<MessageModelType[]>(messageIds.map(({ msg_id }) => `message:${msg_id}`))
-            .then(msgs => msgs
-                .map(msg => {
-                    // const message = JSON.parse(msg ?? "null") as MessageModelType | null;
-                    const message = msg;
-                    if (!message || new Date(message.createdAt).getTime() < new Date(participant.hideAt).getTime())
-                        return;
-                    return message;
-                })
-                .filter(Boolean)
+            .then(msgs => {
+                console.log(msgs)
+                return msgs
+                    .map(msg => {
+                        const message = msg;
+                        if (!message || new Date(message.createdAt).getTime() < new Date(participant.hideAt).getTime())
+                            return;
+                        return message;
+                    })
+                    .filter(Boolean)
+            }
             )
+
+        console.log("messages", messages);
 
         return { data: messages, total: total || 0 }
 
@@ -714,7 +707,7 @@ export const storeMessagesInCache = async (room_id: string, data: MereMessage[],
         await pipeline.exec().then(handleUpstashPipelineResponse);
 
     } catch (err: any) {
-        console.log(`Error occured while storing messages in cache: ${err.message}`)
+        console.warn(`Error occured while storing messages in cache: ${err.message}`)
     }
 }
 
@@ -766,11 +759,7 @@ const storeNewMessageInBuffer = async (room_id: string, message: MessageModelTyp
     console.log("Stroing new message in buffer");
 
     const redis = await getUpstashRedis();
-    await redis.lpush(
-        `room:${room_id}:messageBuffer`,
-        //  JSON.stringify({ msg_id: message._id, createdAt: message.createdAt })
-        { msg_id: message._id, createdAt: message.createdAt }
-    );
+    await redis.lpush(`room:${room_id}:messageBuffer`, { msg_id: message._id, createdAt: message.createdAt });
 }
 
 const storeNewMessageInList = async (room_id: string, message: MessageModelType) => {
@@ -789,8 +778,7 @@ const storeNewMessageInList = async (room_id: string, message: MessageModelType)
         }]
     });
 
-    // pipeline.setex(`message:${message._id}`, oneDayInSeconds, JSON.stringify(message));
-    pipeline.setex(`message:${message._id}`, oneDayInSeconds, message);
+    pipeline.setex(`message:${message._id}`, oneDayInSeconds * 2, message);
 
     console.log("updating last message fields");
     await updateLastMessageFieldsOfRoom(room_id, message);

@@ -5,15 +5,16 @@ import { getSession } from "@lib/auth/session";
 import { verifyToken } from "@lib/auth/token";
 import { oneHourInSeconds } from "@lib/constants";
 import { connectDatabase } from "@lib/database";
-import { getAblyRest } from "@lib/providers/ably";
+import { getAblyRest, publishAblyEvent } from "@lib/providers/ably";
 import { getRedis } from "@lib/providers/redis";
 import { verificationCodeSchema } from "@lib/schemas";
 import { getTimeInFuture } from "@lib/utils";
 import { Notification, ShelfItem, Taleon, User } from "@model";
 import { render } from "@react-email/components";
 import { GeneralGetReturn, GeneralPostReturn } from "@type/internal";
-import { NotificationModelType, ShelfItemModelType, TaleonModelType } from "@type/models";
+import { MessageModelType, NotificationModelType, ShelfItemModelType, TaleonModelType } from "@type/models";
 import type { ClientSession } from "@type/mongoose";
+import { AblyEventParams, PushNotificationType } from "@type/other";
 import { ConfirmedTaleon, TaleonSchemaType } from "@type/schemas";
 import { randomInt } from "crypto";
 import { cookies } from "next/headers";
@@ -314,10 +315,10 @@ export const sendAppNotification = async (uid: string, title: string) => {
     .publish("notification", { title }, { client_id: uid })
 }
 
-export const sendPushNotification = async (subs: PushSubscription, n: { title: string, body?: string, icon?: string }, urgent: boolean) => {
-  await webpush.sendNotification(subs, JSON.stringify(n), {
-    urgency: urgent ? "high" : "normal",
-    TTL: urgent ? 0 : 3600,
+export const sendPushNotification = async (subs: PushSubscription, n: PushNotificationType, urgent?: boolean) => {
+  return await webpush.sendNotification(subs, JSON.stringify(n), {
+    urgency: !urgent ? "high" : "normal",
+    TTL: !urgent ? 0 : 3600,
   })
 }
 
@@ -378,6 +379,56 @@ export const sendNotification = async (
     })
   ])
 };
+
+export const sendNotificationForMessage = async (user_ids: string[], notification: PushNotificationType, data: AblyEventParams["message"]) => {
+  const ably = getAblyRest();
+
+  let onlineUsersIds: string[] = [];
+  let offlineUsersIds: string[] = [];
+
+  await Promise.all(
+    user_ids.map(uid => ably.channels.get(uid)
+      .presence.get()
+      .then(r => {
+        if (r.items.length) onlineUsersIds.push(uid);
+        else offlineUsersIds.push(uid)
+      })
+    )
+  );
+
+  const offlineUsers = await User.find(
+    { _id: { $in: offlineUsersIds } },
+    { push_auth: 1, push_endpoint: 1, push_p256dh: 1 }
+  )
+
+  await Promise.all<any>([
+
+    publishAblyEvent(
+      "message",
+      data,
+      onlineUsersIds,
+    ),
+
+    ...offlineUsers.map(user => {
+      if (!user.push_auth || !user.push_endpoint || !user.push_p256dh) return;
+      return sendPushNotification(
+        {
+          endpoint: user.push_endpoint,
+          keys: {
+            auth: user.push_auth,
+            p256dh: user.push_p256dh,
+          }
+        },
+        {
+          title: notification.title,
+          body: notification.body,
+          icon: notification.icon,
+        },
+        true
+      )
+    })
+  ])
+}
 
 export const deleteUserFromCookies = async () => {
   "use server";

@@ -6,7 +6,7 @@ const MessageSkeleton = () => (
                     {Array(3).fill(0).map((_, i) => (
                         <div
                             style={{ width: `${30 * (i + 1)}%` }}
-                            className="animate-pulse h-2 bg-gray40 rounded-md"
+                            className="skeleton-pulse-loading h-2 bg-gray40 rounded-md"
                             key={i}>
                         </div>
                     ))}

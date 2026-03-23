@@ -12,7 +12,7 @@ export default function SearchTile({ id, image, media_type, name }: RefinedSearc
 
     return (
         <article className="w-full">
-            <Navigate comp="link" className="h-full w-full flex gap-2 md:gap-4" goto={`/explore/${media_type === "tv" ? "show" : media_type}/${id}-${name.replaceAll(' ', '-')}`}>
+            <Navigate comp="link" className="h-full w-full flex gap-2 items-center" goto={`/explore/${media_type === "tv" ? "show" : media_type}/${id}-${name.replaceAll(' ', '-')}`}>
                 <ParloImage
                     frame={image}
                     frameType={mediaFilter}
@@ -20,7 +20,7 @@ export default function SearchTile({ id, image, media_type, name }: RefinedSearc
                     size={80}
                     alt={`Poster of ${name}`}
                 />
-                <div className="flex-1 space-y-4">
+                <div className="flex-1 space-y-1">
                     <h4 className="sm:text-xl font-semibold line-clamp-1">{name}</h4>
                     <span className="text-xs sm:text-sm capitalize">{media_type === "tv" ? "show" : media_type}</span>
                 </div>

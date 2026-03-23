@@ -45,18 +45,17 @@ const NotificationFetcher = async ({ children }: PropsWithChildren) => {
       queryClient,
     });
 
-    const [resp] = await Promise.all([
-      fetchQuery({
-        queryClient,
-        queryKey: getQueryKeys("user_username", { username }),
-        queryFn: () => getCurrentUser(user_id, jar),
-      }),
-      prefetchInfiniteQuery({
-        queryClient,
-        queryKey: getQueryKeys("notifications_uid", { uid: user_id }),
-        queryFn: () => getNotificationsOfUser(user_id, 1, jar)
-      }),
-    ]);
+    prefetchInfiniteQuery({
+      queryClient,
+      queryKey: getQueryKeys("notifications_uid", { uid: user_id }),
+      queryFn: () => getNotificationsOfUser(user_id, 1, jar)
+    });
+
+    const resp = await fetchQuery({
+      queryClient,
+      queryKey: getQueryKeys("user_username", { username }),
+      queryFn: () => getCurrentUser(user_id, jar),
+    });
 
     currentUser = resp;
   }
