@@ -2,7 +2,7 @@
 
 import { InfiniteScroller } from "@components";
 import CommentInput from "@components/CommentInput";
-import CommentSectionSkeleton from "@components/ui/loading/CommentSkeleton";
+import { CommentSectionSkeleton } from "@components/ui/loading";
 import { CommentBar } from "@components/ui";
 import { getCommentById, getRepliesOnComment } from "@lib/helpers/common";
 import { useQueryHook } from "@lib/hooks";
@@ -36,7 +36,7 @@ const RepliesSection = ({ cid, filter, page }: Props) => {
                 fetchData={(p) => getRepliesOnComment(cid, p, filter, !filterContent)}
                 queryKeys={qkeys}
                 initialPage={page}
-                Loading={CommentSectionSkeleton}
+                Loading={<CommentSectionSkeleton />}
                 enabled={Boolean(isHydrated && !dataSaver)}
             />
 

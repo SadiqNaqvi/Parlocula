@@ -1,7 +1,8 @@
 "use client"
 
 import InfiniteScroller from "@components/InfiniteScroller";
-import { VerticleMovieCard, VerticleMovieCardSkeleton } from "@components/ui";
+import { VerticleMovieCard } from "@components/ui";
+import { VerticalTaleonCardSkeletonList } from "@components/ui/loading";
 import { fetchShowsWithGenres } from "@lib/contentFetcher";
 import { RefinedGeneralData } from "@type/external";
 import { useParams } from "next/navigation";
@@ -21,21 +22,13 @@ const Component = ({ id, poster, rating, title, year, type }: RefinedGeneralData
 
 const containerClassName = "grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-2 justify-center";
 
-const SkeletonLoader = () => (
-    <section className={containerClassName}>
-        {Array(12).fill(0).map((_, i) => (
-            <VerticleMovieCardSkeleton className="w-auto min-w-auto" key={i} />
-        ))}
-    </section>
-)
-
 export default function Page() {
     const { id } = useParams() as { id: string };
     return (
         <section>
             <InfiniteScroller
                 Component={Component}
-                Loading={SkeletonLoader}
+                Loading={<VerticalTaleonCardSkeletonList />}
                 fetchData={(page) => fetchShowsWithGenres({ page, genre: id, sort_by: "popularity" })}
                 queryKeys={["showsByGenres", id]}
                 className={containerClassName}

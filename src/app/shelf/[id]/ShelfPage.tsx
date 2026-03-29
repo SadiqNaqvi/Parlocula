@@ -7,6 +7,7 @@ import { getQueryKeys, timeAgo } from "@lib/utils";
 import { FullShelf } from "@type/internal";
 import ActionButton from "./ActionButton";
 import EllipsisButton from "./Ellipsis";
+import { ShelfBarListSkeleton, ShelfPageSkeleton } from "@components/ui/loading";
 
 type Props = {
     id: string,
@@ -80,6 +81,7 @@ const Component = (data: FullShelf, { filter, page, uid, key }: Props) => {
             <InfiniteScroller
                 className="mt-6 space-y-4 px-2"
                 Component={ShelfItemBar}
+                Loading={<ShelfBarListSkeleton count={12} />}
                 queryKeys={getQueryKeys("itemsOfShelf_sid_filter", { sid: _id, filter })}
                 fetchData={(p) => getItems(_id, uid, p, filter, key)}
                 initialPage={page}
@@ -88,7 +90,14 @@ const Component = (data: FullShelf, { filter, page, uid, key }: Props) => {
     )
 }
 
-const ShelfPage = (props: Props) => GenericWrapper({ component: Component, getQueryProps, props });
+const ShelfPage = (props: Props) => (
+    <GenericWrapper
+        component={Component}
+        getQueryProps={getQueryProps}
+        props={props}
+        loadingComponent={<ShelfPageSkeleton />}
+    />
+)
 
 
 export default ShelfPage;

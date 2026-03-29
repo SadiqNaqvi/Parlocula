@@ -10,6 +10,7 @@ import { cookies } from "next/headers";
 import { PropsWithChildren, Suspense } from "react";
 import Thread from "./Thread";
 import { ParloPageProps } from "@type/other";
+import { ThreadPageSkeleton } from "@components/ui/loading";
 
 export const generateMetadata = async ({ params }: ParloPageProps): Promise<Metadata> => {
     const thread_id = (await params).id.split('-')[0];
@@ -68,7 +69,7 @@ const ThreadLayout = async ({ children, params }: PropsWithChildren<ParloPagePro
     );
 
     return (
-        <Suspense fallback={<FullPageLoadingSpinner path={rest} />}>
+        <Suspense fallback={<ThreadPageSkeleton heading={rest?.join(' ')} />}>
             <Fetcher tid={tid}>{children}</Fetcher>
         </Suspense>
     )

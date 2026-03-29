@@ -18,17 +18,34 @@ export type SearchInListProps<T> = {
     queryFnForList?: (p: number) => QueryFnReturn<T>
     inputPlaceholder?: string;
     className?: string;
-} & Pick<InfiniteScrollerProps, "notFoundMessage" | "NotFoundSection">
+    initialQuery?: string | null;
+    searchInputContainerClassName?: string;
+    searchInputClassName?: string;
+} & Pick<InfiniteScrollerProps, "notFoundMessage" | "NotFoundSection" | "Loading">
 
-const SearchInput = ({ inputPlaceholder, onUpdate, query }: { onUpdate: TypedFunction<{ query: string }>, inputPlaceholder: string | undefined, query: string }) => (
-    <Form submit={onUpdate} className="pb-2 bg-primary sticky top-0">
-        <Input defaultValue={query} name="query" autoFocus placeholder={inputPlaceholder || "Search here"} />
+type SearchInputProps = {
+    onUpdate: TypedFunction<{ query: string }>,
+    inputPlaceholder: string | undefined,
+    query: string,
+    containerClassName?: string;
+    inputClassName?: string;
+}
+
+const SearchInput = ({ inputPlaceholder, onUpdate, query, containerClassName, inputClassName }: SearchInputProps) => (
+    <Form submit={onUpdate} className={twMerge("pb-2 bg-primary sticky top-0", containerClassName)}>
+        <Input
+            defaultValue={query}
+            name="query"
+            autoFocus
+            placeholder={inputPlaceholder || "Search here"}
+            className={inputClassName}
+        />
     </Form>
 )
 
-const SearchInList = <T,>({ queryFn, queryKeys, className, Component, inputPlaceholder, queryFnForList, queryKeysForList, NotFoundSection, notFoundMessage }: SearchInListProps<T>) => {
+const SearchInList = <T,>({ queryFn, queryKeys, className, searchInputClassName, Loading, searchInputContainerClassName, Component, inputPlaceholder, initialQuery, queryFnForList, queryKeysForList, NotFoundSection, notFoundMessage }: SearchInListProps<T>) => {
 
-    const [query, setQuery] = useState('');
+    const [query, setQuery] = useState(initialQuery || '');
 
     const updateQuery = (data: { query: string }) => {
         const input = data.query?.trim();
@@ -38,12 +55,23 @@ const SearchInList = <T,>({ queryFn, queryKeys, className, Component, inputPlace
         setQuery(input);
     }
 
+    const SearchHeader = () => (
+        <SearchInput
+            containerClassName={searchInputContainerClassName}
+            inputClassName={searchInputClassName}
+            onUpdate={updateQuery}
+            query={query}
+            inputPlaceholder={inputPlaceholder}
+        />
+    )
+
     if (!query && queryFnForList && queryKeysForList) return (
         <>
-            <SearchInput onUpdate={updateQuery} query={query} inputPlaceholder={inputPlaceholder} />
+            <SearchHeader />
             <InfiniteScroller
                 Component={Component}
                 fetchData={queryFnForList}
+                Loading={Loading}
                 queryKeys={queryKeysForList}
                 NotFoundSection={NotFoundSection}
                 notFoundMessage={notFoundMessage}
@@ -54,7 +82,7 @@ const SearchInList = <T,>({ queryFn, queryKeys, className, Component, inputPlace
 
     else if (!query) return (
         <>
-            <SearchInput onUpdate={updateQuery} query={query} inputPlaceholder={inputPlaceholder} />
+            <SearchHeader />
             <div className={twMerge("flex flex-cntr-all h-size-screen", className)}>
                 <p>Results would appear here</p>
             </div>
@@ -64,9 +92,10 @@ const SearchInList = <T,>({ queryFn, queryKeys, className, Component, inputPlace
 
     return (
         <>
-            <SearchInput onUpdate={updateQuery} query={query} inputPlaceholder={inputPlaceholder} />
+            <SearchHeader />
             <InfiniteScroller
                 Component={Component}
+                Loading={Loading}
                 queryKeys={queryKeys(query)}
                 fetchData={(p) => queryFn(query, p)}
                 className={twMerge("space-y-2", className)}

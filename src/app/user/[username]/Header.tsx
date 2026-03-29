@@ -8,6 +8,7 @@ import { RequestedUser } from "@type/internal";
 import { ActionButton, MessageButton } from "./";
 import { OptionalChildren, InteractiveDetailSection, TabContainer, TabList, LinksSection, ParloImage } from "@components/ui";
 import { HamburgerIcon } from "@assets/Icons";
+import { UserPageSkeleton } from "@components/ui/loading";
 
 type Props = { username: string, uid: string | undefined };
 
@@ -111,6 +112,7 @@ const Header = (props: Props) => {
 
     return (
         <GenericWrapper
+            loadingComponent={<UserPageSkeleton heading={props.username} />}
             component={Component}
             getQueryProps={getQueryProps}
             props={props}

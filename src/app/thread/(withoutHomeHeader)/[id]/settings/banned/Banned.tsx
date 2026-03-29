@@ -2,6 +2,7 @@
 
 import { AddIcon } from "@assets/Icons";
 import { InfiniteScroller, Navbar } from "@components";
+import { FullPageUserBarSkeleton } from "@components/ui/loading";
 import UserBar from "@components/ui/UserBar";
 import { getBannedMembers } from "@lib/helpers/common";
 import { useQueryHook } from "@lib/hooks";
@@ -82,6 +83,7 @@ const BannedList = ({ tid, uid }: { tid: string, uid: string }) => {
             />
             <InfiniteScroller
                 Component={UserBar}
+                Loading={<FullPageUserBarSkeleton />}
                 fetchData={(p) => getBannedMembers(tid, uid, p)}
                 queryKeys={getQueryKeys("bannedMembers_tid", { tid })}
                 notFoundMessage={nfm}

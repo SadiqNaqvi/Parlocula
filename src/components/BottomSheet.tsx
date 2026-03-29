@@ -1,12 +1,12 @@
 "use client";
 
-import { forwardRef, MutableRefObject, PropsWithChildren, useEffect, useImperativeHandle, useState } from "react";
+import { forwardRef, PropsWithChildren, RefObject, useEffect, useImperativeHandle, useState } from "react";
 import { Content, Drawer, Handle, Overlay, Portal, Root } from "vaul";
 import { OptionalChildren } from "./ui";
 
 type PortalProps = PropsWithChildren<{
   allowHandle?: boolean
-  ref?: MutableRefObject<any>,
+  ref?: RefObject<HTMLDivElement | null>,
   title?: string;
   description?: string;
 }>
@@ -44,8 +44,8 @@ export const NestedSheet = forwardRef(({ children, description, title, state, on
 
 export const DrawerPortal = ({ children, allowHandle, description, title, ref }: PortalProps) => (
   <Portal>
-    <Overlay className="z-[10] fixed inset-0 bg-black/40" />
-    <Content ref={ref} className="h-fit fixed z-[10] border-t border-gray60 bottom-0 left-0 right-0 outline-none bg-primary py-4">
+    <Overlay className="z-10 fixed inset-0 bg-black/40" />
+    <Content ref={ref} className="h-fit fixed z-10 border-t border-gray60 bottom-0 left-0 right-0 outline-none bg-primary py-4">
       <Handle />
       <Drawer.Title>{title}</Drawer.Title>
       <Drawer.Description>{description}</Drawer.Description>
@@ -73,6 +73,29 @@ export type BottomSheetRef = {
 export const BottomSheet = forwardRef(({ children, description, title, state, onClose, snapPoints, allowHandle, button, className }: BottomSheetProps, ref) => {
 
   const [open, setOpen] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const handleBackNavigation = () => {
+      if (!open) return;
+      setOpen(false);
+      onClose?.();
+    };
+
+    // push a dummy state so back button has something to pop
+    window.history.pushState({ bottomSheet: true }, "");
+
+    window.addEventListener("popstate", handleBackNavigation);
+
+    return () => {
+      window.removeEventListener("popstate", handleBackNavigation);
+      if (window.history.state.bottomSheet) {
+        window.history.back();
+      }
+    };
+
+  }, [open]);
 
   useEffect(() => {
     setOpen(!!state)

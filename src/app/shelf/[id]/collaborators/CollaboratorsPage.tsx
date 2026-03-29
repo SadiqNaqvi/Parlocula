@@ -2,6 +2,8 @@
 
 import { AddIcon } from "@assets/Icons";
 import { GenericWrapper, Navbar } from "@components";
+import { OptionalChildren } from "@components/ui";
+import { UserBarSkeletonList } from "@components/ui/loading";
 import { SimpleUserBar } from "@components/ui/UserBar";
 import { shelfCollaboratorsLimit } from "@lib/constants";
 import { getCollaboratorsOfShelf } from "@lib/helpers/common";
@@ -10,7 +12,6 @@ import { ShelfCollaborators } from "@type/internal";
 import { TypedFunction } from "@type/other";
 import { useState } from "react";
 import { InviteCollaborators, RemoveCollaborators } from "./EditCollaborators";
-import { OptionalChildren } from "@components/ui";
 
 type Props = { sid: string, uid: string }
 
@@ -136,6 +137,7 @@ const CollaboratorSection = ({ sid, uid }: Props) => {
     return (
         <GenericWrapper
             component={Component}
+            loadingComponent={<UserBarSkeletonList count={12} />}
             getQueryProps={() => ({
                 args: [uid, sid],
                 queryFn: getCollaboratorsOfShelf,

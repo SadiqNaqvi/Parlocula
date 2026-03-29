@@ -1,8 +1,9 @@
 "use client";
 
 import { AddIcon, SearchIcon } from "@assets/Icons";
-import { Navbar } from "@components";
+import { Navbar, Navigate } from "@components";
 import { LoadingSpinner, ShowError } from "@components/ui";
+import { RoomBarListSkeleton, RoomBarSkeleton } from "@components/ui/loading";
 import { RichRoomBar } from "@components/ui/RoomBar";
 import { getInvitedRoomsCount, getRooms } from "@lib/helpers/common";
 import { useInfiniteQueryHook, useQueryHook } from "@lib/hooks";
@@ -11,16 +12,13 @@ import useOfflineStore from "@store/offlineStore";
 import useRoomStore from "@store/roomStore";
 import useCurrentUser from "@store/user";
 import { InfiniteQueryResponse, MereRoomType } from "@type/internal";
-import { TypedFunction } from "@type/other";
 import { useParams } from "next/navigation";
-import React, { PropsWithChildren, useEffect, useRef, useState } from "react";
+import React, { PropsWithChildren, useEffect, useRef } from "react";
 import { twMerge } from "tailwind-merge";
 import CreateGroup from "./CreateGroup";
 import InvitationRoomsList from "./InvitationRoomList";
 import RoomSearchList from "./RoomSearchList";
-import { RoomBarSkeleton } from "@components/ui/loading";
-
-type PageType = "rooms" | "invitations" | "search" | "create";
+import RoomBarSheet from "@components/sheets/RoomBarSheet";
 
 const InvitationsCount = ({ uid }: { uid: string }) => {
     const { data } = useQueryHook({
@@ -28,28 +26,30 @@ const InvitationsCount = ({ uid }: { uid: string }) => {
         queryKeys: getQueryKeys("roomInvitationsCount_uid", { uid }),
     });
 
-    if (!data) return "Invitations"
+    if (!data || Math.max(0, data) === 0) return "Invitations"
 
     return `Invitations ${data}`
 }
 
-type RoomListProps = { uid: string, changeRoom: TypedFunction<PageType> };
+type RoomListProps = { uid: string };
 
-const RoomListHeader = ({ changeRoom, uid }: RoomListProps) => (
+const RoomListHeader = ({ uid }: RoomListProps) => (
     <>
         <Navbar
             OptionButton={(
                 <div className="flex gap-3">
-                    <button
-                        onClick={() => changeRoom("search")}
-                        className="p-2 rounded-full bg-gray10 border border-gray20">
+                    <Navigate
+                        goto="/inbox/search"
+                        comp="link"
+                        className="p-2 rounded-full bg-gray10 border border-gray20 flex">
                         <SearchIcon className="size-4" />
-                    </button>
-                    <button
-                        onClick={() => changeRoom("create")}
-                        className="rounded-full p-2 bg-gray10 border border-gray20">
+                    </Navigate>
+                    <Navigate
+                        goto="/inbox/create"
+                        comp="link"
+                        className="rounded-full p-2 bg-gray10 border border-gray20 flex">
                         <AddIcon className="size-4" />
-                    </button>
+                    </Navigate>
                 </div>
             )}
             navTitle="Inbox"
@@ -57,17 +57,17 @@ const RoomListHeader = ({ changeRoom, uid }: RoomListProps) => (
         />
         <header className="px-2 mt-4 flex flex-cntr-between">
             <h2>Rooms</h2>
-            <button className="text-sm" onClick={() => changeRoom("invitations")}>
+            <Navigate className="text-sm no-underline" comp="link" goto="/inbox/invitations">
                 <InvitationsCount uid={uid} />
-            </button>
+            </Navigate>
         </header>
     </>
 )
 
-const RoomsList = ({ uid, changeRoom }: RoomListProps) => {
+const RoomsList = ({ uid }: RoomListProps) => {
 
     const qkeys = getQueryKeys("rooms_uid", { uid });
-    const { setRooms } = useRoomStore.getState();
+    const setRooms = useRoomStore.getState().setRooms;
     const { isHydrated, dataSaver } = useCurrentUser();
     const [roomList, setRoomList] = useOfflineStore<InfiniteQueryResponse<any> | undefined>(qkeys, undefined);
     const container = useRef<HTMLDivElement>(null);
@@ -75,7 +75,6 @@ const RoomsList = ({ uid, changeRoom }: RoomListProps) => {
     const { data, isError, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage, refetch } = useInfiniteQueryHook<MereRoomType>({
         queryFn: (p) => getRooms(uid, p),
         onSuccess: (response) => {
-            console.log("onSuccess me aaya");
             const { pages, pageParams } = response;
 
             const [firstPage] = pages;
@@ -91,11 +90,6 @@ const RoomsList = ({ uid, changeRoom }: RoomListProps) => {
         } : undefined,
         initialPage: 1,
     });
-
-    useEffect(() => {
-        setRooms(roomList?.results || []);
-        // roomMeta.current = { ...roomMeta.current, ...resultsToRecord(roomList?.results || []) };
-    }, [roomList]);
 
     useEffect(() => {
         if (!isHydrated || dataSaver) return;
@@ -127,18 +121,14 @@ const RoomsList = ({ uid, changeRoom }: RoomListProps) => {
 
     if (isLoading) return (
         <>
-            <RoomListHeader uid={uid} changeRoom={changeRoom} />
-            <div className="space-y-2 overflow-hidden">
-                {Array(10).fill(0).map((_, i) => (
-                    <RoomBarSkeleton key={i} />
-                ))}
-            </div>
+            <RoomListHeader uid={uid} />
+            <RoomBarListSkeleton count={12} />
         </>
     )
 
     else if (isError) return (
         <>
-            <RoomListHeader uid={uid} changeRoom={changeRoom} />
+            <RoomListHeader uid={uid} />
 
             <ShowError
                 retry={refetch}
@@ -149,7 +139,7 @@ const RoomsList = ({ uid, changeRoom }: RoomListProps) => {
 
     else if (!rooms.length) return (
         <>
-            <RoomListHeader uid={uid} changeRoom={changeRoom} />
+            <RoomListHeader uid={uid} />
             <div className="flex-1 flex flex-col flex-cntr-all space-y-2">
                 <h2>No rooms yet</h2>
                 <p>Click on the + icon and start chatting</p>
@@ -159,7 +149,7 @@ const RoomsList = ({ uid, changeRoom }: RoomListProps) => {
 
     return (
         <>
-            <RoomListHeader uid={uid} changeRoom={changeRoom} />
+            <RoomListHeader uid={uid} />
 
             <section className="mt-2 px-2">
                 <ul>
@@ -172,7 +162,7 @@ const RoomsList = ({ uid, changeRoom }: RoomListProps) => {
                 {hasNextPage &&
                     ((isHydrated && !dataSaver) || isFetchingNextPage ?
                         <div ref={container} className="mt-4 py-2">
-                            <LoadingSpinner />
+                            <RoomBarListSkeleton />
                         </div>
                         :
                         <div className="w-full flex flex-cntr-all">
@@ -182,6 +172,8 @@ const RoomsList = ({ uid, changeRoom }: RoomListProps) => {
                 }
 
             </section>
+
+            <RoomBarSheet />
         </>
     )
 }
@@ -196,31 +188,27 @@ const RoomListSection = ({ uid }: { uid: string }) => {
 
     const { id } = useParams();
 
-    const [page, setPage] = useState<PageType>("rooms");
-
-    const handleBack = () => setPage("rooms");
-
-    if (page === "invitations") return (
+    if (id === "invitations") return (
         <RoomListWrapper id={id}>
-            <InvitationRoomsList changeRoom={handleBack} uid={uid} />
+            <InvitationRoomsList uid={uid} />
         </RoomListWrapper>
     )
 
-    else if (page === "search") return (
+    else if (id === "search") return (
         <RoomListWrapper id={id}>
-            <RoomSearchList uid={uid} goBack={handleBack} />
+            <RoomSearchList uid={uid} />
         </RoomListWrapper>
     )
 
-    else if (page === "create") return (
+    else if (id === "create") return (
         <RoomListWrapper id={id}>
-            <CreateGroup goBack={handleBack} />
+            <CreateGroup />
         </RoomListWrapper>
     )
 
     return (
         <RoomListWrapper id={id}>
-            <RoomsList changeRoom={setPage} uid={uid} />
+            <RoomsList uid={uid} />
         </RoomListWrapper>
     )
 

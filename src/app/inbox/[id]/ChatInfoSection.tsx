@@ -2,8 +2,9 @@
 
 import { BellIcon, BellSlashIcon, LinkIcon, RightChevron } from "@assets/Icons";
 import { BottomSheet, Navigate, NestedSheet, WarningModal } from "@components";
-import { ParloImage } from "@components/ui";
+import { OptionalChildren, ParloImage } from "@components/ui";
 import { hideRoom, leaveRoom, updateNotificationOfRoom } from "@lib/helpers/mutations";
+import { useDebounce } from "@lib/hooks";
 import { useNavigation } from "@store/historystack";
 import { FullRoomType } from "@type/internal";
 import { PropsWithChildren, useEffect, useRef, useState } from "react";
@@ -13,40 +14,27 @@ type Props = { rmid: string, uid: string }
 const MuteButton = ({ mute, rmid, uid }: { mute: boolean } & Props) => {
 
     const [isMute, setIsMute] = useState(mute);
-    const timeoutRef = useRef<NodeJS.Timeout>(null);
-
-    useEffect(() => {
-        return () => {
-            if (process.env.NODE_ENV === "development" || isMute === mute) return;
-            if (timeoutRef.current) clearTimeout(timeoutRef.current)
-            updateNotificationOfRoom(rmid, uid, isMute);
-        }
+    const { mutate, setFinalState } = useDebounce(() => updateNotificationOfRoom(rmid, uid, isMute), {
+        initial: mute,
     });
 
     const debounceMute = () => {
-        if (timeoutRef.current) clearTimeout(timeoutRef.current);
-
-        const newState = !isMute;
-
-        timeoutRef.current = setTimeout(() => {
-            updateNotificationOfRoom(rmid, uid, newState);
-        }, 10_000);
-
-        setIsMute(newState);
+        mutate();
+        setFinalState(!isMute);
+        setIsMute(!isMute);
     }
-
-
-    if (isMute) return (
-        <button onClick={debounceMute} className="p-2 flex flex-col gap-2 flex-1 sm:w-fit border border-gray40 rounded-md">
-            <BellSlashIcon />
-            <span className="text-sm">Unmute</span>
-        </button>
-    )
 
     return (
         <button onClick={debounceMute} className="p-2 flex flex-col gap-2 flex-1 sm:w-fit border border-gray40 rounded-md">
-            <BellIcon />
-            <span className="text-sm">Mute</span>
+            <OptionalChildren condition={isMute} fallback={(
+                <>
+                    <BellIcon />
+                    <span className="text-sm">Mute</span>
+                </>
+            )}>
+                <BellSlashIcon />
+                <span className="text-sm">Unmute</span>
+            </OptionalChildren>
         </button>
     )
 
@@ -61,7 +49,7 @@ const LeaveRoomButton = ({ rmid, uid }: Props) => {
     }
 
     return (
-        <NestedSheet button="Leave" className="p-2 flex flex-col gap-2 flex-1 sm:w-fit border border-gray40 rounded-md">
+        <NestedSheet button="Leave" className="p-2 flex gap-2 flex-1 sm:w-fit border border-gray40 rounded-md">
             <WarningModal
                 action="leave this room"
                 dangerButton="Leave"
@@ -80,7 +68,7 @@ const HideRoomButton = ({ rmid, uid }: Props) => {
     }
 
     return (
-        <button onClick={handleHide} className="p-2 flex flex-col gap-2 flex-1 sm:w-fit border border-gray40 rounded-md">
+        <button onClick={handleHide} className="p-2 flex gap-2 flex-1 sm:w-fit border border-gray40 rounded-md">
             Hide
         </button>
     )
@@ -89,12 +77,12 @@ const HideRoomButton = ({ rmid, uid }: Props) => {
 const ActionSection = ({ display_name, mute, type, _id, uid }: Pick<FullRoomType, "mute" | "display_name" | "type" | "_id"> & { uid: string }) => {
 
     if (type === "private") return (
-        <div className="flex gap-3 w-full sm:w-fit">
+        <div className="flex gap-3 w-full sm:w-fit sm:mx-auto">
             <MuteButton rmid={_id} uid={uid} mute={mute} />
             <Navigate
                 goto={`/user/${display_name}`}
                 comp="link"
-                className="p-2 flex flex-col gap-2 flex-1 sm:w-fit border border-gray40 rounded-md">
+                className="p-2 flex gap-2 flex-1 sm:w-fit border border-gray40 rounded-md">
                 <LinkIcon />
                 <span className="text-sm"></span>
             </Navigate>
@@ -103,7 +91,7 @@ const ActionSection = ({ display_name, mute, type, _id, uid }: Pick<FullRoomType
     )
 
     return (
-        <div className="flex gap-3 w-full sm:w-fit">
+        <div className="flex gap-3 w-full sm:w-fit sm:mx-auto">
             <MuteButton rmid={_id} uid={uid} mute={mute} />
             <LeaveRoomButton uid={uid} rmid={_id} />
             <HideRoomButton rmid={_id} uid={uid} />
@@ -118,22 +106,30 @@ const ChatInfoSection = ({ room, uid, children }: PropsWithChildren<{ room: Full
 
     return (
         <BottomSheet button={children}>
-            <div className="w-full px-2 max-w-screen-md mx-auto space-y-4">
-                <section className="flex flex-col flex-cntr-all w-full">
+            <div className="w-full px-2 pb-4 space-y-4">
+                <section className="flex flex-cntr-all w-full gap-4">
                     <ParloImage
                         frameType="userProfile"
-                        className="min-w-12 size-12 object-cover rounded-full"
-                        containerClassName="max-h-12 overflow-hidden"
+                        className="min-w-12 size-12 object-cover"
+                        containerClassName="max-h-12 overflow-hidden rounded-full"
+                        classNameForFallback="min-w-8 size-8 p-1"
                         frame={room.poster}
                         size={48}
-                        alt="Profile Picture of the author of comment"
+                        alt="Poster of room"
                     />
-                    <h1 className="text-xl">{room.display_name}</h1>
+                    <div>
+                        <h1 className="text-xl">{room.display_name}</h1>
+                        <OptionalChildren condition={room.createdAt}>
+                            <p className="text-zinc-500 text-xs sm:text-sm">
+                                Created At: {new Date(room.createdAt).toDateString()}
+                            </p>
+                        </OptionalChildren>
+                    </div>
                 </section>
                 <section>
                     <ActionSection uid={uid} _id={room._id} display_name={room.display_name} mute={room.mute} type={room.type} />
                 </section>
-                <section>
+                <OptionalChildren condition={room.type !== "private"}>
                     <Navigate
                         comp="link"
                         goto={`${room._id}/participants`}
@@ -141,14 +137,7 @@ const ChatInfoSection = ({ room, uid, children }: PropsWithChildren<{ room: Full
                         <span>Participants</span>
                         <RightChevron />
                     </Navigate>
-                </section>
-                {room.createdAt && (
-                    <section>
-                        <p className="text-zinc-500">
-                            Created At: {new Date(room.createdAt).toDateString()}
-                        </p>
-                    </section>
-                )}
+                </OptionalChildren>
             </div>
         </BottomSheet>
     )

@@ -2,6 +2,7 @@
 
 import { AddIcon, EditIcon } from "@assets/Icons";
 import { GenericWrapper, Navbar } from "@components";
+import { OptionalChildren } from "@components/ui";
 import { SimpleUserBar } from "@components/ui/UserBar";
 import { threadManagersLimit } from "@lib/constants";
 import { getManagers } from "@lib/helpers/common";
@@ -11,7 +12,7 @@ import useCurrentUser from "@store/user";
 import { ThreadModType } from "@type/internal";
 import { TypedFunction } from "@type/other";
 import { InviteManagers, RemoveManagers } from "./EditManagers";
-import { OptionalChildren } from "@components/ui";
+import FullPageUserBarSkeleton from "./loading";
 
 type Props = {
     tid: string,
@@ -84,44 +85,36 @@ const Component = (data: ThreadModType, { tid, uid }: Props) => {
             <section className="space-y-4 px-2">
 
                 <div className="space-y-2">
-                    <h4 className="uppercase text-sm font-semibold">Managers</h4 >
-                    {Boolean(managers.length) ?
-                        (
-                            <ul className="space-y-3">
-                                {managers.map(u => (
-                                    <li key={u.user_id}>
-                                        <SimpleUserBar _id={u.user_id} username={u.username} profile={u.profile} />
-                                    </li>
-                                ))}
-                            </ul>
-                        )
-                        :
-                        (
-                            <p className="text-center">No Managers Yet</p>
-                        )
-                    }
+                    <h4 className="uppercase text-sm font-semibold">Managers</h4>
+                    <OptionalChildren condition={managers.length} fallback={(
+                        <p className="text-center">No Managers Yet</p>
+                    )}>
+                        <ul className="space-y-3">
+                            {managers.map(u => (
+                                <li key={u.user_id}>
+                                    <SimpleUserBar _id={u.user_id} username={u.username} profile={u.profile} />
+                                </li>
+                            ))}
+                        </ul>
+                    </OptionalChildren>
                 </div>
 
                 <div className="space-y-2">
                     <h4 className="uppercase text-sm font-semibold">Invitees</h4>
-                    {Boolean(invitees.length) ?
-                        (
-                            <ul className="space-y-3">
-                                {invitees.map(u => (
-                                    <li key={u.user_id}>
-                                        <SimpleUserBar _id={u.user_id} username={u.username} profile={u.profile} />
-                                    </li>
-                                ))}
-                            </ul>
-                        )
-                        :
-                        (
-                            <p className="text-center">No Invitees Yet</p>
-                        )
-                    }
+                    <OptionalChildren condition={invitees.length} fallback={(
+                        <p className="text-center">No Invitees Yet</p>
+                    )}>
+                        <ul className="space-y-3">
+                            {invitees.map(u => (
+                                <li key={u.user_id}>
+                                    <SimpleUserBar _id={u.user_id} username={u.username} profile={u.profile} />
+                                </li>
+                            ))}
+                        </ul>
+                    </OptionalChildren>
                 </div>
 
-            </section >
+            </section>
 
         </>
     )
@@ -132,17 +125,19 @@ const Managers = ({ tid }: { tid: string }) => {
     const { meta } = useCurrentUser();
     if (!meta) return null;
 
-    return <GenericWrapper
-        component={Component}
-        getQueryProps={({ tid }) => ({
-            args: [tid, meta.user_id],
-            queryFn: getManagers,
-            queryKeys: getQueryKeys("threadManagers_tid", { tid })
-        })}
-        props={{ tid, uid: meta.user_id }}
-        needUser
-    />
-
+    return (
+        <GenericWrapper
+            component={Component}
+            loadingComponent={<FullPageUserBarSkeleton />}
+            getQueryProps={({ tid }) => ({
+                args: [tid, meta.user_id],
+                queryFn: getManagers,
+                queryKeys: getQueryKeys("threadManagers_tid", { tid })
+            })}
+            props={{ tid, uid: meta.user_id }}
+            needUser
+        />
+    )
 }
 
 export default Managers;

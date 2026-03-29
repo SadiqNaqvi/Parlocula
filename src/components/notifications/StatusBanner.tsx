@@ -24,7 +24,7 @@ const StatusBanner = () => {
     if (!meta) return null;
 
     if (!isEnabled) return (
-        <section className="my-4 py-4 border border-dashed border-gray40 space-y-3">
+        <section className="px-2 my-4 py-4 space-y-3">
 
             <h2 className="sm:text-xl">You{"'"}re missing out big time 😨</h2>
             <p className="text-sm">

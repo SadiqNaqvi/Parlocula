@@ -22,7 +22,7 @@ export type InfiniteScrollerProps = {
     additional?: any;
     initialPage?: number,
     initialData?: { data: any[], total: number } | null,
-    Loading?: React.ComponentType<any>,
+    Loading?: React.ReactNode,
     className?: string;
     paginate?: boolean;
     placeholderData?: InfiniteQueryResponse<any> | AggregatedResponse<any>
@@ -96,8 +96,7 @@ export default function InfiniteScroller({ Loading, showFooter, onSuccess, place
     }
 
     const LoadingComponent = () => {
-        const LoadingComp = Loading ?? LoadingSpinner
-        return <LoadingComp />
+        return Loading ?? <LoadingSpinner />
     }
 
     const NotFoundComponent = ({ ActionButton, paras, title }: {

@@ -3,6 +3,9 @@
 import { useNavigation } from "@store/historystack";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import NavigationSheet from "./sheets/NavigateSheet";
+import { useRef } from "react";
+import { BottomSheetRef } from "./BottomSheet";
 
 type NavigateType = {
     children: React.ReactNode;
@@ -12,10 +15,11 @@ type NavigateType = {
 } & React.ButtonHTMLAttributes<HTMLButtonElement> & React.AnchorHTMLAttributes<HTMLAnchorElement>
 
 
-const Navigate = ({ children, comp, goto, type, className, preload, ...args }: NavigateType) => {
+const Navigate = ({ children, comp, goto, type, className, preload, onContextMenu, ...args }: NavigateType) => {
 
     const navigator = useNavigation();
     const pathname = usePathname();
+    const sheetRef = useRef<BottomSheetRef>(null);
 
     const handleNavigation = (e: any) => {
         e.preventDefault();
@@ -27,22 +31,41 @@ const Navigate = ({ children, comp, goto, type, className, preload, ...args }: N
         else navigator.goto(goto);
     }
 
+    const handleContextMenu = (e: any) => {
+        e.preventDefault();
+        e.stopPropagation();
+        sheetRef.current?.open();
+    }
+
     if (comp === "button") return (
-        <button {...args} type="button" className={className} onClick={handleNavigation}>
-            {children}
-        </button>
+        <>
+            <NavigationSheet sheetRef={sheetRef} href={goto} />
+            <button
+                {...args}
+                onContextMenu={onContextMenu ?? handleContextMenu}
+                type="button"
+                className={className}
+                onClick={handleNavigation}
+            >
+                {children}
+            </button>
+        </>
     )
 
     else return (
-        <Link
-            prefetch={preload ?? false}
-            href={goto}
-            onClick={handleNavigation}
-            className={className}
-            {...args}
-        >
-            {children}
-        </Link>
+        <>
+            <NavigationSheet sheetRef={sheetRef} href={goto} />
+            <Link
+                {...args}
+                prefetch={preload ?? false}
+                href={goto}
+                onClick={handleNavigation}
+                onContextMenu={onContextMenu ?? handleContextMenu}
+                className={className}
+            >
+                {children}
+            </Link>
+        </>
     );
 }
 

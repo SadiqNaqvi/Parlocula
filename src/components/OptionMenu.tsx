@@ -3,16 +3,16 @@
 import { XmarkIcon } from "@assets/Icons";
 import React, { RefObject } from "react";
 import { Drawer } from "vaul";
-import BottomSheet, { BottomSheetRef } from "./BottomSheet";
+import BottomSheet, { BottomSheetProps, BottomSheetRef } from "./BottomSheet";
 import { OptionalChildren } from "./ui";
 
 type Props = {
-    ButtonElement: React.ReactNode
+    ButtonElement?: React.ReactNode
     children: React.ReactNode,
     heading?: string;
     controls?: "auto" | "manual",
     sheetRef?: RefObject<BottomSheetRef | null>
-} & React.HTMLAttributes<HTMLButtonElement>
+} & BottomSheetProps
 
 const OptionMenu = ({ children, heading, controls = "auto", ButtonElement, sheetRef, ...args }: Props) => (
     <BottomSheet ref={sheetRef} {...args} button={ButtonElement}>

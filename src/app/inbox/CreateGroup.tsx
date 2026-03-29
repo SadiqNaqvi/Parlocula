@@ -23,7 +23,7 @@ const SubmitButton = ({ children, onSubmit }: PropsWithChildren<{ onSubmit?: Typ
 }
 
 
-const CreateGroup = ({ goBack }: { goBack: TypedFunction }) => {
+const CreateGroup = () => {
 
     const { meta } = useCurrentUser();
     const ref = useRef<ListSelectorRef>(null);
@@ -69,7 +69,7 @@ const CreateGroup = ({ goBack }: { goBack: TypedFunction }) => {
 
     if (page === 1) return (
         <>
-            <Navbar onGoBack={goBack} navTitle="Create Group" />
+            <Navbar hrefToRedirect="/inbox" navTitle="Create Group" />
             <Poster ref={posterRef} className="mt-4 mb-2 mx-auto" />
             <Form
                 className="space-y-2"
@@ -94,7 +94,7 @@ const CreateGroup = ({ goBack }: { goBack: TypedFunction }) => {
 
     return (
         <>
-            <Navbar onGoBack={goBack} navTitle="Create Group" />
+            <Navbar onGoBack={() => setter({ page: 1 })} navTitle="Create Group" />
 
             <div className="mb-8 w-full">
                 <ListSelector

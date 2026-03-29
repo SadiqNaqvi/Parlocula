@@ -63,10 +63,10 @@ export const POST = postHandler<MessageSchemaType>({
     const participants = await getParticipantsOfRoom(room_id);
 
     await sendNotificationForMessage(
-      participants.filter(p => p.type !== "invitee").map(p => p.uid),
+      participants.filter(p => !(p.type === "invitee" || p.uid === user_id)).map(p => p.uid),
       {
-        title: `New message • ${room.display_name}`,
-        body: rest.content,
+        title: "New message",
+        body: `${room.display_name}: ${rest.content.slice(0, 50)}`,
         icon: room.poster ? getPoster({ external: false, path: room.poster.path, extSource: room.poster.extSource }) : undefined,
         path: `/inbox/${room_id}-${room.display_name}`,
         tag: `message-${room_id}`,
@@ -75,6 +75,7 @@ export const POST = postHandler<MessageSchemaType>({
     );
 
     const message: MessageModelType = { ...rest, room_id, user_id, username };
+
     await handleNewMessage(room_id, user_id, message, session);
 
     return { success: true, result: null, revalidateQueue: [] };

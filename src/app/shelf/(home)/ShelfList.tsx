@@ -1,7 +1,8 @@
 "use client";
 
-import { InfiniteScroller, Navbar } from "@components"
-import FilterTiles from "@components/FilterTiles";
+import { InfiniteScroller, Navbar, FilterTiles } from "@components"
+import { OptionalChildren } from "@components/ui";
+import { ShelfBarListSkeleton } from "@components/ui/loading";
 import ShelfBar from "@components/ui/ShelfBar";
 import { getPrivateShelvesOfUser, getShelvesAsCollaborator, getShelvesAsInvitee, getShelvesOfUser } from "@lib/helpers/common";
 import { getQueryKeys, refineSearchParams } from "@lib/utils";
@@ -49,14 +50,15 @@ const ShelfList = ({ title, uid, type, filter }: Props) => {
         <>
             <Navbar navTitle={title} />
 
-            {filter && (
+            <OptionalChildren condition={filter}>
                 <div className="my-4">
                     <FilterTiles type="shelves" />
                 </div>
-            )}
+            </OptionalChildren>
 
             <section className="mt-4">
                 <InfiniteScroller
+                    Loading={<ShelfBarListSkeleton count={12} />}
                     Component={ShelfBar}
                     fetchData={queryFn}
                     queryKeys={queryKeys}

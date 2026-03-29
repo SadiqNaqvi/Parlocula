@@ -10,8 +10,6 @@ type PullToRefreshProps = {
 export const refreshPage = async () => {
     const queryClient = getQueryClient();
 
-    await new Promise((res) => setTimeout(res, 15 * 1000));
-
     const queries = queryClient.getQueryCache()
         .getAll()
         .filter(query => query.getObserversCount() > 0)
@@ -21,6 +19,7 @@ export const refreshPage = async () => {
 
     await Promise.all(queries.map(query => queryClient.refetchQueries({ queryKey: query })));
 }
+
 const minLenthToPull = 60;
 const threshold = 160;
 
@@ -31,7 +30,6 @@ export default function PullToRefresh({ children }: PullToRefreshProps) {
 
     const startY = useRef<number | null>(null);
     const isPulling = useRef(false);
-    const shouldShowAnimation = useRef(false);
     const latestDistance = useRef(0);
     const animationFrame = useRef<number | null>(null);
 
@@ -47,8 +45,6 @@ export default function PullToRefresh({ children }: PullToRefreshProps) {
         console.log("yaha aaya");
         if (!isPulling.current || startY.current === null) return;
         const distance = e.touches[0].clientY - startY.current;
-
-        console.log("yaha bhi aaya");
 
         // if (distance > 0 && distance < minLenthToPull) {
         //     // e.preventDefault();
@@ -123,7 +119,7 @@ export default function PullToRefresh({ children }: PullToRefreshProps) {
         };
     }, []);
 
-    const status = refreshing ? "Oh Yes Daddy!!"
+    const status = refreshing ? "Refreshing!!"
         : pullDistance === 0 ? ''
             : pullDistance < threshold ? "Just a bit more!"
                 : "YES, Release it";

@@ -8,6 +8,7 @@ import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { ParloPageProps } from "@type/other";
 import { cookies } from "next/headers";
 import { PropsWithChildren } from "react";
+import DefaultSection from "../DefaultSection";
 
 const ChatLayout = async ({ params, children }: PropsWithChildren<ParloPageProps>) => {
     const { id } = await params;
@@ -21,6 +22,10 @@ const ChatLayout = async ({ params, children }: PropsWithChildren<ParloPageProps
     if (!user) return (
         <LoginModal redirectTo="/inbox" />
     )
+
+    else if (rmid === "search" || rmid === "new" || rmid === "invitations") return (
+        <DefaultSection />
+    );
 
     const room = await fetchQuery({
         queryClient,

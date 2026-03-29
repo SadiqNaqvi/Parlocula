@@ -1,17 +1,15 @@
-import { ContentFiltered } from "@components/fallbacks";
-import { NotFound } from "@components/ui";
-import { FullPageLoadingSpinner } from "@components/ui/loading/LoadingSpinner";
-import { TabContainer, TabList } from "@components/ui";
+import { NotFound, TabContainer, TabList } from "@components/ui";
+import PostPageSkeleton from "@components/ui/loading/PostPageSkeleton";
 import { getUserFromToken } from "@lib/auth/utils";
 import { checkIfItemSaved, getPostById, getReactionOnPost } from "@lib/helpers/common";
 import { fetchQuery, getQueryClient, prefetchQuery } from "@lib/providers/queryClient";
 import { calculateAge, getQueryKeys, isValidParloId } from "@lib/utils";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
+import { ParloPageProps } from "@type/other";
 import { Metadata } from "next";
 import { cookies } from "next/headers";
 import { PropsWithChildren, Suspense } from "react";
 import PostHeader from "./PostHeader";
-import { ParloPageProps } from "@type/other";
 
 export const generateMetadata = async ({ params }: ParloPageProps): Promise<Metadata> => {
 
@@ -89,7 +87,7 @@ const Fetcher = async ({ id, children }: PropsWithChildren<{ id: string }>) => {
 
 const PostLayout = async ({ children, params }: PropsWithChildren<ParloPageProps>) => {
     const { id } = await params;
-    const [pid, ...rest] = id.split('-');
+    const [pid] = id.split('-');
 
     if (!isValidParloId(pid)) return (
         <main>
@@ -105,7 +103,7 @@ const PostLayout = async ({ children, params }: PropsWithChildren<ParloPageProps
 
     return (
         <main className="noPadding">
-            <Suspense fallback={<FullPageLoadingSpinner path={rest} />}>
+            <Suspense fallback={<PostPageSkeleton />}>
                 <Fetcher id={pid}>
                     {children}
                 </Fetcher>

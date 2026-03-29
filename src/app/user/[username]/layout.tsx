@@ -1,14 +1,14 @@
-import { FullPageLoadingSpinner } from "@components/ui/loading/LoadingSpinner";
+import { PullToRefresh, Sidebar } from "@components";
+import { OptionalChildren } from "@components/ui";
+import { UserPageSkeleton } from "@components/ui/loading";
 import { getUserFromToken } from "@lib/auth/utils";
-import { checkUserConnection, getCurrentUser, getRoomByUserId, getUserByUsername } from "@lib/helpers/common";
+import { checkUserConnection, getRoomByUserId, getUserByUsername } from "@lib/helpers/common";
 import { fetchQuery, getQueryClient, prefetchQuery } from "@lib/providers/queryClient";
 import { getQueryKeys } from "@lib/utils";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { cookies } from "next/headers";
 import { PropsWithChildren, Suspense } from "react";
 import Header from "./Header";
-import { PullToRefresh, Sidebar } from "@components";
-import { OptionalChildren } from "@components/ui";
 
 export const generateMetadata = async ({ params }: { params: Promise<{ username: string }> }) => {
 
@@ -72,9 +72,11 @@ const Fetcher = async ({ username, children }: PropsWithChildren<{ username: str
 }
 
 const Layout = async ({ children, params }: PropsWithChildren<{ params: Promise<{ username: string }> }>) => {
+
     const { username } = await params;
+
     return (
-        <Suspense fallback={<FullPageLoadingSpinner path={[username]} />}>
+        <Suspense fallback={<UserPageSkeleton heading={username} />}>
             <Fetcher username={username}>{children}</Fetcher>
         </Suspense>
     )

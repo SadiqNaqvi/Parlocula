@@ -74,7 +74,6 @@ const JoinButton = ({ thread, uid }: { thread: MereThread, uid?: string }) => {
         return (
             <div className="grid gap-2 grid-cols-2 sm:grid-cols-4">
                 <OptionMenu
-                    id="connection-options"
                     ButtonElement={<>Joined {state.notification ? <BellIcon /> : <BellSlashIcon />}</>}
                     className="secondary flex-1 sm:flex-0"
                 >

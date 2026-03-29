@@ -62,13 +62,15 @@ export const prefetchQuery = ({ queryClient, queryFn, queryKey }: QueryProps) =>
 
 export const fetchInfiniteQuery = async  <T = unknown>({ queryClient, queryFn, queryKey, initialPageParam = 1 }: InfiniteQueryProps<T>) => {
     try {
-        return await queryClient.fetchInfiniteQuery({
+        const lala = await queryClient.fetchInfiniteQuery({
             queryKey,
             queryFn: () => refineResponseForInfiniteQuery(queryFn, initialPageParam) as Promise<T>,
             staleTime: 60 * 60 * 1000,
             gcTime: 60 * 60 * 1000,
             initialPageParam,
         });
+
+        
     } catch (e: any) {
         console.log("Error occured while fetching infinite data", e.message);
         return null;

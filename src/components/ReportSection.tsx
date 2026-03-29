@@ -58,7 +58,7 @@ const ReportSection = ({ content_id, isThread, uid }: SectionProps) => {
         const [selectedReason, setSelectedReason] = useOptionalState(data?.reports[0]?._id)
 
         if (!data || !data.reports || data.reports.length) return (
-            <section className="forceCenter">
+            <section className="h-size-screen flex flex-cntr-all">
                 <p>Nothing to see here</p>
             </section>
         );
@@ -69,7 +69,7 @@ const ReportSection = ({ content_id, isThread, uid }: SectionProps) => {
         reasonDetailsMap.current = new Map(reports.map(report => [report._id, report.content]));
 
         return (
-            <section>
+            <section className="h-size-screen">
                 <ul className="flex my-4 overflow-x-auto noScroll gap-2">
                     {reasons.current.map(reason => (
                         <li

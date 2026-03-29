@@ -12,7 +12,7 @@ const RoomMembersPage = async ({ params }: ParloPageProps) => {
 
     const { id } = await params;
 
-    const jar = await cookies()
+    const jar = await cookies();
     const user = await getUserFromToken(jar);
 
     if (!user) return null;

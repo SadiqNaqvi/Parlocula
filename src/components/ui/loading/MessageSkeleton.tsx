@@ -1,19 +1,22 @@
+import { RandomHorizontalLinesSkeleton } from "./tools";
+
 const MessageSkeleton = () => (
-    <div className="w-full flex flex-col px-2">
-        {Array(4).fill(0).map((_, ind) => (
-            <section key={ind} className={`my-3 w-1/2 space-y-1 ${ind % 2 === 0 ? "self-end flex flex-col items-end" : ''}`}>
-                <>
-                    {Array(3).fill(0).map((_, i) => (
-                        <div
-                            style={{ width: `${30 * (i + 1)}%` }}
-                            className="skeleton-pulse-loading h-2 bg-gray40 rounded-md"
-                            key={i}>
-                        </div>
-                    ))}
-                </>
-            </section>
+    <li className="group w-full p-2">
+        <RandomHorizontalLinesSkeleton
+            count={3}
+            className="h-3"
+            containerClassName="w-full flex flex-col group-even:items-end"
+            width="50%"
+        />
+    </li>
+)
+
+export const MessagePageSkeleton = ({ count = 8 }: { count?: number }) => (
+    <ul>
+        {Array(count).fill(0).map((_, i) => (
+            <MessageSkeleton key={i} />
         ))}
-    </div>
+    </ul>
 )
 
 export default MessageSkeleton;

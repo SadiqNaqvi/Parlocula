@@ -22,11 +22,11 @@ const ShowError = ({ heading, errCode, messages = [], retry, fullScreen, classNa
             <OptionalChildren condition={fullScreen}>
                 <Navbar />
             </OptionalChildren>
-            <section className={twMerge(`${fullScreen ? "size-screen flex flex-cntr-all" : "forceCenter"} flex-col gap-3`, className)}>
+            <div className={twMerge("h-size-screen flex flex-cntr-all flex-col gap-3", className)}>
 
-                <ErrorFaceIcon className="size-40 mx-auto" />
+                <ErrorFaceIcon className="size-32 sm:size-40 mx-auto" />
 
-                <h4 className="text-xl text-center">{heading || "Oh ho! Error Encountered"}</h4>
+                <h4 className="text-lg sm:text-xl text-center">{heading || "Oh ho! Error Encountered"}</h4>
 
                 {errCode &&
                     <p className="text-sm text-zinc-500 text-center">{codetoError(errCode) as string}</p>
@@ -37,7 +37,7 @@ const ShowError = ({ heading, errCode, messages = [], retry, fullScreen, classNa
                 ))}
 
                 {retry && <button className="secondary mx-auto" onClick={retry}>Try again</button>}
-            </section>
+            </div>
         </>
     )
 }

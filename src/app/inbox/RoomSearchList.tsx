@@ -1,18 +1,23 @@
 "use client";
 
+import { LeftChevron } from "@assets/Icons";
 import { Navbar, SearchInList } from "@components";
 import RoomBar from "@components/ui/RoomBar";
 import { searchRooms } from "@lib/helpers/common";
-import { TypedFunction } from "@type/other";
+import { useSearchParams } from "next/navigation";
 
-const RoomSearchList = ({ goBack, uid }: { goBack: TypedFunction, uid: string }) => {
+const RoomSearchList = ({ uid }: { uid: string }) => {
+
+    const sp = useSearchParams();
+    const query = sp.get("q");
 
     return (
         <>
-            <Navbar navTitle="Search Rooms" onGoBack={goBack} />
+            <Navbar navTitle="Search Rooms" />
             <section className="px-2">
                 <SearchInList
                     Component={RoomBar}
+                    initialQuery={query}
                     queryFn={(q, p) => searchRooms(uid, q, p)}
                     queryKeys={(q) => ["search", "rooms", q]}
                 />

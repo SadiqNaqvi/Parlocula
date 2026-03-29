@@ -127,7 +127,12 @@ const performMutation = async <T, M = undefined>({ mutationFn, onError, beforeMu
             return { success: false, error: handleErrorFromMutation(response) };
         }
     } catch (err: any) {
-        console.error("Error occured while performing mutation:", err.message);
+        console.warn("Error occured while performing mutation:", err.message);
+
+        onError?.({ error: "uncaught_error", context });
+        if (codeToReturn && codeToReturn === "uncaught_error")
+            return { success: false, error: "uncaught_error" };
+
         return { success: false, error: unstableInternetError() };
     } finally {
         onSettle?.();
@@ -137,7 +142,7 @@ const performMutation = async <T, M = undefined>({ mutationFn, onError, beforeMu
 // Optimistic Mutation Helper
 type Matcher<T> = (result: T) => boolean;
 
-export const addDocsInInfiniteQueryResult = <T = unknown>(queryKeys: string[], data: T, addToLast?: boolean) => {
+export const addDocsInInfiniteQueryResult = <T = unknown>(queryKeys: string[], data: T) => {
 
     const queryClient = getQueryClient();
 
@@ -158,7 +163,7 @@ export const addDocsInInfiniteQueryResult = <T = unknown>(queryKeys: string[], d
 
         const newPages = [
             {
-                results: addToLast ? [...results, ...arrToAdd] : [...arrToAdd, ...results],
+                results: [...arrToAdd, ...results],
                 total_results: total_results + 1,
                 ...rest,
             },
@@ -1382,8 +1387,7 @@ export const showMessageOptimistically = ({ message, uid }: {
 
     addDocsInInfiniteQueryResult<MereMessage>(
         getQueryKeys("messages_rmid", { rmid: message.room_id }),
-        message,
-        true
+        message
     );
 }
 
@@ -1395,12 +1399,14 @@ export const sendMessage = async (rmid: string, uid: string, message: MessageSch
         mutationFn: () => ppPostData({ url: `room/${rmid}/message`, uid, data: message }),
         onMutate: () => {
             updateRoom({ status: "sending" }, rmid);
-            return addDocsInInfiniteQueryResult<MereMessage>(messageListKey, {
-                ...message,
-                status: "sending",
-                room_id: rmid,
-                user_id: uid
-            }, true);
+            return addDocsInInfiniteQueryResult<MereMessage>(
+                messageListKey,
+                {
+                    ...message,
+                    status: "sending",
+                    room_id: rmid,
+                    user_id: uid
+                });
         },
 
         onSuccess: () => {
@@ -1414,8 +1420,8 @@ export const sendMessage = async (rmid: string, uid: string, message: MessageSch
             updateDocInInfiniteQueryResult<MereMessage>(
                 messageListKey,
                 (m) => m._id === message._id,
-                { status: "sent" }
-            )
+                { status: undefined }
+            );
         },
         onError: () => {
             updateRoom({ status: "error" }, rmid);
@@ -1424,6 +1430,49 @@ export const sendMessage = async (rmid: string, uid: string, message: MessageSch
                 messageListKey,
                 (m) => m._id === message._id,
                 { status: "error" }
+            )
+        },
+    })
+}
+
+export const retryMessage = async (msg_id: string, rmid: string, uid: string, message: MereMessage) => {
+    const messageListKey = getQueryKeys("messages_rmid", { rmid });
+    const { updateRoom } = useRoomStore.getState();
+
+    await performMutation({
+        mutationFn: () => ppPostData({ url: `room/${rmid}/message`, uid, data: message }),
+        onMutate: () => {
+            updateRoom({ status: "sending" }, rmid);
+            return updateDocInInfiniteQueryResult<MereMessage>(
+                messageListKey,
+                (message) => message._id === msg_id,
+                {
+                    status: "sending",
+                }
+            );
+        },
+
+        onSuccess: () => {
+            updateRoom({
+                status: undefined,
+                lastMessage: message.content,
+                lastMessageAt: message.createdAt,
+                lastMessageBy: uid,
+            }, rmid);
+
+            updateDocInInfiniteQueryResult<MereMessage>(
+                messageListKey,
+                (m) => m._id === message._id,
+                { status: undefined }
+            )
+        },
+        onError: () => {
+            updateRoom({ status: "error" }, rmid);
+
+            updateDocInInfiniteQueryResult<MereMessage>(
+                messageListKey,
+                (m) => m._id === message._id,
+                { status: "error" },
             )
         },
     })

@@ -3,6 +3,7 @@
 import { RightChevron } from "@assets/Icons";
 import { InfiniteScroller, Navigate } from "@components";
 import { OptionalChildren, ShelfBar } from "@components/ui";
+import { ShelfBarListSkeleton } from "@components/ui/loading";
 import { getShelvesOfUser } from "@lib/helpers/common";
 import { getQueryKeys } from "@lib/utils";
 import { RequestedUser } from "@type/internal";
@@ -46,7 +47,7 @@ const Shelves = ({ filter, page, user, current }: Props) => {
     <section className="h-size-screen">
 
       <OptionalChildren condition={current}>
-        <Navigate goto="/shelf" comp="link" className="my-4 mx-2 p-2 rounded-md border border-gray30 flex flex-cntr-between">
+        <Navigate goto="/shelf" comp="link" className="my-4 mx-2 px-2 py-3 rounded-md border border-gray30 flex flex-cntr-between">
           <span>View All Shelves</span>
           <RightChevron />
         </Navigate>
@@ -57,6 +58,7 @@ const Shelves = ({ filter, page, user, current }: Props) => {
       <InfiniteScroller
         initialPage={page}
         className="space-y-2"
+        Loading={<ShelfBarListSkeleton />}
         queryKeys={getQueryKeys("shelvesOfUser_uid_filter", { uid, filter })}
         fetchData={(p) => getShelvesOfUser(uid, p, filter)}
         Component={ShelfBar}

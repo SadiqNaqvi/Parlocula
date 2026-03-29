@@ -2,6 +2,7 @@
 
 import { InfiniteScroller } from "@components";
 import { ThreadTile } from "@components/ui";
+import ThreadBarSkeleton, { ThreadListSkeleton } from "@components/ui/loading/ThreadBarSkeleton";
 import { createdThreadsOfUser, getThreads, joinedThreadsOfUser, threadsManageByUser } from "@lib/helpers/common";
 import { getQueryKeys } from "@lib/utils";
 import useOfflineStore from "@store/offlineStore";
@@ -18,9 +19,11 @@ type Props =
     ({ section: "popular" } & PopularSectionProps)
     | { section: "joined" | "created" | "manages" };
 
+
 const ManageThreadsList = ({ uid }: { uid: string }) => {
     return (
         <InfiniteScroller
+            Loading={<ThreadListSkeleton />}
             Component={ThreadTile}
             fetchData={(p) => threadsManageByUser(uid, p)}
             queryKeys={getQueryKeys("threadsManageByUser_uid", { uid })}
@@ -31,6 +34,7 @@ const ManageThreadsList = ({ uid }: { uid: string }) => {
 const CreatedThreadsList = ({ uid }: { uid: string }) => {
     return (
         <InfiniteScroller
+            Loading={<ThreadListSkeleton />}
             Component={ThreadTile}
             fetchData={(p) => createdThreadsOfUser(uid, p)}
             queryKeys={getQueryKeys("createdThreadsOfUser_uid", { uid })}
@@ -42,6 +46,7 @@ const JoinedThreadsList = ({ uid }: { uid: string }) => {
     const [threadList, setThreadList] = useOfflineStore<InfiniteQueryResponse | undefined>("joined-threads", undefined);
     return (
         <InfiniteScroller
+            Loading={<ThreadListSkeleton />}
             Component={ThreadTile}
             fetchData={(p) => joinedThreadsOfUser(uid, p)}
             queryKeys={getQueryKeys("joinedThreadsOfUser_uid", { uid })}
@@ -56,6 +61,7 @@ const JoinedThreadsList = ({ uid }: { uid: string }) => {
 
 const PopularThreadsList = ({ filter, page, allowNsfw }: PopularSectionProps) => (
     <InfiniteScroller
+        Loading={<ThreadListSkeleton />}
         initialPage={page}
         Component={ThreadTile}
         fetchData={(p) => getThreads(p, allowNsfw, filter)}

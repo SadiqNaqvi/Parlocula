@@ -12,6 +12,7 @@ import OptionsButton from "./OptionsButton";
 import ReactionButton from "./ReactionButton";
 import { ContentFiltered } from "@components/fallbacks";
 import FrameSlider from "./FrameSlider";
+import PostPageSkeleton from "@components/ui/loading/PostPageSkeleton";
 
 type Props = { id: string, uid: string | undefined }
 
@@ -149,8 +150,8 @@ const Component = (data: FullPost, { uid }: Props) => {
 
 const PostHeader = (props: Props) => {
 
-
     return <GenericWrapper
+        loadingComponent={<PostPageSkeleton />}
         component={Component}
         getQueryProps={getQueryProps}
         props={props}

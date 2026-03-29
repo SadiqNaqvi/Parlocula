@@ -10,9 +10,10 @@ import axios from "axios";
 import { useEffect, useReducer, useRef, useState } from "react";
 import { oneDayInSeconds, oneHourInMiliSeconds, oneHourInSeconds } from "./constants";
 import { fetchTrendingMovies, fetchTrendingShows } from "./contentFetcher";
-import { ppGetData } from "./helpers/common";
+import { getTrendingPosts, getUserFeed, ppGetData } from "./helpers/common";
 import { getAblyOnClient } from "./providers/ably";
-import { infiniteScrollerResponse, refineResponseForInfiniteQuery, refineResponseForQuery } from "./utils";
+import { getQueryKeys, infiniteScrollerResponse, refineResponseForInfiniteQuery, refineResponseForQuery } from "./utils";
+import { getQueryClient } from "./providers/queryClient";
 
 type InfiniteQueryProps<T> = {
     queryFn: (pageParams: number) => Promise<GeneralMultipleReturn<T> | GeneralGetReturn<PaginatedData>>,
@@ -290,6 +291,7 @@ export const useMutationStore = <T = unknown>(): MutationStoreReturn<T> => {
 type AggregatedPost = MerePost & { score: number }
 type TmdbSlide = { _id: string, isSlide: true, title: string, data: RefinedGeneralData[] };
 export type FeedPost = AggregatedPost | TmdbSlide;
+type CachedResponse = InfiniteData<InfiniteQueryResponse<AggregatedPost>>;
 
 const refineResponse = (resp: GeneralGetReturn<AggregatedResponse<AggregatedPost>>): AggregatedResponse<AggregatedPost> => {
     if (!resp) return { data: [], total: 0 }
@@ -313,18 +315,35 @@ const getTmdbSlides = async (p: number): Promise<Omit<TmdbSlide, "isSlide">[]> =
     ]
 }
 
+const trendingPostsFromCacheOrSource = async (p: number): Promise<GeneralMultipleReturn<AggregatedPost>> => {
+
+    const queryClient = getQueryClient();
+    const cache = queryClient.getQueryData<CachedResponse>(getQueryKeys("trendingPosts", {}));
+    const cachedPosts = cache?.pages[p];
+    if (cachedPosts) return { success: true, result: { data: cachedPosts.results, total: cachedPosts.total_results } };
+    else return await getTrendingPosts(p);
+}
+
+const curatedPostsFromCacheOrSource = async (uid: string, p: number): Promise<GeneralMultipleReturn<AggregatedPost>> => {
+
+    const queryClient = getQueryClient();
+    const cache = queryClient.getQueryData<CachedResponse>(getQueryKeys("curatedPost_uid", { uid }));
+    const cachedPosts = cache?.pages[p];
+    if (cachedPosts) return { success: true, result: { data: cachedPosts.results, total: cachedPosts.total_results } };
+    else return await getUserFeed(uid, p);
+}
+
 export const useFeedHook = () => {
     const { meta } = useCurrentUser();
     const uid = meta?.user_id;
     const [placeholder, setPlaceholder] = useOfflineStore<AggregatedResponse | undefined>(`usersFeed:${uid ?? "guest"}`, undefined);
 
     const queryFn = async (p: number): Promise<GeneralMultipleReturn<FeedPost>> => {
+
         const [slides, trending, curated] = await Promise.all([
             getTmdbSlides(p),
-            ppGetData<AggregatedResponse<AggregatedPost>>({ url: "post/trending", revalidate: oneDayInSeconds, searchParams: { p } }),
-            ...(uid ? [
-                ppGetData<AggregatedResponse<AggregatedPost>>({ url: `post/user/${uid}`, searchParams: { p } })
-            ] : []),
+            trendingPostsFromCacheOrSource(p),
+            ...(uid ? [curatedPostsFromCacheOrSource(uid, p)] : []),
         ]);
 
         const trendingPosts = refineResponse(trending);
@@ -351,7 +370,6 @@ export const useFeedHook = () => {
                     }
                 });
         } else {
-
             finalFeed = slides.map(slide => ({ ...slide, isSlide: true }));
         }
 

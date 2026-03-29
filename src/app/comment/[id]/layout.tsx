@@ -1,5 +1,5 @@
 import { NotFound } from "@components/fallbacks";
-import { FullPageLoadingSpinner } from "@components/ui/loading/LoadingSpinner";
+import CommentPageSkeleton from "@components/ui/loading/CommentPageSkeleton";
 import { getUserFromToken } from "@lib/auth/utils";
 import { checkIfItemSaved, checkIfReportExists, checkLikeOnComment, getCommentById } from "@lib/helpers/common";
 import { fetchQuery, getQueryClient, prefetchQuery } from "@lib/providers/queryClient";
@@ -101,7 +101,7 @@ const CommentLayout = async ({ children, params }: PropsWithChildren<ParloPagePr
 
     return (
         <main className="noPadding">
-            <Suspense fallback={<FullPageLoadingSpinner />}>
+            <Suspense fallback={<CommentPageSkeleton />}>
                 <Fetcher cid={cid}>{children}</Fetcher>
             </Suspense>
         </main>

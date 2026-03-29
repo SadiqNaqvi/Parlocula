@@ -2,6 +2,8 @@
 
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation";
+import { twMerge } from "tailwind-merge";
+import OptionalChildren from "./OptionalChildren";
 
 export const TabContainer = ({ children, className = "" }: { children: React.ReactNode, className?: string }) => {
     return (
@@ -14,7 +16,7 @@ export const TabList = ({ children, className = "", href }: { children: React.Re
     const router = useRouter();
     const pathname = usePathname();
 
-    const [path] = pathname.split('-');
+    const path = pathname.split('/').map(el=>el.split('-')[0]).join('/');
     const active = path === href;
 
     const changeTab = (e: any) => {
@@ -24,12 +26,15 @@ export const TabList = ({ children, className = "", href }: { children: React.Re
     }
 
     return (
-        <li className={`flex-1 min-w-[24%] *:py-2 border-b-2 border-transparent ${active ? "border-secondary" : "border-gray30"} ${className}`}>
-            {active ?
-                <p className="text-center cursor-not-allowed">{children}</p>
-                :
+        <li className={twMerge("flex-1 min-w-[24%] *:py-2 border-b-2 border-transparent", active ? "border-secondary" : "border-gray30", className)}>
+            <OptionalChildren
+                condition={!active}
+                fallback={(
+                    <p className="text-center cursor-not-allowed">{children}</p>
+                )}
+            >
                 <Link href={href} onClick={changeTab} role="button" className="w-full block text-center" >{children}</Link>
-            }
+            </OptionalChildren>
         </li>
     )
 }

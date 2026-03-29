@@ -1,5 +1,3 @@
-import { FullPageLoadingSpinner } from "@components/ui/loading/LoadingSpinner";
+import ShelfPageSkeleton from "@components/ui/loading/ShelfPageSkeleton";
 
-const Loading = () => <FullPageLoadingSpinner />
-
-export default Loading;
+export default ShelfPageSkeleton;

@@ -24,7 +24,7 @@ export const globalStore = create<GlobalStoreType>((set, get) => ({
 export const useGlobalStore = <T>(
   key: string,
   initial?: T
-): [T, (v: T) => void] => {
+): [T | undefined, (v: T | undefined) => void] => {
 
   const { setter, getter } = globalStore.getState();
 
@@ -34,7 +34,7 @@ export const useGlobalStore = <T>(
 
   const state = globalStore((state) => state.store[key]);
 
-  const set = (val: T) => setter(key, val);
+  const set = (val: T | undefined) => setter(key, val);
 
   return [state, set];
 };

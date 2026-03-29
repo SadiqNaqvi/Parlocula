@@ -7,6 +7,7 @@ import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { cookies } from "next/headers";
 import ChatSection from "./ChatSection";
 import { ParloPageProps } from "@type/other";
+import DefaultSection from "../DefaultSection";
 
 const RoomSection = async ({ params }: ParloPageProps) => {
 
@@ -21,20 +22,15 @@ const RoomSection = async ({ params }: ParloPageProps) => {
 
     else if (!rmid) return (
         <NotFound
-            title="Oops! Looks like the Popcorn Searchers couldn't find anything"
+            title="Oops! Looks like the Popcorn Explorers couldn't find anything"
             paras={["Please search the user in the explore page."]}
             fullScreen
         />
     )
 
-    else if (!isValidParloId(rmid)) return (
-        <div className="forceCenter">
-            <ShowError
-                heading="Oops! Looks like the Popcorn Cop has stopped you"
-                messages={["Room id is invalid!", "Please search the user by their username in the explore page."]}
-            />
-        </div>
-    )
+    else if (rmid === "search" || rmid === "new" || rmid === "invitations") return (
+        <DefaultSection />
+    );
 
     await Promise.all([
         prefetchQuery({

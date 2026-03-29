@@ -41,9 +41,14 @@ const ShelvesPage = async () => {
                         <li key={_id}>
                             <Navigate
                                 comp="link" type="button" goto={`/shelf/${_id}`}
-                                className="size-full p-2 flex flex-cntr-between">
+                                className="size-full px-2 py-3 flex flex-cntr-between"
+                            >
+
                                 <span className="capitalize">{name}</span>
-                                <span><RightChevron className="size-5" /></span>
+
+                                <span>
+                                    <RightChevron className="size-5" />
+                                </span>
                             </Navigate>
                         </li>
                     ))}
@@ -57,9 +62,14 @@ const ShelvesPage = async () => {
                         <li key={path}>
                             <Navigate
                                 comp="link" type="button" goto={path}
-                                className="size-full p-2 flex flex-cntr-between">
+                                className="size-full px-2 py-3 flex flex-cntr-between"
+                            >
                                 <span className="capitalize">{label}</span>
-                                <span><RightChevron className="size-5" /></span>
+
+                                <span>
+                                    <RightChevron className="size-5" />
+                                </span>
+
                             </Navigate>
                         </li>
                     ))}

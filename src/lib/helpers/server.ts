@@ -12,7 +12,7 @@ import { getTimeInFuture } from "@lib/utils";
 import { Notification, ShelfItem, Taleon, User } from "@model";
 import { render } from "@react-email/components";
 import { GeneralGetReturn, GeneralPostReturn } from "@type/internal";
-import { MessageModelType, NotificationModelType, ShelfItemModelType, TaleonModelType } from "@type/models";
+import { NotificationModelType, ShelfItemModelType, TaleonModelType } from "@type/models";
 import type { ClientSession } from "@type/mongoose";
 import { AblyEventParams, PushNotificationType } from "@type/other";
 import { ConfirmedTaleon, TaleonSchemaType } from "@type/schemas";
@@ -20,6 +20,7 @@ import { randomInt } from "crypto";
 import { cookies } from "next/headers";
 import { createTransport } from "nodemailer";
 import webpush, { PushSubscription } from 'web-push';
+import { getParticipantMuteState } from "./redis/messaging";
 
 webpush.setVapidDetails(
   `mailto:contact.qcore@gmail.com`,
@@ -316,10 +317,16 @@ export const sendAppNotification = async (uid: string, title: string) => {
 }
 
 export const sendPushNotification = async (subs: PushSubscription, n: PushNotificationType, urgent?: boolean) => {
-  return await webpush.sendNotification(subs, JSON.stringify(n), {
-    urgency: !urgent ? "high" : "normal",
-    TTL: !urgent ? 0 : 3600,
-  })
+  try {
+    return await webpush.sendNotification(subs, JSON.stringify(n), {
+      urgency: !urgent ? "high" : "normal",
+      TTL: !urgent ? 0 : 3600,
+    });
+  } catch (e: any) {
+    if (e.statusCode === 410) return;
+    console.warn("Error while sending push notification", e);
+    throw new Error(e);
+  }
 }
 
 export const sendNotification = async (
@@ -386,6 +393,7 @@ export const sendNotificationForMessage = async (user_ids: string[], notificatio
   let onlineUsersIds: string[] = [];
   let offlineUsersIds: string[] = [];
 
+  console.log("getting presence for", user_ids);
   await Promise.all(
     user_ids.map(uid => ably.channels.get(uid)
       .presence.get()
@@ -396,10 +404,15 @@ export const sendNotificationForMessage = async (user_ids: string[], notificatio
     )
   );
 
-  const offlineUsers = await User.find(
-    { _id: { $in: offlineUsersIds } },
-    { push_auth: 1, push_endpoint: 1, push_p256dh: 1 }
-  )
+  const muteState = await getParticipantMuteState(offlineUsersIds, data.room_id);
+  const unMuteUsers = muteState.filter(state => !state.mute).map(state => state.uid);
+
+  const offlineUsers = unMuteUsers.length ?
+    await User.find(
+      { _id: { $in: unMuteUsers } },
+      { push_auth: 1, push_endpoint: 1, push_p256dh: 1, _id: 1 }
+    )
+    : [];
 
   await Promise.all<any>([
 
@@ -408,9 +421,9 @@ export const sendNotificationForMessage = async (user_ids: string[], notificatio
       data,
       onlineUsersIds,
     ),
-
     ...offlineUsers.map(user => {
       if (!user.push_auth || !user.push_endpoint || !user.push_p256dh) return;
+
       return sendPushNotification(
         {
           endpoint: user.push_endpoint,
@@ -419,19 +432,14 @@ export const sendNotificationForMessage = async (user_ids: string[], notificatio
             p256dh: user.push_p256dh,
           }
         },
-        {
-          title: notification.title,
-          body: notification.body,
-          icon: notification.icon,
-        },
+        notification,
         true
       )
     })
-  ])
+  ]);
 }
 
 export const deleteUserFromCookies = async () => {
-  "use server";
 
   const jar = await cookies();
   jar.delete("sid");

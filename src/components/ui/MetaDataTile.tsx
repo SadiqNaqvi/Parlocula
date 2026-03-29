@@ -33,7 +33,14 @@ const MetadataTile = ({ children, className, skipDisc, condition, href, nsfw, sp
 
     return (
         <OptionalChildren condition={condition ?? true}>
-            <li className={twMerge("flex gap-2 text-zinc-500 group items-center text-sm", nsfw ? nsfwClassName : '', spoiler ? spoilerClassName : '', className)}>
+            <li
+                style={{ display: "flex" }}
+                className={twMerge(
+                    "gap-2 text-zinc-500 group items-center text-sm",
+                    nsfw ? nsfwClassName : '',
+                    spoiler ? spoilerClassName : '',
+                    className
+                )}>
                 <OptionalChildren condition={href} fallback={(
                     <MetadataContentTile skipDisc={!!nsfw || !!spoiler || skipDisc}>
                         {children}

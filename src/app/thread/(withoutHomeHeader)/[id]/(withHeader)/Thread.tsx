@@ -8,6 +8,7 @@ import { Thread as ThreadType } from "@type/internal";
 import { ActionsButton, EllipsisButton, ThreadDetailsSheet } from "./";
 import { OptionalChildren, ParloImage } from "@components/ui";
 import { ContentFiltered } from "@components/fallbacks";
+import { ThreadPageSkeleton } from "@components/ui/loading";
 
 type Props = { id: string, uid?: string }
 
@@ -23,7 +24,6 @@ const Component = (data: ThreadType, { id, uid }: Props) => {
 
     return (
         <>
-
             <OptionalChildren condition={nsfw}>
                 <ContentFiltered allow={uid === created_by} redirectPath={`/thread/${_id}`} />
             </OptionalChildren>
@@ -77,6 +77,8 @@ const Component = (data: ThreadType, { id, uid }: Props) => {
                             edited_by={edited_by}
                             links={links}
                             managers={managers}
+                            member_count={member_count}
+                            post_count={post_count}
                         />
                     </BottomSheet>
                 </section>
@@ -98,7 +100,12 @@ const Component = (data: ThreadType, { id, uid }: Props) => {
 }
 
 const Thread = (props: Props) => (
-    <GenericWrapper component={Component} getQueryProps={getQueryProps} props={props} />
+    <GenericWrapper
+        loadingComponent={<ThreadPageSkeleton />}
+        component={Component}
+        getQueryProps={getQueryProps}
+        props={props}
+    />
 );
 
 export default Thread;

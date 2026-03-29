@@ -26,6 +26,28 @@ import { Pipeline, ScoreMember } from "@upstash/redis";
 
 // Helper functions for multiple use
 
+const decreaseWithLimit = async (key: string, decreaseBy = 1, limit = 0, pipeline?: Pipeline) => {
+    const transaction = pipeline ?? (await getUpstashRedis()).multi();
+
+    const script = `
+  local current = tonumber(redis.call("GET", KEYS[1]) or "0")
+  local decrement = tonumber(ARGV[1])
+  local new = current - decrement
+
+  if new < ${limit} then
+    new = ${limit}
+  end
+
+  redis.call("SET", KEYS[1], new)
+  return new
+`;
+
+    transaction.eval(script, [key], [decreaseBy]);
+
+    if (pipeline) return pipeline;
+    return await transaction.exec().then(handleUpstashPipelineResponse);
+}
+
 const addRoomsInList = async ({ items, user_id, pipeline, total, updating }: { pipeline?: Pipeline, user_id: string, items: ScoreMember<any>[], total?: number, updating?: boolean }) => {
     const transaction = pipeline ?? (await getUpstashRedis()).multi();
 
@@ -44,10 +66,11 @@ const addRoomsInList = async ({ items, user_id, pipeline, total, updating }: { p
 }
 
 export const removeRoomFromList = async (user_id: string, rmid: string, pipeline?: Pipeline) => {
-    const transaction = pipeline ?? (await getUpstashRedis()).multi();
+    const redis = await getUpstashRedis();
+    const transaction = pipeline ?? redis.multi();
 
     transaction.zrem(`rooms:${user_id}`, rmid);
-    transaction.decr(`rooms:${user_id}:total`);
+    decreaseWithLimit(`rooms:${user_id}:total`, 1, 0, transaction);
 
     if (pipeline) return pipeline;
     return await transaction.exec().then(handleUpstashPipelineResponse);
@@ -84,7 +107,7 @@ const removeInvitationFromList = async (uid: string, rmid: string, pipeline?: Pi
     const transaction = pipeline ?? (await getUpstashRedis()).multi();
 
     transaction.zrem(`user:${uid}:invitations`, rmid);
-    transaction.decr(`user:${uid}:invitations:total`);
+    decreaseWithLimit(`user:${uid}:invitations:total`, 1, 0, transaction);
 
     if (pipeline) return pipeline;
     return await transaction.exec().then(handleUpstashPipelineResponse);
@@ -120,6 +143,19 @@ export const getParticipantsOfRoom = async (room_id: string): Promise<{ uid: str
         const [uid, type] = p.split('-') as [string, ParticipantEnumType]
         return { uid, type }
     });
+}
+
+export const getParticipantMuteState = async (participants: string[], room_id: string): Promise<{ uid: string, mute: boolean }[]> => {
+    const redis = await getUpstashRedis();
+    const multi = redis.multi();
+
+    participants.forEach(uid => {
+        multi.hget(`room:${room_id}:participant:${uid}`, "mute");
+    });
+
+    const state = await multi.exec().then((r: any[]) => handleUpstashPipelineResponse(r));
+
+    return participants.map((uid, i) => ({ uid, mute: !!state[i] }));
 }
 
 export const checkIfParticipantExists = async (room_id: string, user_id: string) => {
@@ -406,7 +442,7 @@ const createPipelineForRoomList = (user_id: string, page: number, invitation?: b
                     return {
                         _id: room_id,
                         display_name: (type === "private" ? otherParticipantMetaData?.username : name) || "Not found",
-                        poster: type === "private" ? otherParticipantMetaData?.profile : poster,
+                        poster: type === "private" ? parseUnknownData(otherParticipantMetaData?.profile) : parseUnknownData(poster),
                         type: participantType,
                         room_type: type,
                         otherParticipant_seenAt: otherParticipantData?.seenAt,
@@ -550,7 +586,7 @@ export const getRoomDetails = async (room_id: string, user_id: string): Promise<
                     return {
                         _id: room_id,
                         display_name: (type === "private" ? participantMeta.username : name) || "Not Found",
-                        poster: type === "private" ? participantMeta.profile : poster,
+                        poster: type === "private" ? parseUnknownData(participantMeta.profile) : parseUnknownData(poster),
                         lastMessage, lastMessageAt, lastMessageBy, mute, participantType, seenAt, type, invitationMessage,
                         otherParticipant_id,
                         otherParticipant_seenAt: participantData?.seenAt,
@@ -660,25 +696,20 @@ export const getMessagesFromCache = async (room_id: string, user_id: string, pag
         getParticipant(room_id, user_id, pipeline);
 
         const [messageIds, total, participant] = await pipeline.exec().then(handleUpstashPipelineResponse) as [MessageItem[], number, CachedParticipantType];
-        console.log("message ids", messageIds);
+
         if (!messageIds?.length || !participant) return null;
 
         const messages = await redis
             .mget<MessageModelType[]>(messageIds.map(({ msg_id }) => `message:${msg_id}`))
-            .then(msgs => {
-                console.log(msgs)
-                return msgs
-                    .map(msg => {
-                        const message = msg;
-                        if (!message || new Date(message.createdAt).getTime() < new Date(participant.hideAt).getTime())
-                            return;
-                        return message;
-                    })
-                    .filter(Boolean)
-            }
+            .then(msgs => msgs
+                .map(msg => {
+                    const message = msg;
+                    if (!message || new Date(message.createdAt).getTime() < new Date(participant.hideAt).getTime())
+                        return;
+                    return message;
+                })
+                .filter(Boolean)
             )
-
-        console.log("messages", messages);
 
         return { data: messages, total: total || 0 }
 

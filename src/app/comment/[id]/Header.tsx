@@ -9,6 +9,7 @@ import Image from "next/image";
 import OptionsButton from "./Ellipsis";
 import LikeButton from "./LikeButton";
 import { ContentFiltered } from "@components/fallbacks";
+import CommentPageSkeleton from "@components/ui/loading/CommentPageSkeleton";
 
 type Props = {
     id: string,
@@ -108,6 +109,15 @@ const Component = (data: FullComment, { uid, id }: Props) => {
     );
 }
 
-const CommentHeader = (props: Props) => GenericWrapper({ component: Component, getQueryProps, props });
+const CommentHeader = (props: Props) => {
+    return (
+        <GenericWrapper
+            loadingComponent={<CommentPageSkeleton />}
+            component={Component}
+            getQueryProps={getQueryProps}
+            props={props}
+        />
+    )
+}
 
 export default CommentHeader;

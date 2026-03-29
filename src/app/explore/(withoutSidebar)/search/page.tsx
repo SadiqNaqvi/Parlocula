@@ -1,8 +1,8 @@
 "use client";
 
 import InfiniteScroller from "@components/InfiniteScroller";
-import { CommentBarWithoutReply, PostBar, SearchTile, ShelfBar, ThreadTile, UserBar } from "@components/ui";
-import { SearchSkeleton } from "@components/ui/loading";
+import { PostBar, SearchTile, ShelfBar, ThreadTile, UserBar } from "@components/ui";
+import { PostListSkeleton, SearchResultSkeletonList, ShelfBarListSkeleton, ThreadListSkeleton, UserBarSkeletonList } from "@components/ui/loading";
 import { searchFilters } from "@lib/constants";
 import { searchAllContent, searchCollection, searchCompany, searchMovie, searchPerson, searchShow } from "@lib/contentFetcher";
 import { searchComments, searchPosts, searchShelves, searchThreads, searchUsers } from "@lib/helpers/common";
@@ -30,6 +30,22 @@ const getQueryFn = (tab: string, nsfw: boolean) => {
 
 }
 
+const LoadingSkeleton = ({ currentFilter }: { currentFilter: string }) => {
+    if (currentFilter === "posts") return <PostListSkeleton />;
+    else if (currentFilter === "threads") return <ThreadListSkeleton count={10} />;
+    else if (currentFilter === "shelves") return <ShelfBarListSkeleton count={10} />;
+    else if (currentFilter === "users") return <UserBarSkeletonList count={10} />;
+    else return <SearchResultSkeletonList count={10} />;
+}
+
+const ComponentToShow = ({ currentFilter, doc }: { currentFilter: string, doc: any }) => {
+    if (currentFilter === "posts") return <PostBar {...doc} />;
+    else if (currentFilter === "threads") return <ThreadTile {...doc} />;
+    else if (currentFilter === "shelves") return <ShelfBar {...doc} />;
+    else if (currentFilter === "users") return <UserBar {...doc} />;
+    else return <SearchTile {...doc} />;
+}
+
 const SearchPage = () => {
 
     const params = useSearchParams();
@@ -39,14 +55,13 @@ const SearchPage = () => {
 
     const { filterContent, isHydrated } = useCurrentUser();
 
-    const ComponentToShow = () => {
-        if (currentFilter === "posts") return PostBar;
-        else if (currentFilter === "comments") return CommentBarWithoutReply;
-        else if (currentFilter === "threads") return ThreadTile;
-        else if (currentFilter === "shelves") return ShelfBar;
-        else if (currentFilter === "users") return UserBar;
-        else return SearchTile;
-    }
+    // const ComponentToShow = () => {
+    //     if (currentFilter === "posts") return PostBar;
+    //     else if (currentFilter === "threads") return ThreadTile;
+    //     else if (currentFilter === "shelves") return ShelfBar;
+    //     else if (currentFilter === "users") return UserBar;
+    //     else return SearchTile;
+    // }
 
     const notFoundMessage = {
         title: `Nothing can be found with '${searchQuery}'`,
@@ -65,8 +80,8 @@ const SearchPage = () => {
             <section className="mt-6 px-4">
                 <InfiniteScroller
                     notFoundMessage={notFoundMessage}
-                    Loading={SearchSkeleton}
-                    Component={ComponentToShow()}
+                    Loading={<LoadingSkeleton currentFilter={currentFilter} />}
+                    Component={(...doc) => <ComponentToShow currentFilter={currentFilter} doc={doc} />}
                     queryKeys={["search", searchQuery, `filter-${currentFilter}`]}
                     fetchData={queryFn}
                     enabled={isHydrated}
@@ -79,7 +94,7 @@ const SearchPage = () => {
     return (
         <>
             <SearchHeader filter={currentFilter} />
-            <section className="forceCenter flex-col">
+            <section className="h-size-screen flex-col">
                 <h3 className="text-lg md:text-2xl uppercase font-semibold mb-2">Search what you like!</h3>
                 <p className="text-sm text-center md:text-base text-zinc-500">Movies, Shows, Threads, People, Users, Collections, Companies, etc...</p>
             </section>

@@ -1,3 +1,9 @@
-import LoadingSpinner from "@components/ui/loading/LoadingSpinner";
+import { ThreadListSkeleton } from "@components/ui/loading";
 
-export default LoadingSpinner;
+const Loading = () => (
+    <main>
+        <ThreadListSkeleton count={12} />
+    </main>
+);
+
+export default Loading;

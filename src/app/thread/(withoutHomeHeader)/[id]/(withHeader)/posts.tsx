@@ -2,6 +2,7 @@
 
 import InfiniteScroller from "@components/InfiniteScroller";
 import { FrameTile, PostBar } from "@components/ui";
+import { OnlyFrameSkeletonList, PostListSkeleton } from "@components/ui/loading";
 import { getPostsOfThread } from "@lib/helpers/common";
 import { getQueryKeys } from "@lib/utils";
 
@@ -14,12 +15,17 @@ type PostSectionProps = {
     allowNsfw: boolean,
 }
 
-const PostsSection = ({ id, page = 1, filter, category, section, allowNsfw }: PostSectionProps) => {
+const Component = ({ section, props }: { section: string, props: any }) => {
+    if (section === "frames") return <FrameTile {...props} />;
+    else return <PostBar {...props} />;
+}
 
-    const Component = () => {
-        if (section === "frames") return FrameTile;
-        else return PostBar;
-    }
+const LoadingComponent = ({ section }: { section: string }) => {
+    if (section === "frames") return <OnlyFrameSkeletonList />;
+    else return <PostListSkeleton />;
+}
+
+const PostsSection = ({ id, page = 1, filter, category, section, allowNsfw }: PostSectionProps) => {
 
     const notFoundMessages = {
         title: section === "frames" || section === "links"
@@ -29,15 +35,18 @@ const PostsSection = ({ id, page = 1, filter, category, section, allowNsfw }: Po
     }
 
     return (
-        <InfiniteScroller
-            initialPage={page}
-            className={category === "frames" ? "grid grid-cols-3 gap-3" : undefined}
-            notFoundMessage={notFoundMessages}
-            additional={{ section: "thread" }}
-            Component={Component()}
-            fetchData={(p) => getPostsOfThread(id, p, allowNsfw, filter, section, category)}
-            queryKeys={getQueryKeys('postsOfThread_tid_filter_category', { tid: id, filter, category: category ?? "none" })}
-        />
+        <section className="h-size-screen px-2">
+            <InfiniteScroller
+                Loading={<LoadingComponent section={section} />}
+                initialPage={page}
+                className={section === "frames" ? "grid grid-cols-3 xs:grid-cols-4 sm:grid-cols-5 gap-2" : undefined}
+                notFoundMessage={notFoundMessages}
+                additional={{ section: "thread" }}
+                Component={(props) => <Component section={section} props={props} />}
+                fetchData={(p) => getPostsOfThread(id, p, allowNsfw, filter, section, category)}
+                queryKeys={getQueryKeys('postsOfThread_tid_filter_category', { tid: id, filter, category: category ?? "none" })}
+            />
+        </section>
     )
 }
 

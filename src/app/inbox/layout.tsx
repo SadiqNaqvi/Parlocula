@@ -8,6 +8,7 @@ import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { cookies } from "next/headers";
 import { PropsWithChildren, Suspense } from "react";
 import RoomList from "./RoomList";
+import { ChatSectionSkeleton } from "@components/ui/loading";
 
 const InboxLayout = async ({ children }: PropsWithChildren) => {
 
@@ -42,7 +43,7 @@ const InboxLayout = async ({ children }: PropsWithChildren) => {
         <main className="flex noPadding fullScreen overflow-hidden h-screen">
             <HydrationBoundary state={dehydrate(queryClient)}>
                 <RoomList uid={user.user_id} />
-                <Suspense fallback={<LoadingSpinner className="mt-8" />}>
+                <Suspense fallback={<ChatSectionSkeleton />}>
                     {children}
                 </Suspense>
             </HydrationBoundary>

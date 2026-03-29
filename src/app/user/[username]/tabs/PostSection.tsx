@@ -2,6 +2,7 @@
 
 import { InfiniteScroller } from "@components";
 import { PostBar } from "@components/ui";
+import { PostListSkeleton } from "@components/ui/loading";
 import { getPostsOfUser } from "@lib/helpers/common";
 import { getQueryKeys } from "@lib/utils";
 import useCurrentUser from "@store/user";
@@ -31,6 +32,7 @@ const PostSection = ({ username, uid, filter, page, allowNsfw }: Props) => {
 
     return (
         <InfiniteScroller
+            Loading={<PostListSkeleton />}
             initialPage={page}
             queryKeys={getQueryKeys("postsOfUser_uid_filter", { uid, filter })}
             fetchData={(p) => getPostsOfUser(uid, p, allowNsfw, filter)}

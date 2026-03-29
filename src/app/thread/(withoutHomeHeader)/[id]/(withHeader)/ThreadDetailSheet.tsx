@@ -1,22 +1,22 @@
 import { RightChevron } from "@assets/Icons";
 import { Navigate } from "@components";
 import { LinkTile, OptionalChildren } from "@components/ui";
-import { timeAgo } from "@lib/utils";
+import { numberConverter, timeAgo } from "@lib/utils";
 import { Thread } from "@type/internal";
 import { PropsWithChildren } from "react";
 
-type Props = Pick<Thread, "connections" | "createdAt" | "description" | "creator" | "edited_by" | "links" | "managers">
+type Props = Pick<Thread, "connections" | "createdAt" | "description" | "creator" | "edited_by" | "links" | "managers" | "post_count" | "member_count">
 
 const Section = ({ children, condition, heading, fallback }: PropsWithChildren<{ condition?: any, heading: string, fallback?: React.ReactNode }>) => (
     <OptionalChildren condition={condition ?? true} fallback={fallback}>
-        <section className="px-2 my-6 space-y-2">
+        <section className="px-2 my-8 space-y-2">
             <h3 className="parloHeading">{heading}</h3>
             {children}
         </section>
     </OptionalChildren>
 )
 
-const ThreadDetailSheet = ({ connections, createdAt, creator, description, edited_by, links, managers }: Props) => {
+const ThreadDetailSheet = ({ connections, createdAt, creator, description, edited_by, links, managers, member_count, post_count }: Props) => {
 
     return (
         <>
@@ -30,6 +30,11 @@ const ThreadDetailSheet = ({ connections, createdAt, creator, description, edite
 
             <Section heading="Created At">
                 <p>{new Date(createdAt).toLocaleDateString()} - {timeAgo(createdAt)}</p>
+            </Section>
+
+            <Section heading="Assets">
+                <p className="my-2">Total Members: {numberConverter(member_count)}</p>
+                <p className="my-2">Total Posts: {numberConverter(post_count)}</p>
             </Section>
 
             <Section heading="Creator" condition={creator}>

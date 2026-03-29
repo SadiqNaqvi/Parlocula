@@ -1,19 +1,32 @@
 /* Notification should be of type = {
-title: string,
-body?: string,
-icon?:string,
-path?:string,
-tag?: string
+    title: string;
+    body?: string;
+    icon?: string;
+    path?: string;
+    tag?: string;
+    image?: string;
+    actions?: {
+        action: string;
+        title: string;
+    }[];
+    requireInteraction?: boolean;
+    silent?: false;
 }
 */
 
 self.addEventListener("push", (event) => {
   if (!event.data) return;
+  let data = {};
 
-  const payload = event.data.json();
-
-  const data = payload.data || payload;
-  const { body, icon, title, path } = data;
+  try {
+    data = event.data.json();
+  } catch (e) {
+    data = {
+      title: "New Notification",
+      body: "Something is happening in your cinematic planet.",
+    };
+  }
+  const { body, icon, title, path, tag, image } = data;
 
   const options = {
     body,
@@ -22,25 +35,28 @@ self.addEventListener("push", (event) => {
     vibrate: [100, 50, 100],
     data: {
       dateOfArrival: Date.now(),
-      primaryKey: "2",
       path,
+      ...(data.data || {}),
     },
+    tag,
+    image,
+    requireInteraction: data.requireInteraction,
+    silent: data.silent,
+    actions: data.actions ?? [{ title: "open", action: "open" }],
   };
   event.waitUntil(self.registration.showNotification(title, options));
 });
 
 self.addEventListener("notificationclick", function (event) {
-  console.log("Notification click received.", event);
   event.notification.close();
-  
+
   const data = event.notification.data;
   const path = data && data.path ? data.path : "/notifications";
 
-
   event.waitUntil(
-    clients.matchAll({ type: "window", includeUncontrolled: true })
+    clients
+      .matchAll({ type: "window", includeUncontrolled: true })
       .then((clientsArr) => {
-
         for (const client of clientsArr) {
           if (client.url.includes(self.location.origin)) {
             client.navigate(path);
@@ -50,5 +66,5 @@ self.addEventListener("notificationclick", function (event) {
 
         return clients.openWindow(url);
       })
-    )
+  );
 });

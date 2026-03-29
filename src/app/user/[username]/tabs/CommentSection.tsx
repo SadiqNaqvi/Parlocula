@@ -2,6 +2,7 @@
 
 import { InfiniteScroller } from "@components";
 import { CommentBar } from "@components/ui";
+import { CommentSectionSkeleton } from "@components/ui/loading";
 import { getCommentsOfUser } from "@lib/helpers/common";
 import { getQueryKeys } from "@lib/utils";
 import useCurrentUser from "@store/user";
@@ -28,6 +29,7 @@ const CommentSection = ({ filter, page, uid, allowNsfw }: Props) => {
 
     return (
         <InfiniteScroller
+            Loading={<CommentSectionSkeleton />}
             initialPage={page}
             queryKeys={getQueryKeys("commentsOfUser_uid_filter", { uid, filter })}
             fetchData={(p) => getCommentsOfUser(uid, p, allowNsfw, filter)}

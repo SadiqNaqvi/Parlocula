@@ -10,7 +10,7 @@ import useCurrentUser from "@store/user";
 import { MereUser } from "@type/internal";
 import { useRef } from "react";
 
-const NewRoom = ({ ruser }: { ruser: MereUser }) => {
+const NewRoomSheet = ({ ruser }: { ruser: MereUser }) => {
 
     const formRef = useRef<HTMLFormElement>(null);
     const { meta } = useCurrentUser();
@@ -67,7 +67,7 @@ const NewRoom = ({ ruser }: { ruser: MereUser }) => {
                 )}>
                     <MessageBar
                         _id=""
-                        content={invitationMessage}
+                        content={invitationMessage!}
                         createdAt={Date.now()}
                         room_type="private"
                         cuid={meta.user_id}
@@ -105,4 +105,4 @@ const NewRoom = ({ ruser }: { ruser: MereUser }) => {
 
 }
 
-export default NewRoom;
+export default NewRoomSheet;

@@ -23,10 +23,10 @@ const FilterDropdown = ({ type }: { type: QueryFilterType }) => {
     }
 
     return (
-        <OptionMenu id="filter-picker" controls="auto" className="smallBtn capitalize p-3 rounded-md flex gap-2 flex-cntr-all border border-gray30" ButtonElement={
+        <OptionMenu controls="auto" className="smallBtn capitalize p-3 rounded-md flex gap-2 flex-cntr-all border border-gray30" ButtonElement={
             <>
                 {currentFilter}
-                <LeftChevron className="h-4 rotate-[270deg]" />
+                <LeftChevron className="h-4 rotate-270" />
             </>
         }>
             {availableFilters.map((filter) => (

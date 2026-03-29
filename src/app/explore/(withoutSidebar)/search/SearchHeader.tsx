@@ -26,7 +26,7 @@ export default function SearchHeader({ filter }: { filter: string }) {
     }
 
     return (
-        <header className="fullScreen bg-primary border-b border-gray20 sticky top-0 z-[2] pt-2 px-2">
+        <header className="fullScreen bg-primary border-b border-gray20 sticky top-0 z-2 pt-2 px-2">
             <section className="flex items-center">
                 <Navigate comp="button" goto="back" className="smallBtn">
                     <LeftChevron />

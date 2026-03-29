@@ -186,7 +186,10 @@ export type AvailableQueryKeys =
   | "roomExists_ruid_uid"
   | "reports_cnid"
   | "ifReportExists_cnid_type"
-  | "reportedContents_type_tid";
+  | "reportedContents_type_tid"
+  | "trendingPosts"
+  | "curatedPost_uid"
+  ;
 
 export type AblyEventType =
   | "entered_chat"
@@ -322,7 +325,11 @@ export type PushNotificationType = {
   body?: string,
   icon?: string,
   path?: string,
-  tag?: string
+  tag?: string,
+  image?: string,
+  actions?: { "action": string, title: string }[],
+  "requireInteraction"?: boolean,
+  "silent"?: false,
 };
 
 export type InfiniteScrollerDataType<T = any> = {

@@ -38,12 +38,12 @@ const NotFound = ({ title, paras, ActionButton, fullScreen, redirectTo, redirect
             <OptionalChildren condition={fullScreen}>
                 <Navbar />
             </OptionalChildren>
-            <section className="h-size-screen flex flex-col flex-cntr-all gap-3">
+            <section className="h-size-screen w-full flex flex-col flex-cntr-all gap-3">
 
                 <div className="inline-flex mx-auto flex-cntr-all gap-4">
-                    <span className="text-6xl sm:text-9xl font-extralight select-none">4</span>
-                    <NotFoundFaceIcon className="size-15 sm:size-32" />
-                    <span className="text-6xl sm:text-9xl font-extralight select-none">4</span>
+                    <span className="text-8xl sm:text-9xl font-extralight select-none">4</span>
+                    <NotFoundFaceIcon className="size-24 sm:size-32" />
+                    <span className="text-8xl sm:text-9xl font-extralight select-none">4</span>
                 </div>
 
                 <h3 className="text-xl text-center">{title}</h3>

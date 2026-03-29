@@ -2,12 +2,12 @@
 
 import { fetchMoviesWithCast, fetchMoviesWithCompany, fetchMoviesWithGenres, fetchMoviesWithYear, fetchShowsWithGenres, fetchSimilarMovies, fetchSimilarShows, fetchTrendingMovies, fetchTrendingShows } from "@lib/contentFetcher";
 import { useQueryHook } from "@lib/hooks";
-import { makeUrlSafe } from "@lib/utils";
-import { ExtGeneralPaginatedData, RefinedGeneralData } from "@type/external";
-import { useEffect, useRef, useState } from "react";
-import VerticleMovieCard, { VerticleMovieCardSkeleton } from "./ui/VerticleMovieCard";
+import { RefinedGeneralData } from "@type/external";
 import { GeneralGetReturn } from "@type/internal";
+import { useEffect, useRef, useState } from "react";
 import { twMerge } from "tailwind-merge";
+import { VerticalTaleonCardSkeletonList } from "./ui/loading";
+import VerticleMovieCard from "./ui/VerticleMovieCard";
 
 const funcMap = {
     fetchMoviesWithCast,
@@ -83,13 +83,7 @@ const DataFetcher = <T extends AllowedFunctionsForHorizontalList>({ func, args, 
     );
 
     else if (isFetching || isRefetching) return (
-        <div className={"flex gap-4 pb-2 overflow-x-hidden" + className} ref={container}>
-            {
-                Array(8).fill(0).map((_, i) => (
-                    <VerticleMovieCardSkeleton key={i} />
-                ))
-            }
-        </div>
+        <VerticalTaleonCardSkeletonList />
     )
 
     else if (error || !data)

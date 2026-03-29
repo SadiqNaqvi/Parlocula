@@ -3,23 +3,32 @@ import Navigate from "@components/Navigate";
 import { timeAgo } from "@lib/utils";
 import useRoomStore from "@store/roomStore";
 import useCurrentUser from "@store/user";
-import { MereRoomType, SearchedRoom } from "@type/internal";
+import { MereRoomType } from "@type/internal";
 import { RoomBarSkeleton } from "./loading";
 import OptionalChildren from "./OptionalChildren";
 import ParloImage from "./ParloImage";
+import useGlobalStore from "@store/globalStore";
+import MetadataTile, { MetadataTileContainer } from "./MetaDataTile";
 
-const RoomBar = ({ lastMessageAt, lastMessageBy, mute, otherParticipant_seenAt, display_name, poster, room_id, _id, seenAt, lastMessage, type, status }: Partial<MereRoomType>) => {
+const RoomBar = ({ lastMessageAt, lastMessageBy, mute, otherParticipant_seenAt, display_name, poster, room_id, _id, seenAt, lastMessage, type, status }: Partial<MereRoomType> & { _id: string }) => {
 
     const { meta } = useCurrentUser();
+    const [_, setSelectedRoomId] = useGlobalStore<string>("roombarSheet", undefined);
 
     const userIslastSender = lastMessageBy && lastMessageBy === meta?.user_id;
     const participantHasSeen = lastMessageAt && otherParticipant_seenAt && new Date(otherParticipant_seenAt) > new Date(lastMessageAt);
     const newMessage = seenAt && lastMessageAt && !userIslastSender && new Date(seenAt) < new Date(lastMessageAt);
     const textToShow = status || (type === "invitee" || !lastMessage ? "Tap to see" : (userIslastSender ? (participantHasSeen ? "Seen" : "Sent") : lastMessage));
 
+    const handleContextMenu = (e: any) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setSelectedRoomId(room_id || _id);
+    }
+
     return (
         <Navigate
-            className="p-2 sm:p-4"
+            onContextMenu={handleContextMenu}
             goto={`/inbox/${room_id || _id}-${display_name}`}
             comp="link">
             <article className="flex gap-3 items-center">
@@ -33,19 +42,25 @@ const RoomBar = ({ lastMessageAt, lastMessageBy, mute, otherParticipant_seenAt, 
                     classNameForFallback="min-w-8 size-8 p-1"
                 />
 
-                <div className={`space-y-1 ${newMessage ? "font-semibold" : ""}`}>
+                <div className={`flex-1 ${newMessage ? "font-semibold" : ""}`}>
+
                     <h4>{display_name}</h4>
-                    <ul className="flex text-xs text-zinc-500 gap-2">
-                        <OptionalChildren condition={lastMessageAt}>
-                            <li>{timeAgo(lastMessageAt)}</li>
-                            <li>•</li>
-                        </OptionalChildren>
-                        <li className={`line-clamp-1 ${status === "error" ? "text-red-500" : ''}`}>{textToShow}</li>
-                    </ul>
+
+                    <OptionalChildren
+                        condition={status !== "error"}
+                        fallback={<p className="text-red-500 text-xs">Failed To Send</p>}
+                    >
+                        <MetadataTileContainer className="text-zinc-500 max-w-[60%]">
+                            <MetadataTile condition={!!lastMessageAt} className="whitespace-nowrap text-xs">{timeAgo(lastMessageAt)}</MetadataTile>
+                            <MetadataTile condition={!!textToShow} className="line-clamp-1 text-wrap text-xs">{textToShow}</MetadataTile>
+                        </MetadataTileContainer>
+                    </OptionalChildren>
                 </div>
-                {mute && (
-                    <div><BellSlashIcon className="size-2" /></div>
-                )}
+                <OptionalChildren condition={mute}>
+                    <div className="ml-auto">
+                        <BellSlashIcon />
+                    </div>
+                </OptionalChildren>
             </article>
         </Navigate>
     )

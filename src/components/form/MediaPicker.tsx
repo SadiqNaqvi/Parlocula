@@ -350,7 +350,7 @@ export const MediaInputPrompt = ({ type, callback }: { type: "image" | "both", c
         <section className="h-64 flex flex-cntr-all">
             <div className="min-w-60 size-60 flex flex-cntr-all border rounded-md border-gray40 relative">
                 <span className="size-6 animate-spin border-2 border-gray-500/30 border-l-[var(--secondary)] rounded-full"></span>
-                <span className="px-8 py-4 rounded-md absolute bottom-2 right-2 skeleton-pulse-loading"></span>
+                <span className="px-8 py-4 rounded-md absolute bottom-2 right-2 skeletonPulse"></span>
             </div>
         </section>
     )

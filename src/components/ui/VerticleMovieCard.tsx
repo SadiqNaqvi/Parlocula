@@ -3,16 +3,7 @@ import { makeUrlSafe } from "@lib/utils";
 import { RefinedGeneralData } from "@type/external";
 import { twMerge } from "tailwind-merge";
 import ParloImage from "./ParloImage";
-
-export const VerticleMovieCardSkeleton = ({ className }: { className?: string }) => (
-    <div className={twMerge("min-w-44 w-44 aspect-[2/3] space-y-2", className)}>
-        <div className="w-full aspect-[2/3] skeleton-pulse-loading"></div>
-        <div className="space-y-2">
-            <div className="w-[90%] rounded-3xl h-2 skeleton-pulse-loading"></div>
-            <div className="w-[40%] rounded-3xl h-2 skeleton-pulse-loading"></div>
-        </div>
-    </div>
-)
+import { RandomHorizontalLinesSkeleton } from "./loading/tools";
 
 export default function VerticleMovieCard({ id, type, poster, title, year, rating, redirect, className }: RefinedGeneralData & { redirect?: string, className?: string }) {
     const link = redirect ?? `/explore/${type}/${id}-${makeUrlSafe(title)}`;
@@ -23,7 +14,6 @@ export default function VerticleMovieCard({ id, type, poster, title, year, ratin
                 <ParloImage
                     frame={poster}
                     frameType="poster"
-                    // extSize="w154"
                     className="absolute inset-0 size-full"
                     size={176}
                     fill

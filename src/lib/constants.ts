@@ -385,7 +385,9 @@ export const queryKeys: Record<AvailableQueryKeys, string[]> = {
   shelfConnection_sid: ["shelfConnection", "{sid}"],
   shelfsForTaleon_cnid: ["shelfsForTaleon", "{cnid}"],
   ifReportExists_cnid_type: ["reportExists", "{cnid}", "{type}"],
-  threadsOnTaleonOrArtist_id: ["threadsOnTaleonOrArtist", "{id}"]
+  threadsOnTaleonOrArtist_id: ["threadsOnTaleonOrArtist", "{id}"],
+  curatedPost_uid: ["curatedPosts", "{uid}"],
+  trendingPosts: ["trendingPosts"],
 };
 
 export const cacheTags: Record<AvailableCacheTags, string[]> = {

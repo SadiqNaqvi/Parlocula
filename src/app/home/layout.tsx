@@ -1,7 +1,7 @@
 import { Sidebar } from "@components";
 import generateDynamicMetadata from "@lib/seo/metadata";
 
-export const metadata= generateDynamicMetadata({
+export const metadata = generateDynamicMetadata({
     title: "Home",
 });
 

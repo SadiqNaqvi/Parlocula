@@ -710,8 +710,8 @@ textarea {
   }
 } */
 
-.skeleton-pulse-loading {
-  animation: skeletonPulseLoading 2s infinite cubic-bezier(0.4, 0, 0.6, 1);
+.skeletonPulse {
+  /* animation: skeletonPulseLoading 2s infinite cubic-bezier(0.4, 0, 0.6, 1); */
   background: var(--primarylight);
 }
 

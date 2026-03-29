@@ -8,6 +8,7 @@ import { twMerge } from "tailwind-merge";
 import InfiniteScroller, { InfiniteScrollerProps } from "./InfiniteScroller";
 import SearchInList, { QueryFnReturn } from "./SearchInList";
 import { ParloImage, ParloImageFrameType } from "./ui";
+import { GeneralBarSkeletonList } from "./ui/loading";
 
 /* ---------------------------------- Types --------------------------------- */
 
@@ -223,6 +224,7 @@ const ListSelector = <T extends Response, R>(props: Props<T, R>) => {
 
     if (mode === "infinite") return (
         <InfiniteScroller
+            Loading={<GeneralBarSkeletonList rightSideIcon />}
             Component={renderItem}
             fetchData={props.queryFnForList}
             queryKeys={props.queryKeysForList}
@@ -235,6 +237,7 @@ const ListSelector = <T extends Response, R>(props: Props<T, R>) => {
     else if (mode === "search") return (
         <SearchInList
             Component={renderItem}
+            Loading={<GeneralBarSkeletonList rightSideIcon />}
             queryFn={props.queryFn}
             queryKeys={props.queryKeys}
             queryFnForList={props.queryFnForList}

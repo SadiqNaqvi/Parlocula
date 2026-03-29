@@ -1,7 +1,7 @@
 "use client";
 
 import { BottomSheet } from "@components/BottomSheet";
-import { MessageBar, ShowError } from "@components/ui";
+import { MessageBar, OptionalChildren, ShowError } from "@components/ui";
 import MessageSkeleton from "@components/ui/loading/MessageSkeleton";
 import { getMessages } from "@lib/helpers/common";
 import { updateDoc, updateParticipantSeenAt } from "@lib/helpers/mutations";
@@ -11,7 +11,9 @@ import useOfflineStore from "@store/offlineStore";
 import { FullRoomType, InfiniteQueryResponse, MereMessage } from "@type/internal";
 import { ErrorCodes } from "@type/other";
 import React, { useEffect, useRef, useState } from "react";
-import MessageBottomSheet from "./MessageBottomSheet";
+import MessageBottomSheet from "@components/sheets/MessageBottomSheet";
+import useRoomStore from "@store/roomStore";
+import useGlobalStore from "@store/globalStore";
 
 const MessageList = ({ uid, room }: { uid: string, room: FullRoomType }) => {
 
@@ -20,7 +22,7 @@ const MessageList = ({ uid, room }: { uid: string, room: FullRoomType }) => {
 
     const qKeys = getQueryKeys("messages_rmid", { rmid });
     const [messageList, setMessageList] = useOfflineStore<InfiniteQueryResponse<MereMessage> | undefined>(qKeys, undefined);
-    const [selectedMessage, setSelectedMessage] = useState();
+    const { updateRoom } = useRoomStore();
 
     const { data, refetch, isLoading, error, isFetchingNextPage, hasNextPage, fetchNextPage } = useInfiniteQueryHook<MereMessage>({
         queryKeys: qKeys,
@@ -33,13 +35,10 @@ const MessageList = ({ uid, room }: { uid: string, room: FullRoomType }) => {
     });
 
     useEffect(() => {
-        if (participantType === "invitee" || !data || !data.pages.length || !data.pages[0]?.results?.length) return;
+        if (participantType === "invitee" || !data || !data.pages.length || !data.pages[0]?.results?.length || new Date(room.lastMessageAt) <= new Date(room.seenAt)) return;
 
         else if (type === "group") {
-            updateDoc(
-                getQueryKeys("room_rmid_uid", { rmid, uid }),
-                { seenAt: Date.now() }
-            );
+            updateRoom({ seenAt: Date.now() }, rmid);
         }
 
         else updateParticipantSeenAt(rmid, uid);
@@ -57,8 +56,6 @@ const MessageList = ({ uid, room }: { uid: string, room: FullRoomType }) => {
         }
 
     }, []);
-
-    useEffect(() => { console.log("selectedMessage", selectedMessage) }, [selectedMessage]);
 
     const container = useRef<HTMLDivElement>(null);
 
@@ -91,50 +88,38 @@ const MessageList = ({ uid, room }: { uid: string, room: FullRoomType }) => {
 
     else if (!data || !data.pages[0]?.results?.length) return null;
 
-    const handleMessageSelection = (message: any) => {
-        setSelectedMessage(message);
-    }
-
-    const closeSheet = () => setSelectedMessage(undefined)
+    const messages = React.useMemo(() => {
+        return data?.pages.flatMap(page => page.results)
+            .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    }, [data]);
 
     return (
-        <section className="h-size-screen overflow-y-auto pb-22">
-            <ul className="w-full px-2">
-                {data.pages.map((page, i) => (
-                    <React.Fragment key={i}>
-                        {page.results.map((msg, ind) => (
-                            <MessageBar
-                                {...msg}
-                                otherParticipantSeenAt={otherParticipant_seenAt}
-                                room_type={type}
-                                key={msg._id}
-                                prevMsgUid={page.results[ind - 1]?.user_id}
-                                cuid={uid}
-                                seenAt={seenAt}
-                                onMessageSelect={handleMessageSelection}
-                            />
-                        ))}
-                    </React.Fragment>
+        <section className="h-size-screen relative overflow-y-auto pt-4 pb-22">
+
+            <ul className="w-full px-2 relative z-1">
+                {messages.map((msg, ind) => (
+                    <MessageBar
+                        {...msg}
+                        otherParticipantSeenAt={otherParticipant_seenAt}
+                        room_type={type}
+                        key={msg._id}
+                        nextMsgAuthor={messages[ind + 1]?.user_id}
+                        prevMsgAuthor={messages[ind - 1]?.user_id}
+                        cuid={uid}
+                        seenAt={seenAt}
+                    />
                 ))}
             </ul>
 
-            <div className="my-4 mx-auto" ref={container}>
-                {isFetchingNextPage && (
-                    <MessageSkeleton />
-                )}
-            </div>
+            <div className="patternBackground"></div>
 
-            <BottomSheet
-                state={!!selectedMessage}
-                onClose={closeSheet}
-                allowHandle
-            >
-                <MessageBottomSheet
-                    message={selectedMessage}
-                    uid={uid}
-                    close={closeSheet}
-                />
-            </BottomSheet>
+            <OptionalChildren condition={isFetchingNextPage}>
+                <div className="my-4 mx-auto" ref={container}>
+                    <MessageSkeleton />
+                </div>
+            </OptionalChildren>
+
+            <MessageBottomSheet />
         </section>
     )
 
