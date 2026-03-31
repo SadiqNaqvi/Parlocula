@@ -404,7 +404,7 @@ export const sendNotificationForMessage = async (user_ids: string[], notificatio
     )
   );
 
-  const muteState = await getParticipantMuteState(offlineUsersIds, data.room_id);
+  const muteState = offlineUsersIds.length ? await getParticipantMuteState(offlineUsersIds, data.room_id) : [];
   const unMuteUsers = muteState.filter(state => !state.mute).map(state => state.uid);
 
   const offlineUsers = unMuteUsers.length ?
@@ -451,28 +451,28 @@ export const authenticateUser = async () => {
   const token = jar.get("token")?.value;
   const session_id = jar.get("sid")?.value;
 
-  if (!token || !session_id) return false;
+  if (!token || !session_id) return null;
 
   const payload = await verifyToken(token);
 
   // If token is invalid or tampered
-  if (!payload) return false;
+  if (!payload) return null;
 
   // If token is neither tampered nor expired, return true;
   if (payload.exp && (payload.exp * 1000) > Date.now())
-    return true
+    return payload
 
   // If token is expired, check user session
   const { result, success } = await getSession(session_id);
 
   // If session could not be fetched possibly because of network 
-  if (!success) return false;
+  if (!success) return null;
 
   // If session is not available, delete cookies
   else if (!result) {
     deleteUserFromCookies();
-    return false;
+    return null;
   }
 
-  return true;
+  return result;
 }

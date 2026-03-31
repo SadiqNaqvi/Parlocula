@@ -69,19 +69,24 @@ const precheck = async (tid: string, uid: string, users: string[]): Promise<Prec
     role: { $in: ["moderator", "creator"] }
   });
 
-  if (!isManager)
+  if (!isManager) {
+    console.log("Returning because the user is not a manager");
     return { success: false, errCode: "unauthorized_access" }
-
+  }
   const total = await Member.countDocuments({
     thread_id: tid,
     user_id: { $in: users },
     role: "member"
   });
 
-  if (total !== users.length) return {
-    success: false,
-    errCode: "custom_error",
-    customError: "One or more invited users are not members of the thread."
+  if (total !== users.length) {
+    console.log("Returning because one the user is not a member");
+
+    return {
+      success: false,
+      errCode: "custom_error",
+      customError: "One or more invited users are not members of the thread."
+    }
   }
 
   return { success: true }

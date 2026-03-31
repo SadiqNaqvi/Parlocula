@@ -15,7 +15,6 @@ const ManagerPage = async ({ params }: ParloPageProps) => {
     const tid = id.split('-')[0];
     const jar = await cookies();
     const user = await getUserFromToken(jar);
-
     if (!user) return null;
 
     await prefetchQuery({

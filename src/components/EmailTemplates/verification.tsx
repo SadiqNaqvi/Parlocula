@@ -6,139 +6,72 @@ import {
     Hr,
     Html,
     Img,
+    pixelBasedPreset,
     Preview,
     Section,
+    Tailwind,
     Text
 } from '@react-email/components';
-import { app_production_url } from '@lib/constants';
-
-const logo = new URL("/apple-touch-icon.png", app_production_url).href;
 
 const VerifyEmail = ({ code }: { code: number }) => (
     <Html>
         <Head />
-        <Body style={main}>
-            <Preview>Email Verification</Preview>
-            <Container style={container}>
-                <Section style={coverSection}>
-                    <Section style={header}>
+        <Preview>Email Verification</Preview>
+        <Tailwind
+            config={{
+                presets: [pixelBasedPreset],
+                theme: {
+                    extend: {
+                        colors: {
+                            brand: "#007291",
+                        },
+                    },
+                },
+            }}
+        >
+            <Body className="mx-auto my-auto bg-white px-2 font-sans">
+                <Container className="border border-zinc-500/30 p-5 mx-auto my-10 max-w-116.25 rounded-md">
+                    <Section className="mt-8">
                         <Img
-                            src={logo}
-                            width="75"
-                            height="75"
-                            alt="App Logo"
+                            height={64}
+                            width={64}
+                            src="https://parlocula.vercel.app/icon-invert.png"
+                            className="invert object-contain mx-auto"
                         />
                     </Section>
-                    <Section style={upperSection}>
-                        <Heading style={h1}>Verify your email address</Heading>
-                        <Text style={mainText}>
-                            Hello It{"'"}s your Parlocula 👋. We want to make sure it{"'"}s really you. Please enter the following
+                    <Section className='m-0 p-0'>
+                        <Heading className="mx-0 my-7 p-0 text-center font-normal text-2xl text-black">
+                            Verify your email address
+                        </Heading>
+                        <Text className="text-black leading-6">
+                            Hello dear user,
+                        </Text>
+                        <Text className="text-black leading-6">
+                            We want to make sure it{"'"}s really you. Please enter the following
                             verification code when prompted. If you haven{"'"}t requested for this, you can safely ignore this email.
                         </Text>
-                        <Section style={verificationSection}>
-                            <Text style={verifyText}>Verification code</Text>
+                    </Section>
+                    <Section className='m-0 p-0'>
+                        {/* <Text className='font-semibold text-center text-lg'>Verification code</Text> */}
 
-                            <Text style={codeText}>{code}</Text>
-                            <Text style={validityText}>
-                                (This code is valid for 5 minutes)
-                            </Text>
-                        </Section>
+                        <Text className='text-center font-semibold text-3xl mb-2'>{code}</Text>
+                        <Text className='text-center text-zinc-500 mt-0'>
+                            (This code is valid for 5 minutes)
+                        </Text>
                     </Section>
                     <Hr />
-                    <Section style={lowerSection}>
-                        <Text style={cautionText}>
+                    <Section>
+                        <Text className='text-sm text-center mb-0'>
                             Parlocula will never email you and ask you to disclose or verify your password, credit card, or banking account number.
                         </Text>
                     </Section>
-                </Section>
-                <Text style={footerText}>
-                    This message was produced and distributed by Parlocula, a software application of Q-Core Technologies Pvt. Ltd. | All rights reserved.
-                </Text>
-            </Container>
-        </Body>
+                    <Text className='text-center text-sm text-zinc-500 mb-0'>
+                        This message was produced and distributed by Parlocula, a software application of Q-Core Technologies Pvt. Ltd. | All rights reserved.
+                    </Text>
+                </Container>
+            </Body>
+        </Tailwind>
     </Html>
 );
-
-const main = {
-    backgroundColor: '#fff',
-    color: '#212121',
-};
-
-const container = {
-    padding: '20px 10px',
-    backgroundColor: '#eee',
-};
-
-const alignText = { textAlign: 'center' } as Record<string, CanvasTextAlign>;
-
-const h1 = {
-    ...alignText,
-    color: '#333',
-    fontFamily:
-        "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif",
-    fontSize: '20px',
-    fontWeight: 'bold',
-    marginBottom: '15px',
-};
-
-const text = {
-    ...alignText,
-    color: '#333',
-    fontFamily:
-        "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif",
-    fontSize: '14px',
-    margin: '24px 0',
-};
-
-const header = {
-    backgroundColor: '#0f111f',
-    display: 'flex',
-    padding: '15px 0',
-    width: "100%",
-    alignItems: 'center',
-    justifyContent: 'center',
-};
-
-const coverSection = { backgroundColor: '#fff' };
-
-const upperSection = { padding: '25px 15px' };
-
-const lowerSection = { padding: '25px 15px' };
-
-const footerText = {
-    ...text,
-    fontSize: '12px',
-};
-
-const verifyText = {
-    ...text,
-    margin: 0,
-    fontWeight: 'bold',
-    textAlign: 'center' as const,
-};
-
-const codeText = {
-    ...text,
-    fontWeight: 'bold',
-    fontSize: '36px',
-    margin: '10px 0',
-    textAlign: 'center' as const,
-};
-
-const validityText = {
-    ...text,
-    margin: '0px',
-    textAlign: 'center' as const,
-};
-
-const verificationSection = {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-};
-
-const mainText = { ...text, marginBottom: '14px' };
-
-const cautionText = { ...text, margin: '0px' };
 
 export default VerifyEmail;

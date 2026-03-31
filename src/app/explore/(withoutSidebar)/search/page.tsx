@@ -55,14 +55,6 @@ const SearchPage = () => {
 
     const { filterContent, isHydrated } = useCurrentUser();
 
-    // const ComponentToShow = () => {
-    //     if (currentFilter === "posts") return PostBar;
-    //     else if (currentFilter === "threads") return ThreadTile;
-    //     else if (currentFilter === "shelves") return ShelfBar;
-    //     else if (currentFilter === "users") return UserBar;
-    //     else return SearchTile;
-    // }
-
     const notFoundMessage = {
         title: `Nothing can be found with '${searchQuery}'`,
         paras: ["Change the query or filter and try again."]
@@ -81,7 +73,7 @@ const SearchPage = () => {
                 <InfiniteScroller
                     notFoundMessage={notFoundMessage}
                     Loading={<LoadingSkeleton currentFilter={currentFilter} />}
-                    Component={(...doc) => <ComponentToShow currentFilter={currentFilter} doc={doc} />}
+                    Component={(doc) => <ComponentToShow currentFilter={currentFilter} doc={doc} />}
                     queryKeys={["search", searchQuery, `filter-${currentFilter}`]}
                     fetchData={queryFn}
                     enabled={isHydrated}
@@ -94,8 +86,8 @@ const SearchPage = () => {
     return (
         <>
             <SearchHeader filter={currentFilter} />
-            <section className="h-size-screen flex-col">
-                <h3 className="text-lg md:text-2xl uppercase font-semibold mb-2">Search what you like!</h3>
+            <section className="h-size-screen flex flex-cntr-all flex-col">
+                <h3 className="text-lg md:text-2xl uppercase text-center font-semibold mb-2">Search what you like!</h3>
                 <p className="text-sm text-center md:text-base text-zinc-500">Movies, Shows, Threads, People, Users, Collections, Companies, etc...</p>
             </section>
         </>

@@ -42,7 +42,10 @@ const useCurrentUser = create(
 
       filterContent: true,
       setUser: (user) => set({ user }),
-      setUserMeta: (meta) => set({ meta }),
+      setUserMeta: (meta) => {
+        console.log("setUserMeta is called with",meta)
+        set({ meta })
+      },
 
       clearUser: () => {
         // appToast.info("CLEAR USER IS CALLED")

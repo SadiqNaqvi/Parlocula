@@ -319,7 +319,7 @@ export type ShelfItemType = {
   added_by: string | undefined;
 };
 
-export type ModeratorType = UserMetaData & { role: "moderator" | "moderator_invitees" };
+export type ModeratorType = UserMetaData & { role: "moderator" | "moderator_invitee" };
 
 export type ThreadModType = {
   creator: UserMetaData,

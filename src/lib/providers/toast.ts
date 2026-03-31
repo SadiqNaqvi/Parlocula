@@ -1,7 +1,6 @@
 "use client";
 
-import { ReactElement } from "react";
-import { ExternalToast, toast } from "sonner"
+import { ExternalToast, toast } from "sonner";
 
 export type ToastMessage = (() => React.ReactNode) | React.ReactNode;
 

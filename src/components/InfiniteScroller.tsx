@@ -58,7 +58,7 @@ export default function InfiniteScroller({ Loading, showFooter, onSuccess, place
         router.replace(`${pathname}?${params.toString()}`)
     }
 
-    const { data, refetch, isLoading, error, isFetchingNextPage, hasNextPage, fetchNextPage, isFetched } = useInfiniteQueryHook({
+    const { data, refetch, isLoading, error, isFetchingNextPage, hasNextPage, fetchNextPage } = useInfiniteQueryHook({
         queryKeys: queryKeys,
         queryFn: (p) => fetchData(p)
             .then(res => {

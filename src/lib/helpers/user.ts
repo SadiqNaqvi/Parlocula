@@ -1,13 +1,15 @@
 import { getAblyOnClient } from "@lib/providers/ably";
+import appToast from "@lib/providers/toast";
 import { getQueryKeys } from "@lib/utils";
 import useNotification from "@store/notification";
+import useRoomStore from "@store/roomStore";
 import useCurrentUser from "@store/user";
-import { MereRoomType, CurrentUser } from "@type/internal";
+import { CurrentUser, MereRoomType } from "@type/internal";
 import { AblyEventParams } from "@type/other";
 import { ConnectionStateChange } from "ably";
 import { toast } from "sonner";
 import { refetchQueries, showMessageOptimistically, updateDoc, updateDocInInfiniteQueryResult } from "./mutations";
-import useRoomStore from "@store/roomStore";
+import NotificationWarningToast from "@components/toasts/NotificationWarningToast";
 
 const setUser = (user: CurrentUser, contentFiltering: boolean) => {
 
@@ -27,6 +29,11 @@ export const setUserOnRefreshOrLogin = (user: CurrentUser, contentFiltering: boo
     const ably = getAblyOnClient(user._id);
     const channel = ably.channels.get(user._id);
     channel.presence.enter({ status: "online" });
+
+    getPushSubscription().then(sub => {
+        if (sub) return;
+        appToast.error(() => NotificationWarningToast());
+    })
 
     const handleConnectionStateChange = (stateChange: ConnectionStateChange) => {
         console.log("Connection state:", stateChange.current);
@@ -120,4 +127,13 @@ export const logOutOnClient = (uid: string) => {
     channel.unsubscribe("message");
     channel.unsubscribe("entered_chat");
     useCurrentUser.setState({ user: null, meta: null, filterContent: true, dataSaver: false });
+}
+
+export const getPushSubscription = async () => {
+    const registration = await navigator.serviceWorker.register('/sw.js', {
+        scope: '/',
+        updateViaCache: 'none',
+    });
+
+    return await registration.pushManager.getSubscription();
 }

@@ -8,7 +8,7 @@ export const SimpleUserBar = ({ profile, username, followers, posts }: MereUser)
         <ParloImage
             frameType="userProfile"
             className="min-w-10 size-10 object-cover"
-            classNameForFallback="size-8 min-w-8 overflow-hidden"
+            classNameForFallback="size-8 min-w-8 overflow-hidden p-1"
             containerClassName="rounded-full"
             size={32}
             alt={`Profile picture of ${username}`}

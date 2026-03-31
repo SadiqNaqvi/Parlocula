@@ -6,6 +6,7 @@ import { FullPageLoadingSpinner } from "@components/ui/loading/LoadingSpinner";
 import ToggleButtonBar from "@components/ui/ToggleButtonBar";
 import { urlBase64ToUint8Array } from "@lib/helpers/media";
 import { sendTestNotification, subscribeToPush, unsubscribeToPush } from "@lib/helpers/server";
+import { getPushSubscription } from "@lib/helpers/user";
 import { useDebounce } from "@lib/hooks";
 import appToast from "@lib/providers/toast";
 import { codetoError } from "@lib/utils";
@@ -29,15 +30,6 @@ const StatusBanned = ({ enabled }: { enabled: boolean }) => {
 
 }
 
-const registerServiceWorker = async () => {
-    const registration = await navigator.serviceWorker.register('/sw.js', {
-        scope: '/',
-        updateViaCache: 'none',
-    });
-
-    return await registration.pushManager.getSubscription();
-}
-
 const NotificationPage = () => {
 
     const [enabled, setEnabled] = useState(false);
@@ -54,7 +46,7 @@ const NotificationPage = () => {
     useEffect(() => {
         if ('serviceWorker' in navigator && 'PushManager' in window) {
             setIsSupported(true)
-            registerServiceWorker()
+            getPushSubscription()
                 .then(r => {
                     subscription.current = r;
 

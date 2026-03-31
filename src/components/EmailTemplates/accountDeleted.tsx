@@ -6,114 +6,69 @@ import {
     Hr,
     Html,
     Img,
-    Preview,
+    pixelBasedPreset,
     Section,
+    Tailwind,
     Text
 } from '@react-email/components';
-import { CSSProperties } from 'react';
-import { app_production_url } from '@lib/constants';
-
-const logo = new URL("/apple-touch-icon.png", app_production_url).href;
 
 const AccountDeleted = ({ username }: { username: string }) => (
     <Html>
         <Head />
-        <Body style={main}>
-            <Preview>Your account on Parlocula has been deleted.</Preview>
-            <Container style={container}>
-                <Section style={coverSection}>
-
-                    <Section style={header}>
+        <Tailwind
+            config={{
+                presets: [pixelBasedPreset],
+                theme: {
+                    extend: {
+                        colors: {
+                            brand: "#007291",
+                        },
+                    },
+                },
+            }}
+        >
+            <Body className="mx-auto my-auto bg-white px-2 font-sans">
+                <Container className="border border-zinc-500/30 p-5 mx-auto my-10 max-w-116.25 rounded-md">
+                    <Section className="mt-8">
                         <Img
-                            src={logo}
-                            width="75"
-                            height="75"
-                            alt="App Logo"
+                            height={64}
+                            width={64}
+                            src="https://parlocula.vercel.app/icon-invert.png"
+                            className="invert object-contain mx-auto"
                         />
                     </Section>
 
-                    <Section style={upperSection}>
-                        <Heading style={h1}>Parlocula Account Deleted</Heading>
-                        <Text style={mainText}>
-                            Hello @{username}, Your account on Parlocula has been deleted. Thank you for using Parlocula, we are going to miss you.
+                    <Section className='m-0 p-0'>
+                        <Heading className="mx-0 my-7 p-0 text-center font-normal text-2xl text-black">
+                            Parlocula Account Deleted
+                        </Heading>
+                        <Text>
+                            Hello @{username},
+                        </Text>
+                        <Text>
+                            Your account on Parlocula has been deleted. Thank you for using Parlocula, we are going to miss you.
+                        </Text>
+                        <Text>
                             You can always come back and create a new account, but always remember we love you and you are a part of our family.
                         </Text>
                     </Section>
 
                     <Hr />
 
-                    <Text style={text}>
+                    <Text className="text-sm">
                         Reminder: Parlocula will never ask you to send us any of your details through email. Our emails are just to notify you with things, you should never reply to any emails sent under the name {'"'}Parlocula{'"'}.
                     </Text>
-                </Section>
 
-                <Text style={footerText}>
-                    This message was produced and distributed by Parlocula, a software application brought to you by Q-Core Technologies Pvt. Ltd. | All rights reserved.
-                </Text>
+                    <Hr />
 
+                    <Text className='text-xs text-center text-zinc-500'>
+                        This message was produced and distributed by Parlocula, a software application brought to you by Q-Core Technologies Pvt. Ltd. | All rights reserved.
+                    </Text>
 
-            </Container>
-        </Body>
+                </Container>
+            </Body>
+        </Tailwind>
     </Html>
 );
-
-const main = {
-    backgroundColor: '#fff',
-    color: '#212121',
-};
-
-const container = {
-    padding: '20px 10px',
-    backgroundColor: '#eee',
-};
-
-const alignText = { textAlign: 'center' } as Record<string, CanvasTextAlign>;
-
-const heading = {
-    ...alignText,
-    color: '#333',
-    fontFamily:
-        "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif",
-    fontWeight: 'bold',
-}
-
-const h1 = {
-    ...heading,
-    fontSize: '20px',
-    marginBottom: '15px',
-};
-
-const h2 = {
-    ...h1,
-    fontSize: '18px',
-};
-
-const text = {
-    ...alignText,
-    color: '#333',
-    fontFamily:
-        "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif",
-    fontSize: '14px',
-    margin: '24px 0',
-};
-
-const header = {
-    backgroundColor: '#0f111f',
-    display: 'flex',
-    padding: '15px 0',
-    alignItems: 'center',
-    justifyContent: 'center',
-};
-
-const coverSection = { backgroundColor: '#fff' };
-
-const upperSection = { padding: '25px 15px' };
-
-const footerText = {
-    ...text,
-    fontSize: '12px',
-};
-
-const mainText = { ...text, marginBottom: '14px' };
 
 export default AccountDeleted;

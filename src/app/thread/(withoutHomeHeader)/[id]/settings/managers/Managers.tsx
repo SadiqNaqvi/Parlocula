@@ -45,10 +45,10 @@ const Component = (data: ThreadModType, { tid, uid }: Props) => {
 
     const [section, setSection] = useOptionalState<"show" | "invite" | "remove">("show");
     const threadCreator = data.creator.user_id;
-    const managersCount = data.managers.length;
+    const managersCount = data.managers?.length || 0;
     const managers = data.managers.filter(u => u.role === "moderator");
-    const invitees = data.managers.filter(u => u.role === "moderator_invitees");
-
+    const invitees = data.managers.filter(u => u.role === "moderator_invitee");
+    
     const handleBack = () => setSection("show");
 
     if (section === "invite") return (

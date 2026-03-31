@@ -32,34 +32,34 @@ const NotificationFetcher = async ({ children }: PropsWithChildren) => {
 
   const queryClient = getQueryClient();
 
-  // const jar = await cookies();
-  // const payload = await getUserFromToken(jar);
-  const payload = null;
+  const jar = await cookies();
+  const payload = await getUserFromToken(jar);
+  
   let currentUser: CurrentUser | null = null;
 
-  // if (payload) {
-  //   const { user_id, username } = payload;
+  if (payload) {
+    const { user_id, username } = payload;
 
-  //   prefetchInfiniteQuery({
-  //     queryKey: getQueryKeys("rooms_uid", { uid: user_id }),
-  //     queryFn: () => getRooms(user_id, 1, jar),
-  //     queryClient,
-  //   });
+    prefetchInfiniteQuery({
+      queryKey: getQueryKeys("rooms_uid", { uid: user_id }),
+      queryFn: () => getRooms(user_id, 1, jar),
+      queryClient,
+    });
 
-  //   prefetchInfiniteQuery({
-  //     queryClient,
-  //     queryKey: getQueryKeys("notifications_uid", { uid: user_id }),
-  //     queryFn: () => getNotificationsOfUser(user_id, 1, jar)
-  //   });
+    prefetchInfiniteQuery({
+      queryClient,
+      queryKey: getQueryKeys("notifications_uid", { uid: user_id }),
+      queryFn: () => getNotificationsOfUser(user_id, 1, jar)
+    });
 
-  //   const resp = await fetchQuery({
-  //     queryClient,
-  //     queryKey: getQueryKeys("user_username", { username }),
-  //     queryFn: () => getCurrentUser(user_id, jar),
-  //   });
+    const resp = await fetchQuery({
+      queryClient,
+      queryKey: getQueryKeys("user_username", { username }),
+      queryFn: () => getCurrentUser(user_id, jar),
+    });
 
-  //   currentUser = resp;
-  // }
+    currentUser = resp;
+  }
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>

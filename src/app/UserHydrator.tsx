@@ -24,9 +24,26 @@ const checkIfInAppBrowser = () => {
 
 const UserHydrator = ({ payload, currentUser }: { payload: TokenPayload | null, currentUser: CurrentUser | null }) => {
 
-    const { user } = useCurrentUser();
+    const { user, meta } = useCurrentUser();
     const router = useRouter();
     const [isInAppBrowser, setIsInAppBrowser] = useState(false);
+
+    useEffect(() => {
+        if (payload || !user) return;
+
+        // If payload is not available (sometimes on first load from notification click, cookies are not set properly);
+        // Rely on cached user data until user is authenticated;
+        console.log("NO PYALOAD FOUND", user);
+        authenticateUser()
+            .then(resp => {
+                console.log("USER IN AUTHENTICATE USER", resp);
+                if (!resp) logOutOnClient(user._id);
+                else router.refresh();
+            })
+            .catch(e => console.log(e));
+
+        return setUserOnRefreshOrLogin(user, !!user.filterContent);
+    }, [user]);
 
     useEffect(() => {
 
@@ -39,19 +56,7 @@ const UserHydrator = ({ payload, currentUser }: { payload: TokenPayload | null, 
             })
         }
 
-        if (!payload) {
-            // If payload is not available (sometimes on first load from notification click, cookies are not set properly);
-            // Rely on cached user data until user is authenticated;
-            if (!user) return;
-            authenticateUser()
-                .then(resp => {
-                    if (!resp) logOutOnClient(user._id);
-                    else router.refresh();
-                })
-                .catch(e => console.log(e));
-
-            return setUserOnRefreshOrLogin(user, !!user.filterContent);
-        };
+        if (!payload) return;
 
         const { username } = payload;
 

@@ -1,6 +1,7 @@
 "use client";
 
 import Navigate from "@components/Navigate";
+import { getPushSubscription } from "@lib/helpers/user";
 import useCurrentUser from "@store/user";
 import { useEffect, useState } from "react";
 
@@ -11,13 +12,9 @@ const StatusBanner = () => {
 
     useEffect(() => {
         if (!meta) return;
-        navigator.serviceWorker.register('/sw.js', {
-            scope: '/',
-            updateViaCache: 'none',
-        }).then(reg => reg.pushManager.getSubscription())
-            .then(r => {
-                if (r) setIsEnabled(true);
-            });
+        getPushSubscription().then(r => {
+            if (r) setIsEnabled(true);
+        });
 
     }, [meta]);
 
