@@ -31,7 +31,7 @@ const RoomBar = ({ lastMessageAt, lastMessageBy, mute, otherParticipant_seenAt, 
             onContextMenu={handleContextMenu}
             goto={`/inbox/${room_id || _id}-${display_name}`}
             comp="link">
-            <article className="flex gap-3 items-center">
+            <article className="py-2 flex gap-3 items-center">
                 <ParloImage
                     frameType="userProfile"
                     alt={`Profile picture of ${display_name}`}

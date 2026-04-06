@@ -6,7 +6,7 @@ const HomePageSkeleton = () => (
     <>
         <NavbarSkeleton removeBackButton />
         <PostListSkeleton count={2} />
-        <VerticalTaleonCardSkeletonList className="my-2" />
+        <VerticalTaleonCardSkeletonList className="px-2 my-2" />
         <PostListSkeleton count={2} />
     </>
 )

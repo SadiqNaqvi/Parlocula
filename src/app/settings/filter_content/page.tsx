@@ -1,4 +1,4 @@
-import { ShowError } from "@components/ui";
+import { ShowError } from "@components/fallbacks";
 import { getUserFromToken } from "@lib/auth/utils";
 import { calculateAge } from "@lib/utils";
 import { cookies } from "next/headers";

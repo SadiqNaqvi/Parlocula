@@ -2,8 +2,9 @@
 
 import { AddIcon, SearchIcon } from "@assets/Icons";
 import { Navbar, Navigate } from "@components";
-import { LoadingSpinner, ShowError } from "@components/ui";
-import { RoomBarListSkeleton, RoomBarSkeleton } from "@components/ui/loading";
+import { ShowError } from "@components/fallbacks";
+import RoomBarSheet from "@components/sheets/RoomBarSheet";
+import { RoomBarListSkeleton } from "@components/ui/loading";
 import { RichRoomBar } from "@components/ui/RoomBar";
 import { getInvitedRoomsCount, getRooms } from "@lib/helpers/common";
 import { useInfiniteQueryHook, useQueryHook } from "@lib/hooks";
@@ -18,7 +19,6 @@ import { twMerge } from "tailwind-merge";
 import CreateGroup from "./CreateGroup";
 import InvitationRoomsList from "./InvitationRoomList";
 import RoomSearchList from "./RoomSearchList";
-import RoomBarSheet from "@components/sheets/RoomBarSheet";
 
 const InvitationsCount = ({ uid }: { uid: string }) => {
     const { data } = useQueryHook({
@@ -178,11 +178,14 @@ const RoomsList = ({ uid }: RoomListProps) => {
     )
 }
 
-const RoomListWrapper = ({ id, children }: PropsWithChildren<{ id: string | string[] | undefined }>) => (
-    <div className={twMerge("md:border-r border-gray20 w-full flex flex-col md:max-w-96 border-right border-gray30 overflow-y-auto", id ? "hidden md:block" : '')}>
-        {children}
-    </div>
-)
+const RoomListWrapper = ({ id, children }: PropsWithChildren<{ id: string | string[] | undefined }>) => {
+    const shouldHide = !(!id || id === "create" || id === "search" || id === "invitations")
+    return (
+        <div className={twMerge("md:border-r border-gray20 w-full flex flex-col md:max-w-96 border-right border-gray30 overflow-y-auto", shouldHide ? "hidden md:block" : '')}>
+            {children}
+        </div>
+    )
+}
 
 const RoomListSection = ({ uid }: { uid: string }) => {
 

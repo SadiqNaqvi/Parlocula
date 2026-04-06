@@ -282,4 +282,5 @@ export type MessageModelType = {
   createdAt: GenericDate;
   replied_to?: string;
   replied_content?: string;
+  sharedContent?: string;
 };

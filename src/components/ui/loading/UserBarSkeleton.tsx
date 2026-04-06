@@ -1,7 +1,7 @@
 import { HeadingSkeleton, MetaDataSkeleton, PageWrapper, PosterSkeleton } from "./tools"
 
 const UserBarSkeleton = () => (
-    <li className="flex items-center gap-2 p-2">
+    <li className="flex items-center gap-2 p-2 w-full max-w-3xl mx-auto">
         <PosterSkeleton />
         <div className="space-y-2">
             <HeadingSkeleton />
@@ -12,7 +12,7 @@ const UserBarSkeleton = () => (
 
 
 export const UserBarSkeletonList = ({ count = 12 }: { count?: number }) => (
-    <ul>
+    <ul className="w-full max-w-3xl mx-auto">
         {Array(count).fill(0).map((_, i) => (
             <UserBarSkeleton key={i} />
         ))}

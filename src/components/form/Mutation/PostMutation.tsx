@@ -9,13 +9,13 @@ import PostPageMockup from "@components/ui/mockup/PostPageMockup";
 import { createPostMutation, updatePostMutation } from "@lib/helpers/mutations";
 import { postClientSchema } from "@lib/schemas";
 import { checkEditedFields, readyFrames } from "@lib/utils";
-import { useNavigation } from "@store/historystack";
 import useCurrentUser from "@store/user";
 import { FullPost, Thread } from "@type/internal";
 import { InputManagerType } from "@type/other";
 import { InputFrame, PostClientSchemaType } from "@type/schemas";
 import { useRef, useState } from "react";
 import { IDS_Heading, IDS_Section, InitialDescriptionSheet, TextAreaInput } from ".";
+import { useRouter } from "next/navigation";
 
 type Props = {
     defaultVal: FullPost | undefined,
@@ -35,7 +35,7 @@ const PostMutationPage = ({ defaultVal, isEditing, defaultThread, quotedPost }: 
     const mediaPromptRef = useRef<BottomSheetRef>(null);
     const linkPromptRef = useRef<BottomSheetRef>(null);
 
-    const navigation = useNavigation();
+    const navigation = useRouter();
 
     const [category, setCategory] = useState(defaultVal?.category ?? "");
     const { meta } = useCurrentUser();
@@ -151,7 +151,7 @@ const PostMutationPage = ({ defaultVal, isEditing, defaultThread, quotedPost }: 
 
                 <section className="flex gap-2 items-center">
                     <ToggleButton checked={defaultVal?.nsfw} label="nsfw" className="uppercase" />
-                    <ToggleButton checked={defaultVal?.spoiler} label="spoiler" className="capitalize has-[:checked]:bg-orange-500/20 has-[:checked]:border-orange-500" />
+                    <ToggleButton checked={defaultVal?.spoiler} label="spoiler" className="capitalize has-checked:bg-orange-500/20 has-checked:border-orange-500" />
                     <PostCategoryPicker defaultCategory={category} func={addCategory} />
                 </section>
 

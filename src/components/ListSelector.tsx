@@ -25,15 +25,6 @@ type Response = { _id?: string; id?: string;[key: string]: unknown };
 
 type ComponentToRender<T, R> = FunctionComponent<T & { checked: boolean; onClick: (v: R) => void; }>;
 
-type BaseProps<R> = {
-    inputPlaceholder?: string;
-    callbackRef: RefObject<ListSelectorRef<R> | null>;
-    limit?: number;
-    className?: string;
-    alreadySelectedValues?: { id: string, val?: R }[],
-    frameType?: ParloImageFrameType,
-};
-
 type InfiniteQueryProps<T, R> = {
     mode: "infinite";
     queryKeysForList: string[];
@@ -67,6 +58,16 @@ type StaticRefinerProps<T, R> = {
     returnIds?: boolean;
     Component?: ComponentToRender<T, R>
     refiner?: (data: T) => RefinedValues<R>;
+};
+
+type BaseProps<R> = {
+    inputPlaceholder?: string;
+    callbackRef: RefObject<ListSelectorRef<R> | null>;
+    limit?: number;
+    className?: string;
+    alreadySelectedValues?: { id: string, val?: R }[],
+    frameType?: ParloImageFrameType,
+    onSelection?: (size: number) => void;
 };
 
 type Props<T extends Response, R> = BaseProps<R> &
@@ -140,7 +141,8 @@ const ListSelector = <T extends Response, R>(props: Props<T, R>) => {
         alreadySelectedValues,
         frameType,
         Component,
-        refiner
+        refiner,
+        onSelection
     } = props;
 
     /* --------------------------- Selection State --------------------------- */
@@ -172,8 +174,10 @@ const ListSelector = <T extends Response, R>(props: Props<T, R>) => {
             appToast.error(`Only ${limit} selections are allowed.`);
             return;
         }
-
-        next.set(id, returnVal ?? true);
+        else {
+            next.set(id, returnVal ?? true);
+        }
+        onSelection?.(next.size);
 
         selectedMap.current = next;
 

@@ -145,6 +145,31 @@ export const getParticipantsOfRoom = async (room_id: string): Promise<{ uid: str
     });
 }
 
+export const getParticipantsOfRooms = async (rooms: string[]): Promise<{ uid: string, type: ParticipantEnumType }[][]> => {
+    console.log("entered function");
+    try {
+        const pipeline = (await getUpstashRedis()).pipeline();
+
+        console.log("got pipeline");
+        rooms.forEach(rmid => pipeline.smembers(`room:${rmid}:participants`));
+
+        console.log("pipeline execution");
+        const participantsArray = await pipeline.exec().then(handleUpstashPipelineResponse) as string[][];
+
+        console.log("Participants Array");
+
+        return participantsArray.map(participants => {
+            return participants.map(p => {
+                const [uid, type] = p.split('-') as [string, ParticipantEnumType]
+                return { uid, type }
+            })
+        });
+    } catch (e: any) {
+        console.log("Error in func", e);
+        throw new Error(e);
+    }
+}
+
 export const getParticipantMuteState = async (participants: string[], room_id: string): Promise<{ uid: string, mute: boolean }[]> => {
     const redis = await getUpstashRedis();
     const multi = redis.multi();
@@ -161,6 +186,14 @@ export const getParticipantMuteState = async (participants: string[], room_id: s
 export const checkIfParticipantExists = async (room_id: string, user_id: string) => {
     const redis = await getUpstashRedis();
     return Boolean(await redis.exists(`room:${room_id}:participant:${user_id}`));
+}
+
+export const checkIfParticipantExistsInMultipleRooms = async (user_id: string, rooms: string[]) => {
+    const pipeline = (await getUpstashRedis()).multi();
+    rooms.forEach(rmid => pipeline.exists(`room:${rmid}:participant:${user_id}`));
+    return await pipeline.exec()
+        .then(handleUpstashPipelineResponse)
+        .then(results => results.map(r => Boolean(r)));
 }
 
 export const getParticipant = async (room_id: string, user_id: string, pipeline?: Pipeline) => {
@@ -439,6 +472,10 @@ const createPipelineForRoomList = (user_id: string, page: number, invitation?: b
                     if (type === "private" && !(otherParticipantMetaData || otherParticipantData))
                         throw new Error("Participant data missing");
 
+                    const parsed = parseUnknownData(otherParticipantMetaData?.profile);
+
+                    console.log("otherParticipantMetaData", otherParticipantMetaData, typeof parsed, parsed)
+
                     return {
                         _id: room_id,
                         display_name: (type === "private" ? otherParticipantMetaData?.username : name) || "Not found",
@@ -539,9 +576,12 @@ export const storeRoomList = async (user_id: string, data: RoomListResponse[], t
     data.forEach(room => {
         const { room_id, display_name, invitationMessage, lastMessage, lastMessageAt, lastMessageBy, otherParticipant_id, poster, room_type, createdAt } = room;
         setRoomDetail(room_id, {
-            type: room_type, invitationMessage, lastMessage, lastMessageAt, lastMessageBy,
+            type: room_type,
+            invitationMessage,
+            lastMessage,
+            lastMessageAt,
+            lastMessageBy,
             name: display_name, poster,
-            participants: otherParticipant_id ? [user_id, otherParticipant_id] : [],
             createdAt
         }, pipeline)
     });
@@ -605,36 +645,23 @@ export const getRoomDetails = async (room_id: string, user_id: string): Promise<
 
 export const setRoomDetail = async (room_id: string, room: Partial<CachedFullRoomType>, pipeline?: Pipeline) => {
 
+    const roomToStore: Partial<CachedFullRoomType> = {
+        createdAt: room.createdAt,
+        invitationMessage: room.invitationMessage,
+        lastMessage: room.lastMessage,
+        lastMessageAt: room.lastMessageAt,
+        lastMessageBy: room.lastMessageBy,
+        name: room.name,
+        poster: room.poster,
+        type: room.type,
+        participants: room.participants,
+    }
+
     const redis = pipeline ?? (await getUpstashRedis()).multi();
-    redis.hset(`room:${room_id}`, removeNullishFields(room));
+    redis.hset(`room:${room_id}`, removeNullishFields(roomToStore));
 
     if (!pipeline) await redis.exec().then(handleUpstashPipelineResponse);
 
-}
-
-const updateLastMessageFieldsOfRoom = async (room_id: string, message: MessageModelType) => {
-    const redis = await getUpstashRedis();
-    const participants = await redis.smembers(`room:${room_id}:participants`);
-
-    const pipeline = redis.multi();
-
-    const time = new Date(message.createdAt).getTime();
-
-    const update = {
-        lastMessage: message.content,
-        lastMessageAt: time,
-        lastMessageBy: message.user_id,
-    };
-
-    setRoomDetail(room_id, update, pipeline);
-
-    participants.forEach(participant => {
-        const [uid] = participant.split('-');
-        pipeline.zadd(`rooms:${uid}`, { score: time, member: room_id });
-
-    });
-
-    await pipeline.exec().then(handleUpstashPipelineResponse);
 }
 
 export const setDataWhileCreatingRoom = async (room: RoomModelType & { _id: string }, creator: string, participants: ParticipantModelType[]) => {
@@ -786,43 +813,81 @@ const syncMessageBuffer = async (room_id: string, session: ClientSession, messag
     return false;
 }
 
-const storeNewMessageInBuffer = async (room_id: string, message: MessageModelType) => {
+const storeNewMessageInBuffer = async (room_id: string, message: MessageModelType, pipeline?: Pipeline) => {
     console.log("Stroing new message in buffer");
 
-    const redis = await getUpstashRedis();
-    await redis.lpush(`room:${room_id}:messageBuffer`, { msg_id: message._id, createdAt: message.createdAt });
+    const transaction = pipeline ?? await getUpstashRedis();
+    await transaction.lpush(`room:${room_id}:messageBuffer`, { msg_id: message._id, createdAt: message.createdAt });
 }
 
-const storeNewMessageInList = async (room_id: string, message: MessageModelType) => {
-    console.log("Storing new mesage in list");
+const updateLastMessageFieldsOfRoom = async (room_id: string, message: MessageModelType, pipeline?: Pipeline) => {
     const redis = await getUpstashRedis();
-    const pipeline = redis.multi();
+    const transaction = pipeline ?? redis.pipeline();
+    const participants = await redis.smembers(`room:${room_id}:participants`);
+
+    const time = new Date(message.createdAt).getTime();
+
+    const update = {
+        lastMessage: message.content,
+        lastMessageAt: time,
+        lastMessageBy: message.user_id,
+    };
+
+    setRoomDetail(room_id, update, pipeline);
+
+    participants.forEach(participant => {
+        const [uid] = participant.split('-');
+        transaction.zadd(`rooms:${uid}`, { score: time, member: room_id });
+    });
+
+    if (pipeline) return pipeline;
+
+    await transaction.exec().then(handleUpstashPipelineResponse);
+}
+
+const storeNewMessageInList = async (room_id: string, message: MessageModelType, pipeline?: Pipeline) => {
+    console.log("Storing new mesage in list");
+    const transaction = pipeline ?? (await getUpstashRedis()).multi();
 
     console.log("starting to add message in list");
+    
     addMessageInList({
-        pipeline,
+        pipeline: transaction,
         room_id,
         items: [{
             score: new Date(message.createdAt).getTime(),
-            // member: JSON.stringify({ msg_id: message._id, createdAt: message.createdAt })
             member: { msg_id: message._id, createdAt: message.createdAt }
         }]
     });
 
-    pipeline.setex(`message:${message._id}`, oneDayInSeconds * 2, message);
+    transaction.setex(`message:${message._id}`, oneDayInSeconds * 2, message);
 
     console.log("updating last message fields");
-    await updateLastMessageFieldsOfRoom(room_id, message);
+    await updateLastMessageFieldsOfRoom(room_id, message, transaction);
     console.log("done updating last message fields");
 
-    await pipeline.exec().then(handleUpstashPipelineResponse);
+    if (pipeline) return;
+    await transaction.exec().then(handleUpstashPipelineResponse);
 }
 
-export const handleNewMessage = async (room_id: string, user_id: string, message: MessageModelType, session: ClientSession) => {
-    if (await checkIfTimeToSyncMessageBuffer(room_id)) await syncMessageBuffer(room_id, session, message);
+export const handleNewMessage = async (room_id: string, message: MessageModelType, session: ClientSession) => {
+    if (await checkIfTimeToSyncMessageBuffer(room_id))
+        await syncMessageBuffer(room_id, session, message);
+
     else await storeNewMessageInBuffer(room_id, message);
 
     await storeNewMessageInList(room_id, message);
+}
+
+export const handleNewMessages = async (rooms: string[], messages: MessageModelType[]) => {
+    const redis = await getUpstashRedis();
+    const transaction = redis.multi();
+    rooms.forEach((room_id, i) => {
+        storeNewMessageInBuffer(room_id, messages[i], transaction);
+        storeNewMessageInList(room_id, messages[i], transaction);
+    });
+
+    console.log("shared content result", await transaction.exec().then(handleUpstashPipelineResponse));
 }
 
 export const updateParticipantSeenAt = async (rmid: string, uid: string) => {

@@ -3,7 +3,7 @@ import { HeadingSkeleton, MetaDataSkeleton } from "./tools";
 
 const SearchResultSkeleton = () => {
     return (
-        <li className="w-full flex gap-2 md:gap-4 group p-2 items-center">
+        <li className="w-full flex gap-2 md:gap-4 group p-2 items-center max-w-3xl mx-auto">
             <div className="w-12 md:w-16 aspect-square rounded-md group-even:rounded-full skeletonPulse"></div>
             <div className="flex-1 space-y-2">
                 <HeadingSkeleton className="w-40" />
@@ -15,7 +15,7 @@ const SearchResultSkeleton = () => {
 }
 
 export const SearchResultSkeletonList = ({ count = 8 }: { count?: number }) => (
-    <ul>
+    <ul className="w-full max-w-3xl mx-auto">
         {Array(count).fill(0).map((_, i) => (
             <SearchResultSkeleton key={i} />
         ))}

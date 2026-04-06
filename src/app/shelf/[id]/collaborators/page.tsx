@@ -1,5 +1,5 @@
 import LoginModal from "@components/fallbacks/LoginModal";
-import { NotFound, ShowError } from "@components/ui";
+import { NotFound, ShowError } from "@components/fallbacks";
 import { getUserFromToken } from "@lib/auth/utils";
 import { getCollaboratorsOfShelf } from "@lib/helpers/common";
 import { fetchQuery, getQueryClient } from "@lib/providers/queryClient";

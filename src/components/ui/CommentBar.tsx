@@ -1,12 +1,10 @@
 import { BookmarkIcon, ThumbUpIcon } from "@assets/Icons";
-import { Navigate } from "@components";
+import { Navigate, NavigateComponentProps } from "@components";
 import { numberConverter, timeAgo } from "@lib/utils";
 import useGlobalStore from "@store/globalStore";
 import { CurrentUser, MereComment } from "@type/internal";
 import Image from "next/image";
-import MetadataTile, { MetadataTileContainer } from "./MetaDataTile";
-import OptionalChildren from "./OptionalChildren";
-import ParloImage from "./ParloImage";
+import { ParloImage, OptionalChildren, MetadataTileContainer, MetadataTile } from "./";
 import { ReplyInputType } from "@type/schemas";
 
 type LinkProps = {
@@ -14,11 +12,18 @@ type LinkProps = {
     link: string,
     className?: string,
     status: "sending" | "sent" | undefined,
-}
+} & Partial<NavigateComponentProps>
 
-const Link = ({ children, link, className, status }: LinkProps) => (
+const Link = ({ children, link, className, status, ...args }: LinkProps) => (
     <OptionalChildren condition={status !== "sending"} fallback={<div>{children}</div>}>
-        <Navigate className={className} comp="link" goto={link}>{children}</Navigate>
+        <Navigate
+            {...args}
+            className={className}
+            comp="link"
+            goto={link}
+        >
+            {children}
+        </Navigate>
     </OptionalChildren>
 )
 
@@ -96,7 +101,18 @@ const CommentBar = ({ _id, attachment, nsfw, spoiler, post_id, content, status, 
                         <OptionalChildren condition={username} fallback={(
                             <span className="text-gray-500 font-semibold">*Deleted User*</span>
                         )}>
-                            <Navigate comp="link" role="button" goto={`/user/${username}`} className="font-semibold">{username}</Navigate>
+                            <Navigate
+                                historyPayload={{
+                                    title: username,
+                                    poster: profile,
+                                }}
+                                comp="link"
+                                role="button"
+                                goto={`/user/${username}`}
+                                className="font-semibold"
+                            >
+                                {username}
+                            </Navigate>
                         </OptionalChildren>
                     </div>
 
@@ -114,7 +130,16 @@ const CommentBar = ({ _id, attachment, nsfw, spoiler, post_id, content, status, 
                 <ParentCommentBar parentComment={parentComment ? { ...parentComment, replied_to, username: undefined } : undefined} />
 
                 <div className="my-2 space-y-4">
-                    <Link status={status} link={`/comment/${_id}`} className="space-y-4 my-2">
+                    <Link
+                        historyPayload={{
+                            title: content?.slice(0, 50).concat('...'),
+                            poster: profile,
+                            image: attachment,
+                        }}
+                        status={status}
+                        link={`/comment/${_id}`}
+                        className="space-y-4 my-2"
+                    >
                         <OptionalChildren condition={attachment}>
                             <Image
                                 src={attachment}

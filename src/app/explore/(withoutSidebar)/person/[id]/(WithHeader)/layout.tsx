@@ -1,5 +1,6 @@
 import { TaleonWikiHeader, TaleonWikiSection, HorizontalThreadList } from "@app/explore/(withoutSidebar)/components";
-import { NotFound, OptionalChildren, ParloFooter, TabContainer, TabList } from "@components/ui";
+import { OptionalChildren, ParloFooter, TabContainer, TabList } from "@components/ui";
+import { NotFound } from "@components/fallbacks";
 import { TaleonWikiSkeleton } from "@components/ui/loading";
 import { fetchPerson } from "@lib/contentFetcher";
 import generateDynamicMetadata from "@lib/seo/metadata";

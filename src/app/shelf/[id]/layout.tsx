@@ -1,4 +1,4 @@
-import { NotFound } from "@components/ui";
+import { NotFound } from "@components/fallbacks";
 import { isValidParloId } from "@lib/utils";
 import { ParloPageProps } from "@type/other";
 import { PropsWithChildren } from "react";

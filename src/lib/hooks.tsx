@@ -5,15 +5,17 @@ import useCurrentUser from "@store/user";
 import { InfiniteData, useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { PaginatedData, RefinedGeneralData } from "@type/external";
 import { AggregatedResponse, GeneralGetReturn, GeneralMultipleReturn, InfiniteQueryResponse, MerePost } from "@type/internal";
+import { HistoryStackType } from "@type/other";
 import { PresenceMessage } from "ably";
 import axios from "axios";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useReducer, useRef, useState } from "react";
-import { oneDayInSeconds, oneHourInMiliSeconds, oneHourInSeconds } from "./constants";
+import { oneHourInMiliSeconds, oneHourInSeconds } from "./constants";
 import { fetchTrendingMovies, fetchTrendingShows } from "./contentFetcher";
-import { getTrendingPosts, getUserFeed, ppGetData } from "./helpers/common";
+import { getTrendingPosts, getUserFeed } from "./helpers/common";
 import { getAblyOnClient } from "./providers/ably";
-import { getQueryKeys, infiniteScrollerResponse, refineResponseForInfiniteQuery, refineResponseForQuery } from "./utils";
 import { getQueryClient } from "./providers/queryClient";
+import { getQueryKeys, infiniteScrollerResponse, refineResponseForInfiniteQuery, refineResponseForQuery } from "./utils";
 
 type InfiniteQueryProps<T> = {
     queryFn: (pageParams: number) => Promise<GeneralMultipleReturn<T> | GeneralGetReturn<PaginatedData>>,
@@ -428,5 +430,72 @@ export const useDebounce = (mutationFn: () => any, config?: { skipInSeconds?: nu
     }
 
     return { mutate, setInitialState, setFinalState }
+
+}
+
+export const useHistoryStack = () => {
+    const [historyStack, setHistoryStack] = useOfflineStore<HistoryStackType[]>("historyStack", []);
+
+    const pushInStack = (member: HistoryStackType) => {
+        let tempStack = [...(historyStack || [])]
+        if (tempStack.length >= 10) {
+            tempStack.pop();
+        }
+        tempStack = tempStack.filter(h => h.path !== member.path);
+        tempStack.push(member);
+        setHistoryStack(tempStack);
+    }
+
+    const removeFromStack = (path: string) => {
+        setHistoryStack(historyStack.filter(h => h.path !== path));
+    }
+
+    return { historyStack, pushInStack, removeFromStack }
+}
+
+export const useChageSearchParams = () => {
+    const searchParams = useSearchParams();
+    const pathname = usePathname();
+    const router = useRouter();
+
+    const addToSearchParams = (values: Record<string, string | number | boolean>) => {
+        if (!values) return;
+        const keys = Object.keys(values)
+        if (!keys.length) return;
+
+        const sp = new URLSearchParams(searchParams);
+        keys.forEach(key => {
+            sp.set(key, String(values[key]));
+        });
+        const oldPath = `${pathname}?${searchParams.toString()}`
+        const newPath = `${pathname}?${sp.toString()}`
+        if (oldPath === newPath) return;
+        router.push(newPath);
+    }
+
+    const removeFromSearchParams = (keys: string[]) => {
+        if (!keys || !keys.length) return;
+
+        const sp = new URLSearchParams(searchParams);
+        keys.forEach(key => {
+            sp.delete(key);
+        });
+        const oldPath = `${pathname}?${searchParams.toString()}`
+        const newPath = `${pathname}?${sp.toString()}`
+        if (oldPath === newPath) return;
+        router.push(newPath);
+    }
+
+    return { searchParams, pathname, addToSearchParams, removeFromSearchParams }
+}
+
+export const shouldNavigateToHome = (initial?: boolean) => {
+    const allowed = useRef(!!initial);
+
+    const updateState = (newState: boolean) => {
+        allowed.current = newState;
+    }
+
+    return { allowed: allowed.current, updateState }
 
 }

@@ -1,23 +1,22 @@
 "use client";
 
-import { AddIcon } from "@assets/Icons"
+import { AddIcon } from "@assets/Icons";
 import { BottomSheetRef, Navbar, OptionMenu } from "@components";
-import { OptionalChildren, OptionList, MetadataTile, MetadataTileContainer } from "@components/ui"
-import { UserPageMockup } from "@components/ui/mockup"
-import { parloculaAppURL, urlPattern } from "@lib/constants"
-import { registerUserMutation, updateUser } from "@lib/helpers/mutations"
-import appToast from "@lib/providers/toast"
-import { registerUserSchemaClient, registerUserSchemaServer, userUpdateSchema } from "@lib/schemas"
-import { checkEditedFields, readyFrames } from "@lib/utils"
-import { useNavigation } from "@store/historystack"
-import useCurrentUser from "@store/user"
-import { CurrentUser } from "@type/internal"
-import { InputManagerType } from "@type/other"
-import { InputFrame, LinkSchema, RegisterSchemaClientType } from "@type/schemas"
-import { useSearchParams } from "next/navigation"
-import { useRef } from "react"
-import { DisplayNameInput, IDS_Heading, IDS_Section, InitialDescriptionSheet, TextAreaInput } from "."
-import { Form, LinkInputManager, Poster } from "../"
+import { MetadataTile, MetadataTileContainer, OptionalChildren, OptionList } from "@components/ui";
+import { UserPageMockup } from "@components/ui/mockup";
+import { parloculaAppURL, urlPattern } from "@lib/constants";
+import { registerUserMutation, updateUser } from "@lib/helpers/mutations";
+import appToast from "@lib/providers/toast";
+import { registerUserSchemaClient } from "@lib/schemas";
+import { checkEditedFields, readyFrames } from "@lib/utils";
+import useCurrentUser from "@store/user";
+import { CurrentUser } from "@type/internal";
+import { InputManagerType } from "@type/other";
+import { InputFrame, LinkSchema, RegisterSchemaClientType } from "@type/schemas";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useRef } from "react";
+import { DisplayNameInput, IDS_Heading, IDS_Section, InitialDescriptionSheet, TextAreaInput } from ".";
+import { Form, LinkInputManager, Poster } from "../";
 
 type CreationProps = {
     username: string;
@@ -43,7 +42,7 @@ const UserMutationPage = ({ username, isEditing, defaultValues, dob, email }: Pr
 
     const linkPromptRef = useRef<BottomSheetRef>(null);
 
-    const navigation = useNavigation();
+    const navigation = useRouter();
     const urlToRedirect = useSearchParams().get("url");
 
     const { meta } = useCurrentUser();
@@ -116,7 +115,7 @@ const UserMutationPage = ({ username, isEditing, defaultValues, dob, email }: Pr
         const { success, error } = await updateUser(fieldsToUpdate);
         if (!success) return error;
 
-        navigation.goto(`/user/${user.username}`);
+        navigation.push(`/user/${user.username}`);
     }
 
     const submit = async (data: any) => {

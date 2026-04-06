@@ -9,7 +9,6 @@ import { cookies } from "next/headers";
 import { ParloPageProps } from "@type/other";
 
 const PopularThreadsPage = async ({ searchParams }: ParloPageProps) => {
-
     const sp = await searchParams;
 
     const { filter, page } = refineSearchParams("threads", sp.p, sp.f)

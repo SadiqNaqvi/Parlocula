@@ -3,7 +3,7 @@ import { BlogHeading3, BlogSubSection } from "@components/blog";
 import { Form, Input } from "@components/form";
 import { deactivateAccount } from "@lib/helpers/mutations";
 import { getTimeInFuture } from "@lib/utils";
-import { useNavigation } from "@store/historystack";
+import { useRouter } from "next/navigation";
 import { z } from "zod";
 
 const schema = z.object({
@@ -12,7 +12,7 @@ const schema = z.object({
 
 const FinalSection = ({ uid, callback }: { uid: string, callback: (passkey: string) => Promise<any> }) => {
 
-    const navigation = useNavigation();
+    const navigation = useRouter();
 
     const handleDeletion = async ({ passkey }: { passkey: string }) => {
         return await callback(passkey);

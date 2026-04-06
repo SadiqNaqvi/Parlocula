@@ -1,7 +1,7 @@
 import { HeadingSkeleton, MetaDataSkeleton, PosterSkeleton } from "./tools";
 
 const ThreadBarSkeleton = () => (
-    <div className="flex gap-2 items-center p-2">
+    <div className="flex gap-2 items-center p-2 max-w-3xl mx-auto w-full">
         <PosterSkeleton className="size-10" />
         <div className="space-y-1">
             <HeadingSkeleton />
@@ -11,7 +11,7 @@ const ThreadBarSkeleton = () => (
 )
 
 export const ThreadListSkeleton = ({ count = 12 }: { count?: number }) => (
-    <ul>
+    <ul className="w-full max-w-3xl mx-auto">
         {Array(count).fill(0).map((_, i) => (
             <ThreadBarSkeleton key={i} />
         ))}

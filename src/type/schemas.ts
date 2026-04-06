@@ -19,6 +19,7 @@ import {
   roomSchema,
   roomUpdateSchema,
   sessionInvalidationSchemaServer,
+  sharedContentSchema,
   shelfClientUpdateSchema,
   shelfEditSchema,
   shelfServerSchema,
@@ -64,6 +65,7 @@ export type RegisterSchemaClientType = z.infer<typeof registerUserSchemaClient>;
 export type RoomSchemaType = z.infer<typeof roomSchema>;
 export type RoomUpdateSchemaType = z.infer<typeof roomUpdateSchema>;
 export type MessageSchemaType = z.infer<typeof messageSchema>;
+export type SharedContentSchemaType = z.infer<typeof sharedContentSchema>;
 
 export type ReportActionSchemaType = z.infer<typeof reportActionSchema>
 

@@ -5,9 +5,9 @@ import { OptionMenu, WarningModal } from "@components";
 import ReportSheet from "@components/ReportSheet";
 import OptionList, { NestedSheetTrigger } from "@components/ui/OptionList";
 import { blockUserMutation, deletePostMutation } from "@lib/helpers/mutations";
-import { useNavigation } from "@store/historystack";
 import useCurrentUser from "@store/user";
 import { FullPost } from "@type/internal";
+import { useRouter } from "next/navigation";
 
 type Props = {
     post: FullPost,
@@ -16,7 +16,7 @@ type Props = {
 const OptionsButton = ({ post }: Props) => {
 
     const { meta } = useCurrentUser();
-    const navigation = useNavigation();
+    const navigation = useRouter();
 
     if (!meta) return null;
 

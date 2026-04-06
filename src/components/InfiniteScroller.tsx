@@ -9,7 +9,8 @@ import { ErrorCodes } from "@type/other";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect, useRef } from "react";
 import NotFound from "./fallbacks/NotFound";
-import { LoadingSpinner, OptionalChildren, ParloFooter, ShowError } from "./ui";
+import { LoadingSpinner, OptionalChildren, ParloFooter } from "./ui";
+import { ShowError } from "./fallbacks";
 import { twMerge } from "tailwind-merge";
 
 export type InfiniteScrollerProps = {

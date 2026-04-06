@@ -1,9 +1,9 @@
 "use client";
 
 import { AppIcon, LeftChevron, ShareIcon } from "@assets/Icons";
-import { Navigate, ShareButton } from "@components";
-import { useNavigation } from "@store/historystack";
+import { ShareButton } from "@components";
 import { useTheme } from "next-themes";
+import { useRouter } from "next/navigation";
 import { twMerge } from "tailwind-merge";
 import { OptionalChildren } from "./ui";
 
@@ -13,27 +13,26 @@ type Props = {
     navTitle?: string,
     titleToShare?: string,
     urlToShare?: string,
-    textToShare?: string,
-    poster?: string,
     onGoBack?: () => void,
     hrefToRedirect?: string,
+    hideAppIcon?: boolean;
 }
 
-const Navbar = ({ className = "", onGoBack, OptionButton, navTitle, titleToShare, urlToShare, poster, textToShare, hrefToRedirect }: Props) => {
+const Navbar = ({ className = "", onGoBack, OptionButton, navTitle, titleToShare, urlToShare, hrefToRedirect, hideAppIcon }: Props) => {
 
     const { setTheme, resolvedTheme } = useTheme();
-    const router = useNavigation();
+    const router = useRouter();
 
     const toggleTheme = () => {
         setTheme(resolvedTheme === "dark" ? "light" : "dark");
     }
 
-    const handleReplace = (e: any) => {
-        if (!hrefToRedirect) return;
-
-        e.preventDefault();
-
-        router.replace(hrefToRedirect);
+    const goBack = () => {
+        if (hrefToRedirect) {
+            router.replace(hrefToRedirect);
+        } else {
+            router.back();
+        }
     }
 
     return (
@@ -44,37 +43,30 @@ const Navbar = ({ className = "", onGoBack, OptionButton, navTitle, titleToShare
                 <OptionalChildren
                     condition={!!onGoBack}
                     fallback={(
-                        <Navigate comp="button" goto="back" onClick={handleReplace}>
+                        <button onClick={goBack}>
                             <LeftChevron />
-                        </Navigate>
+                        </button>
                     )}
                 >
                     <button onClick={onGoBack}>
                         <LeftChevron />
                     </button>
                 </OptionalChildren>
-
-                <OptionalChildren
-                    condition={!navTitle}
-                    fallback={(
-                        <span className={`line-clamp-1 text-lg`}>{navTitle}</span>
-                    )}
-                >
-                    <div className="size-6 cursor-pointer" onClick={toggleTheme}>
-                        <AppIcon className="size-full" />
-                    </div>
+                <OptionalChildren condition={navTitle}>
+                    <span className={`line-clamp-1 text-lg`}>{navTitle}</span>
                 </OptionalChildren>
             </div>
+
+            <OptionalChildren condition={!navTitle && !hideAppIcon}>
+                <div className="absolute mt-6 left-[50%] -translate-[50%] size-6 cursor-pointer" onClick={toggleTheme}>
+                    <AppIcon className="size-full" />
+                </div>
+            </OptionalChildren>
 
 
             <div className="flex gap-4 items-center">
                 <OptionalChildren condition={titleToShare}>
-                    <ShareButton
-                        title={titleToShare!}
-                        url={urlToShare}
-                        text={textToShare}
-                    // poster={poster}
-                    >
+                    <ShareButton title={titleToShare} url={urlToShare!}>
                         <ShareIcon />
                     </ShareButton>
                 </OptionalChildren>

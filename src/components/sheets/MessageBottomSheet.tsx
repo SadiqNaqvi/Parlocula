@@ -14,8 +14,8 @@ const MessageDetailsSection = ({ createdAt, content, status, children }: PropsWi
 
     return (
         <>
-            <section className="px-2 mb-4">
-                <MetadataTileContainer className="bg-gray10 border border-gray10 rounded-md p-2">
+            <section className="mb-4 bg-gray10 border border-gray10 rounded-md p-2">
+                <MetadataTileContainer>
                     <MetadataTile>{new Date(createdAt).toLocaleString()}</MetadataTile>
                     <MetadataTile condition={!!status}>{status}</MetadataTile>
                 </MetadataTileContainer>

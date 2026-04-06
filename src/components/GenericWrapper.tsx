@@ -7,7 +7,8 @@ import { GeneralGetReturn } from "@type/internal";
 import { ErrorCodes } from "@type/other";
 import { usePathname } from "next/navigation";
 import LoginModal from "./fallbacks/LoginModal";
-import { NotFound, OptionalChildren, ShowError } from "./ui";
+import { OptionalChildren } from "./ui";
+import { NotFound, ShowError } from "./fallbacks";
 import { FullPageLoadingSpinner } from "./ui/loading/LoadingSpinner";
 
 type Func<T> = (...args: any[]) => Promise<GeneralGetReturn<T>>;

@@ -34,7 +34,7 @@ const NotificationFetcher = async ({ children }: PropsWithChildren) => {
 
   const jar = await cookies();
   const payload = await getUserFromToken(jar);
-  
+
   let currentUser: CurrentUser | null = null;
 
   if (payload) {

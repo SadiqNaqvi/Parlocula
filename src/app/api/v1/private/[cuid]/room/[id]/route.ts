@@ -129,12 +129,14 @@ export const GET = getHandler(async (_, params) => {
 // Create a new room
 export const POST = postHandler<RoomSchemaType>({
   handler: async ({ data, frames, params, user_id, username, session, isNsfw }) => {
-    const { inviteMessage, type, name, participants } = data;
+    const { inviteMessage, type, name } = data;
 
     const { id } = params;
 
     const isPrivate = type === "private";
     const poster = frames[0];
+
+    const participants = data.participants.filter(u => u !== user_id);
 
     const resp = await Room.create(
       [
@@ -198,16 +200,7 @@ export const POST = postHandler<RoomSchemaType>({
       { session }
     );
 
-    const totalParticipants = creatorParticiantDoc.concat(otherParticipants)
-    const uniqueParticipants = new Map(
-      totalParticipants
-        .map(doc => [doc.user_id, doc.toObject()])
-    )
-
-    await setDataWhileCreatingRoom(room, user_id,
-      Array.from(uniqueParticipants.keys())
-        .map(k => uniqueParticipants.get(k)!)
-    );
+    await setDataWhileCreatingRoom(room, user_id, otherParticipants);
 
     await checkIfUserMetaExists([...participants, user_id]);
 
@@ -236,6 +229,7 @@ export const POST = postHandler<RoomSchemaType>({
   schema: roomSchema,
 });
 
+// Updating name or/and poster of the room (non-private)
 export const PATCH = updateHandler<RoomUpdateSchemaType>({
   handler: async ({ data, frames, params, isNsfw, session, user_id, username, areFilesToDelete }) => {
     const { id } = params;

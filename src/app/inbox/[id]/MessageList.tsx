@@ -1,19 +1,18 @@
 "use client";
 
-import { BottomSheet } from "@components/BottomSheet";
-import { MessageBar, OptionalChildren, ShowError } from "@components/ui";
+import { ShowError } from "@components/fallbacks";
+import MessageBottomSheet from "@components/sheets/MessageBottomSheet";
+import { MessageBar, OptionalChildren } from "@components/ui";
 import MessageSkeleton from "@components/ui/loading/MessageSkeleton";
 import { getMessages } from "@lib/helpers/common";
-import { updateDoc, updateParticipantSeenAt } from "@lib/helpers/mutations";
+import { updateParticipantSeenAt } from "@lib/helpers/mutations";
 import { useInfiniteQueryHook } from "@lib/hooks";
 import { getQueryKeys } from "@lib/utils";
 import useOfflineStore from "@store/offlineStore";
+import useRoomStore from "@store/roomStore";
 import { FullRoomType, InfiniteQueryResponse, MereMessage } from "@type/internal";
 import { ErrorCodes } from "@type/other";
-import React, { useEffect, useRef, useState } from "react";
-import MessageBottomSheet from "@components/sheets/MessageBottomSheet";
-import useRoomStore from "@store/roomStore";
-import useGlobalStore from "@store/globalStore";
+import React, { useEffect, useRef } from "react";
 
 const MessageList = ({ uid, room }: { uid: string, room: FullRoomType }) => {
 

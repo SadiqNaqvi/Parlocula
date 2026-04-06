@@ -6,21 +6,13 @@ import { createRoomMutation } from "@lib/helpers/mutations";
 import { useCustomReducer } from "@lib/hooks";
 import { roomSchemaClient } from "@lib/schemas";
 import { getQueryKeys, parloId, readyFrames } from "@lib/utils";
-import { useNavigation } from "@store/historystack";
 import useCurrentUser from "@store/user";
 import { InputManagerType, TypedFunction } from "@type/other";
 import { InputFrame } from "@type/schemas";
+import { useRouter } from "next/navigation";
 import { PropsWithChildren, useRef } from "react";
 
 type GroupMetaType = { name: string, poster: InputFrame | null, inviteMessage: string }
-
-const SubmitButton = ({ children, onSubmit }: PropsWithChildren<{ onSubmit?: TypedFunction }>) => {
-    return (
-        <footer className="fixed w-full bottom-0 p-2 flex sm:justify-center">
-            <button onClick={onSubmit} type="submit" className="primary flex-1 sm:flex-0">{children}</button>
-        </footer>
-    )
-}
 
 
 const CreateGroup = () => {
@@ -29,7 +21,8 @@ const CreateGroup = () => {
     const ref = useRef<ListSelectorRef>(null);
     const posterRef = useRef<InputManagerType<InputFrame | null>>(null);
     const { inviteMessage, name, page = 1, poster, setter } = useCustomReducer<GroupMetaType & { page: number } | undefined>(undefined);
-    const navigation = useNavigation();
+    const navigation = useRouter();
+    const formRef = useRef<HTMLFormElement>(null);
 
     if (!meta) return null;
 
@@ -43,7 +36,7 @@ const CreateGroup = () => {
 
         const rmid = parloId();
 
-        createRoomMutation(
+        await createRoomMutation(
             rmid,
             {
                 files, filesData, name,
@@ -54,8 +47,6 @@ const CreateGroup = () => {
             },
             undefined
         );
-
-        navigation.goto(`/inbox/${rmid}`);
     }
 
     const storeMeta = (data: Omit<GroupMetaType, "poster">) => {
@@ -67,26 +58,41 @@ const CreateGroup = () => {
         })
     }
 
+    const reqSubmit = () => {
+        formRef.current?.requestSubmit();
+    }
+
     if (page === 1) return (
         <>
-            <Navbar hrefToRedirect="/inbox" navTitle="Create Group" />
+            <Navbar
+                hrefToRedirect="/inbox"
+                navTitle="Create Group"
+                OptionButton={(
+                    <button onClick={reqSubmit} type="submit" className="primary">Next</button>
+                )}
+            />
             <Poster ref={posterRef} className="mt-4 mb-2 mx-auto" />
             <Form
-                className="space-y-2"
+                ref={formRef}
+                className="space-y-4 px-2"
                 submit={storeMeta}
                 schema={roomSchemaClient}
             >
-                <Input name="name" placeholder="Eg: Movie Yappers" label="Name of the group" />
+                <Input
+                    name="name"
+                    placeholder="Eg: Movie Yappers"
+                    label="Name of the group"
+                    className="border-transparent border-b-gray-500/30 rounded-none"
+                />
 
                 <Textarea
                     name="inviteMessage"
+                    containerClassName="border-b border-gray40"
                     placeholder="Eg: Hey, Let's yap about the new movie"
+                    className="mt-2"
                     label="Invitation Message"
-                    description="You can neither send more than one invitation message nor change it in future. Make it worth."
                 />
-
-                <SubmitButton>Next</SubmitButton>
-
+                <p className="text-sm text-zinc-500 text-center">You can neither send more than one invitation message nor change it in future. Make it worth.</p>
             </Form>
         </>
 
@@ -94,7 +100,13 @@ const CreateGroup = () => {
 
     return (
         <>
-            <Navbar onGoBack={() => setter({ page: 1 })} navTitle="Create Group" />
+            <Navbar
+                onGoBack={() => setter({ page: 1 })}
+                navTitle="Create Group"
+                OptionButton={(
+                    <button onClick={create} type="submit" className="primary">Create</button>
+                )}
+            />
 
             <div className="mb-8 w-full">
                 <ListSelector
@@ -110,9 +122,6 @@ const CreateGroup = () => {
                     inputPlaceholder="Search user to add"
                     callbackRef={ref}
                 />
-
-                <SubmitButton onSubmit={create}>Create</SubmitButton>
-
             </div>
 
         </>

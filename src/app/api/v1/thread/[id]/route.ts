@@ -23,7 +23,7 @@ export const GET = getHandler(async (r, params) => {
         pipeline: [
           convertMatchToLookupExpr({
             thread_id: id,
-            role: "moderators"
+            role: "moderator"
           }),
           { $project: { user_id: 1 } }
         ],

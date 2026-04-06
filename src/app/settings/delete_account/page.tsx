@@ -5,12 +5,12 @@ import { BlogHeading1, BlogHeading2, BlogSection, BlogSubSection } from "@compon
 import { FullPageLoadingSpinner } from "@components/ui/loading/LoadingSpinner";
 import { deleteAccount } from "@lib/helpers/mutations";
 import { numberConverter } from "@lib/utils";
-import { useNavigation } from "@store/historystack";
 import useCurrentUser from "@store/user";
 import { useRef, useState } from "react";
 import FinalSection from "./FinalSection";
 import ProcedureSection from "./ProcedureSection";
 import ReasonSection from "./ReasonSection";
+import { useRouter } from "next/navigation";
 
 const ThingsToLooseList = ({ count, description, heading, }: { heading: string, count: number | null, description: string }) => {
     if (count !== null && count < 1) return;
@@ -26,7 +26,7 @@ const ThingsToLooseList = ({ count, description, heading, }: { heading: string, 
 const DeleteAccountPage = () => {
 
     const { user, isHydrated } = useCurrentUser();
-    const navigation = useNavigation();
+    const navigation = useRouter();
     const [section, setSection] = useState<"intro" | "reason" | "procedure" | "final">("intro");
     const reasonRef = useRef("");
 

@@ -35,9 +35,14 @@ const ShelfItemContent = ({ poster, title, year, createdAt, added_by }: ShelfIte
 export const ShowOnlyShelfItem = ShelfItemContent;
 
 const ShelfItemBar = (item: ShelfItemType) => {
-    const { taleon_type, ext_id } = item;
+    const { taleon_type, ext_id, title, poster } = item;
     return (
-        <Navigate className="w-full" goto={`/explore/${taleon_type}/${ext_id}`} comp="link">
+        <Navigate
+            historyPayload={{ title, poster }}
+            className="w-full"
+            goto={`/explore/${taleon_type}/${ext_id}`}
+            comp="link"
+        >
             <ShelfItemContent {...item} />
         </Navigate>
     )

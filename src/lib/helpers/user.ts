@@ -1,5 +1,7 @@
+"use client";
+
 import { getAblyOnClient } from "@lib/providers/ably";
-import appToast from "@lib/providers/toast";
+import { getPushState, subscribeToPushAndSync, unsubscribeToPushAndSync } from "@lib/providers/push";
 import { getQueryKeys } from "@lib/utils";
 import useNotification from "@store/notification";
 import useRoomStore from "@store/roomStore";
@@ -9,7 +11,22 @@ import { AblyEventParams } from "@type/other";
 import { ConnectionStateChange } from "ably";
 import { toast } from "sonner";
 import { refetchQueries, showMessageOptimistically, updateDoc, updateDocInInfiniteQueryResult } from "./mutations";
-import NotificationWarningToast from "@components/toasts/NotificationWarningToast";
+import { PushNotificationWarningToast } from "@app/UserHydrator";
+
+const checkNotificationAndSubscribe = async (uid: string) => {
+    // If user Notification 
+    if (Notification.permission !== "granted") {
+        PushNotificationWarningToast();
+        return;
+    }
+    else if (await getPushState() === "granted") return;
+
+    const { success, errCode } = await subscribeToPushAndSync(uid);
+    if (success) return;
+
+    console.warn("Subscibe to push on start failed", errCode);
+    PushNotificationWarningToast();
+}
 
 const setUser = (user: CurrentUser, contentFiltering: boolean) => {
 
@@ -30,10 +47,7 @@ export const setUserOnRefreshOrLogin = (user: CurrentUser, contentFiltering: boo
     const channel = ably.channels.get(user._id);
     channel.presence.enter({ status: "online" });
 
-    getPushSubscription().then(sub => {
-        if (sub) return;
-        appToast.error(() => NotificationWarningToast());
-    })
+    checkNotificationAndSubscribe(user._id);
 
     const handleConnectionStateChange = (stateChange: ConnectionStateChange) => {
         console.log("Connection state:", stateChange.current);
@@ -57,6 +71,8 @@ export const setUserOnRefreshOrLogin = (user: CurrentUser, contentFiltering: boo
 
         const { room_id, room, ...rest } = data;
 
+        const roomDetails = room ?? useRoomStore.getState().room[room_id];
+
         showMessageOptimistically({ message: { ...rest, room_id }, uid: user._id });
 
         if (typeof "window" === undefined) return;
@@ -70,8 +86,10 @@ export const setUserOnRefreshOrLogin = (user: CurrentUser, contentFiltering: boo
                 time: Date.now(),
                 user_id: user._id,
             } as AblyEventParams["entered_chat"]);
+        } else if (roomDetails) {
+            toast.success(`New message arrived from ${roomDetails.display_name}`);
         } else {
-            toast.success(`New message arrived from ${room.display_name}`);
+            toast.success("New message arrived");
         }
     }
 
@@ -127,13 +145,5 @@ export const logOutOnClient = (uid: string) => {
     channel.unsubscribe("message");
     channel.unsubscribe("entered_chat");
     useCurrentUser.setState({ user: null, meta: null, filterContent: true, dataSaver: false });
-}
-
-export const getPushSubscription = async () => {
-    const registration = await navigator.serviceWorker.register('/sw.js', {
-        scope: '/',
-        updateViaCache: 'none',
-    });
-
-    return await registration.pushManager.getSubscription();
+    unsubscribeToPushAndSync(uid);
 }

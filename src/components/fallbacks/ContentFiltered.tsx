@@ -58,7 +58,7 @@ const ContentFiltered = ({ allow, redirectPath }: { allow?: boolean, redirectPat
                 <Navigate
                     className="btn secondary flex-1"
                     comp="link"
-                    goto="/settings/filter_contents">
+                    goto="/settings/filter_content">
                     Update Settings
                 </Navigate>
             </div>

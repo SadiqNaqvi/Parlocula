@@ -9,6 +9,20 @@ import { twMerge } from "tailwind-merge";
 import { VerticalTaleonCardSkeletonList } from "./ui/loading";
 import VerticleMovieCard from "./ui/VerticleMovieCard";
 
+console.log("ENTERED DATA FETCHER");
+
+export type AllowedFunctionsForHorizontalList =
+    | "fetchMoviesWithCast"
+    | "fetchMoviesWithCompany"
+    | "fetchMoviesWithGenres"
+    | "fetchMoviesWithYear"
+    | "fetchSimilarMovies"
+    | "fetchShowsWithGenres"
+    | "fetchSimilarShows"
+    | "fetchTrendingMovies"
+    | "fetchTrendingShows";
+
+
 const funcMap = {
     fetchMoviesWithCast,
     fetchMoviesWithCompany,
@@ -20,8 +34,6 @@ const funcMap = {
     fetchTrendingMovies,
     fetchTrendingShows,
 }
-
-export type AllowedFunctionsForHorizontalList = keyof typeof funcMap;
 
 type FuncMap = typeof funcMap
 
@@ -56,7 +68,7 @@ const DataFetcher = <T extends AllowedFunctionsForHorizontalList>({ func, args, 
     }, []);
 
     const fetchDataWithNew = async (): Promise<GeneralGetReturn> => {
-        const functionToFetch = funcMap[func] as (...args: any) => ReturnType<FuncMap[T]>;
+        const functionToFetch = funcMap[func] as (...args: any) => any;
 
         const response = await functionToFetch(...args);
 

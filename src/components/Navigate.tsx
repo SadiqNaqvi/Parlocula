@@ -1,34 +1,43 @@
 "use client";
 
-import { useNavigation } from "@store/historystack";
+import { useHistoryStack } from "@lib/hooks";
+import { Frame } from "@type/internal";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import NavigationSheet from "./sheets/NavigateSheet";
+import { usePathname, useRouter } from "next/navigation";
 import { useRef } from "react";
 import { BottomSheetRef } from "./BottomSheet";
+import NavigationSheet from "./sheets/NavigateSheet";
+import { HistoryStackType } from "@type/other";
 
-type NavigateType = {
+export type NavigateComponentProps = {
     children: React.ReactNode;
     comp: "button" | "link";
+    historyPayload?: Omit<HistoryStackType, "path">,
     goto: string;
     preload?: boolean;
 } & React.ButtonHTMLAttributes<HTMLButtonElement> & React.AnchorHTMLAttributes<HTMLAnchorElement>
 
 
-const Navigate = ({ children, comp, goto, type, className, preload, onContextMenu, ...args }: NavigateType) => {
+const Navigate = ({ children, comp, goto, type, className, preload, onContextMenu, historyPayload, ...args }: NavigateComponentProps) => {
 
-    const navigator = useNavigation();
+    const navigator = useRouter();
     const pathname = usePathname();
     const sheetRef = useRef<BottomSheetRef>(null);
+    const { pushInStack } = useHistoryStack();
 
     const handleNavigation = (e: any) => {
         e.preventDefault();
 
         if (goto === pathname) return;
 
-        else if (goto === "back") navigator.back();
+        else if (goto === "back") {
+            navigator.back();
+            return;
+        }
 
-        else navigator.goto(goto);
+        if (historyPayload) pushInStack({...historyPayload, path: goto});
+
+        navigator.push(goto);
     }
 
     const handleContextMenu = (e: any) => {

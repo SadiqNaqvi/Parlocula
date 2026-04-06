@@ -1,6 +1,6 @@
 import { LoginModal } from "@components/fallbacks";
 import { ShelfMutation } from "@components/form/Mutation";
-import { NotFound, ShowError } from "@components/ui";
+import { NotFound, ShowError } from "@components/fallbacks";
 import { getUserFromToken } from "@lib/auth/utils";
 import { getItems, getShelf } from "@lib/helpers/common";
 import { fetchQuery, getQueryClient, prefetchInfiniteQuery } from "@lib/providers/queryClient";

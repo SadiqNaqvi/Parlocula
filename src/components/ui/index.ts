@@ -1,13 +1,10 @@
-export { default as NotFound } from "../fallbacks/NotFound";
-export { default as ShowError } from "../fallbacks/ShowError";
 export { default as ArtistCard } from "./ArtistCard";
 export { BreadCrumbs, BreadCrumbTile } from "./Breadcrumbs";
 export { default as CommentBar, CommentBarWithoutReply } from "./CommentBar";
 export { default as Dropdown } from "./Dropdown";
 export { default as FrameTile } from "./FrameTile";
 export { default as InteractiveDetailSection } from "./InteractiveDetailSection";
-export { default as LinksSection } from "./LinksSection";
-export { default as LinkTile } from "./LinkTile";
+export { default as LinkTile, LinksSection } from "./LinkTile";
 export { default as LoadingSpinner } from "./loading/LoadingSpinner";
 export { default as MessageBar } from "./MessageBar";
 export { default as MetadataTile, MetadataTileContainer } from "./MetaDataTile";
@@ -27,3 +24,4 @@ export { default as ThreadBox } from "./ThreadBox";
 export { default as ThreadTile } from "./ThreadTile";
 export { SimpleUserBar, default as UserBar } from "./UserBar";
 export { default as VerticleMovieCard } from "./VerticleMovieCard";
+

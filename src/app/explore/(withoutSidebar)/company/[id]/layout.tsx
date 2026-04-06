@@ -1,4 +1,5 @@
-import { NotFound, TabContainer, TabList } from "@components/ui";
+import { TabContainer, TabList } from "@components/ui";
+import { NotFound } from "@components/fallbacks";
 import TaleonWikiSkeleton from "@components/ui/loading/TaleonWikiSkeleton";
 import { fetchCompany } from "@lib/contentFetcher";
 import generateDynamicMetadata from "@lib/seo/metadata";

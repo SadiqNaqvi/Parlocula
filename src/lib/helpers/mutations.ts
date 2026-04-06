@@ -1,22 +1,21 @@
 import LinkToast from "@components/toasts/LinkToast";
 import generateFingerprint from "@lib/auth/fingerprint";
-import { oneDayInSeconds, oneHourInMiliSeconds, parloculaAppURL, queryFilters } from "@lib/constants";
+import { oneDayInSeconds, parloculaAppURL, queryFilters } from "@lib/constants";
 import { getQueryClient } from "@lib/providers/queryClient";
 import appToast from "@lib/providers/toast";
 import { codetoError, getQueryKeys, objectToFormData, parloId, trycatch } from "@lib/utils";
-import { AppNavigationInstance } from "@store/historystack";
 import { offlineStore } from "@store/offlineStore";
 import useRoomStore from "@store/roomStore";
 import useCurrentUser from "@store/user";
 import { GeneralExtReturn, RefinedMovieData, RefinedShowData } from "@type/external";
-import { CommentReplyType, CurrentUser, Frame, FullComment, FullPost, FullRoomType, FullShelf, FullTaleonType, GeneralGetReturn, GeneralPostReturn, MereComment, MereMessage, MereRoomType, MereShelf, MereUser, ModeratorType, ShelfCollaborator, ShelfCollaborators, ShelfItemType, ShelvesForTaleon, ThreadModType, UserConnectionType } from "@type/internal";
-import { CollaboratorModelType, MembershipModelType, NotificationModelType } from "@type/models";
+import { CommentReplyType, CurrentUser, FullComment, FullPost, FullRoomType, FullShelf, FullTaleonType, GeneralGetReturn, GeneralPostReturn, MereComment, MereMessage, MereRoomType, MereShelf, MereUser, ModeratorType, ShelfCollaborator, ShelfCollaborators, ShelfItemType, ShelvesForTaleon, ThreadModType, UserConnectionType } from "@type/internal";
+import { CollaboratorModelType, MembershipModelType, MessageModelType, NotificationModelType } from "@type/models";
 import { ErrorCodes, InfiniteScrollerDataType } from "@type/other";
-import { BookmarkSchemaType, CommentSchemaType, CommentSchemaUpdateType, EmailUpdateSchemaType, ItemsForShelfSchemaType, LikeSchemaType, MessageSchemaType, PostSchemaType, PostUpdateSchemaType, ReportActionSchemaType, ReportSchemaType, ReportTypeEnum, RoomSchemaType, SessionInvalidationServerSchemaType, ShelfEditSchemaType, ShelfSchemaType, TaleonToAddAndRemoveType, ThreadSchemaServer, ThreadUpdateSchema, UsernameUpdateSchemaType, UserSchemaType, UserUpdateSchemaType } from "@type/schemas";
+import { BookmarkSchemaType, CommentSchemaType, CommentSchemaUpdateType, EmailUpdateSchemaType, ItemsForShelfSchemaType, LikeSchemaType, MessageSchemaType, PostSchemaType, PostUpdateSchemaType, ReportActionSchemaType, ReportSchemaType, ReportTypeEnum, RoomSchemaType, SessionInvalidationServerSchemaType, SharedContentSchemaType, ShelfEditSchemaType, ShelfSchemaType, TaleonToAddAndRemoveType, ThreadSchemaServer, ThreadUpdateSchema, UsernameUpdateSchemaType, UserSchemaType, UserUpdateSchemaType } from "@type/schemas";
 import axios from "axios";
-import { setUserOnRefreshOrLogin } from "./user";
 import { ZodIssue } from "zod";
-import useGlobalStore from "@store/globalStore";
+import { setUserOnRefreshOrLogin } from "./user";
+import { AppRouterInstance } from "@type/nextjs";
 
 type MutationFunction<R> = () => Promise<GeneralPostReturn<R>>
 
@@ -543,7 +542,7 @@ export const submitReportMutation = async (uid: string, cnid: string, type: Repo
     })
 }
 
-export const createPostMutation = async (uid: string, data: PostSchemaType, navigation: AppNavigationInstance) => {
+export const createPostMutation = async (uid: string, data: PostSchemaType, navigation: AppRouterInstance) => {
 
     return await performMutation({
         mutationFn: () => ppPostData<FullPost>({ url: "post", data, uid }),
@@ -994,7 +993,7 @@ export const addItemInCollaborativeShelf = async (sid: string, uid: string, tale
     })
 }
 
-export const createShelfMutation = async (uid: string, shelf: ShelfSchemaType, navigation?: AppNavigationInstance) => {
+export const createShelfMutation = async (uid: string, shelf: ShelfSchemaType, navigation?: AppRouterInstance) => {
     return await performMutation({
         mutationFn: () => ppPostData<FullShelf>({ url: "shelf", data: shelf, uid }),
         onSuccess: ({ data }) => {
@@ -1361,10 +1360,7 @@ export const rejectRoomInvitation = async (rmid: string, uid: string) => {
     })
 }
 
-export const showMessageOptimistically = ({ message, uid }: {
-    message: MereMessage,
-    uid: string,
-}) => {
+export const showMessageOptimistically = ({ message, uid }: { message: MereMessage, uid: string }) => {
 
     const roomKey = getQueryKeys("rooms_uid", { uid: uid });
     const { room_id } = message;
@@ -1431,6 +1427,65 @@ export const sendMessage = async (rmid: string, uid: string, message: MessageSch
                 (m) => m._id === message._id,
                 { status: "error" }
             )
+        },
+    })
+}
+
+export const sendContentToRooms = async (rooms: string[], data: Omit<SharedContentSchemaType, "rooms">, uid: string, username: string) => {
+    const messageListKeys = rooms.map(rmid => getQueryKeys("messages_rmid", { rmid }));
+    const { updateRoom } = useRoomStore.getState();
+
+    const temp_ids = Array(rooms.length).fill(0).map(() => parloId());
+
+    const message = {
+        content: data.message || '',
+        createdAt: Date.now(),
+        sharedContent: data.contentPath,
+    }
+
+    await performMutation({
+        mutationFn: () => ppPostData<Record<string, string>>({ url: "room/share", uid, data: { ...data, rooms } }),
+        onMutate: () => {
+            return rooms.map((rmid, i) => {
+                updateRoom({ status: "sending" }, rmid);
+                return addDocsInInfiniteQueryResult<MereMessage>(
+                    messageListKeys[i],
+                    {
+                        ...message,
+                        status: "sending",
+                        room_id: rmid,
+                        user_id: uid,
+                        username,
+                        _id: temp_ids[0],
+                    });
+            });
+        },
+        onSuccess: ({ data }) => {
+            rooms.forEach((rmid, i) => {
+                updateRoom({
+                    status: undefined,
+                    lastMessage: "You shared a content",
+                    lastMessageAt: message.createdAt,
+                    lastMessageBy: uid,
+                }, rmid);
+
+                updateDocInInfiniteQueryResult<MereMessage>(
+                    messageListKeys[i],
+                    (m) => m._id === temp_ids[i],
+                    { status: undefined, _id: data[rmid] }
+                );
+            })
+        },
+        onError: () => {
+            rooms.forEach((rmid, i) => {
+                updateRoom({ status: "error" }, rmid);
+
+                updateDocInInfiniteQueryResult<MereMessage>(
+                    messageListKeys[i],
+                    (m) => m._id === temp_ids[i],
+                    { status: "error" }
+                );
+            })
         },
     })
 }

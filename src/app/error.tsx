@@ -2,7 +2,7 @@
 
 import "@/app/globals.css";
 import { Sidebar } from "@components";
-import { ShowError } from "@components/ui";
+import { ShowError } from "@components/fallbacks";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {

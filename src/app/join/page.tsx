@@ -5,13 +5,12 @@ import { Navigate } from "@components";
 import EmailVerifier from "@components/auth/EmailVerifier";
 import { urlPattern } from "@lib/constants";
 import { loginUserMutation } from "@lib/helpers/mutations";
-import { useNavigation } from "@store/historystack";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 
 const Page = () => {
     const urlToRedirect = useSearchParams().get("url");
-    const navigation = useNavigation();
+    const navigation = useRouter();
     const [email, setEmail] = useState('');
 
     const handleLogin = async (email: string, code: number) => {

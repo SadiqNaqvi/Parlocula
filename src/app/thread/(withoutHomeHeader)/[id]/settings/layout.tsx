@@ -1,5 +1,5 @@
 import LoginModal from "@components/fallbacks/LoginModal";
-import { NotFound, ShowError } from "@components/ui";
+import { NotFound, ShowError } from "@components/fallbacks";
 import { FullPageLoadingSpinner } from "@components/ui/loading/LoadingSpinner";
 import { getUserFromToken } from "@lib/auth/utils";
 import { getThreadById } from "@lib/helpers/common";
@@ -51,7 +51,7 @@ const Fetcher = async ({ id, children }: PropsWithChildren<{ id: string }>) => {
 
 }
 
-const ThreadSettingLayout = async ({ params,children }: PropsWithChildren<ParloPageProps>) => {
+const ThreadSettingLayout = async ({ params, children }: PropsWithChildren<ParloPageProps>) => {
 
     const [id, ...rest] = (await params).id.split("-");
 

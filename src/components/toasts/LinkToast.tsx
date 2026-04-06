@@ -1,11 +1,10 @@
 "use client";
 
 import { OptionalChildren } from "@components/ui";
-import { useNavigation } from "@store/historystack";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 const LinkToast = ({ description, title, href }: { title: string, description?: string, href: string }) => {
-    const navigation = useNavigation();
+    const navigation = useRouter();
     const pathname = usePathname();
 
     if (pathname === href)
@@ -13,7 +12,7 @@ const LinkToast = ({ description, title, href }: { title: string, description?: 
 
 
     return (
-        <div className="p-2" onClick={() => navigation.goto(href)}>
+        <div className="p-2" onClick={() => navigation.push(href)}>
             <h4>{title}</h4>
             <OptionalChildren condition={description}>
                 <p className="text-xs sm:text-sm text-zinc-500">{description}</p>

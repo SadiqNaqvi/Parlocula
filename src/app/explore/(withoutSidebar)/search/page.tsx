@@ -1,18 +1,17 @@
 "use client";
 
-import InfiniteScroller from "@components/InfiniteScroller";
+import { InfiniteScroller } from "@components";
 import { PostBar, SearchTile, ShelfBar, ThreadTile, UserBar } from "@components/ui";
 import { PostListSkeleton, SearchResultSkeletonList, ShelfBarListSkeleton, ThreadListSkeleton, UserBarSkeletonList } from "@components/ui/loading";
 import { searchFilters } from "@lib/constants";
 import { searchAllContent, searchCollection, searchCompany, searchMovie, searchPerson, searchShow } from "@lib/contentFetcher";
 import { searchComments, searchPosts, searchShelves, searchThreads, searchUsers } from "@lib/helpers/common";
 import useCurrentUser from "@store/user";
-import { GeneralGetReturn } from "@type/internal";
 import { useSearchParams } from "next/navigation";
 import SearchHeader from "./SearchHeader";
 
 const getQueryFn = (tab: string, nsfw: boolean) => {
-
+    
     switch (tab) {
         case "all": return searchAllContent;
         case "movies": return searchMovie;
@@ -25,7 +24,7 @@ const getQueryFn = (tab: string, nsfw: boolean) => {
         case "shelves": return searchShelves;
         case "threads": return (q: string, p: number) => searchThreads(q, nsfw, p);
         case "users": return searchUsers;
-        default: return (q: string, p: number) => ({ success: false, errCode: "uncaught_error", result: undefined } as GeneralGetReturn)
+        default: return (q: string, p: number) => ({ success: false, errCode: "uncaught_error", result: undefined } as any)
     }
 
 }
@@ -39,6 +38,7 @@ const LoadingSkeleton = ({ currentFilter }: { currentFilter: string }) => {
 }
 
 const ComponentToShow = ({ currentFilter, doc }: { currentFilter: string, doc: any }) => {
+
     if (currentFilter === "posts") return <PostBar {...doc} />;
     else if (currentFilter === "threads") return <ThreadTile {...doc} />;
     else if (currentFilter === "shelves") return <ShelfBar {...doc} />;
@@ -47,7 +47,6 @@ const ComponentToShow = ({ currentFilter, doc }: { currentFilter: string, doc: a
 }
 
 const SearchPage = () => {
-
     const params = useSearchParams();
     const searchQuery = params.get('q') || '';
     const filter = params.get('f') || '';
@@ -81,7 +80,7 @@ const SearchPage = () => {
             </section>
 
         </>
-    )
+    );
 
     return (
         <>
@@ -91,7 +90,7 @@ const SearchPage = () => {
                 <p className="text-sm text-center md:text-base text-zinc-500">Movies, Shows, Threads, People, Users, Collections, Companies, etc...</p>
             </section>
         </>
-    )
+    );
 }
 
 export default SearchPage;

@@ -1,14 +1,39 @@
 'use client';
 
 import { AppIcon } from '@assets/Icons';
+import { Navigate } from '@components';
 import { authenticateUser } from '@lib/helpers/server';
 import { logOutOnClient, setUserOnRefreshOrLogin } from '@lib/helpers/user';
 import { getQueryClient } from '@lib/providers/queryClient';
 import { getQueryKeys } from '@lib/utils';
 import useCurrentUser from '@store/user';
 import { CurrentUser, TokenPayload } from '@type/internal';
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
+import { useEffect, useRef, useState } from 'react';
+import { toast } from 'sonner';
+
+export const PushNotificationWarningToast = () => {
+    toast("Push Notification is not enabled!", {
+        icon: null,
+        className: "bg-primarylight border border-gray30 rounded-md grid grid-cols-2 p-2 gap-2",
+        description: "We cannot notify you anything related to your account.",
+        descriptionClassName: "text-sm my-2",
+        classNames: {
+            cancelButton: "secondary col-start-2 -col-end-1 row-start-2",
+            content: "col-span-2",
+            title: "text-lg"
+        },
+        action: (
+            <Navigate comp="button" goto="/settings/notifications" className="inline primary btn col-start-1 col-end-2">
+                View
+            </Navigate>
+        ),
+        cancel: { label: "Dismiss", onClick: () => { } },
+        duration: 3600 * 1000,
+        unstyled: true,
+
+    })
+}
 
 const checkIfInAppBrowser = () => {
     const ua = navigator.userAgent || navigator.vendor;
@@ -24,7 +49,8 @@ const checkIfInAppBrowser = () => {
 
 const UserHydrator = ({ payload, currentUser }: { payload: TokenPayload | null, currentUser: CurrentUser | null }) => {
 
-    const { user, meta } = useCurrentUser();
+    const { user } = useCurrentUser();
+    const pathname = usePathname();
     const router = useRouter();
     const [isInAppBrowser, setIsInAppBrowser] = useState(false);
 
@@ -33,10 +59,9 @@ const UserHydrator = ({ payload, currentUser }: { payload: TokenPayload | null, 
 
         // If payload is not available (sometimes on first load from notification click, cookies are not set properly);
         // Rely on cached user data until user is authenticated;
-        console.log("NO PYALOAD FOUND", user);
         authenticateUser()
             .then(resp => {
-                console.log("USER IN AUTHENTICATE USER", resp);
+
                 if (!resp) logOutOnClient(user._id);
                 else router.refresh();
             })
@@ -79,7 +104,29 @@ const UserHydrator = ({ payload, currentUser }: { payload: TokenPayload | null, 
             queryClient.setQueryData(qkeys, user);
         }
 
-        return setUserOnRefreshOrLogin(userToStore, payload.filterContent)
+        return setUserOnRefreshOrLogin(userToStore, payload.filterContent);
+
+    }, []);
+
+    // Handle prev navigation, redirect user to home page when navigating backward if no history state exists.
+    useEffect(() => {
+        const handlePrevNavigation = (event: any) => {
+            const state = event.state;
+
+            if (!state || state.app !== "Parlocula" || state.type !== "root" || pathname.includes("/home")) return;
+
+            // If user is at root, redirect them to home page;
+            router.replace('/home');
+        }
+
+        window.history.replaceState({ app: "Parlocula", type: "root" }, "");
+
+        window.history.pushState({ app: "Parlocula", type: "guard" }, "");
+
+        window.addEventListener("popstate", handlePrevNavigation);
+        return () => {
+            window.removeEventListener("popstate", handlePrevNavigation);
+        }
 
     }, []);
 

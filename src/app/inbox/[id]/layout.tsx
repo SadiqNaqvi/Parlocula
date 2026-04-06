@@ -1,5 +1,5 @@
 import LoginModal from "@components/fallbacks/LoginModal";
-import { NotFound } from "@components/ui";
+import { NotFound } from "@components/fallbacks";
 import { getUserFromToken } from "@lib/auth/utils";
 import { getRoomById } from "@lib/helpers/common";
 import { fetchQuery, getQueryClient } from "@lib/providers/queryClient";
@@ -23,7 +23,7 @@ const ChatLayout = async ({ params, children }: PropsWithChildren<ParloPageProps
         <LoginModal redirectTo="/inbox" />
     )
 
-    else if (rmid === "search" || rmid === "new" || rmid === "invitations") return (
+    else if (rmid === "search" || rmid === "create" || rmid === "invitations") return (
         <DefaultSection />
     );
 

@@ -1,4 +1,5 @@
-import { NotFound, TabContainer, TabList } from "@components/ui";
+import { TabContainer, TabList } from "@components/ui";
+import { NotFound } from "@components/fallbacks";
 import PostPageSkeleton from "@components/ui/loading/PostPageSkeleton";
 import { getUserFromToken } from "@lib/auth/utils";
 import { checkIfItemSaved, getPostById, getReactionOnPost } from "@lib/helpers/common";

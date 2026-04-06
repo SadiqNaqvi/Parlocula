@@ -1,4 +1,4 @@
-import { NotFound } from "@components/ui";
+import { NotFound } from "@components/fallbacks";
 import { FullPageLoadingSpinner } from "@components/ui/loading/LoadingSpinner";
 import { getUserFromToken } from "@lib/auth/utils";
 import { getThreadById, isMember } from "@lib/helpers/common";

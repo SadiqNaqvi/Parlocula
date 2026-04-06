@@ -1,5 +1,5 @@
 import { Navigate } from "@components";
-import { NotFound } from "@components/ui";
+import { NotFound } from "@components/fallbacks";
 import { fetchCollection } from "@lib/contentFetcher";
 import generateDynamicMetadata from "@lib/seo/metadata";
 import { getPoster } from "@lib/utils";

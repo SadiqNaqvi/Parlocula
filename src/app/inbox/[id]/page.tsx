@@ -1,13 +1,13 @@
-import { NotFound, ShowError } from "@components/ui";
+import { NotFound } from "@components/fallbacks";
 import { getUserFromToken } from "@lib/auth/utils";
-import { getMessages, getRoomById, getUserByUsername } from "@lib/helpers/common";
+import { getMessages, getRoomById } from "@lib/helpers/common";
 import { getQueryClient, prefetchInfiniteQuery, prefetchQuery } from "@lib/providers/queryClient";
-import { getQueryKeys, isValidParloId } from "@lib/utils";
+import { getQueryKeys } from "@lib/utils";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
-import { cookies } from "next/headers";
-import ChatSection from "./ChatSection";
 import { ParloPageProps } from "@type/other";
+import { cookies } from "next/headers";
 import DefaultSection from "../DefaultSection";
+import ChatSection from "./ChatSection";
 
 const RoomSection = async ({ params }: ParloPageProps) => {
 
@@ -20,6 +20,10 @@ const RoomSection = async ({ params }: ParloPageProps) => {
 
     if (!user) return null;
 
+    else if (rmid === "search" || rmid === "create" || rmid === "invitations") return (
+        <DefaultSection />
+    );
+
     else if (!rmid) return (
         <NotFound
             title="Oops! Looks like the Popcorn Explorers couldn't find anything"
@@ -27,10 +31,6 @@ const RoomSection = async ({ params }: ParloPageProps) => {
             fullScreen
         />
     )
-
-    else if (rmid === "search" || rmid === "new" || rmid === "invitations") return (
-        <DefaultSection />
-    );
 
     await Promise.all([
         prefetchQuery({

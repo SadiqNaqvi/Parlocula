@@ -9,7 +9,7 @@ const VerticalTaleonCardSkeleton = ({ className }: { className?: string }) => (
 )
 
 export const VerticalTaleonCardSkeletonList = ({ count = 6, className }: { count?: number, className?: string }) => (
-    <ul className={twMerge("flex overflow-hidden gap-2 px-2", className)}>
+    <ul className={twMerge("flex overflow-hidden gap-2 w-full max-w-3xl mx-auto", className)}>
         {Array(count).fill(0).map((_, i) => (
             <VerticalTaleonCardSkeleton key={i} />
         ))}

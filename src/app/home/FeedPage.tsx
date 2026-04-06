@@ -1,7 +1,8 @@
 "use client";
 
 import { TopNavbar } from "@components/Sidebar";
-import { NotFound, OptionalChildren, PostBar, ShowError, VerticleMovieCard } from "@components/ui";
+import { OptionalChildren, PostBar, VerticleMovieCard } from "@components/ui";
+import { NotFound, ShowError } from "@components/fallbacks";
 import { HomePageSkeleton } from "@components/ui/loading";
 import LoadingSpinner from "@components/ui/loading/LoadingSpinner";
 import { updateFeedViewed } from "@lib/helpers/mutations";

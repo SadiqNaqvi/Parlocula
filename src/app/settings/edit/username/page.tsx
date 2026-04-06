@@ -6,12 +6,12 @@ import { LoadingSpinner } from "@components/ui";
 import { updateUsername } from "@lib/helpers/mutations";
 import { usernameUpdateSchema } from "@lib/schemas";
 import { getTimeInFuture } from "@lib/utils";
-import { useNavigation } from "@store/historystack";
 import useCurrentUser from "@store/user";
+import { useRouter } from "next/navigation";
 
 const Page = () => {
     const { user, isHydrated } = useCurrentUser();
-    const navigation = useNavigation();
+    const navigation = useRouter();
 
     if (!isHydrated) return <LoadingSpinner />
     else if (!user) return null;
@@ -32,7 +32,7 @@ const Page = () => {
     const submit = async (data: { username: string, passkey: string }) => {
         const { success, error } = await updateUsername(data);
         if (!success) return error;
-        navigation.goto(`/user/${data.username.trim()}`);
+        navigation.push(`/user/${data.username.trim()}`);
     }
 
     return (

@@ -1,5 +1,6 @@
 import { TaleonWikiHeader, TaleonWikiSection } from "@app/explore/(withoutSidebar)/components";
-import { ArtistCard, NotFound, ParloFooter } from "@components/ui";
+import { ArtistCard, ParloFooter } from "@components/ui";
+import { NotFound } from "@components/fallbacks";
 import { fetchEpisodeForSeason, fetchShow } from "@lib/contentFetcher";
 import { makeUrlSafe } from "@lib/utils";
 import { ParloPageProps } from "@type/other";
@@ -10,7 +11,7 @@ type Ids = { id: string, season: string, episode: string }
 const fetchEpisode = async ({ id, episode, season }: Ids, getInternalData: boolean) => {
     const refineSeason = parseInt(season.split('-')[1]);
     const seasonNumber = isNaN(refineSeason) ? 1 : refineSeason;
-    
+
     const refineEpisode = parseInt(episode.split('-')[1]);
     const episodeNumber = isNaN(refineEpisode) ? 1 : refineEpisode;
     const [showPromise, episodePromise] = await Promise.all([

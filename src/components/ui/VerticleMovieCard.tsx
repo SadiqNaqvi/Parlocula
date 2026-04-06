@@ -3,12 +3,16 @@ import { makeUrlSafe } from "@lib/utils";
 import { RefinedGeneralData } from "@type/external";
 import { twMerge } from "tailwind-merge";
 import ParloImage from "./ParloImage";
-import { RandomHorizontalLinesSkeleton } from "./loading/tools";
 
 export default function VerticleMovieCard({ id, type, poster, title, year, rating, redirect, className }: RefinedGeneralData & { redirect?: string, className?: string }) {
     const link = redirect ?? `/explore/${type}/${id}-${makeUrlSafe(title)}`;
     return (
-        <Navigate key={link} comp="link" goto={link}>
+        <Navigate
+            historyPayload={{ title, poster }}
+            key={link}
+            comp="link"
+            goto={link}
+        >
             <figure className={twMerge("min-w-44 w-44 relative cursor-pointer", className)}>
 
                 <ParloImage

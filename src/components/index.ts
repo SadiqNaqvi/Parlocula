@@ -5,7 +5,7 @@ export { default as InfiniteScroller } from "./InfiniteScroller";
 export { default as LinkInputManager, InputPrompt, } from "./form/LinkInputManager";
 export { default as FancyboxModal } from "./FancyboxModal";
 export { default as Navbar } from "./Navbar";
-export { default as Navigate } from "./Navigate";
+export { default as Navigate, type NavigateComponentProps } from "./Navigate";
 export { default as OptionMenu } from "./OptionMenu";
 export { default as RouterDropdown } from "./FiltersDropdown";
 export { default as Sidebar } from "./Sidebar";

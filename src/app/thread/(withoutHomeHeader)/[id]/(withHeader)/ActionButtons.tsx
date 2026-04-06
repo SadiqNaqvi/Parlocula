@@ -74,7 +74,7 @@ const JoinButton = ({ thread, uid }: { thread: MereThread, uid?: string }) => {
         return (
             <div className="grid gap-2 grid-cols-2 sm:grid-cols-4">
                 <OptionMenu
-                    ButtonElement={<>Joined {state.notification ? <BellIcon /> : <BellSlashIcon />}</>}
+                    ButtonElement={<>Joined {state.notification ? <BellIcon className="min-w-4" /> : <BellSlashIcon className="min-w-4" />}</>}
                     className="secondary flex-1 sm:flex-0"
                 >
                     <OptionList onClick={() => handleClick("leave_thread")}>Leave Thread</OptionList>

@@ -3,7 +3,13 @@ import ParloImage from "./ParloImage";
 
 export default function ArtistCard({ img, title, detail, link }: { img: string | null, title: string, detail?: string, link: string }) {
     return (
-        <Navigate goto={link} comp="link">
+        <Navigate
+            historyPayload={{
+                title,
+                poster: img ?? undefined
+            }}
+            goto={link}
+            comp="link">
             <figure className="size-48 p-2 border border-gray40 rounded-lg flex flex-col flex-cntr-around">
 
                 <ParloImage

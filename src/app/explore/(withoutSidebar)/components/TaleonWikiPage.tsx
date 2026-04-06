@@ -25,7 +25,6 @@ const TaleonWikiHeader = ({ className, posterClassName, title, frameType, titleT
         <ObserverHeader
             titleToShare={titleToShare || `Check out ${title} on Parlocula`}
             navTitle={title}
-            poster={poster}
             className={twMerge("px-2 sm:px-4 border-b border-gray30 pb-4 mt-2", className)}
         >
             <OptionalChildren condition={backdrop}>

@@ -76,7 +76,7 @@ export const POST = postHandler<MessageSchemaType>({
 
     const message: MessageModelType = { ...rest, room_id, user_id, username };
 
-    await handleNewMessage(room_id, user_id, message, session);
+    await handleNewMessage(room_id, message, session);
 
     return { success: true, result: null, revalidateQueue: [] };
   },

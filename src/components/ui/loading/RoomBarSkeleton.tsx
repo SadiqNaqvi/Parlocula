@@ -1,7 +1,7 @@
 import { HeadingSkeleton, PosterSkeleton } from "./tools";
 
 const RoomBarSkeleton = () => (
-    <li className="flex gap-3 items-center p-2">
+    <li className="flex gap-3 items-center p-2 w-full max-w-3xl mx-auto">
         <PosterSkeleton />
         <div className="space-y-1 flex-1">
             <HeadingSkeleton />
@@ -15,7 +15,7 @@ const RoomBarSkeleton = () => (
 )
 
 export const RoomBarListSkeleton = ({ count = 12 }: { count?: number }) => (
-    <ul>
+    <ul className="w-full max-w-3xl mx-auto">
         {Array(count).fill(0).map((_, i) => (
             <RoomBarSkeleton key={i} />
         ))}

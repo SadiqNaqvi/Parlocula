@@ -1,33 +1,21 @@
 "use client";
 
 import { PropsWithChildren } from "react";
-import { toast } from "sonner";
+import ContentSharingSheet from "./sheets/ContentSharingSheet";
 
 type Props = PropsWithChildren<{
-    title: string
-    file?: File,
+    title?: string
     url?: string,
-    text?: string,
-}> & React.HTMLAttributes<HTMLButtonElement>
+    className?: string,
+}>
 
-const ShareButton = ({ children, onClick, title, url, text, ...args }: Props) => {
+const ShareButton = ({ children, title, url, className }: Props) => {
 
-    const share = () => {
-        const urlToShare = url ?? window.location.href;
-        console.log("in share button", url, urlToShare);
-        const isMobile = /Mobi|Android/i.test(navigator.userAgent);
-        const data = { text, url: urlToShare, title };
-
-        if (navigator.canShare && navigator.canShare(data) && isMobile)
-            navigator.share(data)
-        else {
-            navigator.clipboard.writeText(urlToShare)
-                .then(() => toast.success("Link copied to the clipboard"))
-                .catch(() => toast.error("Unable to copy link to the clipboard"))
-        };
-    }
-
-    return <button onClick={share} {...args}>{children}</button>
+    return (
+        <ContentSharingSheet className={className} path={url} title={title}>
+            {children}
+        </ContentSharingSheet>
+    )
 }
 
 export default ShareButton;

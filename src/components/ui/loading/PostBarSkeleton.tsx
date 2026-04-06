@@ -1,7 +1,7 @@
 import { FramesSkeleton, HeadingSkeleton, MetaDataSkeleton, PageWrapper, PosterSkeleton, RandomHorizontalLinesSkeleton } from "./tools";
 
 const PostBarSkeleton = () => (
-    <div className="group px-2 py-4 space-y-4 w-full border-b group-last:border-0 border-gray10">
+    <div className="group px-2 py-4 space-y-4 w-full border-b group-last:border-0 border-gray10 max-w-3xl mx-auto">
 
         <header className="space-y-2">
             <div className="flex gap-2 items-center">
@@ -26,7 +26,7 @@ const PostBarSkeleton = () => (
 )
 
 export const PostListSkeleton = ({ count = 4 }: { count?: number }) => (
-    <ul>
+    <ul className="max-w-3xl mx-auto w-full">
         {Array(count).fill(0).map((_, i) => (
             <PostBarSkeleton key={i} />
         ))}
@@ -40,7 +40,7 @@ export const FullPagePostListSkeleton = ({ count, heading }: { count?: number, h
 )
 
 export const OnlyFrameSkeletonList = ({ count = 12 }: { count?: number }) => (
-    <ul className="grid grid-cols-3 gap-3">
+    <ul className="grid grid-cols-3 gap-3 w-full max-w-3xl mx-auto">
         {Array(count).fill(0).map((_, i) => (
             <li key={i} className="w-full aspect-2/3 skeletonPulse"></li>
         ))}

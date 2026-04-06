@@ -9,10 +9,10 @@ import { createShelfMutation, editShelfMutation } from "@lib/helpers/mutations";
 import appToast from "@lib/providers/toast";
 import { shelfClientSchema, shelfClientUpdateSchema } from "@lib/schemas";
 import { checkEditedFields, getQueryKeys, numberConverter, timeAgo } from "@lib/utils";
-import { useNavigation } from "@store/historystack";
 import useCurrentUser from "@store/user";
 import { FullShelf, ShelfItemType } from "@type/internal";
 import { TaleonSchemaType } from "@type/schemas";
+import { useRouter } from "next/navigation";
 import { useRef } from "react";
 import { DisplayNameInput, ShelfItemInput } from ".";
 import { Form, ToggleButton } from "..";
@@ -71,7 +71,7 @@ const ItemsSection = ({ isEditing, itemsRef, defaultVals, taleons, uid }: Omit<P
 const ShelfMutation = ({ defaultVals, taleons, isEditing }: Props) => {
 
     const { meta } = useCurrentUser();
-    const navigation = useNavigation();
+    const navigation = useRouter();
 
     const formRef = useRef<HTMLFormElement>(null);
     const itemsRef = useRef<ListSelectorRef<TaleonSchemaType>>(null);

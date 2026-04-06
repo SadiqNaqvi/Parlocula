@@ -78,7 +78,7 @@ export const PageWrapper = ({ children, heading }: PropsWithChildren<{ heading?:
     <>
         {/* <NavbarSkeleton heading={heading} /> */}
         <Navbar navTitle={heading} />
-        <section className="w-full">
+        <section className="w-full max-w-3xl mx-auto">
             {children}
         </section>
     </>

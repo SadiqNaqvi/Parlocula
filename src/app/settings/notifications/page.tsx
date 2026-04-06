@@ -4,10 +4,9 @@ import { Navbar } from "@components";
 import { Form, Input } from "@components/form";
 import { FullPageLoadingSpinner } from "@components/ui/loading/LoadingSpinner";
 import ToggleButtonBar from "@components/ui/ToggleButtonBar";
-import { urlBase64ToUint8Array } from "@lib/helpers/media";
 import { sendTestNotification, subscribeToPush, unsubscribeToPush } from "@lib/helpers/server";
-import { getPushSubscription } from "@lib/helpers/user";
 import { useDebounce } from "@lib/hooks";
+import { getPushSubscription, subscribeToPushOnClient, unsubscribeToPushOnClient } from "@lib/providers/push";
 import appToast from "@lib/providers/toast";
 import { codetoError } from "@lib/utils";
 import useCurrentUser from "@store/user";
@@ -75,13 +74,7 @@ const NotificationPage = () => {
         if (subscription.current) return;
 
         try {
-            const registration = await navigator.serviceWorker.ready
-            const sub = await registration.pushManager.subscribe({
-                userVisibleOnly: true,
-                applicationServerKey: urlBase64ToUint8Array(
-                    process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!
-                ),
-            });
+            const sub = await subscribeToPushOnClient();
 
             const { success, errCode, customError } = await subscribeToPush(meta.user_id, JSON.parse(JSON.stringify(sub)));
 
@@ -112,7 +105,7 @@ const NotificationPage = () => {
         console.log("unsubscribed", success);
 
         if (success) {
-            await subscription.current.unsubscribe();
+            await unsubscribeToPushOnClient(subscription.current);
             subscription.current = null;
             setEnabled(false);
         } else {

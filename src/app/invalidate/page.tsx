@@ -8,19 +8,19 @@ import { errorCodes } from "@lib/constants";
 import { handleErrorFromMutation, invalidateSession } from "@lib/helpers/mutations";
 import { verifyCode } from "@lib/helpers/server";
 import { sessionInvalidationSchema } from "@lib/schemas";
-import { useNavigation } from "@store/historystack";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 
 const InvalidateSection = ({ email }: { email: string }) => {
 
-    const navigation = useNavigation();
+    const navigation = useRouter();
 
     const performInvalidation = async (data: { passKey: string }) => {
         const { success, errCode, formError } = await invalidateSession({ ...data, email })
         if (success) {
             toast.success("Invalidation Successfull");
-            navigation.goto("/join");
+            navigation.push("/join");
         }
         else if (formError) return formError;
         else errorCodes[errCode]?.message ||

@@ -1,7 +1,7 @@
-import { Navigate, FramesCarousel, FancyImage } from "@components";
+import { Navigate } from "@components";
 import { Frame, MereFrame } from "@type/internal";
-import ParloImage from "./ParloImage";
 import OptionalChildren from "./OptionalChildren";
+import ParloImage from "./ParloImage";
 
 const RenderFrame = ({ title, ...frame }: Frame & { title: string }) => {
 
@@ -23,14 +23,24 @@ const RenderFrame = ({ title, ...frame }: Frame & { title: string }) => {
     )
 }
 
-const FrameTile = ({ frames, spoiler, _id, title }: MereFrame) => {
-    const [frame] = frames;
+const FrameTile = ({ frames, spoiler, _id, title, profile }: MereFrame) => {
 
+    const [frame] = frames;
     if (!frame) return null;
 
     return (
         <article key={_id}>
-            <Navigate goto={`/post/${_id}`} type="button" comp="link" className="relative">
+            <Navigate
+                historyPayload={{
+                    title,
+                    image: frame,
+                    poster: profile,
+                }}
+                goto={`/post/${_id}`}
+                type="button"
+                comp="link"
+                className="relative"
+            >
 
                 <OptionalChildren condition={spoiler}>
                     <div className="inset-0 absolute z-1 backdrop-blur-lg backdrop-brightness-50">

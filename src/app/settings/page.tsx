@@ -6,8 +6,8 @@ import { ParloFooter } from "@components/ui";
 import InstallPrompt from "@components/ui/InstallPrompt";
 import { FullPageLoadingSpinner } from "@components/ui/loading/LoadingSpinner";
 import { logoutUser } from "@lib/helpers/mutations";
-import { useNavigation } from "@store/historystack";
 import useCurrentUser from "@store/user";
+import { useRouter } from "next/navigation";
 import { PropsWithChildren } from "react";
 import { twMerge } from "tailwind-merge";
 
@@ -39,7 +39,7 @@ const Sections = ({ heading, children }: PropsWithChildren<{ heading: string }>)
 const SettingPage = () => {
 
     const { user, isHydrated } = useCurrentUser();
-    const navigation = useNavigation();
+    const navigation = useRouter();
 
     if (!isHydrated) return <FullPageLoadingSpinner path={["Settings"]} />
     else if (!user) return null;

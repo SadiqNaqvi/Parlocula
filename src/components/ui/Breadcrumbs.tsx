@@ -19,7 +19,12 @@ export const BreadCrumbTile = ({ children, href, onClick, className }: PropsWith
 
     else if (href) return (
         <li className="group">
-            <Navigate comp="link" goto={href} className="inline">
+            <Navigate
+                historyPayload={{ title: typeof children === "string" ? children : undefined }}
+                comp="link"
+                goto={href}
+                className="inline"
+            >
                 <BreadCrumb className={className}>{children}</BreadCrumb>
             </Navigate>
         </li>

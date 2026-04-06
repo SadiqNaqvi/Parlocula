@@ -433,6 +433,7 @@ export type MereMessage = {
   user_id: string;
   username: string;
   status?: "sending" | "sent" | "error" | "seen";
+  sharedContent?: string
 } & Partial<MessageReplyType>;
 
 // Cached

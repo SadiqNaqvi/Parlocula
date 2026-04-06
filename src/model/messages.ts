@@ -21,7 +21,9 @@ export const messageModel = new StrictSchema<MessageModelType>({
   username: { type: String, required: true },
   replied_to: { type: String, ref: 'Message', required: false, default: undefined },
   replied_content: { type: String, ref: 'Message', required: false, default: undefined },
+  sharedContent: String,
 });
+
 messageModel.index({ createdAt: 1 }, { expireAfterSeconds: oneDayInSeconds * 3 });
 messageModel.index({ room_id: 1, createdAt: 1 });
 

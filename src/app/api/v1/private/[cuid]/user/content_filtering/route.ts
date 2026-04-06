@@ -9,9 +9,10 @@ import { cookies } from "next/headers";
 export const PATCH = updateHandler({
     handler: async ({ user_id, session }) => {
 
-        await User.findByIdAndUpdate(user_id,
+        await User.findByIdAndUpdate(
+            user_id,
             [{ $set: { filterContent: { $not: "$filterContent" } } }],
-            { session }
+            { session, updatePipeline: true }
         );
 
         const cookieStore = await cookies();

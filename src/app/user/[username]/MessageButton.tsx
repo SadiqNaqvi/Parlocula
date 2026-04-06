@@ -23,7 +23,7 @@ const MessageButton = ({ ruid, username, profile }: { ruid: string, username: st
     else if (data) return (
         <Navigate goto={`/inbox/${data._id}`}
             comp="link"
-            className="btn secondary flex-1 sm:w-fit"
+            className="btn secondary flex-1 sm:flex-none"
         >
             Message
         </Navigate>

@@ -1,18 +1,16 @@
 "use client";
 
 import { CommentIcon, QuoteIcon } from "@assets/Icons";
-import { FramesCarousel, GenericWrapper, Navbar, Navigate, SaveButton } from "@components";
-import { MetadataTile, MetadataTileContainer, OptionalChildren, ParloImage } from "@components/ui";
-import { BreadCrumbs, BreadCrumbTile } from "@components/ui/Breadcrumbs";
-import LinksSection from "@components/ui/LinksSection";
+import { GenericWrapper, Navbar, Navigate, SaveButton } from "@components";
+import { ContentFiltered } from "@components/fallbacks";
+import { BreadCrumbs, BreadCrumbTile, LinksSection, MetadataTile, MetadataTileContainer, OptionalChildren, ParloImage } from "@components/ui";
+import PostPageSkeleton from "@components/ui/loading/PostPageSkeleton";
 import { getPostById } from "@lib/helpers/common";
 import { getQueryKeys, makeUrlSafe, numberConverter, timeAgo } from "@lib/utils";
 import { FullPost } from "@type/internal";
+import FrameSlider from "./FrameSlider";
 import OptionsButton from "./OptionsButton";
 import ReactionButton from "./ReactionButton";
-import { ContentFiltered } from "@components/fallbacks";
-import FrameSlider from "./FrameSlider";
-import PostPageSkeleton from "@components/ui/loading/PostPageSkeleton";
 
 type Props = { id: string, uid: string | undefined }
 

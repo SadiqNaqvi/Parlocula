@@ -376,7 +376,7 @@ export const reportSchema = z
 
 export const messageSchema = z.object({
   _id: z.string(),
-  content: z.string().min(1).max(3000),
+  content: z.string().min(0).max(3000),
   createdAt: z.number(),
   username: z.string(),
   replied_to: z.string().optional(),
@@ -386,11 +386,19 @@ export const messageSchema = z.object({
     poster: frameDataSchema.optional(),
     mute: z.boolean(),
   })
-});
+})
+
+export const sharedContentSchema = z.object({
+  rooms: z.array(z.string()),
+  message: z.string().max(500).optional(),
+  contentPath: z.string(),
+})
 
 export const roomSchemaClient = z.object({
   name: z.string().max(50),
-  inviteMessage: z.string().min(3).max(1000),
+  inviteMessage: z.string()
+  .min(3,"Invitation Message must be at least 3 characters long")
+  .max(1000, "Invitation message cannot be more than 1000 characters long"),
 })
 
 export const roomSchema = z

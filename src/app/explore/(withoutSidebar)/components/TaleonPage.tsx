@@ -1,6 +1,7 @@
 import { CollectionIcon, CrownIcon, EyesIcon, HeartIcon, StarIcon } from "@assets/Icons";
 import { Navigate } from "@components";
-import { ArtistCard, LinkTile, NotFound, ParloFooter, VerticleMovieCard } from "@components/ui";
+import { ArtistCard, LinkTile, ParloFooter, VerticleMovieCard } from "@components/ui";
+import { NotFound } from "@components/fallbacks";
 import { checkAndReturn, createArray, makeUrlSafe, numberConverter } from "@lib/utils";
 import { RefinedCast, RefinedMovieData, RefinedShowData } from "@type/external";
 import { FullTaleonType, Link } from "@type/internal";

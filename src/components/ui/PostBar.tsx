@@ -1,9 +1,9 @@
+import FrameSlider from "@app/post/[id]/(WithHeader)/FrameSlider";
 import { BookmarkIcon, CommentIcon, FrameIcon, LinkIcon, ThumbUpIcon } from "@assets/Icons";
-import { FramesCarousel, Navigate } from "@components";
+import { Navigate } from "@components";
 import { makeUrlSafe, numberConverter, timeAgo } from "@lib/utils";
 import { MerePost } from "@type/internal";
 import { BreadCrumbs, BreadCrumbTile, MetadataTile, MetadataTileContainer, ParloImage } from "./";
-import FrameSlider from "@app/post/[id]/(WithHeader)/FrameSlider";
 
 type SectionType = "thread" | "user";
 
@@ -71,10 +71,13 @@ const PostbarBreadCrumbs = ({ poster, profile, thread_id, thread_name, username,
 
 const PostBar = ({ _id, comment_count, nsfw, createdAt, editedAt, poster, reaction_count, frames_count, links_count, spoiler, category, thread_id, title, frames, saved_count, username, profile, thread_name, additional }: Props & MerePost) => {
 
-    const statisticList = [
+    const counts = [
         { value: reaction_count, Icon: ThumbUpIcon },
         { value: comment_count, Icon: CommentIcon },
         { value: saved_count, Icon: BookmarkIcon },
+    ]
+
+    const metadata = [
         { value: frames_count, Icon: FrameIcon },
         { value: links_count, Icon: LinkIcon },
     ]
@@ -105,21 +108,41 @@ const PostBar = ({ _id, comment_count, nsfw, createdAt, editedAt, poster, reacti
 
             <section className="space-y-2 mb-4">
 
-                <Navigate role="button" comp="link" goto={`/post/${_id}-${makeUrlSafe(title)}`} className="w-full">
+                <Navigate
+                    historyPayload={{
+                        title: title.slice(0, 50).concat('...'),
+                        poster: additional?.section === "user" ? poster : profile,
+                        image: frames?.[0],
+                    }}
+                    role="button"
+                    comp="link"
+                    goto={`/post/${_id}-${makeUrlSafe(title)}`}
+                    className="w-full"
+                >
                     <h3 className="customize text-lg font-semibold line-clamp-4">{title}</h3>
                 </Navigate>
 
                 <FrameSlider id={_id} frames={frames || []} />
             </section>
 
-            <ul className="flex gap-3">
-                {statisticList.map(({ Icon, value }, i) => (
-                    <li key={i} className="flex items-center gap-1 text-zinc-500">
-                        <Icon className="size-4" />
-                        <span>{numberConverter(value || 0)}</span>
-                    </li>
-                ))}
-            </ul>
+            <section className="flex gap-4">
+                <ul className="flex gap-3">
+                    {counts.map(({ Icon, value }, i) => (
+                        <li key={i} className="flex items-center gap-1 text-zinc-500">
+                            <Icon className="size-4" />
+                            <span>{numberConverter(value || 0)}</span>
+                        </li>
+                    ))}
+                </ul>
+                <ul className="flex gap-3">
+                    {metadata.map(({ Icon, value }, i) => (
+                        <li key={i} className="flex items-center gap-1 text-zinc-500">
+                            <Icon className="size-4" />
+                            <span>{numberConverter(value || 0)}</span>
+                        </li>
+                    ))}
+                </ul>
+            </section>
 
         </article>
     )

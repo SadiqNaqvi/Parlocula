@@ -2,7 +2,7 @@ import { HeadingSkeleton, MetaDataSkeleton, PageWrapper, PosterSkeleton, RandomH
 
 const CommentBarSkeleton = () => {
     return (
-        <li className="w-full p-2 group last:border-0 border-b border-gray30">
+        <li className="w-full p-2 group last:border-0 border-b border-gray30 max-w-3xl mx-auto">
 
             <header>
                 <div className="flex gap-2 items-center mb-2">
@@ -23,7 +23,7 @@ const CommentBarSkeleton = () => {
 }
 
 export const CommentSectionSkeleton = ({ count = 6 }: { count?: number }) => (
-    <ul>
+    <ul className="w-full max-w-3xl mx-auto">
         {
             Array(count).fill(0).map((_, i) => <CommentBarSkeleton key={i} />)
         }

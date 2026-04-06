@@ -1,5 +1,6 @@
 import { RightChevron, SearchIcon } from "@assets/Icons";
 import { DataFetcher, Navigate } from "@components";
+import HistorySection from "./HistorySection";
 
 export default function ExplorePage() {
 
@@ -38,6 +39,9 @@ export default function ExplorePage() {
                     ))}
                 </div>
             </section>
+
+            <HistorySection className="my-6 space-y-3" />
+
             <section className="my-6 space-y-3 px-2">
                 <h3 className="parloHeading">Trending Movies</h3>
                 <div className="w-full">
@@ -49,6 +53,7 @@ export default function ExplorePage() {
                     />
                 </div>
             </section>
+
             <section className="my-6 space-y-3 px-2">
                 <h3 className="parloHeading">Trending Shows</h3>
                 <div className="w-full">

@@ -202,7 +202,7 @@ export type AblyEventType =
 export type AblyEventParams = {
   "entered_chat": { user_id: string, room_id: string, time: GenericDate }
   "notification": { title: string },
-  "message": MereMessage & { room: { display_name: string, mute: boolean, poster?: Frame } },
+  "message": MereMessage & { room?: { display_name: string, mute: boolean, poster?: Frame } },
   "message_unsend": { room_id: string, message_id: string }
   "typing": { room_id: string, sender: string }
   "typing_stop": { room_id: string, sender: string }
@@ -383,4 +383,11 @@ export type FormidableFile = {
   originalFilename: string | null;
   newFilename: string;
   mimetype: string | null;
+}
+
+export type HistoryStackType = {
+  title?: string;
+  poster?: Frame | string;
+  image?: Frame | string;
+  path: string;
 }

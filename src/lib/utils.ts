@@ -180,7 +180,7 @@ export const parseUnknownData = (data: any) => {
   if (typeof data === "string") {
     try {
       return JSON.parse(data);
-    } catch { }
+    } catch {}
   }
   return data;
 }

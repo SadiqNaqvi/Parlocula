@@ -1,7 +1,8 @@
 "use client";
 
 import { Navigate } from "@components";
-import { OptionalChildren, ShowError, ThreadBox } from "@components/ui";
+import { OptionalChildren, ThreadBox } from "@components/ui";
+import { ShowError } from "@components/fallbacks";
 import { ThreadBoxSkeleton } from "@components/ui/loading";
 import { getThreadsForTaleonOrArtist } from "@lib/helpers/common";
 import { useQueryHook } from "@lib/hooks";

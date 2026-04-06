@@ -4,6 +4,7 @@ import { MouseEventHandler } from "react";
 import OptionalChildren from "./OptionalChildren";
 import { twMerge } from "tailwind-merge";
 import useGlobalStore from "@store/globalStore";
+import Navigate from "@components/Navigate";
 
 type MessageParam = MereMessage & {
     nextMsgAuthor?: string,
@@ -61,7 +62,11 @@ const MessageBar = ({ nextMsgAuthor, prevMsgAuthor, otherParticipantSeenAt, cuid
                     )}
                     onContextMenu={handleContextMenu}
                 >
-                    {content}
+                    <OptionalChildren condition={message.sharedContent} fallback={content}>
+                        <Navigate comp="link" goto={message.sharedContent!} className="text-sky-500">
+                            {content || "Open Attached Content"}
+                        </Navigate>
+                    </OptionalChildren>
                 </button>
             </div>
 

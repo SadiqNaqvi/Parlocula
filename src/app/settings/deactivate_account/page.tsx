@@ -4,8 +4,8 @@ import { BottomSheet, Navbar } from "@components";
 import { Form, Input } from "@components/form";
 import { FullPageLoadingSpinner } from "@components/ui/loading/LoadingSpinner";
 import { deactivateAccount } from "@lib/helpers/mutations";
-import { useNavigation } from "@store/historystack";
 import useCurrentUser from "@store/user";
+import { useRouter } from "next/navigation";
 import { z } from "zod";
 
 const schema = z.object({
@@ -15,7 +15,7 @@ const schema = z.object({
 const DeactivateAccountPage = () => {
 
     const { user, isHydrated } = useCurrentUser();
-    const navigation = useNavigation();
+    const navigation = useRouter();
 
     if (!isHydrated) return <FullPageLoadingSpinner path={["Deactivate"]} />
     else if (!user) return null;

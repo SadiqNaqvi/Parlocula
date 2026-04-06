@@ -37,4 +37,14 @@ const LinkTile = ({ label, path }: LinkType) => {
     )
 }
 
+export const LinksSection = ({ links }: { links: LinkType[] }) => (
+    <ul className="px-4 my-4 flex gap-4 overflow-x-auto noScroll">
+        {links.map(link => (
+            <li key={link.path}>
+                <LinkTile {...link} />
+            </li>
+        ))}
+    </ul>
+)
+
 export default LinkTile;

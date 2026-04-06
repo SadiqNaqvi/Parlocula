@@ -5,9 +5,9 @@ import { BottomSheet, Navigate, NestedSheet, WarningModal } from "@components";
 import { OptionalChildren, ParloImage } from "@components/ui";
 import { hideRoom, leaveRoom, updateNotificationOfRoom } from "@lib/helpers/mutations";
 import { useDebounce } from "@lib/hooks";
-import { useNavigation } from "@store/historystack";
 import { FullRoomType } from "@type/internal";
-import { PropsWithChildren, useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { PropsWithChildren, useState } from "react";
 
 type Props = { rmid: string, uid: string }
 
@@ -41,7 +41,7 @@ const MuteButton = ({ mute, rmid, uid }: { mute: boolean } & Props) => {
 }
 
 const LeaveRoomButton = ({ rmid, uid }: Props) => {
-    const navigation = useNavigation();
+    const navigation = useRouter();
 
     const handleLeave = () => {
         leaveRoom(rmid, uid);
@@ -60,7 +60,7 @@ const LeaveRoomButton = ({ rmid, uid }: Props) => {
 }
 
 const HideRoomButton = ({ rmid, uid }: Props) => {
-    const navigation = useNavigation();
+    const navigation = useRouter();
 
     const handleHide = () => {
         hideRoom(rmid, uid);

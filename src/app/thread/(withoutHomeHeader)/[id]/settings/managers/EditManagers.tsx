@@ -84,7 +84,7 @@ export const InviteManagers = ({ back, uid, tid, managersCount }: Props & { mana
                 username: user.username,
                 user_id: user._id,
                 profile: user.profile,
-                role: "moderator_invitees",
+                role: "moderator_invitee",
             })),
         );
 

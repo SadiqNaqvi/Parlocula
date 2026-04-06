@@ -1,4 +1,4 @@
-import { NotFound } from "@components/ui";
+import { NotFound } from "@components/fallbacks";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {

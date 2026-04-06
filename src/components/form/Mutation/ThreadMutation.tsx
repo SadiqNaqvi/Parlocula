@@ -10,11 +10,11 @@ import { createThreadMutation, editThreadMutation } from "@lib/helpers/mutations
 import appToast from "@lib/providers/toast";
 import { threadSchemaClient } from "@lib/schemas";
 import { checkEditedFields, numberConverter, parloId, readyFrames, timeAgo } from "@lib/utils";
-import { useNavigation } from "@store/historystack";
 import useCurrentUser from "@store/user";
 import { Thread, ThreadConnection } from "@type/internal";
 import { InputManagerType } from "@type/other";
 import { InputFrame, LinkSchema, ThreadSchemaServer, ThreadUpdateSchema } from "@type/schemas";
+import { useRouter } from "next/navigation";
 import { useRef } from "react";
 import { DisplayNameInput, IDS_Heading, IDS_Section, InitialDescriptionSheet, TextAreaInput } from ".";
 import ConnectionsInput from "./ConnectionsInput";
@@ -37,7 +37,7 @@ const ThreadMutation = ({ isEditing, defaultValues }: Props) => {
     const linkPromptRef = useRef<BottomSheetRef>(null);
 
     const { meta } = useCurrentUser();
-    const navigation = useNavigation();
+    const navigation = useRouter();
 
     if (!meta) return <LoginModal />
 
@@ -68,7 +68,7 @@ const ThreadMutation = ({ isEditing, defaultValues }: Props) => {
 
         if (!success) return error;
 
-        navigation.goto(`/thread/${tid}-${name}`);
+        navigation.push(`/thread/${tid}-${name}`);
 
     };
 

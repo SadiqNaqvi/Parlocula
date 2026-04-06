@@ -4,15 +4,15 @@ import { Ellipsis } from "@assets/Icons";
 import { OptionMenu, ReportSheet, WarningModal } from "@components";
 import { NestedSheetTrigger } from "@components/ui/OptionList";
 import { blockUserMutation, deleteCommentMutation } from "@lib/helpers/mutations";
-import { useNavigation } from "@store/historystack";
 import useCurrentUser from "@store/user";
 import { FullComment } from "@type/internal";
+import { useRouter } from "next/navigation";
 import EditComment from "./EditComment";
 
 const OptionsButton = ({ author, id, comment }: { author: string, id: string, comment: FullComment }) => {
 
     const { meta } = useCurrentUser();
-    const navigation = useNavigation();
+    const navigation = useRouter();
 
     if (!meta) return null;
 

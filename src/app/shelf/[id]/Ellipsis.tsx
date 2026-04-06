@@ -2,15 +2,14 @@ import { Ellipsis } from "@assets/Icons";
 import { OptionMenu, WarningModal } from "@components";
 import OptionList, { NestedSheetTrigger } from "@components/ui/OptionList";
 import { blockUserMutation, deleteShelfMutation, updateShelfKeyMutation } from "@lib/helpers/mutations";
-import appToast from "@lib/providers/toast";
-import { useNavigation } from "@store/historystack";
 import useCurrentUser from "@store/user";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 const EllipsisButton = ({ author, id, isPrivate }: { author: string, id: string, isPrivate: boolean }) => {
 
     const { meta } = useCurrentUser();
-    const navigation = useNavigation();
+    const navigation = useRouter();
 
     if (!meta) return null;
 
