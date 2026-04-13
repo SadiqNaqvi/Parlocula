@@ -9,8 +9,6 @@ import { twMerge } from "tailwind-merge";
 import { VerticalTaleonCardSkeletonList } from "./ui/loading";
 import VerticleMovieCard from "./ui/VerticleMovieCard";
 
-console.log("ENTERED DATA FETCHER");
-
 export type AllowedFunctionsForHorizontalList =
     | "fetchMoviesWithCast"
     | "fetchMoviesWithCompany"

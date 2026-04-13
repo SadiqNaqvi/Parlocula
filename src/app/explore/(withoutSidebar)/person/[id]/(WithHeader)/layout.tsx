@@ -82,7 +82,7 @@ const Page = async ({ params, children }: PropsWithChildren<{ params: { id: stri
             </TaleonWikiSection>
 
             <TabContainer>
-                <TabList className="" href={currentPage}>As Cast</TabList>
+                <TabList href={currentPage}>As Cast</TabList>
                 <TabList href={currentPage + "/crew"}>As Crew</TabList>
             </TabContainer>
 

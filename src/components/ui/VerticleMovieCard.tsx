@@ -8,7 +8,7 @@ export default function VerticleMovieCard({ id, type, poster, title, year, ratin
     const link = redirect ?? `/explore/${type}/${id}-${makeUrlSafe(title)}`;
     return (
         <Navigate
-            historyPayload={{ title, poster }}
+            historyPayload={{ title, poster, type: type }}
             key={link}
             comp="link"
             goto={link}

@@ -1,6 +1,6 @@
 import { getUserFromToken } from "@lib/auth/utils";
-import { getManagers } from "@lib/helpers/common";
-import { getQueryClient, prefetchQuery } from "@lib/providers/queryClient";
+import { getManagers, getMembers } from "@lib/helpers/common";
+import { getQueryClient, prefetchInfiniteQuery, prefetchQuery } from "@lib/providers/queryClient";
 import { getQueryKeys } from "@lib/utils";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { cookies } from "next/headers";
@@ -21,6 +21,12 @@ const ManagerPage = async ({ params }: ParloPageProps) => {
         queryClient,
         queryFn: () => getManagers(tid, user.user_id, jar),
         queryKey: getQueryKeys("threadManagers_tid", { tid }),
+    });
+
+    prefetchInfiniteQuery({
+        queryClient,
+        queryFn: () => getMembers(tid, 1),
+        queryKey: getQueryKeys("members_tid", { tid }),
     });
 
     return (

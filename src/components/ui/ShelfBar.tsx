@@ -1,3 +1,4 @@
+import { EyesIcon } from "@assets/Icons";
 import { Navigate } from "@components";
 import { numberConverter, timeAgo } from "@lib/utils";
 import { MereShelf } from "@type/internal";
@@ -12,6 +13,7 @@ const ShelfBar = ({ _id, item_count, name, poster, shelfKey, isPrivate, shelf_ty
             historyPayload={{
                 title: name,
                 poster,
+                type: "shelf",
             }}
         >
             <article className="flex items-center gap-2 p-2 sm:px-4">
@@ -19,6 +21,9 @@ const ShelfBar = ({ _id, item_count, name, poster, shelfKey, isPrivate, shelf_ty
                 <div className="w-stretch">
                     <h4 className="line-clamp-1 capitalize">{name}</h4>
                     <MetadataTileContainer>
+                        <MetadataTile condition={!!isPrivate}>
+                            <EyesIcon className="size-4" />
+                        </MetadataTile>
                         <MetadataTile condition={!!createdAt}>
                             {timeAgo(createdAt, true)}
                         </MetadataTile>
@@ -26,7 +31,7 @@ const ShelfBar = ({ _id, item_count, name, poster, shelfKey, isPrivate, shelf_ty
                             {numberConverter(item_count || 0)} items
                         </MetadataTile>
                         <MetadataTile condition={!!last_added}>
-                            Last Added: {timeAgo(last_added)}
+                            Added: {timeAgo(last_added, true)}
                         </MetadataTile>
                     </MetadataTileContainer>
                 </div>

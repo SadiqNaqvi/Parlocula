@@ -1,6 +1,6 @@
 "use client";
 
-import { CollectionIcon, GlobeIcon, ImageIconFill, MegaIcon, PlayIcon, ThreadIcon, UserIcon, VimeoIcon, YoutubeIcon } from "@assets/Icons";
+import { CollectionIcon, GlobeIcon, ImageIconFill, MegaIcon, PlayIcon, GroupIcon, UserIcon, VimeoIcon, YoutubeIcon, UserWithoutCircleIcon } from "@assets/Icons";
 import { backdrop_sizes, logo_sizes, poster_sizes, profile_sizes, still_sizes } from "@lib/constants";
 import { convertByteIntoSize, decodeHash } from "@lib/helpers/media";
 import { getPoster, isEqual } from "@lib/utils";
@@ -10,7 +10,7 @@ import Image from "next/image";
 import { twMerge } from "tailwind-merge";
 import OptionalChildren from "./OptionalChildren";
 
-type InternalFrameType = "threadPoster" | "shelfPoster" | "userProfile";
+type InternalFrameType = "groupPoster" | "shelfPoster" | "userProfile";
 export type ParloImageFrameType = ExternalImageType | InternalFrameType;
 
 type ImageSize = { maxScreenWidth?: number, imageWidth: number | string };
@@ -65,8 +65,8 @@ const getTmdbSizeSet = (type: ExternalImageType) => {
     }
 }
 
-const isInternalFrame = (type: ParloImageFrameType): type is Extract<ParloImageFrameType, "userProfile" | "threadPoster"> => {
-    return isEqual(type, "userProfile", "threadPoster");
+const isInternalFrame = (type: ParloImageFrameType): type is Extract<ParloImageFrameType, "userProfile" | "groupPoster"> => {
+    return isEqual(type, "userProfile", "groupPoster");
 }
 
 const isEmbeddingFrame = (source: Frame["extSource"]) => {
@@ -104,15 +104,15 @@ const getSourceSet = (frame: Frame, sizes: ImageSize[] | undefined) => {
 
 const FallbackIcon = ({ type, className }: { type: ParloImageFrameType, className?: string; }) => {
     if (type === "shelfPoster") return <CollectionIcon className={twMerge("w-full h-auto max-w-10", className)} />
-    else if (type === "threadPoster") return <ThreadIcon className={twMerge("w-full h-auto max-w-10", className)} />
-    else if (type === "userProfile") return <UserIcon className={twMerge("w-full h-auto max-w-10", className)} />
+    else if (type === "groupPoster") return <GroupIcon className={twMerge("w-full h-auto max-w-10", className)} />
+    else if (type === "userProfile") return <UserWithoutCircleIcon className={twMerge("w-full h-auto max-w-10", className)} />
     else return <ImageIconFill className={twMerge("w-full h-auto max-w-10", className)} />
 }
 
 const getFancyAttributes = (config: Pick<Props, "fancyGallery" | "fileNameToDownload" | "frameType" | "fullSizeFrame">, src: string | undefined) => {
     const { fileNameToDownload, fancyGallery, frameType, fullSizeFrame } = config;
     if (!fancyGallery || !src) return {};
-    const source = fullSizeFrame || isInternalFrame(frameType) ? src : getPoster({ external: true, type: frameType, size: "original", path: src })
+    const source = fullSizeFrame || (isInternalFrame(frameType) ? src : getPoster({ external: true, type: frameType, size: "original", path: src }));
 
     return {
         "data-src": source,
@@ -135,7 +135,7 @@ const SourceIconMap = ({ extSource }: Pick<Frame, "extSource">) => {
 const ParloImage = ({ frame, alt, height, size, width, className, containerClassName, fullSizeFrame, sizes, classNameForFallback, fill, commonClassName, prioritize, fancyGallery, frameType, fileNameToDownload, showMediaType, showSize, showSourceIcon }: Props) => {
 
     if (!frame) return (
-        <div className={twMerge("p-2 bg-gray10 flex flex-cntr-all", containerClassName)}>
+        <div className={twMerge("p-2 bg-gray10 flex flex-cntr-all", fill ? '' : "min-w-fit", containerClassName)}>
             <FallbackIcon
                 type={frameType}
                 className={twMerge(commonClassName, classNameForFallback)}
@@ -150,7 +150,7 @@ const ParloImage = ({ frame, alt, height, size, width, className, containerClass
     const correctHeight = height || size || 50;
 
     if (isTmdbImage) return (
-        <div className={containerClassName}>
+        <div className={twMerge(fill ? '' : "min-w-fit", containerClassName)}>
             <img
                 height={fill ? undefined : correctHeight}
                 width={fill ? undefined : correctWidth}
@@ -169,7 +169,7 @@ const ParloImage = ({ frame, alt, height, size, width, className, containerClass
     )
 
     return (
-        <div className={twMerge("relative overflow-hidden", containerClassName)}>
+        <div className={twMerge("relative overflow-hidden", fill ? '' : "min-w-fit", containerClassName)}>
             <Image
                 height={fill ? undefined : correctHeight}
                 width={fill ? undefined : correctWidth}

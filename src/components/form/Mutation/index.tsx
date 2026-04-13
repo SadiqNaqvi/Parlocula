@@ -28,7 +28,7 @@ type TextInputProps = {
 
 export const DisplayNameInput = ({ maxLength, name, placeholder, minLength, required, defaultVal, className, iconClassName, autoFocus }: TextInputProps) => (
     <div className="flex gap-2 items-center w-full group">
-        <EditIcon className={twMerge("text-gray-500 group-has-[:focus]:text-inherit", iconClassName)} />
+        <EditIcon className={twMerge("text-gray-500 group-has-focus:text-inherit", iconClassName)} />
         <Input
             name={name}
             defaultValue={defaultVal}
@@ -45,13 +45,13 @@ export const DisplayNameInput = ({ maxLength, name, placeholder, minLength, requ
 
 export const TextAreaInput = ({ maxLength, name, placeholder, minLength, required, defaultVal, className, iconClassName, autoFocus }: TextInputProps) => (
     <div className="flex gap-2 w-full group">
-        <EditIcon className={twMerge("size-4 text-gray-500 group-has-[:focus]:text-inherit", iconClassName)} />
+        <EditIcon className={twMerge("size-4 text-gray-500 group-has-focus:text-inherit", iconClassName)} />
         <Textarea
             name={name}
             defaultValue={defaultVal}
             placeholder={placeholder}
-            containerClassName="border-0 flex-1"
-            className={className}
+            containerClassName="flex-1"
+            className={twMerge("p-0 border-0", className)}
             required={required}
             minLength={minLength}
             maxLength={maxLength}

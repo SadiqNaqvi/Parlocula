@@ -121,7 +121,7 @@ const ContentSharingSheet = ({ children, className, ...props }: PropsWithChildre
 
     const sendToRooms = async ({ message }: { message: string }) => {
         const rooms = callbackRef.current?.() || [];
-        
+
         if (!rooms.length) return;
 
         sendContentToRooms(rooms, {
@@ -135,23 +135,25 @@ const ContentSharingSheet = ({ children, className, ...props }: PropsWithChildre
     return (
         <BottomSheet ref={sheetRef} onClose={() => setIsSelected(false)} button={children} className={className}>
             <section>
-                <ListSelector
-                    queryFnForList={(p) => getRooms(meta.user_id, p)}
-                    queryFn={(q, p) => searchRooms(meta.user_id, q, p)}
-                    callbackRef={callbackRef}
-                    className="px-2"
-                    mode="search"
-                    queryKeys={(q) => ["search-rooms", q]}
-                    queryKeysForList={getQueryKeys("rooms_uid", { uid: meta.user_id })}
-                    onSelection={handleSelectionStart}
-                    returnIds
-                    frameType="userProfile"
-                    refiner={(room: SearchedRoom | MereRoomType) => ({
-                        id: room._id,
-                        title: room.display_name,
-                        poster: room.poster
-                    })}
-                />
+                <div className="px-2">
+                    <ListSelector
+                        removeAutoFocus
+                        queryFnForList={(p) => getRooms(meta.user_id, p)}
+                        queryFn={(q, p) => searchRooms(meta.user_id, q, p)}
+                        callbackRef={callbackRef}
+                        mode="search"
+                        queryKeys={(q) => ["search-rooms", q]}
+                        queryKeysForList={getQueryKeys("rooms_uid", { uid: meta.user_id })}
+                        onSelection={handleSelectionStart}
+                        returnIds
+                        frameType="userProfile"
+                        refiner={(room: SearchedRoom | MereRoomType) => ({
+                            id: room._id,
+                            title: room.display_name,
+                            poster: room.poster
+                        })}
+                    />
+                </div>
                 <OptionalChildren condition={isSelected} fallback={(
                     <ExternalSharingOptionsTray {...props} />
                 )}>

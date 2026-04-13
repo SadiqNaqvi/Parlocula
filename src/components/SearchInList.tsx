@@ -21,6 +21,7 @@ export type SearchInListProps<T> = {
     initialQuery?: string | null;
     searchInputContainerClassName?: string;
     searchInputClassName?: string;
+    removeAutoFocus?: boolean;
 } & Pick<InfiniteScrollerProps, "notFoundMessage" | "NotFoundSection" | "Loading">
 
 type SearchInputProps = {
@@ -29,21 +30,22 @@ type SearchInputProps = {
     query: string,
     containerClassName?: string;
     inputClassName?: string;
+    removeAutoFocus?: boolean;
 }
 
-const SearchInput = ({ inputPlaceholder, onUpdate, query, containerClassName, inputClassName }: SearchInputProps) => (
+const SearchInput = ({ inputPlaceholder, onUpdate, query, containerClassName, inputClassName, removeAutoFocus }: SearchInputProps) => (
     <Form submit={onUpdate} className={twMerge("pb-2 bg-primary sticky top-0", containerClassName)}>
         <Input
             defaultValue={query}
             name="query"
-            autoFocus
+            autoFocus={!removeAutoFocus}
             placeholder={inputPlaceholder || "Search here"}
             className={inputClassName}
         />
     </Form>
 )
 
-const SearchInList = <T,>({ queryFn, queryKeys, className, searchInputClassName, Loading, searchInputContainerClassName, Component, inputPlaceholder, initialQuery, queryFnForList, queryKeysForList, NotFoundSection, notFoundMessage }: SearchInListProps<T>) => {
+const SearchInList = <T,>({ queryFn, queryKeys, className, searchInputClassName, removeAutoFocus, Loading, searchInputContainerClassName, Component, inputPlaceholder, initialQuery, queryFnForList, queryKeysForList, NotFoundSection, notFoundMessage }: SearchInListProps<T>) => {
 
     const [query, setQuery] = useState(initialQuery || '');
 
@@ -57,6 +59,7 @@ const SearchInList = <T,>({ queryFn, queryKeys, className, searchInputClassName,
 
     const SearchHeader = () => (
         <SearchInput
+            removeAutoFocus={removeAutoFocus}
             containerClassName={searchInputContainerClassName}
             inputClassName={searchInputClassName}
             onUpdate={updateQuery}

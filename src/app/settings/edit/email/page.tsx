@@ -26,11 +26,13 @@ const Page = () => {
     const { email, emailUpdatedAt } = user;
     const canUpdate = Boolean(emailUpdatedAt && Date.now() > getTimeInFuture({ unit: "mo", from: emailUpdatedAt }))
 
-    if (!canUpdate) return (
+    if (emailUpdatedAt && !canUpdate) return (
         <>
             <Navbar navTitle="Edit Email" />
 
-            <p className="mt-4">You cannot update your email for now as it can only be updated once in a month. Please try again after a month.</p>
+            <p className="mt-4 text-center">
+                You cannot update your email for now as it can only be updated once in a month. Please try again after a month.
+            </p>
         </>
     )
 

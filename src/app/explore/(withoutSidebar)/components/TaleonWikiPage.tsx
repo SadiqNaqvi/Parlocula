@@ -67,8 +67,7 @@ const TaleonWikiHeader = ({ className, posterClassName, title, frameType, titleT
                 />
 
                 <div className={`w-full ${backdrop ? "mt-2 pl-24 sm:pl-40" : ''}`}>
-                    <h1 data-observe className="text-lg xs:text-xl sm:text-3xl line-clamp-2 font-semibold capitalize">{title}</h1>
-
+                    <h1 data-observe className="selectable text-lg xs:text-xl sm:text-3xl line-clamp-2 font-semibold capitalize">{title}</h1>
                     {titleSupport}
                 </div>
             </section>

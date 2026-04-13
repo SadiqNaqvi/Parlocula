@@ -18,8 +18,9 @@ const getPath = (path: string, source: Required<Frame["extSource"]>) => {
     else return getPoster({ path, external: false, extSource: source })
 }
 
-const FrameContainer = (frame: Frame & { id: string }) => {
+const FrameContainer = (frame: Frame & { id: string, disablePopping?: boolean }) => {
     const { path, type, extSource } = frame;
+    console.log(path, type, extSource, getPath(path, extSource));
 
     if (extSource === "vimeo" || extSource === "youtube") return (
         <ParloImage
@@ -35,7 +36,7 @@ const FrameContainer = (frame: Frame & { id: string }) => {
         />
     )
 
-    else if (type === "video") return (
+    if (type === "video") return (
         <div className={containerClassName}>
             <video className={className} preload="metadata">
                 <source src={path} />
@@ -50,8 +51,8 @@ const FrameContainer = (frame: Frame & { id: string }) => {
             frameType="poster"
             sizes={sizes}
             className={className}
-            fancyGallery={frame.id}
-            fullSizeFrame={getPath(path, extSource)}
+            fancyGallery={frame.disablePopping ? undefined : frame.id}
+            fullSizeFrame={frame.disablePopping ? undefined : getPath(path, extSource)}
             showMediaType
             showSize
             containerClassName={containerClassName}
@@ -60,7 +61,7 @@ const FrameContainer = (frame: Frame & { id: string }) => {
 
 }
 
-const FrameSlider = ({ frames, id }: { frames: Frame[], id: string }) => {
+const FrameSlider = ({ frames, id, disablePopping }: { frames: Frame[], id: string, disablePopping?: boolean }) => {
 
     if (!frames || !frames.length) return null;
 
@@ -69,7 +70,7 @@ const FrameSlider = ({ frames, id }: { frames: Frame[], id: string }) => {
             <FancyCarousel>
                 {frames.map(frame => (
                     <li className="f-carousel__slide" key={frame.path}>
-                        <FrameContainer id={id} {...frame} />
+                        <FrameContainer id={id} disablePopping={disablePopping} {...frame} />
                     </li>
                 ))}
             </FancyCarousel>

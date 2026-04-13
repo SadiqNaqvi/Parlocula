@@ -31,12 +31,13 @@ import {
 } from "@lib/schemas";
 import { z } from "zod";
 import { CommentReplyType } from "./internal";
+import { UidsForReportReason } from "./other";
 
 export type ExtMediaSource = "mega" | "youtube" | "vimeo" | "web";
 
 export type LinkSchema = z.infer<typeof linkSchema>;
 export type FrameDataSchemaType = z.infer<typeof frameDataSchema>;
-export type ReportSchemaType = z.infer<typeof reportSchema>;
+export type ReportSchemaType = Omit<z.infer<typeof reportSchema>, "reason"> & { reason: UidsForReportReason };
 
 export type ThreadSchemaServer = z.infer<typeof threadSchemaServer>;
 export type ThreadUpdateSchema = z.infer<typeof threadUpdateSchema>;
@@ -86,7 +87,7 @@ type CommanInputFrame = {
 export type InputFrame = CommanInputFrame &
   ({ blob: null; isExternal: true } | { blob: Blob; isExternal: false });
 
-export type ReplyInputType = CommentReplyType & { replied_to: string | undefined, username: string|undefined }
+export type ReplyInputType = CommentReplyType & { replied_to: string | undefined, username: string | undefined }
 
 export type TaleonSchemaType = z.infer<typeof itemSchema>
 

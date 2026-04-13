@@ -2,7 +2,7 @@ import FrameSlider from "@app/post/[id]/(WithHeader)/FrameSlider";
 import { BookmarkIcon, CommentIcon, FrameIcon, LinkIcon, ThumbUpIcon } from "@assets/Icons";
 import { Navigate } from "@components";
 import { makeUrlSafe, numberConverter, timeAgo } from "@lib/utils";
-import { MerePost } from "@type/internal";
+import { MerePost, ReportedContent, ReportedPost } from "@type/internal";
 import { BreadCrumbs, BreadCrumbTile, MetadataTile, MetadataTileContainer, ParloImage } from "./";
 
 type SectionType = "thread" | "user";
@@ -53,7 +53,7 @@ const PostbarBreadCrumbs = ({ poster, profile, thread_id, thread_name, username,
     return (
         <Navigate comp="link" goto={`/thread/${thread_id}`} className="flex gap-3 items-center">
             <ParloImage
-                frameType="threadPoster"
+                frameType="groupPoster"
                 frame={poster}
                 className={PosterClassName}
                 containerClassName={containerClassName}
@@ -69,7 +69,54 @@ const PostbarBreadCrumbs = ({ poster, profile, thread_id, thread_name, username,
 
 }
 
-const PostBar = ({ _id, comment_count, nsfw, createdAt, editedAt, poster, reaction_count, frames_count, links_count, spoiler, category, thread_id, title, frames, saved_count, username, profile, thread_name, additional }: Props & MerePost) => {
+const PostHeader = ({ category, nsfw, spoiler, createdAt, poster, profile, thread_id, thread_name, username, additional, editedAt }: Pick<Props & MerePost, "profile" | "poster" | "nsfw" | "spoiler" | "thread_id" | "thread_name" | "username" | "additional" | "category" | "createdAt" | "editedAt">) => (
+    <header className="space-y-2">
+        <PostbarBreadCrumbs poster={poster} profile={profile} thread_id={thread_id} thread_name={thread_name} username={username} section={additional?.section || "all"} />
+        <MetadataTileContainer>
+            <MetadataTile>{timeAgo(createdAt)}</MetadataTile>
+
+            <MetadataTile
+                condition={!!(category && category !== "none")}
+                href={`/thread/${thread_id}?c=${category}`}
+                className="capitalize">
+                {category}
+            </MetadataTile>
+
+            <MetadataTile className="px-2 py-1 bg-gray10 border-gray20 rounded-md" condition={!!editedAt}>
+                Edited: {timeAgo(editedAt || 0)}
+            </MetadataTile>
+
+            <MetadataTile nsfw condition={nsfw}>NSFW</MetadataTile>
+
+            <MetadataTile spoiler condition={spoiler}>Spoiler</MetadataTile>
+
+        </MetadataTileContainer>
+    </header>
+)
+
+const PostBody = ({ _id, poster, profile, title, additional, frames }: Pick<Props & MerePost, "profile" | "poster" | "additional" | "title" | "_id" | "frames">) => (
+    <section className="space-y-4 mb-4">
+
+        <Navigate
+            historyPayload={{
+                title: title.slice(0, 50).concat('...'),
+                poster: additional?.section === "user" ? poster : profile,
+                image: frames?.[0],
+                type: "post",
+            }}
+            role="button"
+            comp="link"
+            goto={`/post/${_id}-${makeUrlSafe(title)}`}
+            className="w-full"
+        >
+            <h3 className="customize text-lg font-semibold line-clamp-4">{title}</h3>
+        </Navigate>
+
+        <FrameSlider id={_id} frames={frames || []} />
+    </section>
+)
+
+const PostMetadataSection = ({ comment_count, frames_count, links_count, reaction_count, saved_count }: Pick<MerePost, "reaction_count" | "comment_count" | "saved_count" | "frames_count" | "links_count">) => {
 
     const counts = [
         { value: reaction_count, Icon: ThumbUpIcon },
@@ -83,69 +130,69 @@ const PostBar = ({ _id, comment_count, nsfw, createdAt, editedAt, poster, reacti
     ]
 
     return (
-        <article className="px-2 py-4 space-y-4 w-full border-b group-last:border-0 border-gray10">
+        <section className="flex gap-4">
+            <ul className="flex gap-3">
+                {counts.map(({ Icon, value }, i) => (
+                    <li key={i} className="flex items-center gap-1 text-zinc-500">
+                        <Icon className="size-4" />
+                        <span>{numberConverter(value || 0)}</span>
+                    </li>
+                ))}
+            </ul>
+            <ul className="flex gap-3">
+                {metadata.map(({ Icon, value }, i) => (
+                    <li key={i} className="flex items-center gap-1 text-zinc-500">
+                        <Icon className="size-4" />
+                        <span>{numberConverter(value || 0)}</span>
+                    </li>
+                ))}
+            </ul>
+        </section>
+    )
+}
 
-            <header className="space-y-2">
-                <PostbarBreadCrumbs poster={poster} profile={profile} thread_id={thread_id} thread_name={thread_name} username={username} section={additional?.section || "all"} />
-                <MetadataTileContainer>
-                    <MetadataTile>{timeAgo(createdAt)}</MetadataTile>
+const PostBar = (props: Props & MerePost) => {
 
-                    <MetadataTile
-                        condition={!!(category && category !== "none")}
-                        href={`/thread/${thread_id}?c=${category}`}
-                        className="capitalize">
-                        {category}
-                    </MetadataTile>
+    return (
+        <article className="p-2 space-y-4 w-full my-2 bg-gray10 border border-gray10 rounded-md">
 
-                    <MetadataTile className="px-2 py-1 bg-gray10 border-gray20 rounded-md" condition={Boolean(editedAt)}>Edited: {timeAgo(editedAt || 0)}</MetadataTile>
-
-                    <MetadataTile nsfw condition={nsfw}>NSFW</MetadataTile>
-
-                    <MetadataTile spoiler condition={spoiler}>Spoiler</MetadataTile>
-
-                </MetadataTileContainer>
-            </header>
-
-            <section className="space-y-2 mb-4">
-
-                <Navigate
-                    historyPayload={{
-                        title: title.slice(0, 50).concat('...'),
-                        poster: additional?.section === "user" ? poster : profile,
-                        image: frames?.[0],
-                    }}
-                    role="button"
-                    comp="link"
-                    goto={`/post/${_id}-${makeUrlSafe(title)}`}
-                    className="w-full"
-                >
-                    <h3 className="customize text-lg font-semibold line-clamp-4">{title}</h3>
-                </Navigate>
-
-                <FrameSlider id={_id} frames={frames || []} />
-            </section>
-
-            <section className="flex gap-4">
-                <ul className="flex gap-3">
-                    {counts.map(({ Icon, value }, i) => (
-                        <li key={i} className="flex items-center gap-1 text-zinc-500">
-                            <Icon className="size-4" />
-                            <span>{numberConverter(value || 0)}</span>
-                        </li>
-                    ))}
-                </ul>
-                <ul className="flex gap-3">
-                    {metadata.map(({ Icon, value }, i) => (
-                        <li key={i} className="flex items-center gap-1 text-zinc-500">
-                            <Icon className="size-4" />
-                            <span>{numberConverter(value || 0)}</span>
-                        </li>
-                    ))}
-                </ul>
-            </section>
+            <PostHeader {...props} />
+            <PostBody {...props} />
+            <PostMetadataSection {...props} />
 
         </article>
     )
+}
+
+export const PostBarForReportList = ({ _id, category, createdAt, frames, nsfw, profile, spoiler, title, username }: ReportedPost & ReportedContent["author"] & { _id: string }) => {
+
+    return (
+        <article className="px-2 py-4 space-y-4 w-full border-b group-last:border-0 border-gray10">
+            <PostHeader
+                category={category}
+                createdAt={createdAt}
+                editedAt={null}
+                nsfw={nsfw}
+                poster={profile}
+                profile={profile}
+                spoiler={spoiler}
+                thread_id=""
+                thread_name=""
+                username={username}
+                additional={{ section: "thread" }}
+            />
+            <PostBody
+                poster={profile}
+                profile={profile}
+                additional={{ section: "thread" }}
+                _id={_id}
+                title={title}
+                frames={frames}
+            />
+
+        </article>
+    )
+
 }
 
 export default PostBar;

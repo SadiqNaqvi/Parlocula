@@ -30,11 +30,18 @@ const MessageBar = ({ nextMsgAuthor, prevMsgAuthor, otherParticipantSeenAt, cuid
     const correctStatus = !currentAuthor ? undefined : status === "sent" ? hasSeen ? "seen" : "sent" : status;
     const statusForBottomSheet = currentAuthor ? correctStatus ?? (hasSeen ? "seen" : "sent") : undefined;
 
-    const handleContextMenu: MouseEventHandler<HTMLButtonElement> = (e) => {
+    const handleContextMenu: MouseEventHandler<HTMLButtonElement | HTMLAnchorElement> = (e) => {
         e.preventDefault();
         e.stopPropagation();
         setSelectedMessage({ ...message, status: statusForBottomSheet });
     }
+
+    const messageClassName = twMerge(
+        "rounded-md border border-gray10 bg-gray10 p-2 w-full backdrop-blur-xs",
+        sameAuthorForPrev && !replied_to ? currentAuthor ? "rounded-tr-none" : "rounded-tl-none" : undefined,
+        sameAuthorForNext ? currentAuthor ? "rounded-br-none" : "rounded-bl-none" : undefined,
+        replied_to ? "rounded-t-none" : undefined,
+    )
 
     return (
         <li
@@ -54,20 +61,15 @@ const MessageBar = ({ nextMsgAuthor, prevMsgAuthor, otherParticipantSeenAt, cuid
                     </Link>
                 </OptionalChildren>
 
-                <button
-                    className={twMerge(
-                        "rounded-md border border-gray10 bg-gray10 p-2",
-                        sameAuthorForPrev || replied_to ? currentAuthor ? "rounded-tr-none" : "rounded-tl-none" : undefined,
-                        sameAuthorForNext ? currentAuthor ? "rounded-br-none" : "rounded-bl-none" : undefined,
-                    )}
-                    onContextMenu={handleContextMenu}
-                >
-                    <OptionalChildren condition={message.sharedContent} fallback={content}>
-                        <Navigate comp="link" goto={message.sharedContent!} className="text-sky-500">
-                            {content || "Open Attached Content"}
-                        </Navigate>
-                    </OptionalChildren>
-                </button>
+                <OptionalChildren condition={message.sharedContent} fallback={(
+                    <button className={messageClassName} onContextMenu={handleContextMenu}>
+                        {content}
+                    </button>
+                )}>
+                    <Navigate onContextMenu={handleContextMenu} comp="link" goto={message.sharedContent!} className={messageClassName.concat(" text-sky-500")}>
+                        {content || "Open Attached Content"}
+                    </Navigate>
+                </OptionalChildren>
             </div>
 
             <OptionalChildren condition={currentAuthor}>

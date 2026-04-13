@@ -37,6 +37,7 @@ const PostSection = ({ username, uid, filter, page, allowNsfw }: Props) => {
             queryKeys={getQueryKeys("postsOfUser_uid_filter", { uid, filter })}
             fetchData={(p) => getPostsOfUser(uid, p, allowNsfw, filter)}
             additional={{ section: "user" }}
+            className="px-2 tablet:px-0"
             Component={PostBar}
             notFoundMessage={notFoundMessage}
         />

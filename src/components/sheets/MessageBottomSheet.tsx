@@ -1,6 +1,7 @@
 import BottomSheet, { BottomSheetRef } from "@components/BottomSheet";
-import { MetadataTile, MetadataTileContainer } from "@components/ui";
+import { MetadataTile, MetadataTileContainer, OptionalChildren } from "@components/ui";
 import OptionList from "@components/ui/OptionList";
+import { app_production_url } from "@lib/constants";
 import { filterDocsInInfiniteQueryResult, retryMessage, unsendMessage } from "@lib/helpers/mutations";
 import { getQueryKeys } from "@lib/utils";
 import useGlobalStore from "@store/globalStore";
@@ -21,7 +22,7 @@ const MessageDetailsSection = ({ createdAt, content, status, children }: PropsWi
                 </MetadataTileContainer>
                 <div className="mt-3 line-clamp-2">{content}</div>
             </section>
-            <ul className="sm:bg-gray10 sm:border border-gray10 rounded-md py-4 px-2">{children}</ul>
+            <ul className="sm:bg-gray20 sm:border border-gray10 rounded-md py-4">{children}</ul>
         </>
     )
 
@@ -42,12 +43,26 @@ const MessageBottomSheet = () => {
 
     if (!selectedMessage || !meta) return null;
 
-    const { status, content, room_id, user_id, _id, createdAt } = selectedMessage;
+    const { status, content, room_id, user_id, _id, createdAt, sharedContent } = selectedMessage;
     const isCurrent = user_id === meta.user_id;
 
     const handleCopy = () => {
         if (navigator && "clipboard" in navigator) {
             navigator.clipboard.writeText(content)
+                .then(() => toast.success("Content copied to clipboard"));
+        } else {
+            toast.error("Unable to copy text to clipboard");
+        }
+
+        sheetRef.current?.close();
+    }
+
+    const handleCopyLink = () => {
+        if (!sharedContent) return;
+
+        const urlToCopy = sharedContent.startsWith('/') ? new URL(sharedContent, app_production_url).href : sharedContent;
+        if (navigator && "clipboard" in navigator) {
+            navigator.clipboard.writeText(urlToCopy)
                 .then(() => toast.success("Content copied to clipboard"));
         } else {
             toast.error("Unable to copy text to clipboard");
@@ -85,16 +100,19 @@ const MessageBottomSheet = () => {
     const removeSelectedMessage = () => setSelectedMessage(undefined)
 
     if (!isCurrent) return (
-        <BottomSheet ref={sheetRef} state onClose={removeSelectedMessage}>
+        <BottomSheet className="px-2" ref={sheetRef} state onClose={removeSelectedMessage}>
             <MessageDetailsSection content={content} status={status} createdAt={createdAt}>
                 <OptionList onClick={handleCopy}>Copy Text</OptionList>
+                <OptionalChildren condition={sharedContent}>
+                    <OptionList onClick={handleCopyLink}>Copy Link</OptionList>
+                </OptionalChildren>
                 <OptionList onClick={handleReply}>Reply</OptionList>
             </MessageDetailsSection>
         </BottomSheet>
     )
 
     if (status === "sending") return (
-        <BottomSheet ref={sheetRef} state onClose={removeSelectedMessage}>
+        <BottomSheet className="px-2" ref={sheetRef} state onClose={removeSelectedMessage}>
             <MessageDetailsSection content={content} status={status} createdAt={createdAt}>
                 <OptionList onClick={handleCopy}>Copy Text</OptionList>
             </MessageDetailsSection>
@@ -102,7 +120,7 @@ const MessageBottomSheet = () => {
     )
 
     else if (status === "error") return (
-        <BottomSheet ref={sheetRef} state onClose={removeSelectedMessage}>
+        <BottomSheet className="px-2" ref={sheetRef} state onClose={removeSelectedMessage}>
             <MessageDetailsSection content={content} status={status} createdAt={createdAt}>
                 <OptionList onClick={handleRetry}>Retry</OptionList>
                 <OptionList onClick={handleRemoveMessgage}>Unsend</OptionList>
@@ -112,10 +130,13 @@ const MessageBottomSheet = () => {
     )
 
     else return (
-        <BottomSheet ref={sheetRef} state onClose={removeSelectedMessage}>
+        <BottomSheet className="px-2" ref={sheetRef} state onClose={removeSelectedMessage}>
             <MessageDetailsSection content={content} status={status} createdAt={createdAt}>
                 <OptionList onClick={handleReply}>Reply</OptionList>
                 <OptionList onClick={handleCopy}>Copy Text</OptionList>
+                <OptionalChildren condition={sharedContent}>
+                    <OptionList onClick={handleCopyLink}>Copy Link</OptionList>
+                </OptionalChildren>
                 <OptionList onClick={handleUnsend}>Unsend</OptionList>
             </MessageDetailsSection>
         </BottomSheet>

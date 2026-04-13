@@ -1,7 +1,7 @@
 "use client";
 
-import { AddIcon, AppIcon, CollectionIcon, ExploreFillIcon, ExploreIcon, HomeFillIcon, HomeIcon, MessagesFillIcon, MessagesIcon, PostIcon, ThreadIcon, ThreadIconFill, UserIcon } from "@assets/Icons";
-import { BottomSheet, Navigate } from "@components";
+import { AppIcon, ExploreFillIcon, ExploreIcon, GroupIcon, GroupIconFill, HomeFillIcon, HomeIcon, MessagesFillIcon, MessagesIcon, ShelfIcon, ShelfIconFill, UserWithoutCircleIcon } from "@assets/Icons";
+import { Navigate } from "@components";
 import useCurrentUser from "@store/user";
 import { usePathname } from "next/navigation";
 import React, { PropsWithChildren } from "react";
@@ -17,7 +17,7 @@ const ProfileButton = () => {
     if (!meta) return (
         <div className={`rounded-full border-2 ${pathname.startsWith(`/guest`) ? "border-secondary" : "border-gray-500"}`}>
             <Navigate comp="link" goto="/guest">
-                <UserIcon className="m-2.5 size-4 md:size-5" />
+                <UserWithoutCircleIcon className="m-2.5 size-4 md:size-5" />
             </Navigate>
         </div>
     )
@@ -40,35 +40,6 @@ const ProfileButton = () => {
                 />
             </Navigate>
         </div>
-    )
-
-}
-
-const addButtonClasses = "size-[70px] flex gap-2 flex-cntr-all flex-col bg-primary rounded-md border border-gray40"
-
-const AddButton = ({ className }: { className?: string }) => {
-
-    return (
-        <BottomSheet className="mx-auto" button={<AddIcon className={className} />}>
-            <section className="p-6">
-                <h3 className="text-center font-semibold">Start Creating Now</h3>
-
-                <div className="flex gap-4 mt-4 mx-auto w-fit">
-                    <Navigate comp="link" type="button" goto="/new/post" className={addButtonClasses}>
-                        <PostIcon className="size-6 mx-auto" />
-                        <p className="text-sm text-zinc-500">Post</p>
-                    </Navigate>
-                    <Navigate comp="link" type="button" goto="/new/thread" className={addButtonClasses}>
-                        <ThreadIcon className="size-6 mx-auto" />
-                        <p className="text-sm text-zinc-500">Thread</p>
-                    </Navigate>
-                    <Navigate comp="link" type="button" goto="/new/shelf" className={addButtonClasses}>
-                        <CollectionIcon className="size-5 mx-auto" />
-                        <p className="text-sm text-zinc-500">Shelf</p>
-                    </Navigate>
-                </div>
-            </section>
-        </BottomSheet>
     )
 
 }
@@ -113,29 +84,6 @@ const SidebarButton = ({ href, label, pathname, ActiveIcon, children, className,
     )
 }
 
-const OptionalSidebarButtons = ({ pathname, className }: { pathname: string, className?: string }) => (
-    <>
-        <SidebarButton className={className} pathname={pathname} href="/notifications" label="Notifications">
-            <NotificationButton active={pathname.startsWith("/notifications")} />
-        </SidebarButton>
-
-        <SidebarButton className={className} pathname={pathname} ActiveIcon={MessagesFillIcon} href="/inbox" label="Inbox">
-            <MessagesIcon className={iconSize} />
-        </SidebarButton>
-    </>
-)
-
-export const TopNavbar = ({ className }: { className?: string; }) => (
-    <nav className={twMerge("sticky z-[1] top-0 p-4 border-b border-gray10 flex flex-cntr-between md:hidden bg-primary", className)}>
-        <div className="text-lg">
-            <AppIcon className="h-6 overflow-visible" />
-        </div>
-        <ul className="flex md:hidden flex-cntr-all">
-            <OptionalSidebarButtons pathname="" />
-        </ul>
-    </nav>
-)
-
 const Sidebar = () => {
 
     const pathname = usePathname();
@@ -157,15 +105,26 @@ const Sidebar = () => {
                     <ExploreIcon className={iconSize} />
                 </SidebarButton>
 
+                <SidebarButton pathname={pathname} ActiveIcon={ShelfIconFill} href="/shelf" label="Shelf">
+                    <ShelfIcon />
+                </SidebarButton>
+
+                {/* 
                 <SidebarButton skipButtonWrapping pathname={pathname} label="New">
                     <AddButton className="size-6" />
+                </SidebarButton> */}
+
+                <SidebarButton pathname={pathname} ActiveIcon={GroupIconFill} href="/thread" label="Threads">
+                    <GroupIcon className={iconSize} />
                 </SidebarButton>
 
-                <SidebarButton pathname={pathname} ActiveIcon={ThreadIconFill} href="/thread" label="Threads">
-                    <ThreadIcon className={iconSize} />
+                <SidebarButton className="hidden md:block" pathname={pathname} href="/notifications" label="Notifications">
+                    <NotificationButton />
                 </SidebarButton>
 
-                <OptionalSidebarButtons className="hidden md:block" pathname={pathname} />
+                <SidebarButton className="hidden md:block" pathname={pathname} ActiveIcon={MessagesFillIcon} href="/inbox" label="Inbox">
+                    <MessagesIcon className={iconSize} />
+                </SidebarButton>
 
             </ul>
 

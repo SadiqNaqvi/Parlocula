@@ -1,14 +1,17 @@
 "use client";
 
-import { GenericWrapper, Navigate, FancyImage, ObserverHeader } from "@components";
+import { AlertIcon, AtIcon, CommentIcon, ShelfIcon, PostIcon } from "@assets/Icons";
+import { GenericWrapper, ObserverHeader } from "@components";
+import { ProfileNavbar } from "@components/TopNavbar";
+import { InteractiveDetailSection, LinksSection, OptionalChildren, ParloImage, TabContainer, TabList } from "@components/ui";
+import { UserPageSkeleton } from "@components/ui/loading";
 import { getUserByUsername } from "@lib/helpers/common";
 import { getQueryKeys, numberConverter } from "@lib/utils";
 import useCurrentUser from "@store/user";
 import { RequestedUser } from "@type/internal";
+import { PropsWithChildren } from "react";
+import { toast } from "sonner";
 import { ActionButton, MessageButton } from "./";
-import { OptionalChildren, InteractiveDetailSection, TabContainer, TabList, LinksSection, ParloImage } from "@components/ui";
-import { HamburgerIcon } from "@assets/Icons";
-import { UserPageSkeleton } from "@components/ui/loading";
 
 type Props = { username: string, uid: string | undefined };
 
@@ -18,16 +21,26 @@ const getQueryProps = ({ username }: Props) => ({
     args: [username],
 });
 
-const SettingButton = ({ uid }: { uid: string }) => {
-
+const HeaderWrapper = ({ uid, username, children }: PropsWithChildren<{ uid: string, username: string }>) => {
     const { meta } = useCurrentUser();
 
-    if (!meta || meta.user_id !== uid) return;
+    if (!meta || meta.user_id !== uid) return (
+        <ObserverHeader
+            titleToShare={`Check out @${username} on Parlocula`}
+            className="mt-4 px-2 sm:px-4"
+            navTitle={username}
+        >
+            {children}
+        </ObserverHeader>
+    )
 
     return (
-        <Navigate comp="link" goto="/settings" type="button">
-            <HamburgerIcon />
-        </Navigate>
+        <>
+            <ProfileNavbar username={username} />
+            <header className="mt-2 px-2">
+                {children}
+            </header>
+        </>
     )
 
 }
@@ -44,13 +57,16 @@ const Component = (data: RequestedUser, props: Props) => {
         // { label: "shelves", value: publicShelves },
     ];
 
+    const handleCopyUsername = () => {
+        if ("clipboard" in navigator)
+            navigator.clipboard.writeText(data.username)
+                .then(() => toast.success("Username copied to clipboard"))
+                .catch(() => { });
+    }
+
     return (
         <>
-            <ObserverHeader
-                titleToShare={`Check out @${username} on Parlocula`}
-                className="mt-4 px-2 sm:px-4"
-                OptionButton={<SettingButton uid={data._id} />}
-                navTitle={username}>
+            <HeaderWrapper uid={data._id} username={data.username}>
 
                 <section className="flex gap-4 items-center">
                     <ParloImage
@@ -72,7 +88,10 @@ const Component = (data: RequestedUser, props: Props) => {
                         <OptionalChildren condition={name}>
                             <h2 className="text-lg xs:text-xl sm:text-2xl font-semibold capitalize">{name}</h2>
                         </OptionalChildren>
-                        <h1 data-observe className="text-sm mt-1">@{username}</h1>
+                        <h1 onClick={handleCopyUsername} data-observe className="text-sm mt-1">
+                            <AtIcon className="inline size-4 mr-1" />
+                            <span>{username}</span>
+                        </h1>
                     </div>
                 </section>
                 <section className="mt-4">
@@ -85,7 +104,9 @@ const Component = (data: RequestedUser, props: Props) => {
                         ))}
                     </ul>
 
-                    <InteractiveDetailSection className="text-sm my-2">{bio}</InteractiveDetailSection>
+                    <OptionalChildren condition={bio}>
+                        <InteractiveDetailSection className="text-sm my-2">{bio}</InteractiveDetailSection>
+                    </OptionalChildren>
 
                     <OptionalChildren condition={bioLinks.length}>
                         <LinksSection links={bioLinks} />
@@ -96,13 +117,28 @@ const Component = (data: RequestedUser, props: Props) => {
                     <ActionButton username={username} uid={props.uid} rid={_id} />
                     <MessageButton profile={profile} username={username} ruid={_id} />
                 </section>
-            </ObserverHeader>
+            </HeaderWrapper>
 
 
             <TabContainer className="my-3">
-                <TabList href={`/user/${username}`}>Posts</TabList>
-                <TabList href={`/user/${username}/comments`}>Comments</TabList>
-                <TabList href={`/user/${username}/shelves`}>Shelves</TabList>
+                <TabList className="flex gap-2 flex-cntr-all" href={`/user/${username}`}>
+                    <PostIcon className="min-w-5" />
+                    <span>Posts</span>
+                </TabList>
+                <TabList className="flex gap-2 flex-cntr-all" href={`/user/${username}/comments`}>
+                    <CommentIcon className="min-w-5" />
+                    <span>Comments</span>
+                </TabList>
+                <TabList className="flex gap-2 flex-cntr-all" href={`/user/${username}/shelves`}>
+                    <ShelfIcon className="min-w-5" />
+                    <span>Shelves</span>
+                </TabList>
+                <OptionalChildren condition={props.uid}>
+                    <TabList className="flex gap-2 flex-cntr-all" href={`/user/${props.username}/reports`}>
+                        <AlertIcon className="min-w-5" />
+                        <span>Reports</span>
+                    </TabList>
+                </OptionalChildren>
             </TabContainer>
         </>
     )

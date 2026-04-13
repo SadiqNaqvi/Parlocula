@@ -9,15 +9,18 @@ const Choice = ({ label, name, description, type = "checkbox", group, ...args }:
     return (
         <label
             {...args}
-            className="px-4 py-2 pointer border border-gray20 rounded-full has-[:checked]:border-primary"
+            htmlFor={name}
+            className="px-4 py-2 pointer border-2 border-gray30 has-checked:border-(--secondary) rounded-full text-sm relative"
         >
             {label}
             <input
+                {...register(group || name)}
+                value={type === "radio" ? name : undefined}
                 disabled={isSubmitting}
                 type={type}
                 radioGroup={group}
-                {...register(name)}
                 className="sr-only"
+                id={name}
             />
         </label>
     )

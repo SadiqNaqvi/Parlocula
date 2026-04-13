@@ -6,14 +6,14 @@ import { OptionalChildren, ParloImage } from "@components/ui"
 const ThreadTile = ({ name, poster, _id, member_count, post_count }: MereThread) => {
     return (
         <Navigate
-            historyPayload={{ title: name, poster }}
+            historyPayload={{ title: name, poster, type:"thread" }}
             role="button"
             comp="link"
             goto={`/thread/${_id}-${makeUrlSafe(name)}`}
         >
             <article className="flex gap-2 items-center p-2">
                 <ParloImage
-                    frameType="threadPoster"
+                    frameType="groupPoster"
                     className="min-w-10 size-10 object-cover"
                     containerClassName="rounded-full overflow-hidden"
                     classNameForFallback="min-w-8 size-8 p-1"

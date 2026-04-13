@@ -30,16 +30,17 @@ export type InfiniteScrollerProps = {
     onSuccess?: (d: InfiniteData<InfiniteQueryResponse<any>, number>) => void,
     enabled?: boolean,
     showFooter?: boolean;
+    skipGroupInClassName?: boolean,
 }
 
-const defaultClasses = "space-y-4";
+const defaultClasses = "space-y-2 list-none";
 
 const defaultNotFoundMessages = {
     title: "Oops! Looks like the popcorn is missing",
     paras: ["Please search the resouce using it's name, title, username, etc."],
 }
 
-export default function InfiniteScroller({ Loading, showFooter, onSuccess, placeholderData, Component, fetchData, queryKeys, NotFoundSection, notFoundMessage = defaultNotFoundMessages, initialPage = 1, enabled = true, initialData, callback, className = defaultClasses, paginate = true, additional }: InfiniteScrollerProps) {
+export default function InfiniteScroller({ Loading, showFooter, onSuccess, placeholderData, skipGroupInClassName, Component, fetchData, queryKeys, NotFoundSection, notFoundMessage = defaultNotFoundMessages, initialPage = 1, enabled = true, initialData, callback, className = defaultClasses, paginate = true, additional }: InfiniteScrollerProps) {
 
     const container = useRef(null);
     const searchParams = useSearchParams();
@@ -137,7 +138,7 @@ export default function InfiniteScroller({ Loading, showFooter, onSuccess, place
                 {data.pages.
                     flatMap(page => page.results)
                     .map((content, ind) => (
-                        <li key={content.id || content._id || content.tmdb_id || ind} className="list-none group">
+                        <li key={content.id || content._id || content.tmdb_id || ind} className={skipGroupInClassName ? undefined : "group"}>
                             <Component {...content} callback={callback} additional={additional} user={meta} />
                         </li>
                     ))}

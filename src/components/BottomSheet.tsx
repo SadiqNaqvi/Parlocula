@@ -1,9 +1,8 @@
 "use client";
 
-import { forwardRef, PropsWithChildren, RefObject, useEffect, useImperativeHandle, useState } from "react";
+import { forwardRef, PropsWithChildren, RefObject, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { Content, Drawer, Handle, Overlay, Portal, Root } from "vaul";
 import { OptionalChildren } from "./ui";
-import { useChageSearchParams } from "@lib/hooks";
 
 type PortalProps = PropsWithChildren<{
   allowHandle?: boolean
@@ -15,6 +14,38 @@ type PortalProps = PropsWithChildren<{
 export const NestedSheet = forwardRef(({ children, description, title, state, onClose, snapPoints, allowHandle, button, className }: BottomSheetProps, ref) => {
 
   const [open, setOpen] = useState<boolean | undefined>(state);
+
+  const sheetId = useRef(Math.random().toString(36));
+
+  useEffect(() => {
+    if (!open) return;
+
+    let isPopped = false;
+
+    const handleBackNavigation = (event: PopStateEvent) => {
+      if (!open) return;
+
+      // Only handle if this sheet owns the state
+      if (event.state?.sheetId !== sheetId.current) return;
+
+      isPopped = true;
+      setOpen(false);
+      onClose?.();
+    };
+
+    window.history.pushState({ sheetId: sheetId.current }, "");
+    window.addEventListener("popstate", handleBackNavigation);
+
+    return () => {
+      window.removeEventListener("popstate", handleBackNavigation);
+
+      if (!isPopped && window.history.state?.sheetId === sheetId.current) {
+        window.history.back();
+      }
+    };
+  }, [open]);
+
+  useEffect(() => { setOpen(!!state) }, [state]);
 
   useImperativeHandle(ref, () => ({
     open: () => setOpen(true),
@@ -50,8 +81,8 @@ export const DrawerPortal = ({ children, allowHandle = true, description, title,
       <OptionalChildren condition={allowHandle}>
         <Handle />
       </OptionalChildren>
-      <Drawer.Title>{title}</Drawer.Title>
-      <Drawer.Description>{description}</Drawer.Description>
+      <Drawer.Title className="parloHeading text-center my-2">{title}</Drawer.Title>
+      <Drawer.Description className="text-center mt-2">{description}</Drawer.Description>
       <aside className="sheetContainer mt-4 min-h-40 w-full max-h-[80dvh] overflow-y-auto">
         {children}
       </aside>
@@ -76,34 +107,37 @@ export type BottomSheetRef = {
 export const BottomSheet = forwardRef(({ children, description, title, state, onClose, snapPoints, allowHandle, button, className }: BottomSheetProps, ref) => {
 
   const [open, setOpen] = useState<boolean>(false);
-  const { addToSearchParams, removeFromSearchParams, searchParams } = useChageSearchParams();
+  const sheetId = useRef(Math.random().toString(36));
 
   useEffect(() => {
     if (!open) return;
 
     let isPopped = false;
 
-    const handleBackNavigation = () => {
+    const handleBackNavigation = (event: PopStateEvent) => {
       if (!open) return;
+
+      // Only handle if this sheet owns the state
+      if (event.state?.sheetId !== sheetId.current) return;
+
       isPopped = true;
       setOpen(false);
       onClose?.();
     };
 
-    window.history.pushState({ bottomSheet: true }, "");
-
+    window.history.pushState({ sheetId: sheetId.current }, "");
     window.addEventListener("popstate", handleBackNavigation);
 
     return () => {
       window.removeEventListener("popstate", handleBackNavigation);
 
-      if (!isPopped && window.history.state.bottomSheet) {
+      if (!isPopped && window.history.state?.sheetId === sheetId.current) {
         window.history.back();
       }
     };
   }, [open]);
 
-  useEffect(() => { setOpen(!!state) }, [state])
+  useEffect(() => { setOpen(!!state) }, [state]);
 
   useImperativeHandle(ref, () => ({
     open: () => setOpen(true),

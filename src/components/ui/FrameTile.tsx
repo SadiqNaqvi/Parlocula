@@ -35,6 +35,7 @@ const FrameTile = ({ frames, spoiler, _id, title, profile }: MereFrame) => {
                     title,
                     image: frame,
                     poster: profile,
+                    type: "post",
                 }}
                 goto={`/post/${_id}`}
                 type="button"

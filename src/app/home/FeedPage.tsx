@@ -1,8 +1,8 @@
 "use client";
 
-import { TopNavbar } from "@components/Sidebar";
-import { OptionalChildren, PostBar, VerticleMovieCard } from "@components/ui";
 import { NotFound, ShowError } from "@components/fallbacks";
+import { HomeNavbar } from "@components/TopNavbar";
+import { OptionalChildren, PostBar, VerticleMovieCard } from "@components/ui";
 import { HomePageSkeleton } from "@components/ui/loading";
 import LoadingSpinner from "@components/ui/loading/LoadingSpinner";
 import { updateFeedViewed } from "@lib/helpers/mutations";
@@ -112,7 +112,7 @@ const FeedPage = () => {
 
     else if (error) return (
         <>
-            <TopNavbar />
+            <HomeNavbar />
             <ShowError
                 heading="Oops! Error occured"
                 errCode={error.message as ErrorCodes}
@@ -123,7 +123,7 @@ const FeedPage = () => {
 
     else if (!data) return (
         <>
-            <TopNavbar />
+            <HomeNavbar />
             <NotFound
                 title="Such an empty feed"
                 paras={["Guess its time to start joining threads, following users and start posting"]}
@@ -141,7 +141,7 @@ const FeedPage = () => {
 
     return (
         <>
-            <TopNavbar />
+            <HomeNavbar />
             <div id="feedContainer">
                 <ul>
                     {data.pages.

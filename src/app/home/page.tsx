@@ -3,10 +3,10 @@ import { getTrendingPosts, getUserFeed } from "@lib/helpers/common";
 import { getQueryClient, prefetchInfiniteQuery } from "@lib/providers/queryClient";
 import { createArray, getQueryKeys } from "@lib/utils";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
-import { cookies } from "next/headers";
-import FeedPage from "./FeedPage";
-import { PropsWithChildren } from "react";
 import { ParloPageProps } from "@type/other";
+import { cookies } from "next/headers";
+import { PropsWithChildren } from "react";
+import FeedPage from "./FeedPage";
 
 const HomeFeedPage = async ({ searchParams, children }: PropsWithChildren<ParloPageProps>) => {
 

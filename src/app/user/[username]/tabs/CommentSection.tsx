@@ -1,7 +1,7 @@
 "use client";
 
 import { InfiniteScroller } from "@components";
-import { CommentBar } from "@components/ui";
+import { CommentBarWithoutReply } from "@components/ui";
 import { CommentSectionSkeleton } from "@components/ui/loading";
 import { getCommentsOfUser } from "@lib/helpers/common";
 import { getQueryKeys } from "@lib/utils";
@@ -33,7 +33,8 @@ const CommentSection = ({ filter, page, uid, allowNsfw }: Props) => {
             initialPage={page}
             queryKeys={getQueryKeys("commentsOfUser_uid_filter", { uid, filter })}
             fetchData={(p) => getCommentsOfUser(uid, p, allowNsfw, filter)}
-            Component={CommentBar}
+            className="px-2 tablet:px-0"
+            Component={CommentBarWithoutReply}
             notFoundMessage={notFoundMessage}
         />
     )

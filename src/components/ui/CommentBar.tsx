@@ -2,7 +2,7 @@ import { BookmarkIcon, ThumbUpIcon } from "@assets/Icons";
 import { Navigate, NavigateComponentProps } from "@components";
 import { numberConverter, timeAgo } from "@lib/utils";
 import useGlobalStore from "@store/globalStore";
-import { CurrentUser, MereComment } from "@type/internal";
+import { CurrentUser, MereComment, ReportedComment, ReportedContent } from "@type/internal";
 import Image from "next/image";
 import { ParloImage, OptionalChildren, MetadataTileContainer, MetadataTile } from "./";
 import { ReplyInputType } from "@type/schemas";
@@ -68,8 +68,66 @@ const ParentCommentBar = ({ parentComment }: { parentComment: ReplyInputType | u
 
 }
 
-const CommentBar = ({ _id, attachment, nsfw, spoiler, post_id, content, status, saved_count, likes_count, profile, parentComment, replied_to, username, createdAt, edited_at, restrictReply }: Props) => {
+const CommentHeader = ({ profile, username, createdAt, edited_at, nsfw, spoiler }: Pick<MereComment, "profile" | "username" | "edited_at" | "nsfw" | "spoiler" | "createdAt">) => (
+    <>
+        <div className="flex gap-3 items-center">
+            <ParloImage
+                frameType="userProfile"
+                frame={profile}
+                className="min-w-10 size-10 object-cover"
+                containerClassName="rounded-full overflow-hidden"
+                classNameForFallback="size-6"
+                size={32}
+                alt={`profile picture of ${username}`}
+            />
+            <OptionalChildren condition={username} fallback={(
+                <span className="text-gray-500 font-semibold">*Deleted User*</span>
+            )}>
+                <Navigate
+                    historyPayload={{
+                        title: username,
+                        poster: profile,
+                        type: "user",
+                    }}
+                    comp="link"
+                    role="button"
+                    goto={`/user/${username}`}
+                    className="font-semibold"
+                >
+                    {username}
+                </Navigate>
+            </OptionalChildren>
+        </div>
 
+        <MetadataTileContainer className="mt-2">
+            <MetadataTile className="text-xs" condition={!!createdAt}>{timeAgo(createdAt)}</MetadataTile>
+
+            <MetadataTile className="text-xs" condition={!!edited_at}>Edited</MetadataTile>
+
+            <MetadataTile condition={nsfw} className="py-1 px-2 text-xs" nsfw>NSFW</MetadataTile>
+            <MetadataTile condition={spoiler} className="py-1 px-2 text-xs" spoiler>Spoiler</MetadataTile>
+
+        </MetadataTileContainer>
+    </>
+)
+
+export const CommentBody = ({ content, attachment }: Pick<MereComment, "content" | "attachment">) => (
+    <>
+        <OptionalChildren condition={attachment}>
+            <Image
+                src={attachment}
+                alt="Attachment"
+                className="size-24 rounded-md border border-gray30 object-contain"
+                unoptimized
+                height={96}
+                width={96}
+            />
+        </OptionalChildren>
+        <p>{content}</p>
+    </>
+)
+
+const CommentMetadataSection = ({ likes_count, saved_count, restrictReply, post_id, content, attachment, username, status, _id }: Props) => {
     const [, setReply] = useGlobalStore<ReplyInputType | undefined>(`reply:post:${post_id}`, undefined);
 
     const handleReply = () => {
@@ -84,94 +142,56 @@ const CommentBar = ({ _id, attachment, nsfw, spoiler, post_id, content, status, 
     }
 
     return (
-        <article className="w-full my-2 group-last:border-0 border-b border-gray30">
+        <section className="flex mt-2 gap-3">
+            <span className="flex gap-1 text-gray-500">
+                <ThumbUpIcon className="h-4" />
+                {numberConverter(likes_count)}
+            </span>
+
+            <span className="flex gap-1 text-gray-500">
+                <BookmarkIcon className="h-4" />
+                {numberConverter(saved_count)}
+            </span>
+
+            <OptionalChildren condition={status !== "sending"} fallback={<span>Sending...</span>}>
+                <OptionalChildren condition={!restrictReply}>
+                    <button className="smallBtn my-auto border-0" onClick={handleReply}>Reply</button>
+                </OptionalChildren>
+            </OptionalChildren>
+        </section>
+    )
+}
+
+const CommentBar = (props: Props) => {
+    const {
+        _id, attachment, nsfw, spoiler, post_id, content, status, saved_count, likes_count, profile, parentComment, replied_to, username, createdAt, edited_at, restrictReply
+    } = props;
+
+    return (
+        <article className="w-full my-2 border border-gray10 rounded-md bg-gray10 p-2">
             <details className="w-full p-2" open={!Boolean(nsfw || spoiler)}>
 
                 <summary className="marker:hidden">
-                    <div className="flex gap-3 items-center">
-                        <ParloImage
-                            frameType="userProfile"
-                            frame={profile}
-                            className="min-w-10 size-10 object-cover"
-                            containerClassName="rounded-full overflow-hidden"
-                            classNameForFallback="size-6"
-                            size={32}
-                            alt={`profile picture of ${username}`}
-                        />
-                        <OptionalChildren condition={username} fallback={(
-                            <span className="text-gray-500 font-semibold">*Deleted User*</span>
-                        )}>
-                            <Navigate
-                                historyPayload={{
-                                    title: username,
-                                    poster: profile,
-                                }}
-                                comp="link"
-                                role="button"
-                                goto={`/user/${username}`}
-                                className="font-semibold"
-                            >
-                                {username}
-                            </Navigate>
-                        </OptionalChildren>
-                    </div>
-
-                    <MetadataTileContainer className="mt-2">
-                        <MetadataTile className="text-xs">{timeAgo(createdAt)}</MetadataTile>
-
-                        <MetadataTile className="text-xs" condition={!!edited_at}>Edited</MetadataTile>
-
-                        <MetadataTile condition={nsfw} className="py-1 px-2 text-xs" nsfw>NSFW</MetadataTile>
-                        <MetadataTile condition={spoiler} className="py-1 px-2 text-xs" spoiler>Spoiler</MetadataTile>
-
-                    </MetadataTileContainer>
+                    <CommentHeader createdAt={createdAt} edited_at={edited_at} nsfw={nsfw} spoiler={spoiler} profile={profile} username={username} />
                 </summary>
 
                 <ParentCommentBar parentComment={parentComment ? { ...parentComment, replied_to, username: undefined } : undefined} />
-
                 <div className="my-2 space-y-4">
                     <Link
                         historyPayload={{
                             title: content?.slice(0, 50).concat('...'),
                             poster: profile,
                             image: attachment,
+                            type: "comment",
                         }}
                         status={status}
                         link={`/comment/${_id}`}
                         className="space-y-4 my-2"
                     >
-                        <OptionalChildren condition={attachment}>
-                            <Image
-                                src={attachment}
-                                alt="Attachment"
-                                className="size-24 rounded-md border border-gray30 object-contain"
-                                unoptimized
-                                height={96}
-                                width={96}
-                            />
-                        </OptionalChildren>
-                        <p>{content}</p>
+                        <CommentBody attachment={attachment} content={content} />
                     </Link>
-
-                    <section className="flex mt-2 gap-3">
-
-                        <span className="flex gap-1 text-gray-500">
-                            <ThumbUpIcon className="h-4" />
-                            {numberConverter(likes_count)}
-                        </span>
-
-                        <span className="flex gap-1 text-gray-500">
-                            <BookmarkIcon className="h-4" />
-                            {numberConverter(saved_count)}
-                        </span>
-
-                        <OptionalChildren condition={status !== "sending"} fallback={<span>Sending...</span>}>
-                            <OptionalChildren condition={!restrictReply}>
-                                <button className="smallBtn my-auto border-0" onClick={handleReply}>Reply</button>
-                            </OptionalChildren>
-                        </OptionalChildren>
-                    </section>
                 </div>
+                <CommentMetadataSection {...props} />
             </details>
         </article>
     )
@@ -181,5 +201,27 @@ const CommentBar = ({ _id, attachment, nsfw, spoiler, post_id, content, status, 
 export const CommentBarWithoutReply = (comment: Omit<Props, "restrictReply">) => (
     <CommentBar {...comment} restrictReply={true} />
 );
+
+export const CommentBarForReport = ({ attachment, content, nsfw, spoiler, profile, username, _id, createdAt }: ReportedComment & ReportedContent["author"] & { _id: string }) => (
+    <article className="w-full p-2">
+        <CommentHeader createdAt={createdAt} edited_at={undefined} nsfw={nsfw} spoiler={spoiler} profile={profile} username={username} />
+
+        <div className="my-2 space-y-4">
+            <Link
+                historyPayload={{
+                    title: content?.slice(0, 50).concat('...'),
+                    poster: profile,
+                    image: attachment,
+                    type: "comment",
+                }}
+                status="sent"
+                link={`/comment/${_id}`}
+                className="space-y-4 my-2"
+            >
+                <CommentBody attachment={attachment} content={content} />
+            </Link>
+        </div>
+    </article>
+)
 
 export default CommentBar;

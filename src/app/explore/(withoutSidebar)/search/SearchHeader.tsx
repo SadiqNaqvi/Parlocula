@@ -1,28 +1,35 @@
 "use client";
 
 import { LeftChevron, SearchIcon } from "@assets/Icons";
-import { searchFilters } from "@lib/constants";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Form, Input } from "@components/form";
 import Navigate from "@components/Navigate";
+import { searchFilters } from "@lib/constants";
+import { useChageSearchParams, useSearchHistoryStack } from "@lib/hooks";
+import { SearchHistoryStackType } from "@type/other";
 
-export default function SearchHeader({ filter }: { filter: string }) {
+const SearchHeader = ({ filter }: { filter: string }) => {
 
-    const router = useRouter();
-    const pathname = usePathname();
-    const params = useSearchParams();
+    const { addToSearchParams, removeFromSearchParams, searchParams } = useChageSearchParams();
+    const { pushInStack } = useSearchHistoryStack<SearchHistoryStackType>();
 
     const updateQuery = (data: { query: string }) => {
         const { query } = data;
-        const search = new URLSearchParams(params.toString());
-        query.trim() ? search.set('q', query.trim()) : search.delete('q');
-        router.replace(pathname + '?' + search.toString());
+
+        if (query.trim()) {
+            addToSearchParams({ q: query.trim() });
+            const filter = searchParams.get("f") || "";
+            pushInStack({
+                id: `${query}:${filter || "noFilter"}`,
+                member: { query, filter },
+            })
+        }
+        else removeFromSearchParams(["q"]);
     }
 
     const updateFilter = (value: string) => {
-        const search = new URLSearchParams(params.toString());
-        value.trim() && value !== "all" ? search.set('f', value.trim()) : search.delete('f');
-        router.replace(pathname + '?' + search.toString());
+        if (value.trim() && value !== "all")
+            addToSearchParams({ f: value.trim() });
+        else removeFromSearchParams(["f"]);
     }
 
     return (
@@ -41,7 +48,7 @@ export default function SearchHeader({ filter }: { filter: string }) {
                     <Input
                         type="search"
                         name="query"
-                        defaultValue={params.get("q") || undefined}
+                        defaultValue={searchParams.get("q") || undefined}
                         autoFocus
                         className="h-full w-full border-0 p-0"
                         containerClasses="w-full h-full"
@@ -60,6 +67,8 @@ export default function SearchHeader({ filter }: { filter: string }) {
                     </button>
                 ))}
             </section>
-        </header >
+        </header>
     )
 }
+
+export default SearchHeader;

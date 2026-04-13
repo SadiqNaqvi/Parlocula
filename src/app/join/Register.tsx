@@ -52,7 +52,7 @@ const Register = ({ email }: { email: string }) => {
         <>
             <Navbar
                 onGoBack={() => setter({ page: 0 })}
-                className="p-0 !h-fit mt-4 sm:mt-0 bg-transparent"
+                className="p-0 h-fit! mt-4 sm:mt-0 bg-transparent"
                 navTitle="Create Account" />
 
             <Form
@@ -78,7 +78,7 @@ const Register = ({ email }: { email: string }) => {
     )
 
     return (
-        <div id="profilePreview" className="bg-primary max-w-[768px] sm:mx-auto">
+        <div id="profilePreview" className="bg-primary max-w-3xl sm:mx-auto">
             <UserMutationPage isEditing={false} dob={dob} email={email} username={username} />
         </div>
     )

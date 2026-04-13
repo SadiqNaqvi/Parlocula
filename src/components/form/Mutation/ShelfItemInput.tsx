@@ -36,12 +36,13 @@ const ShelfItemInput = ({ itemsRef, defaultTaleons }: { itemsRef: RefObject<List
 
     useImperativeHandle<ListSelectorRef<ItemType>, ListSelectorRef<ItemType>>(itemsRef, () => () => items)
 
-    const removeConnection = (id: string) => {
+    const removeItems = (id: string) => {
         setItems(items.filter(e => e.ext_id !== id));
     }
 
     const getItems = () => {
         const selectedItems = callbackRef.current?.();
+        
         if (!selectedItems || !selectedItems.length) return;
 
         const uniqueItems = selectedItems.filter(i => !items.some(e => e.ext_id === i.ext_id))
@@ -75,7 +76,7 @@ const ShelfItemInput = ({ itemsRef, defaultTaleons }: { itemsRef: RefObject<List
                     {items.map(item => (
                         <li key={item.ext_id} className="inline-flex gap-2 flex-cntr-between px-2 w-full">
                             <ShowOnlyShelfItem {...item} />
-                            <button className="p-1 bg-gray20 rounded-md" type="button" onClick={() => removeConnection(item.ext_id)}>
+                            <button className="p-1 bg-gray20 rounded-md" type="button" onClick={() => removeItems(item.ext_id)}>
                                 <XmarkIcon className="size-4" />
                             </button>
                         </li>

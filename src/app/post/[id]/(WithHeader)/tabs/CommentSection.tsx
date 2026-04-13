@@ -35,7 +35,7 @@ const CommentSection = ({ id, page, filter, allowNSFW }: Props) => {
 
     return (
         <>
-            <section className="h-size-screen">
+            <section className="pb-4 px-2 tablet:px-0">
 
                 <InfiniteScroller
                     Component={CommentBar}
@@ -45,7 +45,7 @@ const CommentSection = ({ id, page, filter, allowNSFW }: Props) => {
                     queryKeys={getQueryKeys('commentsOfPost_pid_filter', { pid: id, filter })}
                     initialPage={page}
                     paginate={true}
-                    className="space-y-0"
+                    className="min-h-[50dvh]"
                 />
 
             </section>

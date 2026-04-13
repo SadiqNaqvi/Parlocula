@@ -21,8 +21,8 @@ const ShelfItemContent = ({ poster, title, year, createdAt, added_by }: ShelfIte
             ]}
             className="size-12 sm:size-16 object-cover rounded-full"
         />
-        <div className="space-y-2">
-            <h3 className="font-semibold sm:text-xl">{title}</h3>
+        <div className="space-y-1">
+            <h3 className="font-semibold">{title}</h3>
             <MetadataTileContainer>
                 <MetadataTile>{year}</MetadataTile>
                 <MetadataTile condition={!!createdAt}>{timeAgo(createdAt)}</MetadataTile>
@@ -38,7 +38,7 @@ const ShelfItemBar = (item: ShelfItemType) => {
     const { taleon_type, ext_id, title, poster } = item;
     return (
         <Navigate
-            historyPayload={{ title, poster }}
+            historyPayload={{ title, poster, type: taleon_type }}
             className="w-full"
             goto={`/explore/${taleon_type}/${ext_id}`}
             comp="link"

@@ -1,4 +1,5 @@
 import { Frame, GenericDate } from "./internal";
+import { UidsForReportReason } from "./other";
 
 type Nanoid = string;
 
@@ -10,7 +11,7 @@ export type ReportModelType = {
   _id?: Nanoid;
   user_id: Nanoid;
   ext_id?: Nanoid;
-  reason: string;
+  reason: UidsForReportReason;
   details?: string;
   content_id: Nanoid;
   content_type: string;
@@ -114,6 +115,7 @@ export type PostModelType = {
   comment_count?: number;
   saved_count?: number;
   quoted_count?: number;
+  warnedOn?: GenericDate,
 };
 
 export type CommentModelType = {
@@ -129,6 +131,7 @@ export type CommentModelType = {
   replies_count?: number;
   edited_at?: GenericDate | undefined;
   saved_count?: number;
+  warnedOn?:GenericDate,
 };
 
 export type MembershipModelType = {

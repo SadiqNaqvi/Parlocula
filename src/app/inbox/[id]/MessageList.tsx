@@ -22,6 +22,7 @@ const MessageList = ({ uid, room }: { uid: string, room: FullRoomType }) => {
     const qKeys = getQueryKeys("messages_rmid", { rmid });
     const [messageList, setMessageList] = useOfflineStore<InfiniteQueryResponse<MereMessage> | undefined>(qKeys, undefined);
     const { updateRoom } = useRoomStore();
+    const container = useRef<HTMLDivElement>(null);
 
     const { data, refetch, isLoading, error, isFetchingNextPage, hasNextPage, fetchNextPage } = useInfiniteQueryHook<MereMessage>({
         queryKeys: qKeys,
@@ -56,8 +57,6 @@ const MessageList = ({ uid, room }: { uid: string, room: FullRoomType }) => {
 
     }, []);
 
-    const container = useRef<HTMLDivElement>(null);
-
     if (isLoading) return <MessageSkeleton />
 
     else if (error) return (
@@ -68,7 +67,7 @@ const MessageList = ({ uid, room }: { uid: string, room: FullRoomType }) => {
         />
     )
 
-    else if (invitationMessage && (participantType === "invitee" || participant_count < 2)) return (
+    else if (participantType === "invitee" || participant_count < 2) return (
         <section className="mt-4 px-2">
             <MessageBar
                 _id=""
@@ -85,7 +84,12 @@ const MessageList = ({ uid, room }: { uid: string, room: FullRoomType }) => {
         </section>
     )
 
-    else if (!data || !data.pages[0]?.results?.length) return null;
+    else if (!data || !data.pages[0]?.results?.length) return (
+        <section>
+            <p className="p-2 rounded-full text-center bg-gray10 border border-gray10 backdrop-blur-xs">Messages dissapear every 24 hours. Send a message to start conversation.</p>
+            <div className="patternBackground"></div>
+        </section>
+    );
 
     const messages = React.useMemo(() => {
         return data?.pages.flatMap(page => page.results)

@@ -3,7 +3,7 @@
 import { Navbar } from "@components";
 import ListSelector, { ListSelectorRef, RefinedValues } from "@components/ListSelector";
 import { shelfCollaboratorsLimit } from "@lib/constants";
-import { searchFollowers } from "@lib/helpers/common";
+import { getFollowers, searchFollowers } from "@lib/helpers/common";
 import { inviteCollaboratorsMutation, removeCollaboratorsMutation } from "@lib/helpers/mutations";
 import appToast from "@lib/providers/toast";
 import { getQueryKeys } from "@lib/utils";
@@ -92,6 +92,9 @@ export const InviteCollaborators = ({ uid, back, total, sid }: Props) => {
                     mode="search"
                     queryFn={(q, p) => searchFollowers(q, uid, p)}
                     queryKeys={q => getQueryKeys("search-followers_uid_query", { uid, query: q })}
+                    queryFnForList={(p) => getFollowers(uid, p)}
+                    queryKeysForList={getQueryKeys("followersOfCurrentUser_uid", { uid })}
+                    disabledValues={total.map(u => u.user_id)}
                     callbackRef={inviteesRef}
                     inputPlaceholder="Search your followers"
                     refiner={refiner}

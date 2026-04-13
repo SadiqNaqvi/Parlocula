@@ -1,83 +1,32 @@
-import { RightChevron } from "@assets/Icons";
-import { Navbar, Navigate } from "@components";
 import { getUserFromToken } from "@lib/auth/utils";
-import { getCurrentUser } from "@lib/helpers/common";
-import { fetchQuery, getQueryClient } from "@lib/providers/queryClient";
+import { getAllShelvesOfUser } from "@lib/helpers/common";
+import { getQueryClient, prefetchInfiniteQuery } from "@lib/providers/queryClient";
 import { getQueryKeys } from "@lib/utils";
-import { Link, CurrentUser } from "@type/internal";
+import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { cookies } from "next/headers";
+import ShelfHomePage from "./ShelfHomePage";
 
-const ShelvesPage = async () => {
+const ShelfPage = async () => {
 
     const jar = await cookies();
-    const meta = await getUserFromToken(jar);
-    if (!meta) return null;
+    const user = await getUserFromToken(jar)
 
-    const { user_id, username } = meta;
+    if (!user) return;
 
-    const user = await fetchQuery<CurrentUser>({
-        queryClient: getQueryClient(),
-        queryFn: () => getCurrentUser(user_id, jar),
-        queryKey: getQueryKeys("user_username", { username }),
+    const queryClient = getQueryClient();
+
+    await prefetchInfiniteQuery({
+        queryClient,
+        queryFn: () => getAllShelvesOfUser(user.user_id, 1, jar),
+        queryKey: getQueryKeys("allShelvesOfUser_uid", { uid: user.user_id })
     });
 
-    if (!user) return null;
-
-    const links: Link[] = [
-        { label: "👁 Public", path: "/shelf/public" },
-        { label: "🤫 Private", path: "/shelf/private" },
-        { label: "🤝 Collaborative", path: "/shelf/collaborate" },
-        { label: "✉ Invited", path: "/shelf/invited" },
-        { label: "✔ Saved", path: "/settings/saved/shelves" },
-    ];
-
     return (
-        <>
-            <Navbar navTitle="Shelves" />
-
-            <section className="px-2">
-                <ul className="border border-gray40 rounded-md">
-                    {user.predefinedShelves.map(({ name, _id }) => (
-                        <li key={_id}>
-                            <Navigate
-                                comp="link" type="button" goto={`/shelf/${_id}`}
-                                className="size-full px-2 py-3 flex flex-cntr-between"
-                            >
-
-                                <span className="capitalize">{name}</span>
-
-                                <span>
-                                    <RightChevron className="size-5" />
-                                </span>
-                            </Navigate>
-                        </li>
-                    ))}
-                </ul>
-            </section>
-
-            <section className="px-2">
-                <h2 className="parloHeading p-2">Your Shelves</h2>
-                <ul className="border border-gray40 rounded-md">
-                    {links.map(({ label, path }) => (
-                        <li key={path}>
-                            <Navigate
-                                comp="link" type="button" goto={path}
-                                className="size-full px-2 py-3 flex flex-cntr-between"
-                            >
-                                <span className="capitalize">{label}</span>
-
-                                <span>
-                                    <RightChevron className="size-5" />
-                                </span>
-
-                            </Navigate>
-                        </li>
-                    ))}
-                </ul>
-            </section>
-        </>
+        <HydrationBoundary state={dehydrate(queryClient)}>
+            <ShelfHomePage />
+        </HydrationBoundary>
     )
 
 }
 
-export default ShelvesPage;
+export default ShelfPage;

@@ -66,8 +66,10 @@ type BaseProps<R> = {
     limit?: number;
     className?: string;
     alreadySelectedValues?: { id: string, val?: R }[],
+    disabledValues?: string[],
     frameType?: ParloImageFrameType,
     onSelection?: (size: number) => void;
+    removeAutoFocus?: boolean;
 };
 
 type Props<T extends Response, R> = BaseProps<R> &
@@ -91,40 +93,44 @@ type ListSelectorBarProps = RefinedValues & {
 export const ListSelectorBar = ({ disable, checked, poster, frameType, className, id, title, defaultChecked, returnVal, onClick }: ListSelectorBarProps) => {
 
     return (
-        <label
-            htmlFor={id}
-            className={twMerge("inline-flex flex-cntr-between w-full capitalize py-2 pointer", disable ? "brightness-50" : '', className)}
-            onClick={() => onClick(id, returnVal)}
+        <div
+        // onClick={() => onClick(id, returnVal)}
         >
+            <label
+                htmlFor={id}
+                className={twMerge("inline-flex flex-cntr-between w-full capitalize py-2 pointer", disable ? "brightness-50" : '', className)}
+            >
 
-            <input
-                name={id}
-                value={id}
-                checked={checked}
-                type="checkbox"
-                disabled={disable}
-                defaultChecked={defaultChecked}
-                id={id}
-                className="sr-only peer"
-            />
-
-            <div className="flex gap-3 items-center">
-                <ParloImage
-                    frameType={frameType || "poster"}
-                    size={48}
-                    alt={`Poster of ${title}`}
-                    className="min-w-12 size-12 object-cover"
-                    classNameForFallback="min-w-8 size-8 p-1"
-                    containerClassName="rounded-full overflow-hidden"
-                    frame={poster}
+                <input
+                    name={id}
+                    value={id}
+                    checked={checked}
+                    type="checkbox"
+                    disabled={disable}
+                    defaultChecked={defaultChecked}
+                    id={id}
+                    onChange={() => onClick(id, returnVal)}
+                    className="sr-only peer"
                 />
 
-                <h6>{title}</h6>
-            </div>
+                <div className="flex gap-3 items-center">
+                    <ParloImage
+                        frameType={frameType || "poster"}
+                        size={48}
+                        alt={`Poster of ${title}`}
+                        className="min-w-12 size-12 object-cover"
+                        classNameForFallback="min-w-8 size-8 p-1"
+                        containerClassName="rounded-full overflow-hidden"
+                        frame={poster}
+                    />
 
-            <CheckBoxIcon className="hidden peer-checked:block" />
-            <EmptyBoxIcon className="block peer-checked:hidden" />
-        </label>
+                    <h6>{title}</h6>
+                </div>
+
+                <CheckBoxIcon className="hidden peer-checked:block" />
+                <EmptyBoxIcon className="block peer-checked:hidden" />
+            </label>
+        </div>
     )
 }
 
@@ -142,13 +148,15 @@ const ListSelector = <T extends Response, R>(props: Props<T, R>) => {
         frameType,
         Component,
         refiner,
-        onSelection
+        onSelection,
+        removeAutoFocus,
+        disabledValues
     } = props;
 
     /* --------------------------- Selection State --------------------------- */
 
     const selectedMap = useRef<Map<string, R | true>>(new Map(alreadySelectedValues?.map(({ id, val }) => [id, val ?? true])) || []);
-
+    const disabledValMap = useRef<Map<string, true>>(new Map(disabledValues?.map(el => [el, true])))
     /* -------------------------- Imperative Handle -------------------------- */
 
     const handleReturn = useCallback((): R[] => {
@@ -163,7 +171,6 @@ const ListSelector = <T extends Response, R>(props: Props<T, R>) => {
     /* ----------------------------- Selection ----------------------------- */
 
     const handleSelection = useCallback((id: string, returnVal?: R) => {
-
         const next = new Map(selectedMap.current);
 
         if (next.has(id)) {
@@ -174,9 +181,11 @@ const ListSelector = <T extends Response, R>(props: Props<T, R>) => {
             appToast.error(`Only ${limit} selections are allowed.`);
             return;
         }
+
         else {
             next.set(id, returnVal ?? true);
         }
+
         onSelection?.(next.size);
 
         selectedMap.current = next;
@@ -214,6 +223,7 @@ const ListSelector = <T extends Response, R>(props: Props<T, R>) => {
                     {...refinedValues}
                     defaultChecked={selectedMap.current.has(refinedValues.id)}
                     onClick={handleSelection}
+                    disable={disabledValMap.current.has(refinedValues.id)}
                     className="pointer w-full"
                     frameType={frameType}
                 />
@@ -221,7 +231,7 @@ const ListSelector = <T extends Response, R>(props: Props<T, R>) => {
         }
 
         return null;
-    }, [props, selectedMap, handleSelection]);
+    }, [props, handleSelection]);
 
 
     /* ------------------------------ Render ------------------------------ */
@@ -240,6 +250,7 @@ const ListSelector = <T extends Response, R>(props: Props<T, R>) => {
 
     else if (mode === "search") return (
         <SearchInList
+            removeAutoFocus={removeAutoFocus}
             Component={renderItem}
             Loading={<GeneralBarSkeletonList rightSideIcon />}
             queryFn={props.queryFn}

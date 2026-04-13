@@ -136,7 +136,7 @@ export const POST = postHandler<RoomSchemaType>({
     const isPrivate = type === "private";
     const poster = frames[0];
 
-    const participants = data.participants.filter(u => u !== user_id);
+    const participants = Array.from(new Set(data.participants.concat(user_id)));
 
     const resp = await Room.create(
       [
@@ -167,40 +167,19 @@ export const POST = postHandler<RoomSchemaType>({
 
     const now = new Date(Date.now() - 1000 * 3600 * 24);
 
-    const creatorParticiantDoc = await Participant.create(
-      [
-        {
-          hideAt: now,
-          mute: false,
-          room_id: id,
-          seenAt: now,
-          type: "creator",
-          user_id,
-        },
-      ],
-      { session }
+    await Participant.create(
+      participants.map((uid) => ({
+        hideAt: now,
+        mute: false,
+        room_id: id,
+        seenAt: now,
+        type: uid === user_id ? "creator" : "invitee",
+        user_id: uid,
+      })),
+      { session, ordered: true }
     );
 
-    const otherParticipants = await Participant.create(
-      participants
-        .filter(uid => uid !== user_id)
-        .map((uid) => ({
-          hideAt: now,
-          mute: false,
-          room_id: id,
-          seenAt: now,
-          type: "invitee",
-          user_id: uid,
-        })),
-      { session }
-    );
-
-    await User.findByIdAndUpdate(user_id,
-      { $inc: { rooms: 1 } },
-      { session }
-    );
-
-    await setDataWhileCreatingRoom(room, user_id, otherParticipants);
+    await setDataWhileCreatingRoom(room, user_id, participants);
 
     await checkIfUserMetaExists([...participants, user_id]);
 

@@ -6,7 +6,8 @@ export default function ArtistCard({ img, title, detail, link }: { img: string |
         <Navigate
             historyPayload={{
                 title,
-                poster: img ?? undefined
+                poster: img ?? undefined,
+                type: "artist"
             }}
             goto={link}
             comp="link">

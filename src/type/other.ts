@@ -218,14 +218,35 @@ export type ReportReasonType =
   | "Promoting/Performing Self harm or Suicide"
   | "Spreading False Information"
   | "Minor Abuse or Sexualization"
-  | "Flag as NSFW"
-  | "Flag as Spoiler"
+  | "Must be flagged as NSFW"
+  | "Must be flagged as Spoiler"
   | "Inappropriate Content"
   | "Duplicate Thread"
   | "Under-age User"
   | "Impersonation/Pretending to be someone else"
   | "Scam or Fraud"
-  | "No Longer Active";
+  | "No Longer Active"
+  | "Others";
+
+export type UidsForReportReason =
+  | "sops"
+  | "hot"
+  | "hoa"
+  | "pomia"
+  | "posi"
+  | "amohl"
+  | "popshos"
+  | "sfi"
+  | "mbfan"
+  | "mbfas"
+  | "maos"
+  | "ipc"
+  | "ioptbse"
+  | "nla"
+  | "sof"
+  | "uau"
+  | "dplt"
+  | "others"
 
 export type CloudinaryMediaOptions =
   | "aspect_ratio"
@@ -365,7 +386,7 @@ export type PPGetDataProps<K extends AvailableCacheTags> = {
   url: string;
   cookies?: CookiesType;
   revalidate?: number;
-  searchParams?: Record<string, string | number | boolean>;
+  searchParams?: Record<string, string | number | boolean | undefined>;
 } & (
     | {
       tag?: undefined;
@@ -390,4 +411,10 @@ export type HistoryStackType = {
   poster?: Frame | string;
   image?: Frame | string;
   path: string;
+  type?: "movie" | "show" | "artist" | "comment" | "post" | "user" | "shelf" | "thread"
+}
+
+export type SearchHistoryStackType = {
+  query: string;
+  filter?: string;
 }

@@ -17,12 +17,12 @@ const Page = () => {
     else if (!user) return null;
 
     const { username, usernameUpdatedAt } = user;
-    const canUpdate = Boolean(usernameUpdatedAt && Date.now() > getTimeInFuture({ unit: "mo", from: usernameUpdatedAt }))
+    const canUpdate = !!(usernameUpdatedAt && Date.now() > getTimeInFuture({ unit: "mo", from: usernameUpdatedAt }));
 
-    if (!canUpdate) return (
+    if (usernameUpdatedAt && !canUpdate) return (
         <>
             <Navbar navTitle="Edit Username" />
-            <p className="mt-4">
+            <p className="mt-4 text-center">
                 You cannot update your username for now since you have already updated it within a month. Please try again after a month.
             </p>
         </>

@@ -5,7 +5,7 @@ import { getUserFromToken } from "@lib/auth/utils";
 import { getCurrentUser, getNotificationsOfUser, getRooms } from "@lib/helpers/common";
 import { fetchQuery, getQueryClient, prefetchInfiniteQuery } from "@lib/providers/queryClient";
 import ReactQueryProvider from "@lib/providers/ReactQueryWrapper";
-import generateDynamicMetadata from "@lib/seo/metadata";
+import generateDynamicMetadata, { appViewport } from "@lib/seo/metadata";
 import { getQueryKeys } from "@lib/utils";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { CurrentUser } from "@type/internal";
@@ -27,6 +27,8 @@ const robotoFont = localFont({
 });
 
 export const metadata = generateDynamicMetadata({}, true);
+
+export const viewport = appViewport;
 
 const NotificationFetcher = async ({ children }: PropsWithChildren) => {
 

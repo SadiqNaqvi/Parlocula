@@ -1,6 +1,6 @@
 import { ZodIssue } from "zod";
-import { ErrorCodes, ReportReasonType } from "./other";
-import { AllShelves, FrameModelType, PredefinedShelves, UserModelType } from "./models";
+import { ErrorCodes, ReportReasonType, UidsForReportReason } from "./other";
+import { AllShelves, CommentModelType, FrameModelType, PostModelType, PredefinedShelves, UserModelType } from "./models";
 import { UserMetaData } from "@store/user";
 import { ExtMediaSource } from "./schemas";
 
@@ -325,36 +325,27 @@ export type ThreadModType = {
   creator: UserMetaData,
   managers: ModeratorType[],
 }
+
 export type ReportsType = {
-  _id: ReportReasonType,
+  _id: UidsForReportReason,
   count: number,
-  content: string[],
 };
+
+export type ReportedContentEnum = "post" | "comment" | "thread" | "user";
+
+export type ReportedComment = Pick<CommentModelType, "content" | "attachment" | "nsfw" | "spoiler" | "warnedOn"> & { createdAt: GenericDate };
+export type ReportedPost = Pick<PostModelType, "title" | "category" | "nsfw" | "spoiler" | "frames" | "warnedOn"> & { createdAt: GenericDate };
 
 export type ReportedContent = {
   _id: string,
-  reasons: Record<ReportReasonType, number>,
-  total: number
-} & ({
-  content_type: "post",
-  content: {
-    title: string,
-    tag: string,
-    nsfw: boolean,
-    spoiler: boolean,
-    frames: Frame[],
-    warnedOn?: GenericDate;
-  }
-} | {
-  content_type: "comment",
-  content: {
-    content?: string,
-    attachment?: string,
-    nsfw: boolean,
-    spoiler: boolean,
-    warnedOn?: GenericDate;
-  }
-})
+  reasons: Record<UidsForReportReason, number>,
+  total: number,
+  author: { username: string, profile: Frame | undefined }
+} & (
+    { content_type: "comment", content: ReportedComment }
+    |
+    { content_type: "post", content: ReportedPost }
+  );
 
 export type ParticipantEnumType = "participant" | "invitee" | "creator";
 export type RoomEnumType = "private" | "group"
@@ -383,6 +374,7 @@ export type MereRoomType = {
   type: ParticipantEnumType;
   otherParticipant_id: string | undefined;
   otherParticipant_seenAt: GenericDate | undefined;
+  room_type: RoomEnumType;
   lastMessageBy: string;
   lastMessageAt: GenericDate;
   lastMessage: string;
@@ -391,7 +383,6 @@ export type MereRoomType = {
 };
 
 export type RoomListResponse = MereRoomType & {
-  room_type: RoomEnumType;
   invitationMessage: InvitationMessageType;
 }
 
@@ -441,12 +432,13 @@ export type CachedFullRoomType = {
   type: "private" | "group";
   name: string;
   poster: Frame | undefined;
-  participants?: string[],
+  participants: string[],
   invitationMessage: InvitationMessageType;
   lastMessage: string;
   lastMessageBy: string;
   lastMessageAt: GenericDate;
   createdAt: GenericDate;
+  participant_count: number;
 };
 
 export type CachedParticipantType = ParticipantType & {

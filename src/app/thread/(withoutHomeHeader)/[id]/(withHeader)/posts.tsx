@@ -35,7 +35,7 @@ const PostsSection = ({ id, page = 1, filter, category, section, allowNsfw }: Po
     }
 
     return (
-        <section className="h-size-screen px-2">
+        <section className="h-size-screen sm:px-2 tablet:px-0">
             <InfiniteScroller
                 Loading={<LoadingComponent section={section} />}
                 initialPage={page}

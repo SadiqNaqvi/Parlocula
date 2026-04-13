@@ -1,4 +1,4 @@
-import type { MetadataRoute, Metadata } from "next";
+import type { MetadataRoute, Metadata, Viewport } from "next";
 import { app_production_url } from "@lib/constants";
 
 const appURL = app_production_url;
@@ -110,7 +110,7 @@ export const metadata: Metadata = {
             },
         ]
     },
-    manifest:"/manifest.json"
+    manifest: "/manifest.json"
 };
 
 type ParloMetadata = {
@@ -187,8 +187,17 @@ const generateDynamicMetadata = (config: Partial<ParloMetadata>, root?: boolean)
                 },
             ]
         },
+        manifest: "/manifest.json",
     };
+}
 
+export const appViewport: Viewport = {
+    viewportFit: "contain",
+    colorScheme: "dark",
+    initialScale: 1,
+    maximumScale: 1,
+    userScalable: false,
+    themeColor: "#000000",
 }
 
 export default generateDynamicMetadata;

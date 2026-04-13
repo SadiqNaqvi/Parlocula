@@ -3,7 +3,8 @@ import { GeneralGetReturn } from "@type/internal";
 import { PipelineFunc, PipelineStage, QueryFilter } from "@type/mongoose";
 import { NextRequest } from "next/server";
 import { queryLimit } from "./constants";
-import { createArray, getSearchParams } from "./utils";
+import { capitalize, createArray, getSearchParams } from "./utils";
+import { CommentModelType, PostModelType } from "@type/models";
 
 type SearchableCollections = "users" | "posts" | "threads" | "shelves";
 type Collections = "comments" | SearchableCollections;
@@ -60,7 +61,7 @@ export const createPipeline = ({
 }: {
   filters: PipelineStage[];
   page: number;
-  sort: Record<string, number | string>;
+  sort?: Record<string, number | string>;
   preProjection?: PipelineStage[];
   projection: Record<string, any>;
   limit?: number;
@@ -924,6 +925,8 @@ export const roomAggregationPipeline = ({ invitation, page, cuid, }: { invitatio
                 lastMessageBy: 1,
                 lastMessageAt: 1,
                 invitationMessage: 1,
+                name: 1,
+                poster: 1,
               }
             }
           ],
@@ -934,35 +937,40 @@ export const roomAggregationPipeline = ({ invitation, page, cuid, }: { invitatio
     preProjection: [
       {
         $addFields: {
-          isGroup: { $eq: ["$room.type", "group"] },
+          isPrivate: {
+            $eq: [
+              { $arrayElemAt: ["$room.type", 0] },
+              "private"
+            ]
+          }
         },
       },
       {
         $lookup: {
           from: "participants",
-          let: { room_id: "$room_id", isGroup: "$isGroup" },
+          let: { room_id: "$room_id", isPrivate: "$isPrivate", cuid: "$user_id" },
           pipeline: [
             convertMatchToLookupExpr({
-              "$isGroup": false,
+              "$isPrivate": true,
               room_id: "$$room_id",
-              user_id: cuid
+              user_id: { $ne: "$$cuid" }
             }),
             { $limit: 1 },
             { $project: { user_id: 1, seen_at: 1 } }
           ],
-          as: "participant",
+          as: "other_participant",
         },
       },
       {
         $lookup: {
           from: "users",
           let: {
-            uid: { $arrayElemAt: ["$participant.user_id", 0] },
-            isGroup: "$isGroup",
+            uid: { $arrayElemAt: ["$other_participant.user_id", 0] },
+            isPrivate: "$isPrivate",
           },
           pipeline: [
             convertMatchToLookupExpr({
-              "$isGroup": false,
+              "$isPrivate": true,
               _id: "$$uid"
             }),
             { $project: { username: 1, profile: 1 } }
@@ -974,7 +982,7 @@ export const roomAggregationPipeline = ({ invitation, page, cuid, }: { invitatio
         $match: {
           $expr: {
             $or: [
-              { $eq: ["$isGroup", true] },
+              { $eq: ["$isPrivate", false] },
               { $eq: [{ $size: "$user" }, 1] },
             ],
           },
@@ -984,31 +992,49 @@ export const roomAggregationPipeline = ({ invitation, page, cuid, }: { invitatio
         $addFields: {
           display_name: {
             $cond: {
-              if: "$isGroup",
-              then: "$name",
-              else: { $arrayElemAt: ["$user.username", 0] },
-            },
+              if: "$isPrivate",
+              then: {
+                $arrayElemAt: ["$user.username", 0]
+              },
+              else: {
+                $arrayElemAt: ["$room.name", 0]
+              }
+            }
           },
           poster: {
             $cond: {
-              if: "$isGroup",
-              then: "$poster",
-              else: { $arrayElemAt: ["$user.profile", 0] },
-            },
+              if: "$isPrivate",
+              then: {
+                $arrayElemAt: ["$user.profile", 0]
+              },
+              else: {
+                $arrayElemAt: ["$room.poster", 0]
+              }
+            }
           },
           otherParticipant_seenAt: {
             $cond: {
-              if: "$isGroup",
-              then: 0,
-              else: { $arrayElemAt: ["$participant.seenAt", 0] },
-            },
+              if: "$isPrivate",
+              then: {
+                $arrayElemAt: [
+                  "$other_participant.seenAt",
+                  0
+                ]
+              },
+              else: undefined
+            }
           },
           otherParticipant_id: {
             $cond: {
-              if: "$isGroup",
-              then: null,
-              else: { $arrayElemAt: ["$participant.user_id", 0] },
-            },
+              if: "$isPrivate",
+              then: {
+                $arrayElemAt: [
+                  "$other_participant.user_id",
+                  0
+                ]
+              },
+              else: undefined
+            }
           },
           room_type: {
             $arrayElemAt: ["$room.type", 0],
@@ -1045,11 +1071,11 @@ export const roomAggregationPipeline = ({ invitation, page, cuid, }: { invitatio
     },
   });
 
-export const reportAggregationPipeline = ({ content_id, page, isThread }: { content_id: string, page: number, isThread: boolean }) => [
+export const reportAggregationPipeline = (content_id: string, type: "post" | "comment" | "thread" | "user" | undefined) => [
   {
     $match: {
       content_id: content_id,
-      content_type: isThread ? { $eq: "Thread" } : { $ne: "Thread" }
+      ...(type && { content_type: capitalize(type) })
     }
   },
   {
@@ -1057,24 +1083,12 @@ export const reportAggregationPipeline = ({ content_id, page, isThread }: { cont
       "_id": "$reason",
       count: {
         $sum: 1
-      },
-      details: {
-        $push: {
-          $ifNull: ["$details", "$$REMOVE"]
-        }
       }
     }
   },
   {
     $project: {
       count: 1,
-      content: {
-        $slice: [
-          "$details",
-          (page - 1) * queryLimit,
-          queryLimit
-        ]
-      }
     }
   }
 ]
@@ -1082,18 +1096,12 @@ export const reportAggregationPipeline = ({ content_id, page, isThread }: { cont
 export const reportedContentAggregation = ({ content_type, thread_id, page }: { content_type: "Post" | "Comment", thread_id: string, page: number }): PipelineStage[] => {
 
   const contentType = `${content_type.toLowerCase()}s`;
-  const finalContentFields = content_type === "Post" ? [
-    "title",
-    "tag",
-    "nsfw",
-    "spoiler",
-    "frames",
-  ] : [
-    "content",
-    "attachment",
-    "spoiler",
-    "nsfw",
-  ]
+
+  const postFields: (keyof PostModelType)[] = ["title", "category", "frames"];
+  const commentFields: (keyof CommentModelType)[] = ["content", "attachment"];
+  const commonFields: any[] = ["user_id", "warnedOn", "createdAt", "nsfw", "spoiler"];
+
+  const finalContentFields = content_type === "Post" ? postFields : commentFields;
 
   return createPipeline({
     filters: [
@@ -1116,8 +1124,39 @@ export const reportedContentAggregation = ({ content_type, thread_id, page }: { 
         $lookup: {
           from: contentType,
           localField: "_id",
+          pipeline: [
+            {
+              $project: finalContentFields.concat(commonFields).reduce(
+                (obj, key) => ({ ...obj, [key]: 1 }),
+                {}
+              )
+            }
+          ],
           foreignField: "_id",
           as: "contents",
+        }
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "contents.user_id",
+          pipeline: [
+            {
+              $project: { username: 1, profile: 1 }
+            }
+          ],
+          foreignField: "_id",
+          as: "user",
+        }
+      },
+      {
+        $addFields: {
+          content: {
+            $arrayElemAt: ["$contents", 0]
+          },
+          author: {
+            $arrayElemAt: ["$user", 0]
+          },
         }
       },
     ],
@@ -1125,6 +1164,8 @@ export const reportedContentAggregation = ({ content_type, thread_id, page }: { 
     projection: {
       _id: 1,
       total: 1,
+      content: 1,
+      author: 1,
       reasons: {
         $arrayToObject: {
           $map: {
@@ -1153,12 +1194,6 @@ export const reportedContentAggregation = ({ content_type, thread_id, page }: { 
               }
             }
           }
-        }
-      },
-      content: {
-        $let: {
-          vars: { temp: { $arrayElemAt: ["$contents", 0] } },
-          in: finalContentFields.map(field => ({ [field]: `$$temp.${field}` }))
         }
       },
     }

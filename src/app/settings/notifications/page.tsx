@@ -36,11 +36,13 @@ const NotificationPage = () => {
     const [isSupported, setIsSupported] = useState(false)
     const subscription = useRef<PushSubscription | null>(null);
 
-    const { mutate, setFinalState, setInitialState } = useDebounce(async () => {
-        if (!meta) return;
-        else if (enabled) await unsubscribe();
-        else await subscribe();
-    });
+    const { mutate, setFinalState, setInitialState } = useDebounce(
+        async () => {
+            if (!meta) return;
+            else if (enabled) await unsubscribe();
+            else await subscribe();
+        }
+    );
 
     useEffect(() => {
         if ('serviceWorker' in navigator && 'PushManager' in window) {
@@ -63,9 +65,9 @@ const NotificationPage = () => {
     else if (!meta) return null;
 
     else if (!isSupported) return (
-        <section className="h-size-screen space-y-3">
-            <h3 className="text-center">Uh Oh! Looks like you are using a vintage browser.</h3>
-            <p>Well Push notification is not supported in this browser. Move to a new one.</p>
+        <section className="h-size-screen flex flex-cntr-all space-y-3 px-2">
+            <h3 className="text-center font-semibold">Uh Oh! Looks like you are using a vintage browser.</h3>
+            <p className="text-center">Well Push notification is not supported in this browser. Move to a new one.</p>
         </section>
     )
 
@@ -135,10 +137,12 @@ const NotificationPage = () => {
 
     const togglePushNotification = async () => {
         mutate();
+
         if (enabled) {
             setEnabled(false);
             setFinalState(false);
         } else {
+            Notification.requestPermission();
             setFinalState(true);
             setEnabled(true);
         }

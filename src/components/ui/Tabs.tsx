@@ -16,7 +16,7 @@ export const TabList = ({ children, className = "", href }: { children: React.Re
     const router = useRouter();
     const pathname = usePathname();
 
-    const path = pathname.split('/').map(el=>el.split('-')[0]).join('/');
+    const path = pathname.split('/').map(el => el.split('-')[0]).join('/');
     const active = path === href;
 
     const changeTab = (e: any) => {
@@ -26,14 +26,14 @@ export const TabList = ({ children, className = "", href }: { children: React.Re
     }
 
     return (
-        <li className={twMerge("flex-1 min-w-[24%] *:py-2 border-b-2 border-transparent", active ? "border-secondary" : "border-gray30", className)}>
+        <li className={twMerge("flex-1 w-[24%] min-w-fit px-2 *:py-2 border-b-2 border-transparent", active ? "border-secondary" : "border-gray30")}>
             <OptionalChildren
                 condition={!active}
                 fallback={(
-                    <p className="text-center cursor-not-allowed">{children}</p>
+                    <div className={twMerge("text-center cursor-not-allowed", className)}>{children}</div>
                 )}
             >
-                <Link href={href} onClick={changeTab} role="button" className="w-full block text-center" >{children}</Link>
+                <Link href={href} onClick={changeTab} role="button" className={twMerge("w-full block text-center", className)}>{children}</Link>
             </OptionalChildren>
         </li>
     )

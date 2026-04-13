@@ -1,6 +1,6 @@
 "use client";
 
-import { RightChevron } from "@assets/Icons";
+import { AlertIcon, AppIcon, AtIcon, BellIcon, BlockOrBanIcon, BookIcon, CommentIcon, EditIcon, EmailIcon, FeedbackIcon, FilterIcon, HeartIcon, HistoryIcon, LeaveIcon, MoonIcon, ShelfIcon, PostIcon, RainbowIcon, RightChevron, ShieldIcon, SunIcon, GroupIcon, UserIcon, WifiIcon } from "@assets/Icons";
 import { BottomSheet, Navbar, Navigate, WarningModal } from "@components";
 import { ParloFooter } from "@components/ui";
 import InstallPrompt from "@components/ui/InstallPrompt";
@@ -14,16 +14,18 @@ import { twMerge } from "tailwind-merge";
 const SectionList = ({ children, href, className = '' }: PropsWithChildren<{ href?: string, className?: string }>) => {
 
     if (href) return (
-        <li className={twMerge("px-2 py-3", className)}>
-            <Navigate comp="link" goto={href} className="size-full flex flex-cntr-between">
-                <div>{children}</div>
+        <li className="px-2 py-3">
+            <Navigate comp="link" goto={href} className="w-full flex flex-cntr-between">
+                <div className={twMerge("flex gap-2 items-center", className)}>
+                    {children}
+                </div>
                 <RightChevron className="size-4" />
             </Navigate>
         </li>
     )
 
     return (
-        <li className={`px-2 py-3 ${className}`}>
+        <li className={twMerge("px-2 py-3", className)}>
             {children}
         </li>
     )
@@ -57,47 +59,107 @@ const SettingPage = () => {
 
             <Sections heading="my account">
 
-                <SectionList href="/settings/edit">Edit Profile</SectionList>
+                <SectionList href="/settings/edit">
+                    <EditIcon />
+                    <span>Edit Profile</span>
+                </SectionList>
 
-                <SectionList href="/settings/edit/username">{user.username}</SectionList>
+                <SectionList href="/settings/edit/username">
+                    <AtIcon />
+                    <span>{user.username}</span>
+                </SectionList>
 
                 <SectionList href="/settings/edit/email">
+                    <EmailIcon />
                     <p className="line-clamp-1">{user.email}</p>
                 </SectionList>
 
-                <SectionList href="/settings/account_status">Account Status</SectionList>
+                <SectionList href="/settings/account_status">
+                    <UserIcon />
+                    Account Status
+                </SectionList>
             </Sections>
 
             <Sections heading="saved">
-                <SectionList href="/settings/saved">Saved Posts</SectionList>
-                <SectionList href="/settings/saved/comments">Saved Comments</SectionList>
-                <SectionList href="/settings/saved/shelves">Saved Shelves</SectionList>
+                <SectionList href="/settings/saved">
+                    <PostIcon />
+                    <span>Saved Posts</span>
+                </SectionList>
+                <SectionList href="/settings/saved/comments">
+                    <CommentIcon />
+                    <span>Saved Comments</span>
+                </SectionList>
+                <SectionList href="/settings/saved/shelves">
+                    <ShelfIcon />
+                    <span>Saved Shelves</span>
+                </SectionList>
             </Sections>
 
             <Sections heading="people">
-                <SectionList href="/settings/followers">Followers</SectionList>
-                <SectionList href="/settings/following">Following</SectionList>
-                <SectionList href="/settings/blocked">Blocked</SectionList>
+                <SectionList href="/settings/followers">
+                    <GroupIcon />
+                    <span>Followers</span>
+                </SectionList>
+                <SectionList href="/settings/following">
+                    <HeartIcon />
+                    <span>Following</span>
+                </SectionList>
+                <SectionList href="/settings/blocked">
+                    <BlockOrBanIcon />
+                    <span>Blocked</span>
+                </SectionList>
             </Sections>
 
             <Sections heading="personalize">
-                <SectionList href="/settings/notifications">Notifications</SectionList>
-                <SectionList href="/settings/filter_content">Filter Content</SectionList>
-                <SectionList href="/settings/data_saver">Data Saver</SectionList>
-                <SectionList href="/settings/theme">App Theme</SectionList>
+                <SectionList href="/settings/notifications">
+                    <BellIcon />
+                    <span>Notifications</span>
+                </SectionList>
+                <SectionList href="/settings/filter_content">
+                    <FilterIcon />
+                    <span>Filter Content</span>
+                </SectionList>
+                <SectionList href="/settings/data_saver">
+                    <WifiIcon />
+                    <span>Data Saver</span>
+                </SectionList>
+                <SectionList href="/settings/theme">
+                    <RainbowIcon />
+                    <span>App Theme</span>
+                </SectionList>
             </Sections>
 
             <Sections heading="related to app">
-                <SectionList href="/settings/report">Report a Problem</SectionList>
-                <SectionList href="/settings/feedback">Submit a Feedback, Request or Suggestion</SectionList>
-                <SectionList href="/app/terms_and_conditions">Terms and Conditions</SectionList>
-                <SectionList href="/app/privacy_policy">Privacy Policy</SectionList>
-                <SectionList href="/app/about">About Parlocula</SectionList>
+                <SectionList href="/settings/report">
+                    <AlertIcon />
+                    <span>Report a Problem</span>
+                </SectionList>
+                <SectionList href="/settings/feedback">
+                    <FeedbackIcon />
+                    <span>Submit a Feedback, Request or Suggestion</span>
+                </SectionList>
+                <SectionList href="/app/terms_and_conditions">
+                    <BookIcon />
+                    <span>Terms and Conditions</span>
+                </SectionList>
+                <SectionList href="/app/privacy_policy">
+                    <ShieldIcon />
+                    <span>Privacy Policy</span>
+                </SectionList>
+                <SectionList href="/app/about">
+                    <AppIcon className="size-4" />
+                    <span>About Parlocula</span>
+                </SectionList>
             </Sections>
 
             <Sections heading="actions for your account">
                 <SectionList>
-                    <BottomSheet className="w-full" button="Logout">
+                    <BottomSheet className="flex items-center gap-2 w-full" button={(
+                        <>
+                            <LeaveIcon />
+                            <span>Logout</span>
+                        </>
+                    )}>
                         <WarningModal
                             action="logout"
                             dangerButton="Logout"

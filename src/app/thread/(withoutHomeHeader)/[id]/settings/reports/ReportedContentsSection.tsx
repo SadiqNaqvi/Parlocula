@@ -1,7 +1,7 @@
 "use client";
 
-import { InfiniteScroller, Navbar } from "@components";
-import { LoadingSpinner, ReportedContentBar } from "@components/ui";
+import { BottomSheet, InfiniteScroller, Navbar } from "@components";
+import { LoadingSpinner, OptionalChildren, ReportedContentBar } from "@components/ui";
 import { actionOnReportedContents } from "@lib/helpers/mutations";
 import { getReportedContents } from "@lib/helpers/common";
 import { getQueryClient } from "@lib/providers/queryClient";
@@ -21,16 +21,26 @@ type Props = {
 const DetailsSection = ({ type }: Pick<Props, "type">) => {
     return (
         <section className="py-4">
-            <ul className="space-y-2">
-                <li>Below are the reported {type}s of this thread.</li>
-                <li>Since you are the manager of this thread, it is your responsibility to take actions on these.</li>
-                <li>You can either keep them, delete them or notify the author to update the {type} accordingly.</li>
-                <li>Action (keep): The {type} stays and all the reports on it will be deleted.</li>
-                <li>Action (delete): The {type} along with all the reports on it will be deleted.</li>
-                <li>Action (warn): The author of the {type} will be warned about these reports. The {type} along with all the reports on it will stay until one of the managers decides to keep or delete it.</li>
-                <li>It is adviced to give the author some time after warning them. But if the {type} breaks the rules of the thread/app, immediately delete the {type}.</li>
-                <li>The decision can be changed until you click on save button above.</li>
-            </ul>
+            <BottomSheet
+                button="A Message for the Managers, Read this before taking any action."
+                className="mx-auto text-center underline"
+            >
+                <div>
+                    <div className="mb-4 space-y-2">
+                        <h3 className="text-center font-semibold">Reported {type}s of thread.</h3>
+                        <p className="text-sm text-center">Since you are the manager of this thread, it is your responsibility to take actions on these.</p>
+                    </div>
+
+                    <ul className="space-y-2 list-disc ml-4">
+                        <li>You can either keep them, delete them or notify the author to update the {type} accordingly.</li>
+                        <li>Action (keep): The {type} stays and all the reports on it will be deleted.</li>
+                        <li>Action (delete): The {type} along with all the reports on it will be deleted.</li>
+                        <li>Action (warn): The author of the {type} will be warned about these reports. The {type} along with all the reports on it will stay until one of the managers decides to keep or delete it.</li>
+                        <li>It is adviced to give the author some time after warning them. But if the {type} breaks the rules of the thread/app, immediately delete the {type}.</li>
+                        <li>The decision can be changed until you click on save button above.</li>
+                    </ul>
+                </div>
+            </BottomSheet>
         </section>
     )
 }
@@ -50,9 +60,14 @@ const ReportedContentsSection = ({ tid, type, uid }: Props) => {
     });
 
     const handleDecision = (id: string, action: AvailableActionsForReport) => {
-        if (decisionBuffer.size >= 50)
+        if (decisionBuffer.size >= 50) {
             appToast.error("Only 50 decisions are allowed to save at a time")
-        setDecisionBuffer(decisionBuffer.set(id, action));
+            return;
+        }
+
+        const temp = new Map(decisionBuffer);
+        temp.set(id, action);
+        setDecisionBuffer(temp);
     }
 
     const Component = (content: ReportedContent) => {
@@ -62,28 +77,25 @@ const ReportedContentsSection = ({ tid, type, uid }: Props) => {
         return (
             <ReportedContentBar content={report}>
                 <section className="mt-4">
-                    <div>
+                    <div className="grid gap-2 grid-cols-2 grid-rows-2 xs:grid-rows-1 xs:grid-cols-3">
                         <button
-                            className="bg-green-500/50 p-2"
-                            onClick={() => handleDecision(content._id, "keep")}
-                        >
+                            className={`secondary ${decisionBuffer.get(content._id) === "keep" ? "bg-zinc-50" : ''}`}
+                            onClick={() => handleDecision(content._id, "keep")}>
                             Keep
                         </button>
                         <button
-                            className="bg-orange-500/50 p-2"
-                            onClick={() => handleDecision(content._id, "warn")}
-                        >
+                            className={`secondary ${decisionBuffer.get(content._id) === "warn" ? "bg-zinc-50" : ''}`}
+                            onClick={() => handleDecision(content._id, "warn")}>
                             Warn
                         </button>
                         <button
-                            className="bg-red-500/50 p-2"
-                            onClick={() => handleDecision(content._id, "delete")}
-                        >
+                            className={`secondary col-span-2 xs:col-span-1 ${decisionBuffer.get(content._id) === "delete" ? "bg-zinc-50" : ''}`}
+                            onClick={() => handleDecision(content._id, "delete")}>
                             Delete
                         </button>
                     </div>
                     {decisionBuffer.has(content._id) && (
-                        <p className="mt-2 text-center text-sm">Decision Taken: {decisionBuffer.get(content._id)}</p>
+                        <p className="mt-2 text-center text-sm">Taken Decision: {decisionBuffer.get(content._id)}</p>
                     )}
                 </section>
             </ReportedContentBar >
@@ -104,11 +116,11 @@ const ReportedContentsSection = ({ tid, type, uid }: Props) => {
 
     return (
         <>
-            {isPending && (
+            <OptionalChildren condition={isPending}>
                 <div className="overflow-hidden fixed inset-0">
                     <LoadingSpinner />
                 </div>
-            )}
+            </OptionalChildren>
 
             <Navbar
                 navTitle="Reported Posts"

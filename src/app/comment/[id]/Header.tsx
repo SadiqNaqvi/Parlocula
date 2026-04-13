@@ -10,6 +10,7 @@ import OptionsButton from "./Ellipsis";
 import LikeButton from "./LikeButton";
 import { ContentFiltered } from "@components/fallbacks";
 import CommentPageSkeleton from "@components/ui/loading/CommentPageSkeleton";
+import { AlertIcon, CommentIcon } from "@assets/Icons";
 
 type Props = {
     id: string,
@@ -100,11 +101,18 @@ const Component = (data: FullComment, { uid, id }: Props) => {
                     author={user_id} uid={uid} count={saved_count} id={_id} type="Comment" />
 
             </div>
-
-            <TabContainer>
-                <TabList href={`/comment/${id}`}>Replies</TabList>
-                <TabList href={`/comment/${id}/reports`}>Reports</TabList>
-            </TabContainer>
+            <OptionalChildren condition={uid}>
+                <TabContainer>
+                    <TabList className="flex gap-2 flex-cntr-all" href={`/comment/${id}`}>
+                        <CommentIcon className="min-w-5" />
+                        <span>Replies</span>
+                    </TabList>
+                    <TabList className="flex gap-2 flex-cntr-all" href={`/comment/${id}/reports`}>
+                        <AlertIcon className="min-w-5" />
+                        <span>Reports</span>
+                    </TabList>
+                </TabContainer>
+            </OptionalChildren>
         </>
     );
 }

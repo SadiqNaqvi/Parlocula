@@ -5,7 +5,7 @@ import { model, models, StrictSchema } from "@type/mongoose";
 import { frameModel, linkModel, numberSchema } from "./general";
 
 const postModel = new StrictSchema<PostModelType>({
-  _id: { type: String, default: parloId },
+  _id: { type: String, default: () => parloId() },
   title: { type: String, required: true },
   body: { type: String, default: "" },
   links: [linkModel],
@@ -34,6 +34,8 @@ const postModel = new StrictSchema<PostModelType>({
   reaction_count: numberSchema,
   saved_count: numberSchema,
   quoted_count: numberSchema,
+
+  warnedOn: Date,
 }, { timestamps: true, _id: true });
 
 postModel.index({ thread_id: 1, nsfw: 1 });

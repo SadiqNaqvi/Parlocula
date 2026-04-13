@@ -7,10 +7,10 @@ import { useCustomReducer } from "@lib/hooks";
 import { roomSchemaClient } from "@lib/schemas";
 import { getQueryKeys, parloId, readyFrames } from "@lib/utils";
 import useCurrentUser from "@store/user";
-import { InputManagerType, TypedFunction } from "@type/other";
+import { InputManagerType } from "@type/other";
 import { InputFrame } from "@type/schemas";
 import { useRouter } from "next/navigation";
-import { PropsWithChildren, useRef } from "react";
+import { useRef } from "react";
 
 type GroupMetaType = { name: string, poster: InputFrame | null, inviteMessage: string }
 
@@ -36,7 +36,7 @@ const CreateGroup = () => {
 
         const rmid = parloId();
 
-        await createRoomMutation(
+        createRoomMutation(
             rmid,
             {
                 files, filesData, name,
@@ -47,6 +47,8 @@ const CreateGroup = () => {
             },
             undefined
         );
+
+        navigation.replace(`/inbox/${rmid}-${name}`);
     }
 
     const storeMeta = (data: Omit<GroupMetaType, "poster">) => {
@@ -77,22 +79,22 @@ const CreateGroup = () => {
                 className="space-y-4 px-2"
                 submit={storeMeta}
                 schema={roomSchemaClient}
+                defaultVals={{ name, inviteMessage }}
             >
                 <Input
                     name="name"
                     placeholder="Eg: Movie Yappers"
                     label="Name of the group"
-                    className="border-transparent border-b-gray-500/30 rounded-none"
+                    className="border-0 border-b rounded-none px-0"
                 />
 
                 <Textarea
                     name="inviteMessage"
-                    containerClassName="border-b border-gray40"
                     placeholder="Eg: Hey, Let's yap about the new movie"
-                    className="mt-2"
+                    className="border-0 border-b rounded-none px-0"
                     label="Invitation Message"
+                    description="You can neither send more than one invitation message nor change it in future. Make it worth."
                 />
-                <p className="text-sm text-zinc-500 text-center">You can neither send more than one invitation message nor change it in future. Make it worth.</p>
             </Form>
         </>
 
@@ -108,7 +110,7 @@ const CreateGroup = () => {
                 )}
             />
 
-            <div className="mb-8 w-full">
+            <div className="px-2">
                 <ListSelector
                     mode="search"
                     queryFn={(q, p) => searchNonBlockedUsers(uid, q, p)}
@@ -119,8 +121,10 @@ const CreateGroup = () => {
                         poster: resp.profile,
 
                     })}
+                    returnIds
                     inputPlaceholder="Search user to add"
                     callbackRef={ref}
+                    frameType="userProfile"
                 />
             </div>
 

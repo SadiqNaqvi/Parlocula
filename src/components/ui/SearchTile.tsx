@@ -19,6 +19,7 @@ export default function SearchTile({ id, image, media_type, name }: RefinedSearc
                 historyPayload={{
                     title: name,
                     poster: image,
+                    type: media_type === "tv" ? "show" : media_type === "person" ? "artist" : "movie"
                 }}
             >
                 <ParloImage

@@ -9,9 +9,10 @@ import { searchComments, searchPosts, searchShelves, searchThreads, searchUsers 
 import useCurrentUser from "@store/user";
 import { useSearchParams } from "next/navigation";
 import SearchHeader from "./SearchHeader";
+import SearchHistorySection from "./SearchHistorySection";
 
 const getQueryFn = (tab: string, nsfw: boolean) => {
-    
+
     switch (tab) {
         case "all": return searchAllContent;
         case "movies": return searchMovie;
@@ -49,8 +50,8 @@ const ComponentToShow = ({ currentFilter, doc }: { currentFilter: string, doc: a
 const SearchPage = () => {
     const params = useSearchParams();
     const searchQuery = params.get('q') || '';
-    const filter = params.get('f') || '';
-    const currentFilter = searchFilters.includes(filter) ? filter : searchFilters[0];
+    const filter = params.get('f');
+    const currentFilter = filter && searchFilters.includes(filter) ? filter : searchFilters[0];
 
     const { filterContent, isHydrated } = useCurrentUser();
 
@@ -85,10 +86,7 @@ const SearchPage = () => {
     return (
         <>
             <SearchHeader filter={currentFilter} />
-            <section className="h-size-screen flex flex-cntr-all flex-col">
-                <h3 className="text-lg md:text-2xl uppercase text-center font-semibold mb-2">Search what you like!</h3>
-                <p className="text-sm text-center md:text-base text-zinc-500">Movies, Shows, Threads, People, Users, Collections, Companies, etc...</p>
-            </section>
+            <SearchHistorySection />
         </>
     );
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import FrameSlider from "@app/post/[id]/(WithHeader)/FrameSlider";
 import { AddIcon, BookmarkIcon, CommentIcon, ReactIcon } from "@assets/Icons";
 import { BottomSheet, BottomSheetRef, LinkInputManager, Navbar, OptionMenu } from "@components";
 import { Form, MediaInputManager, PostCategoryPicker, ToggleButton } from "@components/form";
@@ -13,9 +14,9 @@ import useCurrentUser from "@store/user";
 import { FullPost, Thread } from "@type/internal";
 import { InputManagerType } from "@type/other";
 import { InputFrame, PostClientSchemaType } from "@type/schemas";
+import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { IDS_Heading, IDS_Section, InitialDescriptionSheet, TextAreaInput } from ".";
-import { useRouter } from "next/navigation";
 
 type Props = {
     defaultVal: FullPost | undefined,
@@ -181,8 +182,12 @@ const PostMutationPage = ({ defaultVal, isEditing, defaultThread, quotedPost }: 
             />
 
             <OptionalChildren condition={!isEditing && quotedPost}>
-                <section className="my-2 w-full border border-gray50 p-2">
-                    <p className="font-semibold line-clamp-2">{quotedPost?.title}</p>
+                <section className="m-2 w-full border border-gray50 rounded-md p-2">
+                    <p className="text-sm text-zinc-500">Quoted Post</p>
+                    <div className="space-y-4">
+                        <h4 className="font-semibold line-clamp-2">{quotedPost?.title}</h4>
+                        <FrameSlider disablePopping id={quotedPost?._id!} frames={quotedPost?.frames || []} />
+                    </div>
                 </section>
             </OptionalChildren>
 

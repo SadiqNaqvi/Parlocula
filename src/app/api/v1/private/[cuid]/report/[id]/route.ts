@@ -14,7 +14,7 @@ import { PushSubscription } from "web-push";
 export const GET = getHandler(async (r, params) => {
 
   const search = r.nextUrl.searchParams;
-  const ctype = search.get("type")?.toLowerCase();
+  const ctype = search.get("type")?.toLowerCase()||search.get("t")?.toLowerCase();
   const { id } = params;
 
   if (!ctype || !["comment", "post", "thread", "user"].includes(ctype)) return {
@@ -36,7 +36,11 @@ export const GET = getHandler(async (r, params) => {
 export const POST = postHandler<ReportSchemaType>({
   handler: async ({ data, user_id }) => {
 
-    await Report.create([{ ...data, user_id }]);
+    await Report.create([{
+      ...data,
+      content_type: capitalize(data.content_type),
+      user_id
+    }]);
 
     return {
       success: true,

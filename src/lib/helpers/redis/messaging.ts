@@ -202,7 +202,7 @@ export const getParticipant = async (room_id: string, user_id: string, pipeline?
 
 export const storeParticipantInCache = async (room_id: string, user_id: string, participant: Partial<CachedParticipantType>, pipeline?: Pipeline) => {
 
-    return (pipeline ?? await getUpstashRedis()).hset(`room:${room_id}:participant:${user_id}`, participant);
+    return (pipeline ?? await getUpstashRedis()).hset(`room:${room_id}:participant:${user_id}`, removeNullishFields(participant));
 }
 
 const removeParticipant = async (room_id: string, user_id: string, type: ParticipantEnumType | "unknown", pipeline?: Pipeline) => {
@@ -472,10 +472,6 @@ const createPipelineForRoomList = (user_id: string, page: number, invitation?: b
                     if (type === "private" && !(otherParticipantMetaData || otherParticipantData))
                         throw new Error("Participant data missing");
 
-                    const parsed = parseUnknownData(otherParticipantMetaData?.profile);
-
-                    console.log("otherParticipantMetaData", otherParticipantMetaData, typeof parsed, parsed)
-
                     return {
                         _id: room_id,
                         display_name: (type === "private" ? otherParticipantMetaData?.username : name) || "Not found",
@@ -592,23 +588,20 @@ export const storeRoomList = async (user_id: string, data: RoomListResponse[], t
 export const getRoomDetails = async (room_id: string, user_id: string): Promise<FullRoomType | null> => {
     try {
         const redis = await getUpstashRedis();
-        const getPipeline = redis.multi();
-        getPipeline.hgetall(`room:${room_id}`);
-        getPipeline.smembers(`room:${room_id}:participants`);
-        const [room, participants] = await getPipeline.exec().then(handleUpstashPipelineResponse) as [CachedFullRoomType, string[]];
+
+        const room = await redis.hgetall<CachedFullRoomType>(`room:${room_id}`);
 
         if (!room) return null;
 
-        const { invitationMessage, lastMessage, lastMessageAt, lastMessageBy, name, poster, type, createdAt } = room;
+        const { invitationMessage, lastMessage, lastMessageAt, lastMessageBy, name, poster, type, createdAt, participant_count, participants } = room;
 
-        const otherParticipant_id = type === "private" ? participants.filter(uid => uid.split('-')[0] !== user_id).at(0)?.split('-')[0] : undefined;
+        const otherParticipant_id = type === "private" ? participants.filter(uid => uid !== user_id).at(0) : undefined;
 
         return await redisAggregator<FullRoomType>([
             { method: "hgetall", key: `room:${room_id}:participant:${user_id}`, ref: "currentUser" },
-            { method: "get", key: `room:${room_id}:participants:total`, ref: "total" },
             { method: "execute" },
             {
-                method: "condition", ref: "currentUser", validate: (s, val) => Boolean(val)
+                method: "condition", ref: "currentUser", validate: (_, val) => Boolean(val)
             },
 
             ...createArray<RedisStage | ExecuteStage>([])
@@ -619,10 +612,11 @@ export const getRoomDetails = async (room_id: string, user_id: string): Promise<
             {
                 method: "return", value: (store) => {
                     const participantData = store.get("otherParticipantData") as ParticipantType | undefined;
+
                     const participantMeta = store.get("otherParticipantMeta") as MereUser;
+
                     const { mute, participantType, seenAt } = store.get("currentUser") as ParticipantType;
-                    const total = parseInt(store.get("total") as string || "0") || 0;
-                    const participants = otherParticipant_id && participantData?.participantType !== "invitee" ? [otherParticipant_id, user_id] : undefined;
+
                     return {
                         _id: room_id,
                         display_name: (type === "private" ? participantMeta.username : name) || "Not Found",
@@ -631,7 +625,7 @@ export const getRoomDetails = async (room_id: string, user_id: string): Promise<
                         otherParticipant_id,
                         otherParticipant_seenAt: participantData?.seenAt,
                         createdAt,
-                        participant_count: type === "group" ? total : participants?.length || 0,
+                        participant_count,
                         participants,
                     }
                 }
@@ -654,7 +648,8 @@ export const setRoomDetail = async (room_id: string, room: Partial<CachedFullRoo
         name: room.name,
         poster: room.poster,
         type: room.type,
-        participants: room.participants,
+        participant_count: room.participant_count,
+        participants: room.participants
     }
 
     const redis = pipeline ?? (await getUpstashRedis()).multi();
@@ -664,7 +659,7 @@ export const setRoomDetail = async (room_id: string, room: Partial<CachedFullRoo
 
 }
 
-export const setDataWhileCreatingRoom = async (room: RoomModelType & { _id: string }, creator: string, participants: ParticipantModelType[]) => {
+export const setDataWhileCreatingRoom = async (room: RoomModelType & { _id: string }, creator: string, participants: string[]) => {
     try {
         const redis = await getUpstashRedis();
         const room_id = room._id;
@@ -677,28 +672,38 @@ export const setDataWhileCreatingRoom = async (room: RoomModelType & { _id: stri
         addRoomsInList({ user_id: creator, items: itemsForSortedSet, pipeline });
 
         // 2. Create a participant list with all the invited participants + creator.
-        pushParticipantInList(room_id, participants.map(p => ({ uid: String(p.user_id), type: "invitee" })), pipeline);
-        pushParticipantInList(room_id, [{ uid: creator, type: "creator" }], pipeline);
 
+        const uniqueParticipants = Array.from(new Set(participants.concat(creator)));
+        if (room.type !== "private") {
+            pushParticipantInList(
+                room_id,
+                uniqueParticipants.map(p => ({
+                    uid: String(p),
+                    type: p === creator ? "creator" : "invitee"
+                })),
+                pipeline
+            );
+        }
         // 3. Store the room metadata seperately
-        setRoomDetail(room_id, {
-            invitationMessage: { ...room.invitationMessage, user_id: creator },
-            lastMessageBy: creator,
-            lastMessage: room.lastMessage,
-            lastMessageAt: room.lastMessageAt,
-            type: room.type,
-            name: room.name || "Unavailable",
-            poster: room.poster,
-        }, pipeline);
+        setRoomDetail(room_id, room, pipeline);
 
         // 4. Store participant metadata seperately
         // 5. Add room in the invitation list of each participant except creator
-        participants.forEach(participant => {
-            const { hideAt, mute, seenAt, type } = participant;
-            const user_id = participant.user_id.toString();
+        uniqueParticipants.forEach(participant => {
+            const user_id = String(participant);
 
-            storeParticipantInCache(room_id, user_id, { participantType: type, seenAt, mute, hideAt }, pipeline);
-            if (user_id !== creator) addInvitationInList({ pipeline, user_id, items: itemsForSortedSet });
+            storeParticipantInCache(
+                room_id,
+                user_id,
+                {
+                    participantType: user_id === creator ? "creator" : "invitee",
+                    mute: false,
+                },
+                pipeline
+            );
+
+            if (user_id !== creator)
+                addInvitationInList({ pipeline, user_id, items: itemsForSortedSet });
         });
 
         await pipeline.exec().then(handleUpstashPipelineResponse);
@@ -850,7 +855,7 @@ const storeNewMessageInList = async (room_id: string, message: MessageModelType,
     const transaction = pipeline ?? (await getUpstashRedis()).multi();
 
     console.log("starting to add message in list");
-    
+
     addMessageInList({
         pipeline: transaction,
         room_id,

@@ -5,14 +5,20 @@ import { Navigate } from '@components';
 import { authenticateUser } from '@lib/helpers/server';
 import { logOutOnClient, setUserOnRefreshOrLogin } from '@lib/helpers/user';
 import { getQueryClient } from '@lib/providers/queryClient';
-import { getQueryKeys } from '@lib/utils';
+import { getQueryKeys, getTimeInFuture } from '@lib/utils';
 import useCurrentUser from '@store/user';
 import { CurrentUser, TokenPayload } from '@type/internal';
 import { usePathname, useRouter } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 export const PushNotificationWarningToast = () => {
+
+    const lastDate = localStorage.getItem("pushWarning");
+
+    // Send once in 6 hours only
+    if (lastDate && getTimeInFuture({ unit: "h", timeVal: 6, from: lastDate }) > Date.now()) return;
+
     toast("Push Notification is not enabled!", {
         icon: null,
         className: "bg-primarylight border border-gray30 rounded-md grid grid-cols-2 p-2 gap-2",
@@ -32,7 +38,9 @@ export const PushNotificationWarningToast = () => {
         duration: 3600 * 1000,
         unstyled: true,
 
-    })
+    });
+
+    localStorage.setItem("pushWarning", new Date().toString());
 }
 
 const checkIfInAppBrowser = () => {
@@ -130,18 +138,13 @@ const UserHydrator = ({ payload, currentUser }: { payload: TokenPayload | null, 
 
     }, []);
 
-    const openInBrowser = () => {
-        window.open(window.location.href, "_blank");
-    };
-
     if (isInAppBrowser) return (
         <section className="fixed bg-primary z-50 inset-0 flex flex-cntr-all">
             <AppIcon className="size-12 md:size-24 customSize" />
-            <div className="w-full space-y-4 absolute left-[50%] -translate-x-[50%] bottom-10 px-2">
-                <button
-                    className="primary w-full sm:w-96 mx-auto"
-                    onClick={openInBrowser}>Open in browser</button>
-                <p className="text-center text-sm">You are viewing this app in an isolated environment. It is recommended to open this app in your native browser</p>
+            <div className="w-full space-y-4 sticky left-[50%] -translate-x-[50%] bottom-10 px-2">
+
+                <p className="text-center text-sm">Recommended: Open this in browser.</p>
+                <p className='text-center'>Click on the options ( ⋮ ) or share icon and open it in browser</p>
             </div>
         </section>
     )

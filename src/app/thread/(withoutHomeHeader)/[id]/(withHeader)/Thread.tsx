@@ -9,6 +9,7 @@ import { ActionsButton, EllipsisButton, ThreadDetailsSheet } from "./";
 import { OptionalChildren, ParloImage } from "@components/ui";
 import { ContentFiltered } from "@components/fallbacks";
 import { ThreadPageSkeleton } from "@components/ui/loading";
+import { FrameIcon, ImageIconFill, LinkIcon, PostIcon } from "@assets/Icons";
 
 type Props = { id: string, uid?: string }
 
@@ -43,7 +44,7 @@ const Component = (data: ThreadType, { id, uid }: Props) => {
                             { imageWidth: 96, maxScreenWidth: 480 },
                             { imageWidth: 128 },
                         ]}
-                        frameType="threadPoster"
+                        frameType="groupPoster"
                         fancyGallery="thread-poster"
                         fileNameToDownload={`Poster of thread "${name}" - Parlocula`}
                         size={128}
@@ -52,7 +53,7 @@ const Component = (data: ThreadType, { id, uid }: Props) => {
                     />
 
                     <div className="space-y-2">
-                        <h1 data-observe className="text-lg sm:text-xl md:text-2xl line-clamp-2 capitalize font-semibold">{name}</h1>
+                        <h1 data-observe className="selectable text-lg sm:text-xl md:text-2xl line-clamp-2 capitalize font-semibold">{name}</h1>
                         <p className="text-sm space-x-2">
                             <span>Created by</span>
                             <Navigate className="inline underline" comp="link" goto={`/user/${creator}`}>@{creator}</Navigate>
@@ -90,9 +91,18 @@ const Component = (data: ThreadType, { id, uid }: Props) => {
             </ObserverHeader>
 
             <TabContainer className="my-4">
-                <TabList href={`/thread/${id}`}>Posts</TabList>
-                <TabList href={`/thread/${id}/frames`}>Frames</TabList>
-                <TabList href={`/thread/${id}/links`}>Links</TabList>
+                <TabList className="flex gap-2 flex-cntr-all" href={`/thread/${id}`}>
+                    <PostIcon className="min-w-5" />
+                    <span>Posts</span>
+                </TabList>
+                <TabList className="flex gap-2 flex-cntr-all" href={`/thread/${id}/frames`}>
+                    <FrameIcon className="min-w-5" />
+                    <span>Frames</span>
+                </TabList>
+                <TabList className="flex gap-2 flex-cntr-all" href={`/thread/${id}/links`}>
+                    <LinkIcon className="min-w-5" />
+                    <span>Links</span>
+                </TabList>
             </TabContainer>
         </>
     )

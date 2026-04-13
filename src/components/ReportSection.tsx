@@ -1,98 +1,99 @@
 "use client";
 
-import { getReportsOnContent, getReportsOnThread } from "@lib/helpers/common";
-import GenericWrapper from "./GenericWrapper";
+import { allReasonsToReport } from "@lib/constants";
+import { getReportsOnContent } from "@lib/helpers/common";
+import { useChageSearchParams } from "@lib/hooks";
 import { getQueryKeys } from "@lib/utils";
 import { ReportsType } from "@type/internal";
-import { useOptionalState } from "@lib/hooks";
-import { useRef } from "react";
-import { ReportReasonType } from "@type/other";
+import { UidsForReportReason } from "@type/other";
+import { ReportTypeEnum } from "@type/schemas";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import InfiniteScroller from "./InfiniteScroller";
 
 type Props = {
-    id: string,
-    isThread: boolean,
+    cnid: string,
+    type: ReportTypeEnum,
     uid: string,
-}
+    reports: ReportsType[],
+};
 
-const getQueryProps = ({ id, isThread, uid }: Props) => {
+const ReportHeader = ({ reports }: { reports: ReportsType[] }) => {
 
-    if (isThread) return {
-        queryFn: getReportsOnThread,
-        queryKeys: getQueryKeys("reports_cnid", { cnid: id }),
-        args: [id, uid],
+    const { searchParams, addToSearchParams } = useChageSearchParams();
+    const [selectedReason, setSelectedReason] = useState<UidsForReportReason | undefined>();
+
+    useEffect(() => {
+        const type = searchParams.get("rpt") as UidsForReportReason | null;
+        if (type && allReasonsToReport[type]) {
+            setSelectedReason(type);
+        }
+    }, []);
+
+    const handleSelection = (type: UidsForReportReason) => {
+        setSelectedReason(type);
+        addToSearchParams({ rpt: type, p: 0 });
     }
-
-    return {
-        queryFn: getReportsOnContent,
-        queryKeys: getQueryKeys("reports_cnid", { cnid: id }),
-        args: [id],
-    }
-}
-
-const ReportContentSection = ({ details }: { details: string[] }) => {
-
-    if (!details || !details.length) return (
-        <div className="forceCenter">No details are provided</div>
-    )
 
     return (
-        <ul>
-            {details.map(detail => (
-                <li key={detail} className="p-2 border-b border-gray40 last:border-transparent">{detail}</li>
+        <ul className="flex mb-4 overflow-x-auto noScroll">
+            {reports.map(({ _id, count }) => (
+                <li
+                    key={_id}
+                    className={`w-fit border-2 rounded-full ${selectedReason === _id ? "border-secondary" : "border-gray20"}`}
+                >
+                    <button
+                        onClick={() => handleSelection(_id)}
+                        className="px-4 py-2 flex gap-2 items-center">
+                        <span>{allReasonsToReport[_id]}</span>
+                        <span className="px-2 py-1 bg-gray30 rounded-full text-xs">{count}</span>
+                    </button>
+                </li>
             ))}
         </ul>
     )
+
+
 }
 
-type SectionProps = { content_id: string } &
-    ({ isThread: true, uid: string } |
-    { isThread?: false, uid?: string })
+const ReportDetailsBar = ({ details }: { details: string }) => (
+    <>
+        {details}
+    </>
+)
 
-const ReportSection = ({ content_id, isThread, uid }: SectionProps) => {
+const ReportBody = ({ cnid, type, uid }: Omit<Props, "reports">) => {
 
-    const reasons = useRef<ReportReasonType[]>([]);
-    const reasonDetailsMap = useRef<Map<ReportReasonType, string[]>>(null);
+    const sp = useSearchParams();
 
-    const Component = (data: { reports: ReportsType[] }) => {
+    const rpt = sp.get("rpt") as UidsForReportReason | null;
+    const reason = rpt && allReasonsToReport[rpt] ? rpt : undefined;
 
-        const [selectedReason, setSelectedReason] = useOptionalState(data?.reports[0]?._id)
+    return (
+        <div className="space-y-4 my-4">
+            <h4 className="parloHeading">Given Details</h4>
+            <InfiniteScroller
+                Component={ReportDetailsBar}
+                fetchData={(p) => getReportsOnContent(uid, cnid, type, p, reason)}
+                queryKeys={getQueryKeys("reports_cnid", { cnid })}
+                className="list-circle list-inside space-y-4"
+                NotFoundSection={(
+                    <div className="size-full flex flex-cntr-all">
+                        <p>No details have been provided</p>
+                    </div>
+                )}
+            />
+        </div>
+    )
+}
 
-        if (!data || !data.reports || data.reports.length) return (
-            <section className="h-size-screen flex flex-cntr-all">
-                <p>Nothing to see here</p>
-            </section>
-        );
-
-        const { reports } = data;
-
-        reasons.current = reports.map(report => report._id);
-        reasonDetailsMap.current = new Map(reports.map(report => [report._id, report.content]));
-
-        return (
-            <section className="h-size-screen">
-                <ul className="flex my-4 overflow-x-auto noScroll gap-2">
-                    {reasons.current.map(reason => (
-                        <li
-                            key={reason}
-                            className={`w-fit rounded-xl border ${selectedReason === reason ? "border-primary" : "border-gray20"}`}
-                        >
-                            <button
-                                onClick={() => setSelectedReason(reason)}
-                                className="px-2 py-1">{reason}</button>
-                        </li>
-                    ))}
-                </ul>
-                <ReportContentSection details={reasonDetailsMap.current.get(selectedReason) ?? []} />
-            </section>
-        )
-    }
-
-    return <GenericWrapper
-        getQueryProps={getQueryProps}
-        props={{ id: content_id, isThread: Boolean(isThread), uid: uid || "" }}
-        component={Component}
-    />
-
+const ReportSection = ({ reports, ...rest }: Props) => {
+    return (
+        <section className="h-size-screen px-2">
+            <ReportHeader reports={reports} />
+            <ReportBody {...rest} />
+        </section>
+    )
 }
 
 export default ReportSection;

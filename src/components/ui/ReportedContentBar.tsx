@@ -1,76 +1,50 @@
 import { ReportedContent } from "@type/internal";
-import Image from "next/image";
 import { PropsWithChildren } from "react";
-import FramesCarousel from "../FramesCarousel";
-import Navigate from "../Navigate";
-import MetadataTile, { MetadataTileContainer } from "./MetaDataTile";
+import { CommentBarForReport } from "./CommentBar";
+import OptionalChildren from "./OptionalChildren";
+import { PostBarForReportList } from "./PostBar";
+import { allReasonsToReport } from "@lib/constants";
+import { UidsForReportReason } from "@type/other";
 
 const ReasonTiles = ({ reasons, total }: Pick<ReportedContent, "reasons" | "total">) => {
     return (
-        <ul className="flex gap-2 overflow-x-auto noScroll">
-            <li className="px-2 py-1 rounded-xl bg-gray30">Total: {total}</li>
-            {Object.entries(reasons).map(([r, f]) => (
-                <li key={r} className="w-fit space-x-2 px-2 py-1 rounded-xl border border-gray30">
-                    <span>{r}</span>
-                    <span>{f}</span>
-                </li>
-            ))}
-        </ul>
+        <div className="flex gap-2 items-center">
+            <h5 className="whitespace-nowrap">Total Reasons: {total}</h5>
+            <ul className="flex gap-2 overflow-x-auto noScroll">
+                {Object.entries(reasons).map(([r, f]) => (
+                    <li key={r} className="whitespace-nowrap w-fit space-x-2 px-3 py-2 rounded-xl border border-gray30">
+                        <span>{allReasonsToReport[r as UidsForReportReason]}</span>
+                        <span className="px-2 py-1 bg-gray40 rounded-full text-sm">{f}</span>
+                    </li>
+                ))}
+            </ul>
+        </div>
     )
 }
 
-const ContentBar = ({ content, content_type }: ReportedContent) => {
-
+const ContentBar = ({ content, content_type, _id, author }: ReportedContent) => {
     if (content_type === "comment") return (
-        <>
-            {content.content && (
-                <div className="flex-1">
-                    <p>{content.content}</p>
-                </div>
-            )}
-            {content.attachment && (
-                <Image
-                    height={300}
-                    width={300}
-                    className="size-[300] rounded-md border border-gray-500"
-                    src={content.attachment}
-                    alt="Attachemnt"
-                />
-            )}
-        </>
+        <CommentBarForReport {...content} {...author} _id={_id} />
     )
 
     return (
-        <>
-            <div className="space-y-2 flex-1">
-                <h4>{content.title}</h4>
-                <MetadataTileContainer>
-                    <MetadataTile className="text-xs sm:text-sm">{content.tag}</MetadataTile>
-                    <MetadataTile nsfw className="text-xs sm:text-sm" condition={content.nsfw}>NSFW</MetadataTile>
-                    <MetadataTile spoiler className="text-xs sm:text-sm" condition={content.spoiler}>Spoiler</MetadataTile>
-                </MetadataTileContainer>
-            </div>
-            <FramesCarousel frames={content.frames} />
-        </>
-
+        <PostBarForReportList {...content} {...author} _id={_id} />
     )
 }
 
 const ReportedContentBar = ({ content, children }: PropsWithChildren<{ content: ReportedContent }>) => {
 
     return (
-        <article className="p-2 my-2">
-            <Navigate comp="link" goto={`/${content.content_type}/${content._id}/reports`}>
-                <div className="flex gap-4 flex-col sm:flex-row">
-                    <ContentBar {...content} />
-                </div>
-            </Navigate>
+        <div className="p-2 my-2 border border-gray10 bg-gray10 sm:rounded-md">
+            <ContentBar {...content} />
             <ReasonTiles reasons={content.reasons} total={content.total} />
-            {content.content.warnedOn && (
-                <p className="my-2 text-sm text-center">The author of this {content.content_type} has been already warned on {new Date(content.content.warnedOn).toLocaleString()}</p>
-            )}
+            <OptionalChildren condition={content.content.warnedOn}>
+                <p className="my-2 text-sm text-center">
+                    The author of this {content.content_type} has been already warned on {new Date(content.content.warnedOn!).toLocaleString()}
+                </p>
+            </OptionalChildren>
             {children}
-        </article>
+        </div>
     )
 }
 

@@ -157,8 +157,6 @@ interface RedisJsonOptionsMap extends Record<RedisJsonCommands, [...BaseOptions,
 
 type RedisJsonPath = "root" | string
 
-type RedisJsonReturnType<T = unknown, E extends ChainableCommander | Redis = Redis> = E extends Redis ? Promise<T[]> : E
-
 const resolvePath = (path: RedisJsonPath, index?: number) => {
   return `$${index ? `[${index}]` : ''}${path === "root" ? '' : `.${path}`}`
 }
@@ -366,7 +364,9 @@ const isRedisJsonStage = (s: Stage): s is RedisJsonStage => {
 }
 
 const mapResults = (stack: ExtendedRedisStage[], results: unknown[], store: TypedStore) => {
-  if (stack.length !== results.length) throw new Error("");
+  if (stack.length !== results.length)
+    throw new Error("Size of the results does not match the size of the stack for execution.");
+
   stack.forEach((stage, i) => {
     const result = results[i];
     store.set(stage.ref || stage.key, result);
@@ -418,8 +418,9 @@ const executeStack = async (redis: Redis | UpstashRedis, stack: ExtendedRedisSta
     else if (redisJsonStage) {
       if (!ins) return;
       const command = stage.method.replace('json.', '') as RedisJsonCommands;
-      const method = ins[command];
-      method(...stage.options)
+      // const method = ins[command];
+      // method(...stage.options)
+      (ins[command] as Function).call(ins, ...stage.options)
     }
     else execStage(multi, stage);
   });

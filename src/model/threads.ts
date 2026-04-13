@@ -5,7 +5,7 @@ import { model, models, StrictSchema } from "@type/mongoose";
 import { basedOnModel, frameModel, linkModel, numberSchema } from "./general";
 
 const threadModel = new StrictSchema<ThreadModelType>({
-  _id: { type: String, default: parloId },
+  _id: { type: String, default: () => parloId() },
   name: {
     type: String,
     required: true,

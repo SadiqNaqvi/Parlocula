@@ -1,6 +1,6 @@
 "use client";
 
-import { contentReportOptions, threadReportOptions, userReportOptions } from "@lib/constants";
+import { allReasonsToReport, contentReportOptions, threadReportOptions, userReportOptions } from "@lib/constants";
 import { checkIfReportExists } from "@lib/helpers/common";
 import { useQueryHook } from "@lib/hooks";
 import { getQueryKeys } from "@lib/utils";
@@ -10,6 +10,9 @@ import Choice from "./form/Choice";
 import { CheckIcon } from "@assets/Icons";
 import { ReportTypeEnum } from "@type/schemas";
 import { submitReportMutation } from "@lib/helpers/mutations";
+import { OptionalChildren } from "./ui";
+import { UidsForReportReason } from "@type/other";
+import { toast } from "sonner";
 
 const ReportSheet = ({ id, type, uid, ext_id }: { type: ReportTypeEnum, id: string, uid: string, ext_id: string | undefined }) => {
 
@@ -18,19 +21,19 @@ const ReportSheet = ({ id, type, uid, ext_id }: { type: ReportTypeEnum, id: stri
         queryKeys: getQueryKeys("ifReportExists_cnid_type", { cnid: id, type }),
     });
 
-    const [chosenOption, setChosenOption] = useState('');
+    const [chosenOption, setChosenOption] = useState<UidsForReportReason | ''>('');
 
     if (data) return (
-        <section className="py-4 px-2 sm:px-4">
-            <div className="my-4">
-                <span className="inline p-4 bg-green-500/20 rounded-full">
-                    <CheckIcon className="color-invert size-20" />
-                </span>
+        <section className="px-2">
+            <div className="mx-auto mb-4 p-4 size-fit aspect-square bg-green-500/20 rounded-full">
+                <CheckIcon className="color-invert size-20" />
             </div>
-            <h4 className="text-lg">You have already reported this {type}.</h4>
             <div className="mt-4 space-y-2">
-                <p>Please wait while your report gets reviewed. You will be inform shortly.</p>
-                <p className="text-sm">Reason: {data.reason}</p>
+                <h4 className="font-semibold text-center">You have successfully reported this {type}.</h4>
+                <p className="text-center text-sm">Please wait while your report gets reviewed. You will be inform shortly.</p>
+            </div>
+            <div className="mt-8 space-y-2 w-fit mx-auto">
+                <p className="text-sm">Reason: {allReasonsToReport[data.reason]}</p>
                 <p className="text-sm">Details: {data.details || "No details were provided"}</p>
             </div>
 
@@ -39,11 +42,16 @@ const ReportSheet = ({ id, type, uid, ext_id }: { type: ReportTypeEnum, id: stri
 
     const reportOptions = type === "user" ? userReportOptions : type === "thread" ? threadReportOptions : contentReportOptions;
 
-    const submitChoice = (c: { report: string }) => {
+    const submitChoice = (c: { report: UidsForReportReason }) => {
         setChosenOption(c.report);
     }
 
     const submitReport = ({ details }: { details: string }) => {
+        if (!chosenOption) {
+            toast("Something went wrong. Please close and reopen the sheet and try again.");
+            return;
+        }
+        
         submitReportMutation(uid, id, type,
             {
                 content_id: id,
@@ -56,36 +64,38 @@ const ReportSheet = ({ id, type, uid, ext_id }: { type: ReportTypeEnum, id: stri
     }
 
     if (!chosenOption) return (
-        <section className="size-full">
-            <p className="text-sm">Help us make Parlocula a safe place for everyone, no matter their age.</p>
-            {type === "user" || type === "thread" && (
-                <p className="text-sm mt-2 text-gray-500">
+        <section className="px-2">
+            <h4 className="text-center font-semibold">Help us make Parlocula a safe place for everyone, no matter their age.</h4>
+            <OptionalChildren condition={type === "user" || type === "thread"}>
+                <p className="text-sm mt-4 text-gray-500">
                     To help us understand the real problem, make sure to report the corrent thing. If a content (post or comment) voilates the flow of using the app, report the content instead.
                 </p>
-            )}
-            <Form submit={submitChoice}>
+            </OptionalChildren>
+
+            <Form className="mt-4" submit={submitChoice}>
                 <div className="flex flex-wrap gap-2">
                     {reportOptions.map(o => (
-                        <Choice key={o} type="checkbox" group="report" label={o} name={o} />
+                        <Choice key={o} type="radio" group="report" label={allReasonsToReport[o]} name={o} />
                     ))}
-                    <Choice type="checkbox" group="report" label="Others" name="Others" />
                 </div>
-                <div className="mt-4 absolute w-full bottom-0 p-4 border-t border-gray30">
-                    <button type="submit" className="primary w-full sm:w-fit sm:ml-auto">Next</button>
+                <div className="mt-4 bg-primary sticky w-full bottom-0 p-4 border-t border-gray30">
+                    <button type="submit" className="primary w-full">Next</button>
                 </div>
             </Form>
         </section>
     )
 
     return (
-        <section className="size-full">
-            <h3 className="my-4 text-lg font-semibold">Selected: {chosenOption}</h3>
+        <section className="px-2">
+            <h3 className="my-4 text-lg font-semibold">Selected: {allReasonsToReport[chosenOption]}</h3>
             <Form submit={submitReport}>
                 <Textarea
                     name="details"
-                    description={chosenOption === "Others" ? "Required" : "Optional"}
+                    className="h-20"
+                    description={chosenOption === "others" ? "Required" : "Optional"}
                     placeholder="Add details about your report. Please do not include any personal information or questions."
                 />
+                <button className="primary w-full mt-4" type="submit">Submit</button>
             </Form>
         </section>
     )

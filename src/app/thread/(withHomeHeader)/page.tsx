@@ -1,12 +1,13 @@
 import FilterTiles from "@components/FilterTiles";
+import { ThreadNavbar } from "@components/TopNavbar";
+import { getUserFromToken } from "@lib/auth/utils";
 import { getThreads } from "@lib/helpers/common";
 import { getQueryClient, prefetchInfiniteQuery } from "@lib/providers/queryClient";
 import { getQueryKeys, refineSearchParams } from "@lib/utils";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
-import ThreadList from "./ThreadList";
-import { getUserFromToken } from "@lib/auth/utils";
-import { cookies } from "next/headers";
 import { ParloPageProps } from "@type/other";
+import { cookies } from "next/headers";
+import ThreadList from "./ThreadList";
 
 const PopularThreadsPage = async ({ searchParams }: ParloPageProps) => {
     const sp = await searchParams;
@@ -28,7 +29,8 @@ const PopularThreadsPage = async ({ searchParams }: ParloPageProps) => {
 
     return (
         <HydrationBoundary state={dehydrate(queryClient)}>
-            <section className="my-4">
+            <ThreadNavbar />
+            <section className="my-4 px-2">
                 <FilterTiles type="threads" />
             </section>
             <ThreadList allowNsfw={allowNsfw} section="popular" filter={filter} page={page} />

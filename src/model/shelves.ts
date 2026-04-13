@@ -5,7 +5,7 @@ import { model, models, StrictSchema } from "@type/mongoose";
 import { numberSchema } from "./general";
 
 const shelfModel = new StrictSchema<ShelfModelType>({
-  _id: { type: String, default: parloId },
+  _id: { type: String, default: () => parloId() },
   name: {
     type: String,
     required: true,

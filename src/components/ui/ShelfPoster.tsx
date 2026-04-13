@@ -1,31 +1,31 @@
-import { CollectionIcon, EyesIcon, HeartIcon, StarIcon } from "@assets/Icons";
+import { CollectionIcon, EyeIcon, EyesIcon, HeartIcon, StarIcon } from "@assets/Icons";
 import { AllShelves } from "@type/models";
 import { twMerge } from "tailwind-merge";
 import ParloImage from "./ParloImage";
 
-const ShelfPosterIcons = ({ type, className }: { type: AllShelves, className?: string }) => {
+export const ShelfPosterIcons = ({ type, className }: { type: AllShelves, className?: string }) => {
 
     if (type === "favourite") return (
-        <div className={twMerge("rounded-full size-full flex flex-cntr-all bg-gray10", className)}>
-            <HeartIcon className="text-pink-500 size-full max-w-16" />
+        <div className={twMerge("text-pink-500 rounded-full size-full flex flex-cntr-all bg-gray10", className)}>
+            <HeartIcon className="size-full max-w-16" />
         </div>
     );
 
     else if (type === "recommended") return (
-        <div className={twMerge("rounded-full size-full flex flex-cntr-all bg-gray10", className)}>
-            <StarIcon className="text-purple-500 size-full max-w-16" />
+        <div className={twMerge("text-purple-500 rounded-full size-full flex flex-cntr-all bg-gray10", className)}>
+            <StarIcon className="size-full max-w-16" />
         </div>
     );
 
     else if (type === "watched") return (
-        <div className={twMerge("rounded-full size-full flex flex-cntr-all bg-gray10", className)}>
-            <EyesIcon className="text-orange-500 size-full max-w-16" />
+        <div className={twMerge("text-orange-500 rounded-full size-full flex flex-cntr-all bg-gray10", className)}>
+            <EyeIcon className="size-full max-w-16" />
         </div>
     );
 
     else return (
-        <div className={twMerge("rounded-full size-full flex flex-cntr-all bg-gray10", className)}>
-            <CollectionIcon className="text-sky-500 size-full max-w-16" />
+        <div className={twMerge("text-sky-500 rounded-full size-full flex flex-cntr-all bg-gray10", className)}>
+            <CollectionIcon className="size-full max-w-16" />
         </div>
     );
 };
@@ -63,7 +63,7 @@ const ShelfPoster = ({ fancy, poster, shelf_type, name, className, iconsClassNam
     )
 
     return (
-        <ShelfPosterIcons className={twMerge(bigSize ? `${bigSizeClass} sm:p-6` : smallSizeClass, useClassNameForBoth ? className : "", iconsClassName)} type={shelf_type} />
+        <ShelfPosterIcons className={twMerge(bigSize ? `${bigSizeClass} p-4 sm:p-6` : smallSizeClass, useClassNameForBoth ? className : "", iconsClassName)} type={shelf_type} />
     )
 
 }

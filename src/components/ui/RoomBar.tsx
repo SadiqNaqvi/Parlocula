@@ -10,7 +10,7 @@ import ParloImage from "./ParloImage";
 import useGlobalStore from "@store/globalStore";
 import MetadataTile, { MetadataTileContainer } from "./MetaDataTile";
 
-const RoomBar = ({ lastMessageAt, lastMessageBy, mute, otherParticipant_seenAt, display_name, poster, room_id, _id, seenAt, lastMessage, type, status }: Partial<MereRoomType> & { _id: string }) => {
+const RoomBar = ({ lastMessageAt, lastMessageBy, mute, otherParticipant_seenAt, display_name, poster, room_id, _id, seenAt, lastMessage, type, status, room_type }: Partial<MereRoomType> & { _id: string }) => {
 
     const { meta } = useCurrentUser();
     const [_, setSelectedRoomId] = useGlobalStore<string>("roombarSheet", undefined);
@@ -33,7 +33,7 @@ const RoomBar = ({ lastMessageAt, lastMessageBy, mute, otherParticipant_seenAt, 
             comp="link">
             <article className="py-2 flex gap-3 items-center">
                 <ParloImage
-                    frameType="userProfile"
+                    frameType={room_type === "private" ? "userProfile" : "groupPoster"}
                     alt={`Profile picture of ${display_name}`}
                     size={40}
                     frame={poster}

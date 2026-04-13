@@ -1,3 +1,4 @@
+import { allReasonsToReport } from "@lib/constants";
 import { parloId } from "@lib/utils";
 import { ReportModelType } from "@type/models";
 import type { StrictModel } from "@type/mongoose";
@@ -13,6 +14,7 @@ const reportModel = new StrictSchema<ReportModelType>({
   reason: {
     type: String,
     required: true,
+    enum: Object.keys(allReasonsToReport)
   },
   details: String,
   ext_id: String,

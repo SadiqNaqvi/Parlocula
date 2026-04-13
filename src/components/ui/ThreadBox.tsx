@@ -6,7 +6,7 @@ import ParloImage from "./ParloImage";
 const ThreadBox = ({ _id, name, poster }: MereThread) => (
     <article className="size-24" key={_id}>
         <Navigate
-            historyPayload={{ title: name, poster }}
+            historyPayload={{ title: name, poster, type: "thread" }}
             className="size-full p-2 flex flex-col flex-cntr-all gap-3"
             comp="link"
             role="button"

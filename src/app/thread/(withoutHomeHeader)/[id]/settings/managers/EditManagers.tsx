@@ -3,7 +3,7 @@
 import { ListSelector, ListSelectorRef, Navbar } from "@components";
 import { RefinedValues } from "@components/ListSelector";
 import { threadManagersLimit } from "@lib/constants";
-import { searchMembers } from "@lib/helpers/common";
+import { getMembers, searchMembers } from "@lib/helpers/common";
 import { inviteManagersMutation, removeManagersMutation } from "@lib/helpers/mutations";
 import { getQueryKeys } from "@lib/utils";
 import { UserMetaData } from "@store/user";
@@ -108,6 +108,8 @@ export const InviteManagers = ({ back, uid, tid, managersCount }: Props & { mana
                     mode="search"
                     queryFn={(q, p) => searchMembers(tid, q, p)}
                     queryKeys={(query) => getQueryKeys("searchMembers_tid_query", { tid, query })}
+                    queryFnForList={(p) => getMembers(tid, p)}
+                    queryKeysForList={getQueryKeys("members_tid", { tid })}
                     callbackRef={callbackRef}
                     inputPlaceholder="Search Members"
                     className="mt-4"

@@ -3,13 +3,12 @@ import {
   AvailableCacheTags,
   AvailableQueryKeys,
   AvailableRevalidateTags,
-  CloudinaryMediaOptions,
   ErrorCodes,
   ExternalImageTypeToSizeMap,
   QueryFilterType,
   ReportReasonType,
+  UidsForReportReason
 } from "@type/other";
-import { ExtMediaSource } from "@type/schemas";
 
 export const searchFilters = [
   "all",
@@ -64,7 +63,7 @@ export const passwordValidator =
 export const usernamePattern = /^[a-z][a-z0-9_]*$/;
 
 export const emailPattern =
-  /^[a-zA-Z]+[a-zA-Z0-9-]{2,}\@+[a-z]{4,}\.[a-z]{3,}$/;
+  /^[a-zA-Z]+[a-zA-Z0-9-\.]{2,}\@+[a-z]{4,}\.[a-z]{3,}$/;
 
 export const externalImgUrlPrefix = "https://image.tmdb.org/t/p/";
 
@@ -290,6 +289,8 @@ export const filterToSort: Record<QueryFilterType, any> = {
     recently_added: { last_added: -1 },
   },
 };
+export const oneMinInSeconds = 60;
+export const oneMinInMiliSeconds = 1000 * oneMinInSeconds;
 export const oneHourInSeconds = 3600;
 export const oneHourInMiliSeconds = oneHourInSeconds * 1000;
 export const oneDayInSeconds = oneHourInSeconds * 24;
@@ -550,34 +551,42 @@ export const optimisedImageProps: Record<
 
 export const predefinedShelves: AllShelves[] = ["favourite", "recommended", "watched"];
 
-const commonReportOptions: ReportReasonType[] = [
-  "Spam or Promoting Spam",
-  "Harassment/Threatening",
-  "Hate/Abuse",
-  "Promoting or Mentioning illegal activities",
-  "Promoting/Selling Items",
-  "Attached Malicious/Harmful Links",
-  "Promoting/Performing Self harm or Suicide",
-  "Spreading False Information",
+export const allReasonsToReport: Record<UidsForReportReason, ReportReasonType> = {
+  "sops": "Spam or Promoting Spam",
+  "hot": "Harassment/Threatening",
+  "hoa": "Hate/Abuse",
+  "pomia": "Promoting or Mentioning illegal activities",
+  "posi": "Promoting/Selling Items",
+  "amohl": "Attached Malicious/Harmful Links",
+  "popshos": "Promoting/Performing Self harm or Suicide",
+  "sfi": "Spreading False Information",
+  "mbfan": "Must be flagged as NSFW",
+  "mbfas": "Must be flagged as Spoiler",
+  "maos": "Minor Abuse or Sexualization",
+  "ipc": "Inappropriate Content",
+  "ioptbse": "Impersonation/Pretending to be someone else",
+  "nla": "No Longer Active",
+  "sof": "Scam or Fraud",
+  "uau": "Under-age User",
+  "dplt": "Duplicate Thread",
+  "others": "Others",
+}
+
+const commonReportOptions: UidsForReportReason[] = [
+  "sops", "hot", "hoa", "pomia", "posi", "amohl", "popshos", "sfi"
 ];
 
-export const contentReportOptions: ReportReasonType[] = [
-  "Flag as NSFW",
-  "Flag as Spoiler",
-  "Minor Abuse or Sexualization",
-  "Inappropriate Content",
+export const contentReportOptions: UidsForReportReason[] = [
   ...commonReportOptions,
+  "mbfan", "mbfas", "maos", "ipc", "others"
 ];
 
-export const userReportOptions: ReportReasonType[] = [
+export const userReportOptions: UidsForReportReason[] = [
   ...commonReportOptions,
-  "Impersonation/Pretending to be someone else",
-  "No Longer Active",
-  "Scam or Fraud",
-  "Under-age User",
+  "ioptbse", "nla", "sof", "uau", "others"
 ];
 
-export const threadReportOptions: ReportReasonType[] = [
+export const threadReportOptions: UidsForReportReason[] = [
   ...commonReportOptions,
-  "Duplicate Thread",
+  "mbfan", "dplt", "others"
 ];

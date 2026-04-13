@@ -16,6 +16,7 @@ import axios from "axios";
 import { ZodIssue } from "zod";
 import { setUserOnRefreshOrLogin } from "./user";
 import { AppRouterInstance } from "@type/nextjs";
+import { roomSchema } from "@lib/schemas";
 
 type MutationFunction<R> = () => Promise<GeneralPostReturn<R>>
 
@@ -1243,6 +1244,7 @@ export const createRoomMutation = async (rmid: string, room: RoomSchemaType & { 
         otherParticipant_id: ruid,
         otherParticipant_seenAt: undefined,
         seenAt: now,
+        room_type: room.type,
         poster: poster && frame ? { ...frame, path: poster } : undefined,
         room_id: rmid,
         createdAt: now,

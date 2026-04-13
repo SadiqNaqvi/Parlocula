@@ -46,7 +46,7 @@ const Component = (data: FullPost, { uid }: Props) => {
                 <header className="px-2 flex gap-2 items-center">
                     <Navigate comp="link" role="button" goto={`/thread/${thread_id}`}>
                         <ParloImage
-                            frameType="threadPoster"
+                            frameType="groupPoster"
                             containerClassName="max-h-8 max-w-8 overflow-hidden"
                             className="min-w-8 size-8 rounded-full"
                             frame={poster}
@@ -83,7 +83,7 @@ const Component = (data: FullPost, { uid }: Props) => {
 
                 <article>
 
-                    <h1 className="text-lg sm:text-xl font-semibold">{title}</h1>
+                    <h1 className="selectable text-lg sm:text-xl font-semibold">{title}</h1>
 
                     <OptionalChildren condition={quoted_post_id && quoted_post_title}>
                         <section className="my-4 border border-gray30">
@@ -107,7 +107,7 @@ const Component = (data: FullPost, { uid }: Props) => {
                         </section>
                     </OptionalChildren>
 
-                    <p className="mt-4 whitespace-break-spaces">{body}</p>
+                    <p className="selectable mt-4 whitespace-break-spaces">{body}</p>
 
                 </article>
 

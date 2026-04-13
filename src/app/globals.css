@@ -4,10 +4,15 @@
   --breakpoint-xs: 375px;
   --breakpoint-sm: 480px;
   --breakpoint-md: 640px;
+  --breakpoint-tablet: 768px;
 }
 
 * {
   box-sizing: border-box !important;
+}
+
+*:not(.selectable) {
+  user-select: none;
 }
 
 :root {
@@ -274,7 +279,7 @@ form:where(
 }
 
 .f-button.is-arrow {
-  z-index: 2 !important;
+  z-index: 1 !important;
 }
 
 @media screen and (width> 480px) {
@@ -478,7 +483,7 @@ html {
 body {
   height: 100dvh;
   max-height: fit-content;
-  overscroll-behavior-y: none;
+  overscroll-behavior-y: contain;
   color-scheme: light dark;
   background-color: var(--primary);
   font-family:
@@ -658,7 +663,6 @@ textarea {
   outline: none;
   background-color: transparent;
   display: inline-table;
-  height: 1.3rem;
 }
 
 .nav-active {

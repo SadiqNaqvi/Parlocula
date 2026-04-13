@@ -1,4 +1,4 @@
-import { TabContainer, TabList } from "@components/ui";
+import { OptionalChildren, TabContainer, TabList } from "@components/ui";
 import { NotFound } from "@components/fallbacks";
 import PostPageSkeleton from "@components/ui/loading/PostPageSkeleton";
 import { getUserFromToken } from "@lib/auth/utils";
@@ -11,6 +11,7 @@ import { Metadata } from "next";
 import { cookies } from "next/headers";
 import { PropsWithChildren, Suspense } from "react";
 import PostHeader from "./PostHeader";
+import { AlertIcon, CommentIcon, QuoteIcon } from "@assets/Icons";
 
 export const generateMetadata = async ({ params }: ParloPageProps): Promise<Metadata> => {
 
@@ -76,9 +77,20 @@ const Fetcher = async ({ id, children }: PropsWithChildren<{ id: string }>) => {
             <PostHeader uid={user?.user_id} id={id} />
             <div className="my-6">
                 <TabContainer>
-                    <TabList href={`/post/${id}`}>Comments</TabList>
-                    <TabList href={`/post/${id}/quotes`}>Quotes</TabList>
-                    <TabList href={`/post/${id}/reports`}>Reports</TabList>
+                    <TabList className="flex gap-2 flex-cntr-all" href={`/post/${id}`}>
+                        <CommentIcon className="min-w-5" />
+                        <span>Comments</span>
+                    </TabList>
+                    <TabList className="flex gap-2 flex-cntr-all" href={`/post/${id}/quotes`}>
+                        <QuoteIcon className="min-w-5" />
+                        <span>Quotes</span>
+                    </TabList>
+                    <OptionalChildren condition={user}>
+                        <TabList className="flex gap-2 flex-cntr-all" href={`/post/${id}/reports`}>
+                            <AlertIcon className="min-w-5" />
+                            <span>Reports</span>
+                        </TabList>
+                    </OptionalChildren>
                 </TabContainer>
             </div>
             {children}

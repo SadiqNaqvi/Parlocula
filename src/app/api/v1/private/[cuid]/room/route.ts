@@ -23,6 +23,8 @@ export const GET = getHandler(async (r, params) => {
 
   const result: { data: RoomListResponse[]; total: number } | undefined = resp[0];
 
+  console.log(result);
+
   if (result && result.data.length)
     await storeRoomList(cuid, result.data, result.total);
 

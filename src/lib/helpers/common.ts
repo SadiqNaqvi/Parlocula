@@ -15,6 +15,7 @@ import {
   MereShelf,
   MereThread,
   MereUser,
+  ReportedContentEnum,
   ReportsType,
   RequestedUser,
   SearchedRoom,
@@ -26,7 +27,7 @@ import {
 } from "@type/internal";
 import { CollaboratorModelType, MembershipModelType, NotificationModelType, ReportModelType } from "@type/models";
 import { AvailableCacheTags, CookiesType, PPGetDataProps } from "@type/other";
-import { oneDayInMiliSeconds, oneDayInSeconds, oneHourInSeconds, parloculaAppURL, queryFilters } from "../constants";
+import { oneDayInMiliSeconds, oneDayInSeconds, oneHourInSeconds, oneMinInSeconds, parloculaAppURL, queryFilters } from "../constants";
 import { createUpdateTaleon } from "./mutations";
 
 export const ppGetData = async <T, K extends AvailableCacheTags = any>(
@@ -39,7 +40,7 @@ export const ppGetData = async <T, K extends AvailableCacheTags = any>(
   const urlToFetch = new URL(url, `${parloculaAppURL}/api/v1/`);
 
   Object.entries(searchParams ?? {}).forEach(([k, v]) => {
-    urlToFetch.searchParams.set(k, String(v));
+    if (v !== undefined) urlToFetch.searchParams.set(k, String(v));
   });
 
   try {
@@ -519,6 +520,7 @@ export const getItems = async (
 export const searchPosts = async (query: string, nsfw: boolean, page = 1) =>
   await ppGetData<AggregatedResponse<MerePost>>({
     url: "search/posts",
+    revalidate: oneMinInSeconds * 5,
     searchParams: { q: query, nsfw, p: page },
   });
 
@@ -531,42 +533,49 @@ export const searchComments = async (query: string, nsfw: boolean, page = 1) =>
 export const searchThreads = async (query: string, nsfw: boolean, page = 1) =>
   await ppGetData<AggregatedResponse<MereThread>>({
     url: "search/threads",
+    revalidate: oneMinInSeconds * 5,
     searchParams: { q: query, nsfw, p: page },
   });
 
 export const searchUsers = async (query: string, page = 1) =>
   await ppGetData<AggregatedResponse<MereUser>>({
     url: "search/users",
+    revalidate: oneMinInSeconds * 5,
     searchParams: { q: query, p: page }
   });
 
 export const searchShelves = async (query: string, page = 1) =>
   await ppGetData<AggregatedResponse<MereShelf>>({
     url: "search/shelves",
+    revalidate: oneMinInSeconds * 5,
     searchParams: { q: query, p: page }
   })
 
 export const searchFollowers = async (q: string, uid: string, p = 1) =>
   await ppGetData<AggregatedResponse<MereUser>>({
     url: `private/${uid}/search/followers`,
+    revalidate: oneMinInSeconds * 5,
     searchParams: { q, p }
   });
 
 export const searchBlockedUsers = async (q: string, uid: string, p = 1) =>
   await ppGetData<AggregatedResponse<MereUser>>({
     url: `private/${uid}/search/blocked`,
+    revalidate: oneMinInSeconds * 5,
     searchParams: { q, p }
   });
 
 export const searchFollowing = async (q: string, uid: string, p = 1) =>
   await ppGetData<AggregatedResponse<MereUser>>({
     url: `private/${uid}/search/following`,
+    revalidate: oneMinInSeconds * 5,
     searchParams: { q, p }
   });
 
 export const searchBannedMembers = async (tid: string, uid: string, q: string, p = 1) =>
   await ppGetData<AggregatedResponse<MereUser>>({
     url: `private/${uid}/search/banned/${tid}`,
+    revalidate: oneMinInSeconds * 5,
     searchParams: { q, p }
   });
 
@@ -713,42 +722,57 @@ export const getUserMeta = async (uid: string) =>
   await ppGetData<MereUser>({ url: `user/meta/${uid}` });
 
 
-export const getReportsOnContent = async (content_id: string) =>
-  await ppGetData<{ reports: ReportsType[] }>({
-    url: `report/${content_id}`,
-    revalidate: oneDayInSeconds,
-    tag: "reports_cnid",
-    options: { cnid: content_id }
-  });
-
-export const checkIfReportExists = async (cnid: string, uid: string, type: "post" | "comment" | "thread" | "user", cookies?: CookiesType) =>
+export const checkIfReportExists = async (cnid: string, uid: string, type: ReportedContentEnum, cookies?: CookiesType) =>
   await ppGetData<ReportModelType>({
     url: `private/${uid}/report/${cnid}`,
     searchParams: { t: type },
     cookies,
     revalidate: oneDayInSeconds * 3
-  })
-
-export const getReportsOnThread = async (tid: string, uid: string) =>
-  await ppGetData<{ reports: ReportsType[] }>({
-    url: `private/${uid}/report/${tid}/thread`
   });
+
+export const getReportsOnContent = async (uid: string, cnid: string, type: ReportedContentEnum, page: number, reason?: string, cookies?: CookiesType) =>
+  await ppGetData<AggregatedResponse<{ details: string }>>({
+    url: `private/${uid}/report/${cnid}/details`,
+    searchParams: { t: type, p: page, reason },
+    revalidate: oneDayInSeconds,
+    tag: "reports_cnid",
+    options: { cnid },
+    cookies,
+  });
+
+export const getReportReasonToCountMap = async (uid: string, cnid: string, type: ReportedContentEnum, cookies?: CookiesType) =>
+  await ppGetData<{ reports: ReportsType[] }>({
+    url: `private/${uid}/report/${cnid}/count`,
+    searchParams: { t: type },
+    revalidate: oneDayInSeconds,
+    tag: "reports_cnid",
+    options: { cnid },
+    cookies,
+  });
+
+// export const getReportsOnThread = async (tid: string, uid: string) =>
+//   await ppGetData<{ reports: ReportsType[] }>({
+//     url: `private/${uid}/report/${tid}/thread`,
+//     revalidate: oneMinInSeconds * 5
+//   });
 
 export const getReportedContents = async (tid: string, uid: string, type: "post" | "comment", page = 1) =>
   await ppGetData<AggregatedResponse<ReportsType>>({
     url: `private/${uid}/report/${tid}/${type}s`,
     searchParams: { p: page },
+    revalidate: oneMinInSeconds * 5
   });
 
 export const searchRooms = async (uid: string, query: string, page = 1) =>
   await ppGetData<AggregatedResponse<SearchedRoom>>({
     url: `private/${uid}/search/rooms`,
     searchParams: { q: query, p: page },
+    revalidate: oneMinInSeconds * 5,
   });
 
 export const searchNonBlockedUsers = async (uid: string, query: string, page = 1) =>
   await ppGetData<AggregatedResponse<MereUser>>({
-
     url: `private/${uid}/search/users`,
-    searchParams: { q: query, p: page }
+    searchParams: { q: query, p: page },
+    revalidate: oneMinInSeconds * 5,
   });

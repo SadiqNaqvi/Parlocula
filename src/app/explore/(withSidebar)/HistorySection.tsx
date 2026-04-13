@@ -2,34 +2,37 @@
 
 import { OptionalChildren, ParloImage, ParloImageFrameType } from "@components/ui";
 import { useHistoryStack } from "@lib/hooks";
-import useOfflineStore from "@store/offlineStore";
-import { Frame } from "@type/internal";
 import { HistoryStackType } from "@type/other";
 import { useRouter } from "next/navigation";
 import { twMerge } from "tailwind-merge";
 
 const predictFrameType = (path: string): ParloImageFrameType => {
-    if (path.includes("/thread")) return "threadPoster";
+    if (path.includes("/thread")) return "groupPoster";
     else if (path.includes("/user")) return "userProfile";
     else if (path.includes("/shelf")) return "shelfPoster";
     return "poster";
 }
 
-const HistoryBar = ({ path, poster, title, image }: HistoryStackType) => (
-    <article className="py-2">
-        <div className="flex gap-2">
+const HistoryBar = ({ path, poster, title, image, type }: HistoryStackType) => (
+    <article className="py-2 cursor-pointer">
+        <div className="flex gap-2 items-center">
             <ParloImage
                 frame={poster}
                 frameType={predictFrameType(path)}
                 alt="Poster for the history item"
                 classNameForFallback="min-w-8 size-8 p-1"
-                className="size-10 min-w-10"
+                className="size-10 min-w-10 object-cover"
+                containerClassName="rounded-full"
             />
             <div>
-                <OptionalChildren condition={title}>
+                <OptionalChildren condition={title} fallback={(
+                    <p className="text-sky-500 wrap-anywhere">{path}</p>
+                )}>
                     <h4>{title}</h4>
                 </OptionalChildren>
-                <p className={`text-sky-500 ${title ? "text-sm" : ""}`}></p>
+                <OptionalChildren condition={type}>
+                    <p className="text-xs sm:text-sm text-zinc-500">{type}</p>
+                </OptionalChildren>
             </div>
         </div>
         <OptionalChildren condition={image}>
@@ -37,7 +40,7 @@ const HistoryBar = ({ path, poster, title, image }: HistoryStackType) => (
                 frame={image}
                 frameType="poster"
                 alt="Poster for the history item"
-                className="max-w-60 aspect-square rounded-md"
+                className="max-w-60 w-full h-auto max-h-80 rounded-md object-cover"
                 containerClassName="mt-2"
             />
         </OptionalChildren>

@@ -21,16 +21,15 @@ const checkNotificationAndSubscribe = async (uid: string) => {
     }
     else if (await getPushState() === "granted") return;
 
-    const { success, errCode } = await subscribeToPushAndSync(uid);
-    if (success) return;
+    // const { success, errCode } = await subscribeToPushAndSync(uid);
+    // if (success) return;
 
-    console.warn("Subscibe to push on start failed", errCode);
-    PushNotificationWarningToast();
+    // console.warn("Subscibe to push on start failed", errCode);
+    // PushNotificationWarningToast();
 }
 
 const setUser = (user: CurrentUser, contentFiltering: boolean) => {
 
-    console.log("USER IN SETUSER FUNC IN LIB/HELPERS/USER", user);
     if (!user) return;
     const { setUser, setUserMeta, setContentFiltering } = useCurrentUser.getState();
     setContentFiltering(contentFiltering);
@@ -40,7 +39,6 @@ const setUser = (user: CurrentUser, contentFiltering: boolean) => {
 
 export const setUserOnRefreshOrLogin = (user: CurrentUser, contentFiltering: boolean) => {
 
-    console.log("user in setUserAndRefresh Func", user);
     setUser(user, contentFiltering);
 
     const ably = getAblyOnClient(user._id);

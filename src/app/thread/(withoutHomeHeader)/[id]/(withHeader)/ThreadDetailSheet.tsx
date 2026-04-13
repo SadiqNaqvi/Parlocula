@@ -33,13 +33,21 @@ const ThreadDetailSheet = ({ connections, createdAt, creator, description, edite
             </Section>
 
             <Section heading="Assets">
-                <p className="my-2">Total Members: {numberConverter(member_count)}</p>
                 <p className="my-2">Total Posts: {numberConverter(post_count)}</p>
+                <div className="my-2 border border-gray20 rounded-md">
+                    <Navigate comp="link" goto="members" className="p-2 flex flex-cntr-between gap-2">
+                        <span className="line-clamp-1">Members: {numberConverter(member_count)}</span>
+                        <span><RightChevron /></span>
+                    </Navigate>
+                </div>
+            </Section>
+
+            <Section heading="Members">
             </Section>
 
             <Section heading="Creator" condition={creator}>
                 <div className="border border-gray20 rounded-md">
-                    <Navigate comp="link" goto={`/user/${creator}`} className="p-2 flex flex-cntr-all gap-2">
+                    <Navigate comp="link" goto={`/user/${creator}`} className="p-2 flex flex-cntr-between gap-2">
                         <span className="line-clamp-1">{creator}</span>
                         <span><RightChevron /></span>
                     </Navigate>
@@ -66,7 +74,7 @@ const ThreadDetailSheet = ({ connections, createdAt, creator, description, edite
 
             <Section heading="Last Edited By" condition={Boolean(edited_by)}>
                 <div className="border border-gray20 rounded-md">
-                    <Navigate comp="link" goto={`/user/${edited_by}`} className="p-2 flex flex-cntr-all gap-2">
+                    <Navigate comp="link" goto={`/user/${edited_by}`} className="p-2 flex flex-cntr-between gap-2">
                         <span className="line-clamp-1">{edited_by}</span>
                         <span><RightChevron /></span>
                     </Navigate>

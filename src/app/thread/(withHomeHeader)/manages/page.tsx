@@ -1,12 +1,16 @@
+import { Navbar } from "@components";
 import LoginModal from "@components/fallbacks/LoginModal";
 import { getUserFromToken } from "@lib/auth/utils";
 import { threadsManageByUser } from "@lib/helpers/common";
 import { getQueryClient, prefetchInfiniteQuery } from "@lib/providers/queryClient";
+import generateDynamicMetadata from "@lib/seo/metadata";
 import { getQueryKeys } from "@lib/utils";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { ParloPageProps } from "@type/other";
 import { cookies } from "next/headers";
 import ThreadList from "../ThreadList";
+
+export const metadata = generateDynamicMetadata({ title: "Managed Threads" });
 
 const Page = async ({ searchParams }: ParloPageProps) => {
 
@@ -21,7 +25,7 @@ const Page = async ({ searchParams }: ParloPageProps) => {
     const { p } = await searchParams;
     const page = parseInt(p || "1") || 1;
 
-    prefetchInfiniteQuery({
+    await prefetchInfiniteQuery({
         queryClient,
         queryFn: () => threadsManageByUser(user.user_id, page, jar),
         queryKey: getQueryKeys("threadsManageByUser_uid", { uid: user.user_id }),
@@ -30,6 +34,7 @@ const Page = async ({ searchParams }: ParloPageProps) => {
 
     return (
         <HydrationBoundary state={dehydrate(queryClient)}>
+            <Navbar navTitle="Managed Threads" />
             <ThreadList section="manages" />
         </HydrationBoundary>
     )

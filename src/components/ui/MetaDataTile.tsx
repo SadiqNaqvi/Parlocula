@@ -3,11 +3,14 @@ import { PropsWithChildren } from "react";
 import { twMerge } from "tailwind-merge";
 import OptionalChildren from "./OptionalChildren";
 
-export const MetadataTileContainer = ({ children, className }: PropsWithChildren<{ className?: string }>) => (
-    <ul className={twMerge("flex gap-2 items-center overflow-x-auto noScroll", className)}>
-        {children}
-    </ul>
-)
+export const MetadataTileContainer = ({ children, className }: PropsWithChildren<{ className?: string }>) => {
+    if (!children) return undefined;
+    return (
+        <ul className={twMerge("flex gap-2 items-center overflow-x-auto noScroll", className)}>
+            {children}
+        </ul>
+    )
+}
 
 type Props = {
     className?: string;

@@ -7,7 +7,7 @@ import type { StrictModel, } from "@type/mongoose";
 import { frameModel, numberSchema } from "./general";
 
 const roomModel = new StrictSchema<RoomModelType>({
-  _id: { type: String, default: parloId },
+  _id: { type: String, default: () => parloId() },
   participants: [String],
   participant_count: { ...numberSchema, default: 1 },
   type: {

@@ -61,6 +61,7 @@ const SaveButton = ({ id, count, type, uid, author, className }: Props) => {
             uid={uid}
             Loading={<LoadingButton primary={false} />}
             noUserStateChilren={<NoUserStateButton count={count} type={type} />}
+            noUserStateClassName={className}
             redirectAfterLogin={`/${type.toLocaleLowerCase()}/${id}`}
             errorStateClassName="flex p-2 border border-gray-500 border-opacity-30 rounded-md"
             Button={Button}

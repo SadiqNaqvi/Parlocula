@@ -1,6 +1,6 @@
 "use client";
 
-import { AppIcon, LeftChevron, ShareIcon } from "@assets/Icons";
+import { AppIcon, LeftChevron } from "@assets/Icons";
 import { ShareButton } from "@components";
 import { useTheme } from "next-themes";
 import { useRouter } from "next/navigation";
@@ -36,7 +36,7 @@ const Navbar = ({ className = "", onGoBack, OptionButton, navTitle, titleToShare
     }
 
     return (
-        <nav className={twMerge("px-2 py-4 sm:px-4 w-full bg-primary z-2 flex flex-cntr-between sticky top-0 fullScreen", className)}>
+        <nav className={twMerge("px-2 py-4 sm:px-4 w-full bg-primary z-4 flex flex-cntr-between sticky top-0 fullScreen", className)}>
 
             <div className="flex gap-2 items-center">
 
@@ -66,9 +66,7 @@ const Navbar = ({ className = "", onGoBack, OptionButton, navTitle, titleToShare
 
             <div className="flex gap-4 items-center">
                 <OptionalChildren condition={titleToShare}>
-                    <ShareButton title={titleToShare} url={urlToShare!}>
-                        <ShareIcon />
-                    </ShareButton>
+                    <ShareButton title={titleToShare} url={urlToShare!} />
                 </OptionalChildren>
 
                 {OptionButton}

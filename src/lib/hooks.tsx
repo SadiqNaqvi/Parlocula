@@ -453,6 +453,33 @@ export const useHistoryStack = () => {
     return { historyStack, pushInStack, removeFromStack }
 }
 
+type OfflineStackItem<T = any> = { id: string, member: T }
+
+export const useOfflineStack = <T,>(key: string, initial?: OfflineStackItem<T>[], limit = 20, allowDuplicate?: boolean) => {
+    const [stack, setStack] = useOfflineStore<OfflineStackItem<T>[]>(key, initial ?? []);
+
+    const pushInStack = (member: OfflineStackItem<T>) => {
+        let tempStack = [...(stack || [])]
+        if (tempStack.length >= limit) {
+            tempStack.pop();
+        }
+        if (!allowDuplicate) {
+            tempStack = tempStack.filter(h => h.id !== member.id);
+        }
+
+        tempStack.push(member);
+        setStack(tempStack);
+    }
+
+    const removeFromStack = (id: string) => {
+        setStack(stack.filter(i => i.id !== id));
+    }
+
+    return { stack, pushInStack, removeFromStack, setStack }
+}
+
+export const useSearchHistoryStack = <T,>() => useOfflineStack<T>("searchHistoryStack");
+
 export const useChageSearchParams = () => {
     const searchParams = useSearchParams();
     const pathname = usePathname();
@@ -487,15 +514,4 @@ export const useChageSearchParams = () => {
     }
 
     return { searchParams, pathname, addToSearchParams, removeFromSearchParams }
-}
-
-export const shouldNavigateToHome = (initial?: boolean) => {
-    const allowed = useRef(!!initial);
-
-    const updateState = (newState: boolean) => {
-        allowed.current = newState;
-    }
-
-    return { allowed: allowed.current, updateState }
-
 }

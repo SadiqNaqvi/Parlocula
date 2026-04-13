@@ -2,6 +2,7 @@ import { z } from "zod";
 import {
   allowedFormats,
   allowedSizes,
+  allReasonsToReport,
   availablePostCategories,
   emailPattern,
   extMediaSource,
@@ -358,7 +359,7 @@ export const bookmarkSchema = z.object({
 
 export const reportSchema = z
   .object({
-    reason: z.string(),
+    reason: z.enum(Object.keys(allReasonsToReport)),
     details: z.string().min(100).max(500).optional(),
     ext_id: z.string().optional(),
     content_id: z.string(),
@@ -397,8 +398,8 @@ export const sharedContentSchema = z.object({
 export const roomSchemaClient = z.object({
   name: z.string().max(50),
   inviteMessage: z.string()
-  .min(3,"Invitation Message must be at least 3 characters long")
-  .max(1000, "Invitation message cannot be more than 1000 characters long"),
+    .min(3, "Invitation Message must be at least 3 characters long")
+    .max(1000, "Invitation message cannot be more than 1000 characters long"),
 })
 
 export const roomSchema = z
@@ -415,14 +416,21 @@ export const roomSchema = z
     name: z.string().optional(),
     filesData: z.array(frameDataSchema).optional().default([]),
     files: z.array(formidableFileSchema).optional().default([]),
-    inviteMessage: z.string(),
+    inviteMessage: z.string().min(3).max(1000),
   })
   .refine(({ type, name, participants }) => {
+    console.log("Refine me aaya");
     if (type === "private") return true;
-    else if (participants.length < 3)
-      return { path: "custom", message: "At least 3 participants are required to create a group" };
-    else if (!name)
+
+    console.log("about to check participant length for group");
+    if (participants.length < 2)
+      return { path: "custom", message: "At least 2 participants are required to create a group" };
+
+    console.log("about to check name for group");
+    if (!name)
       return { path: "name", message: "Name of the group is required" };
+
+    return true;
   });
 
 export const roomUpdateSchema = z.object({

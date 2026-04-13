@@ -3,9 +3,10 @@ import { CommentModelType } from "@type/models";
 import type { StrictModel, } from "@type/mongoose";
 import { model, models, StrictSchema } from "@type/mongoose";
 import { numberSchema } from "./general";
+import { GenericDate } from "@type/internal";
 
 const commentModel = new StrictSchema<CommentModelType>({
-  _id: { type: String, default: parloId },
+  _id: { type: String, default: () => parloId() },
   content: {
     type: String,
     required: function (this: any) {
@@ -29,6 +30,7 @@ const commentModel = new StrictSchema<CommentModelType>({
     required: true,
   },
   edited_at: String,
+  warnedOn: Date,
   saved_count: numberSchema,
   likes_count: numberSchema,
   replies_count: numberSchema,

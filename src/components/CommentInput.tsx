@@ -233,7 +233,7 @@ const CommentInput = ({ post_author, post_id, section, editing, defaultValue, ci
                                     data-testid="commentInput"
                                     containerClasses="flex-1"
                                     placeholder="Write your comment here..."
-                                    className={`bg-gray10 border-0 px-0 w-full`}
+                                    className={`bg-gray10 border-0 px-0 pl-2 w-full`}
                                     name="content"
                                 />
 

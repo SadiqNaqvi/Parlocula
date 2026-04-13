@@ -1,7 +1,7 @@
 "use client";
 
 import { AddIcon, GlobeIcon, LeftChevron, MegaIcon, VimeoIcon, XmarkIcon, YoutubeIcon } from "@assets/Icons";
-import BottomSheet, { BottomSheetRef } from "@components/BottomSheet";
+import BottomSheet, { BottomSheetRef, NestedSheet } from "@components/BottomSheet";
 import { LoadingSpinner, OptionalChildren } from "@components/ui";
 import { mediaInputConfig, mediaUrlPattern, numberOfFrames, vimeoLinkPattern, youtubeLinkPattern } from "@lib/constants";
 import { createThumbHash, scaleImage, convertByteIntoSize } from "@lib/helpers/media";
@@ -420,7 +420,8 @@ const convertFrameToInputFrame = (frame: Frame[] | undefined): InputFrame[] => {
     }))
 }
 
-const MediaInputManager = ({ title, limit = 5, allowBoth, defaultFrames, getterRef, promptRef, className }: ManagerProps) => {
+const 
+MediaInputManager = ({ title, limit = 5, allowBoth, defaultFrames, getterRef, promptRef, className }: ManagerProps) => {
 
     const [frames, setFrames] = useState<FrameToReturn[]>(convertFrameToInputFrame(defaultFrames));
     const [frameType, setFrameType] = useState<"image" | "both">(allowBoth ? "both" : "image");
@@ -464,9 +465,9 @@ const MediaInputManager = ({ title, limit = 5, allowBoth, defaultFrames, getterR
     }
 
     if (!frames.length) return (
-        <BottomSheet ref={promptRef}>
+        <NestedSheet ref={promptRef}>
             <MediaInputPrompt callback={getframe} type={frameType} />
-        </BottomSheet>
+        </NestedSheet>
     );
 
     return (

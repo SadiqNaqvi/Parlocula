@@ -27,20 +27,17 @@ export const WarningModal = ({ action, dangerFunc, details, dangerButton }: Warn
             <h4 className="text-lg text-center">
                 Are you sure you want to {action}?
             </h4>
-            {details ?
-                <p className="mt-4 text-sm text-center text-zinc-500">{details}</p>
-                :
-                <p className="mt-4 text-sm text-center text-zinc-500">
-                    This action cannot be undone.
-                </p>
-            }
+            <p className="mt-2 text-sm text-center text-zinc-500">
+                {details || "This action cannot be undone."}
+            </p>
 
-            <div className=" flex flex-cntr-between">
-                <Drawer.Close className="primary">Cancel</Drawer.Close>
-                <button
-                    className="secondary border-red-500"
-                    onClick={dangerFunc}
-                >{dangerButton}</button>
+            <div className="flex gap-2 mt-4">
+                <button className="bigBtn border-2 border-red-500 flex-1" onClick={dangerFunc}>
+                    {dangerButton}
+                </button>
+                <Drawer.Close className="primary flex-1">
+                    Cancel
+                </Drawer.Close>
             </div>
 
         </aside>

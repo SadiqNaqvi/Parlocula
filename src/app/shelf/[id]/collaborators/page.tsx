@@ -1,8 +1,8 @@
 import LoginModal from "@components/fallbacks/LoginModal";
 import { NotFound, ShowError } from "@components/fallbacks";
 import { getUserFromToken } from "@lib/auth/utils";
-import { getCollaboratorsOfShelf } from "@lib/helpers/common";
-import { fetchQuery, getQueryClient } from "@lib/providers/queryClient";
+import { getCollaboratorsOfShelf, getFollowers } from "@lib/helpers/common";
+import { fetchQuery, getQueryClient, prefetchInfiniteQuery } from "@lib/providers/queryClient";
 import { getQueryKeys } from "@lib/utils";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { ShelfCollaborators } from "@type/internal";
@@ -17,7 +17,7 @@ const CollaboratorsPage = async ({ params }: ParloPageProps) => {
     const user = await getUserFromToken(jar);
 
     if (!user) return (
-        <LoginModal
+    <LoginModal
             redirectTo={`/shelf/${id}/collaborators`}
             title="Collaborators"
         />
@@ -30,6 +30,12 @@ const CollaboratorsPage = async ({ params }: ParloPageProps) => {
     const shelf = await fetchQuery<ShelfCollaborators>({
         queryKey: getQueryKeys("shelfCollaborators_sid", { sid }),
         queryFn: () => getCollaboratorsOfShelf(user.user_id, sid, jar),
+        queryClient,
+    });
+
+    prefetchInfiniteQuery({
+        queryKey: getQueryKeys("followersOfCurrentUser_uid", { uid: user.user_id }),
+        queryFn: () => getFollowers(user.user_id, 1, jar),
         queryClient,
     });
 

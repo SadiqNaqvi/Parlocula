@@ -1,6 +1,6 @@
 "use client";
 
-import { RightChevron } from "@assets/Icons";
+import { AddIcon, RightChevron } from "@assets/Icons";
 import { BottomSheet, BottomSheetRef, InfiniteScroller, LoadingButton, Navigate } from "@components";
 import { LoginModal } from "@components/fallbacks";
 import { ShelfSelector } from "@components/form";
@@ -136,9 +136,12 @@ const AddToShelf = ({ className, taleon, released }: { className?: string, taleo
 
                     <Navigate
                         goto={`/new/shelf?extid=${taleon.ext_id}&type=${taleon.taleon_type}`}
-                        comp="link" className="w-full flex flex-cntr-between"
+                        comp="link" className={buttonClassName}
                     >
-                        <span>Create New Shelf</span>
+                        <div className="flex items-center gap-2">
+                            <AddIcon />
+                            <span>Create New Shelf</span>
+                        </div>
                         <RightChevron />
                     </Navigate>
 

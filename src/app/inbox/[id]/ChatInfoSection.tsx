@@ -1,6 +1,6 @@
 "use client";
 
-import { BellIcon, BellSlashIcon, LinkIcon, RightChevron } from "@assets/Icons";
+import { BellIcon, BellSlashIcon, EyeSlashIcon, LeaveIcon, LinkIcon, RightChevron, UserIcon } from "@assets/Icons";
 import { BottomSheet, Navigate, NestedSheet, WarningModal } from "@components";
 import { OptionalChildren, ParloImage } from "@components/ui";
 import { hideRoom, leaveRoom, updateNotificationOfRoom } from "@lib/helpers/mutations";
@@ -49,7 +49,15 @@ const LeaveRoomButton = ({ rmid, uid }: Props) => {
     }
 
     return (
-        <NestedSheet button="Leave" className="p-2 flex gap-2 flex-1 sm:w-fit border border-gray40 rounded-md">
+        <NestedSheet
+            button={(
+                <>
+                    <LeaveIcon />
+                    <span>Leave</span>
+                </>
+            )}
+            className="p-2 flex gap-2 flex-col border border-gray40 rounded-md"
+        >
             <WarningModal
                 action="leave this room"
                 dangerButton="Leave"
@@ -68,8 +76,9 @@ const HideRoomButton = ({ rmid, uid }: Props) => {
     }
 
     return (
-        <button onClick={handleHide} className="p-2 flex gap-2 flex-1 sm:w-fit border border-gray40 rounded-md">
-            Hide
+        <button onClick={handleHide} className="p-2 flex flex-col gap-2 border border-gray40 rounded-md">
+            <EyeSlashIcon />
+            <span>Hide</span>
         </button>
     )
 }
@@ -82,9 +91,10 @@ const ActionSection = ({ display_name, mute, type, _id, uid }: Pick<FullRoomType
             <Navigate
                 goto={`/user/${display_name}`}
                 comp="link"
-                className="p-2 flex gap-2 flex-1 sm:w-fit border border-gray40 rounded-md">
-                <LinkIcon />
-                <span className="text-sm"></span>
+                className="p-2 flex gap-2 flex-1 sm:w-fit border border-gray40 rounded-md"
+            >
+                <UserIcon />
+                <span className="text-sm">Profile</span>
             </Navigate>
             <HideRoomButton rmid={_id} uid={uid} />
         </div>
@@ -97,8 +107,6 @@ const ActionSection = ({ display_name, mute, type, _id, uid }: Pick<FullRoomType
             <HideRoomButton rmid={_id} uid={uid} />
         </div>
     )
-
-
 
 }
 
