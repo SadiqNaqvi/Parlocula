@@ -41,7 +41,7 @@ export type ParseResponseType<T = Record<string, any>> = {
   status: number,
 }
 
-export const parseResponse = async (response: Response): Promise<ParseResponseType> => {
+export const parseResponse = async <T>(response: Response): Promise<ParseResponseType<T>> => {
   const body = await response.text();
   try {
     return {

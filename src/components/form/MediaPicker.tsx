@@ -335,7 +335,7 @@ export const MediaInputPrompt = ({ type, callback }: { type: "image" | "both", c
     }
 
     if (frame) return (
-        <section className="space-y-4 p-4">
+        <section className="space-y-4 p-4 h-80 max-h-fit">
 
             <FrameContainer className="mx-auto" {...frame} />
 

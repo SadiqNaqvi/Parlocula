@@ -50,8 +50,9 @@ const Fetcher = async ({ tid, children }: PropsWithChildren<{ tid: string }>) =>
 
     return (
         <HydrationBoundary state={dehydrate(queryClient)}>
-            <Thread uid={user?.user_id} id={tid} />
-            {children}
+            <Thread uid={user?.user_id} id={tid}>
+                {children}
+            </Thread>
         </HydrationBoundary>
     )
 }

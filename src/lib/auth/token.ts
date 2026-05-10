@@ -7,9 +7,10 @@ export function getEncryptionKey(): Uint8Array {
   return new Uint8Array(Buffer.from(secret, "hex"));
 }
 
-export const generateToken = async (details: TokenPayload) => {
+export const generateToken = async (payload: TokenPayload) => {
+  const cleanPayload = JSON.parse(JSON.stringify(payload))
   const secret = getEncryptionKey();
-  return await new SignJWT(details)
+  return await new SignJWT(cleanPayload)
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime("1d")

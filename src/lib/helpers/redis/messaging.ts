@@ -268,7 +268,6 @@ const removeRoomFromCache = async (rmid: string, pipeline?: Pipeline) => {
 }
 
 
-
 // Main functions 
 
 export const getParticipantsFromCache = async (rmid: string) => {
@@ -298,12 +297,15 @@ export const addParticipantInRoom = async (uid: string, rmid: string) => {
     pipeline.srem(`room:${rmid}:participants`, `${uid}-invitee`);
     pipeline.sadd(`room:${rmid}:participants`, `${uid}-participant`);
 
+    pipeline.hincrby(`room:${rmid}`, "participant_count", 1);
+
     removeInvitationFromList(uid, rmid, pipeline);
     addRoomsInList({
         pipeline,
         user_id: uid,
         items: [{ score: Date.now(), member: rmid }]
     });
+
     await pipeline.exec().then(handleUpstashPipelineResponse);
 }
 
@@ -365,7 +367,7 @@ const createPipelineForRoomList = (user_id: string, page: number, invitation?: b
 
     const key = Boolean(invitation) ? `user:${user_id}:invitations` : `rooms:${user_id}`;
 
-    const start = Boolean(invitation) ? 0 : page * queryLimit
+    const start = Boolean(invitation) ? 0 : page * queryLimit;
     const end = start + queryLimit - 1;
 
     const stage: Stage<{ data: MereRoomType[], total: number }>[] = [
@@ -377,7 +379,7 @@ const createPipelineForRoomList = (user_id: string, page: number, invitation?: b
             validate: (s, roomList: string[] | undefined) => {
 
                 const total = parseInt(s.get("totalRooms") as string || '0');
-                return Boolean(roomList && roomList.length !== 0 && total && !isNaN(total))
+                return !!(roomList && roomList.length !== 0 && total && !isNaN(total))
             }
         },
         {
@@ -495,6 +497,7 @@ const createPipelineForRoomList = (user_id: string, page: number, invitation?: b
 export const getRoomListFromCache = async (user_id: string, page: number): Promise<{ data: MereRoomType[], total: number } | null> => {
     try {
         const redis = await getUpstashRedis();
+
         return await redisAggregator(createPipelineForRoomList(user_id, page), redis);
     } catch (e: any) {
         console.error("Error occured while getting room list form cache", e.message);

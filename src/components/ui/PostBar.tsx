@@ -94,23 +94,9 @@ const PostHeader = ({ category, nsfw, spoiler, createdAt, poster, profile, threa
     </header>
 )
 
-const PostBody = ({ _id, poster, profile, title, additional, frames }: Pick<Props & MerePost, "profile" | "poster" | "additional" | "title" | "_id" | "frames">) => (
+const PostBody = ({ _id, title, frames }: Pick<Props & MerePost, "title" | "_id" | "frames">) => (
     <section className="space-y-4 mb-4">
-
-        <Navigate
-            historyPayload={{
-                title: title.slice(0, 50).concat('...'),
-                poster: additional?.section === "user" ? poster : profile,
-                image: frames?.[0],
-                type: "post",
-            }}
-            role="button"
-            comp="link"
-            goto={`/post/${_id}-${makeUrlSafe(title)}`}
-            className="w-full"
-        >
-            <h3 className="customize text-lg font-semibold line-clamp-4">{title}</h3>
-        </Navigate>
+        <h3 className="customize text-lg font-semibold line-clamp-4">{title}</h3>
 
         <FrameSlider id={_id} frames={frames || []} />
     </section>
@@ -155,10 +141,22 @@ const PostBar = (props: Props & MerePost) => {
 
     return (
         <article className="p-2 space-y-4 w-full my-2 bg-gray10 border border-gray10 rounded-md">
-
-            <PostHeader {...props} />
-            <PostBody {...props} />
-            <PostMetadataSection {...props} />
+            <Navigate
+                historyPayload={{
+                    title: props.title.slice(0, 50).concat('...'),
+                    poster: props.additional?.section === "user" ? props.poster : props.profile,
+                    image: props.frames?.[0],
+                    type: "post",
+                }}
+                role="button"
+                comp="link"
+                goto={`/post/${props._id}-${makeUrlSafe(props.title)}`}
+                className="w-full"
+            >
+                <PostHeader {...props} />
+                <PostBody {...props} />
+                <PostMetadataSection {...props} />
+            </Navigate>
 
         </article>
     )
@@ -182,9 +180,6 @@ export const PostBarForReportList = ({ _id, category, createdAt, frames, nsfw, p
                 additional={{ section: "thread" }}
             />
             <PostBody
-                poster={profile}
-                profile={profile}
-                additional={{ section: "thread" }}
                 _id={_id}
                 title={title}
                 frames={frames}

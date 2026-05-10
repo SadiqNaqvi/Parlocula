@@ -60,7 +60,6 @@ export const PATCH = updateHandler({
       { session }
     );
 
-
     await addParticipantInRoom(user_id, id);
     return { success: true, result: null, revalidateQueue: [] };
   },

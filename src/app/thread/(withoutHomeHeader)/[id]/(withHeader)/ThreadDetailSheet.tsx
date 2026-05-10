@@ -42,9 +42,6 @@ const ThreadDetailSheet = ({ connections, createdAt, creator, description, edite
                 </div>
             </Section>
 
-            <Section heading="Members">
-            </Section>
-
             <Section heading="Creator" condition={creator}>
                 <div className="border border-gray20 rounded-md">
                     <Navigate comp="link" goto={`/user/${creator}`} className="p-2 flex flex-cntr-between gap-2">

@@ -111,14 +111,14 @@ export const getHandler = <T extends any>(handler: GetHandlerFunction<T>) => {
 };
 
 const uploadFiles = async (files: FormidableFile[], filesData: FrameDataSchemaType[], checkNsfw: boolean) => {
-    const results = await uploadMediaFiles(files);
+    const results = files && files.length ? await uploadMediaFiles(files) : [];
 
     let isNsfw = false;
 
     const frames = filesData
         .map(({ isExternal, path, type, shouldUpload, hash, size, extSource }) => {
 
-            if (!shouldUpload) return { path, type, isExternal, size, hash, extSource };
+            if (!shouldUpload || isExternal) return { path, type, isExternal, size, hash, extSource };
 
             const result = results.shift();
 
@@ -266,11 +266,11 @@ export const postHandler = <T extends HandlerData>({ handler, preCheck, schema, 
 
             const { files, filesData, filesToRemove, ...rest } = data;
 
-            if (files && files.length && filesData && filesData.length) {
+            if (filesData && filesData.length) {
 
                 console.log("About to upload files");
 
-                const res = await uploadFiles(files, filesData, !data.nsfw);
+                const res = await uploadFiles(files ?? [], filesData, !data.nsfw);
 
                 console.log("Files uploaded", res);
 
@@ -559,10 +559,10 @@ export const updateHandler = <T extends HandlerData>({ handler, preCheck, schema
             const { files, filesData, filesToRemove, ...rest } = data;
             let isNsfw = false;
 
-            if (files && files.length && filesData && filesData.length) {
+            if (filesData && filesData.length) {
                 console.log("Uploading files");
 
-                const res = await uploadFiles(files, filesData, !data.nsfw)
+                const res = await uploadFiles(files ?? [], filesData, !data.nsfw)
                 frames = res.frames;
                 isNsfw = Boolean(res.isNsfw)
             }

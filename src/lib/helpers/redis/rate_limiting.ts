@@ -123,6 +123,13 @@ export const getActionKey = (req: NextRequest) => {
     return `${method}:${normalized.join(":")}`;
 }
 
+const responseForNonLimit = {
+    allowed: true,
+    remaining: 0,
+    current: 0,
+    resetIn: 0
+}
+
 /**
  * slidingWindowRateLimit:
  * - Uses a ZSET with timestamps (ms) as score/member.
@@ -134,13 +141,6 @@ export const getActionKey = (req: NextRequest) => {
  *
  * Returns allowed boolean and metadata.
  */
-
-const responseForNonLimit = {
-    allowed: true,
-    remaining: 0,
-    current: 0,
-    resetIn: 0
-}
 
 export const slidingWindowRateLimit = async (req: NextRequest, unique_id: string): Promise<RateLimitResult> => {
     const now = Date.now();

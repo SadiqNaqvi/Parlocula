@@ -60,7 +60,7 @@ const UserMutationPage = ({ username, isEditing, defaultValues, dob, email }: Pr
         const { files, filesData } = await readyFrames(profile ? [profile] : []);
         const bioLinks = linkRef.current?.getData() ?? [];
 
-        const redirectTo = urlToRedirect && urlPattern.test(new URL(urlToRedirect, parloculaAppURL).href) ? urlToRedirect : "/home";
+        const redirectTo = urlToRedirect ? urlToRedirect : "/home";
 
         const { success, error } = await registerUserMutation({
             ...data,

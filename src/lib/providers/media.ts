@@ -1,9 +1,8 @@
 "use server";
-import 'server-only'
-import { promises } from "fs";
-import { handleArrayForArrayResponse, parseResponse, ParseResponseType } from "@lib/utils";
-import FormData from "form-data";
+import { handleArrayForArrayResponse, parseResponse, ParseResponseType, parseUnknownData } from "@lib/utils";
 import { File as FormidableFile } from "formidable";
+import { promises } from "fs";
+import 'server-only';
 
 type NsfwEnum = "Yes" | "No" | "Possible";
 type MediaType = "image" | "video";
@@ -24,29 +23,26 @@ type UploadResponse = {
 
 const getFromDiskAndUpload = async (file: FormidableFile, uri: string, apiKey: string) => {
 
-    console.log("entered getFromDiskAndUpload");
-    const fileBuff = (await promises.readFile(file.filepath)).buffer;
-    console.log("got file buffer");
+    const fileBuff = (await promises.readFile(file.filepath));
 
-    const form = new FormData();
-    form.append("files", new Blob([fileBuff]), "filename.jpg");
-    console.log("created formData");
+    const formdata = new FormData();
+    formdata.append(
+        "files",
+        new Blob([fileBuff], { type: "image/jpeg" }),
+        "filename.jpg");
 
-    const headers = new Headers(form.getHeaders());
-    headers.append("Authorization", `Bearer ${apiKey}`);
-
-    console.log("about to upload now");
     return await fetch(`${uri}/upload`, {
         method: "POST",
-        headers,
-        body: fileBuff
-    }).then(parseResponse) as ParseResponseType<QCoreCloudResponse<UploadResponse[]>>;
+        headers: {
+            authorization: `Bearer ${apiKey}`,
+        },
+        body: formdata
+    }).then(r => parseResponse<QCoreCloudResponse<UploadResponse[]>>(r));
 
 }
 
 export const uploadMediaFiles = async <T extends FormidableFile | FormidableFile[]>(file: T) => {
     const files = (!file ? [] : Array.isArray(file) ? file : [file]) as FormidableFile[];
-    console.log("entered media upload with files:", files.length);
 
     if (!files || !files.length)
         throw new Error("Files are requred to upload");

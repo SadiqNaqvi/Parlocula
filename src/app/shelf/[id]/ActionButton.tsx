@@ -56,7 +56,9 @@ const CheckShelfConnection = ({ uid, sid, shelf_type }: { uid: string, sid: stri
                 <button className="primary" onClick={acceptInvitation}>Accept</button>
                 <button className="secondary" onClick={rejectInvitation}>Reject</button>
             </div>
-            <p className="text-xs sm:text-sm text-zinc-500 text-center col-span-2 sm:col-span-4">You{"'"}re invited to become a collaborator of this shelf</p>
+            <p className="text-xs sm:text-sm text-zinc-500 text-center col-span-2 sm:col-span-4 row-start-3">
+                You{"'"}re invited to become a collaborator of this shelf
+            </p>
         </>
     )
 

@@ -44,7 +44,7 @@ export const ppPostData = async <T,>({
         axios
             .post(
                 `/api/v1/private/${uid}/${url}`,
-                data ? objectToFormData(data) : new FormData(),
+                data ? objectToFormData(data):undefined,
             )
             .then((r) => r.data)
     );

@@ -13,6 +13,7 @@ export const POST = postHandler<ThreadSchemaServer>({
     const poster = frames[0];
 
     const resp = await Thread.create([{
+      _id: data._id,
       name,
       description,
       nsfw,

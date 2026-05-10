@@ -22,6 +22,7 @@ export const POST = postHandler<UserSchemaType>({
   handler: async ({ data, frames, session, isNsfw }) => {
     const { name, dob, email, bio, username, bioLinks } = data;
 
+
     const passkey = crypto.randomUUID().replace(/-/g, '');
     const encryptedPasskey = await bcrypt.hash(
       passkey,
@@ -48,6 +49,7 @@ export const POST = postHandler<UserSchemaType>({
     });
 
     const user = response[0];
+
     if (!user) return { success: false, errCode: "data_storing_fail" };
 
     const user_id = user._id;
@@ -82,21 +84,21 @@ export const POST = postHandler<UserSchemaType>({
 
     if (!sessionStored) return { success: false, errCode: "session_store_fail" };
 
-
     const token = await generateToken(tokenPayload);
 
     const jar = await cookies();
 
     setCookies(jar, "token", token);
     setCookies(jar, "sid", session_id);
-
-
-    const template = await render(WelcomeEmail({ passkey }));
-
-    await sendEmail({ email, template, subject: "Welcome to Parlocula" });
+    
+    if (!(process.env.NODE_ENV === "test" || process.env.IS_TESTING)) {
+      const template = await render(WelcomeEmail({ passkey }));
+      
+      await sendEmail({ email, template, subject: "Welcome to Parlocula" });
+    }
 
     await storeUserMetaInCache({ _id: user._id, username: user.username, profile: user.profile });
-
+    
     const result: CurrentUser = {
       _id: user_id,
       name: user.name,
@@ -123,7 +125,7 @@ export const POST = postHandler<UserSchemaType>({
       filterContent: true,
       tempBanned: 0,
     };
-
+    
     return {
       result,
       success: true,

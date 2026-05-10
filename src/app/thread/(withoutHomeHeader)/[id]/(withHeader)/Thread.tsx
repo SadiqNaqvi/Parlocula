@@ -10,6 +10,7 @@ import { OptionalChildren, ParloImage } from "@components/ui";
 import { ContentFiltered } from "@components/fallbacks";
 import { ThreadPageSkeleton } from "@components/ui/loading";
 import { FrameIcon, ImageIconFill, LinkIcon, PostIcon } from "@assets/Icons";
+import { PropsWithChildren } from "react";
 
 type Props = { id: string, uid?: string }
 
@@ -19,7 +20,7 @@ const getQueryProps = ({ id }: Props) => ({
     args: [id],
 });
 
-const Component = (data: ThreadType, { id, uid }: Props) => {
+const Component = (data: ThreadType, { id, uid, children }: PropsWithChildren<Props>) => {
 
     const { _id, connections, creator, createdAt, created_by, description, links, member_count, nsfw, edited_by, poster, post_count, name, managers } = data;
 
@@ -104,12 +105,14 @@ const Component = (data: ThreadType, { id, uid }: Props) => {
                     <span>Links</span>
                 </TabList>
             </TabContainer>
+
+            {children}
         </>
     )
 
 }
 
-const Thread = (props: Props) => (
+const Thread = (props: PropsWithChildren<Props>) => (
     <GenericWrapper
         loadingComponent={<ThreadPageSkeleton />}
         component={Component}

@@ -34,14 +34,6 @@ const NotificationTile = ({ message, type, request_type, status, poster, created
         <article className="px-2 py-4 space-y-3 wrap-anywhere">
 
             <div className="flex gap-3">
-                <section>
-                    <p>
-                        {message.map((m, i) => {
-                            if (m.type === "text") return m.text + ' ';
-                            else return <Navigate key={i} comp="link" className="no-underline inline font-semibold" goto={m.path}>{m.label + ' '}</Navigate>
-                        })}
-                    </p>
-                </section>
                 <OptionalChildren condition={poster}>
                     <ParloImage
                         frameType="userProfile"
@@ -51,6 +43,18 @@ const NotificationTile = ({ message, type, request_type, status, poster, created
                         frame={poster}
                     />
                 </OptionalChildren>
+                <section>
+                    <p>
+                        {message.map((m, i) => {
+                            if (m.type === "text") return m.text + ' ';
+                            else return (
+                                <Navigate key={i} comp="link" className="no-underline inline font-semibold" goto={m.path}>
+                                    {m.label + ' '}
+                                </Navigate>
+                            )
+                        })}
+                    </p>
+                </section>
             </div>
 
             <RequestBar metadata={metadata} status={status} type={type} request_type={request_type} />

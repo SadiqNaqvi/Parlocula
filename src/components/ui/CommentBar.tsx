@@ -176,22 +176,22 @@ const CommentBar = (props: Props) => {
                 </summary>
 
                 <ParentCommentBar parentComment={parentComment ? { ...parentComment, replied_to, username: undefined } : undefined} />
-                <div className="my-2 space-y-4">
-                    <Link
-                        historyPayload={{
-                            title: content?.slice(0, 50).concat('...'),
-                            poster: profile,
-                            image: attachment,
-                            type: "comment",
-                        }}
-                        status={status}
-                        link={`/comment/${_id}`}
-                        className="space-y-4 my-2"
-                    >
+                <Link
+                    historyPayload={{
+                        title: content?.slice(0, 50).concat('...'),
+                        poster: profile,
+                        image: attachment,
+                        type: "comment",
+                    }}
+                    status={status}
+                    link={`/comment/${_id}`}
+                    className="space-y-4 my-2"
+                >
+                    <div className="my-2 space-y-4">
                         <CommentBody attachment={attachment} content={content} />
-                    </Link>
-                </div>
-                <CommentMetadataSection {...props} />
+                    </div>
+                    <CommentMetadataSection {...props} />
+                </Link>
             </details>
         </article>
     )

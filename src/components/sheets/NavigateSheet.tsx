@@ -18,7 +18,7 @@ const NavigationSheet = ({ sheetRef, href }: { sheetRef: React.RefObject<BottomS
     return (
         <BottomSheet allowHandle ref={sheetRef}>
             <section className="space-y-2 overflow-x-hidden">
-                <div className="p-2 w-full text-sky-500 wrap-anywhere max-h-40 overflow-y-auto noScroll">{url}</div>
+                <div className="p-2 w-full text-sky-500 wrap-anywhere whitespace-break-spaces max-h-40 overflow-y-auto noScroll">{url}</div>
                 <ul>
                     <OptionList>
                         <Navigate className="w-full" comp="button" goto={href}>

@@ -10,22 +10,23 @@ import { useState } from "react";
 
 const Page = () => {
     const urlToRedirect = useSearchParams().get("url");
-    const navigation = useRouter();
+    const router = useRouter();
     const [email, setEmail] = useState('');
 
     const handleLogin = async (email: string, code: number) => {
         const response = await loginUserMutation({ email, code });
 
-        const redirectTo = urlToRedirect && urlPattern.test(urlToRedirect) ? urlToRedirect : "/home";
+        const redirectTo = urlToRedirect ? urlToRedirect : "/home";
 
         if (response.success) {
-            navigation.replace(redirectTo);
+
+            router.replace(redirectTo);
         }
 
         else if (response.error === "unregistered_user") {
             setEmail(email);
         }
-        
+
         else return response.error;
     }
 

@@ -24,7 +24,7 @@ const InstallPrompt = () => {
                         button="View"
                         className="primary w-full sm:w-80"
                     >
-                        <ol className="list-decimal list-inside px-2">
+                        <ol className="list-decimal list-inside px-2 space-y-1">
                             <li>Click on the options ( ⋮ ) button</li>
                             <li>Click on "Install App" or "Add to Home Screen"</li>
                             <li>If you cant find it, click on share {">"} View More {">"} Add To Home Screen</li>
