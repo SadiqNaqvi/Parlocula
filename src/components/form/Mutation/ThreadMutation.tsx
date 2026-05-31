@@ -68,7 +68,7 @@ const ThreadMutation = ({ isEditing, defaultValues }: Props) => {
 
         if (!success) return error;
 
-        navigation.push(`/thread/${tid}-${name}`);
+        navigation.push(`/t/${tid}-${name}`);
 
     };
 
@@ -113,7 +113,7 @@ const ThreadMutation = ({ isEditing, defaultValues }: Props) => {
         if (!success) return error;
 
         appToast.success("Thread Updated Successfully");
-        navigation.replace(`/thread/${_id}`);
+        navigation.replace(`/t/${_id}`);
 
     }
 

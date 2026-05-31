@@ -29,12 +29,12 @@ const RoomBar = ({ lastMessageAt, lastMessageBy, mute, otherParticipant_seenAt, 
     return (
         <Navigate
             onContextMenu={handleContextMenu}
-            goto={`/inbox/${room_id || _id}-${display_name}`}
+            goto={`/room/${room_id || _id}-${display_name}`}
             comp="link">
             <article className="py-2 flex gap-3 items-center">
                 <ParloImage
                     frameType={room_type === "private" ? "userProfile" : "groupPoster"}
-                    alt={`Profile picture of ${display_name}`}
+                    alt={`Poster of the room - ${display_name}`}
                     size={40}
                     frame={poster}
                     containerClassName="rounded-full"
@@ -44,7 +44,7 @@ const RoomBar = ({ lastMessageAt, lastMessageBy, mute, otherParticipant_seenAt, 
 
                 <div className={`flex-1 ${newMessage ? "font-semibold" : ""}`}>
 
-                    <h4>{display_name}</h4>
+                    <h3>{display_name}</h3>
 
                     <OptionalChildren
                         condition={status !== "error"}

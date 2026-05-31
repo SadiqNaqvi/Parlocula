@@ -142,7 +142,7 @@ const getPostsFromDatabase = async (cuid: string, page: number, nsfw: boolean) =
         })
     );
 
-    return response[0];
+    return response[0] ?? { data: [], total: 0 };
 }
 
 const getPostsFromRedis = async (cuid: string, page: number, nsfw: boolean) => {
@@ -163,7 +163,7 @@ const getPostsFromRedis = async (cuid: string, page: number, nsfw: boolean) => {
         })
     )
 
-    return response[0];
+    return response[0] ?? { data: [], total: 0 };
 }
 
 const storePostsInRedis = async (cuid: string, posts: { score: number, _id: string, [key: string]: any }[]) => {

@@ -9,7 +9,7 @@ const GuestProfilePage = async () => {
 
     const user = await getUserFromToken(await cookies());
 
-    if (user) redirect(`/user/${user.username}`);
+    if (user) redirect(`/u/${user.username}`);
 
     return (
         <>

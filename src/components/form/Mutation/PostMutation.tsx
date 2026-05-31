@@ -1,6 +1,6 @@
 "use client";
 
-import FrameSlider from "@app/post/[id]/(WithHeader)/FrameSlider";
+import FrameSlider from "@app/p/[id]/(WithHeader)/FrameSlider";
 import { AddIcon, BookmarkIcon, CommentIcon, ReactIcon } from "@assets/Icons";
 import { BottomSheet, BottomSheetRef, LinkInputManager, Navbar, OptionMenu } from "@components";
 import { Form, MediaInputManager, PostCategoryPicker, ToggleButton } from "@components/form";
@@ -97,7 +97,7 @@ const PostMutationPage = ({ defaultVal, isEditing, defaultThread, quotedPost }: 
             { ...editedFields, files, filesData, filesToRemove: removedFrames },
             defaultVal.thread_id,
         );
-        navigation.replace(`/post/${pid}`);
+        navigation.replace(`/p/${pid}`);
     };
 
     const submit = async (data: any) => {
@@ -122,17 +122,9 @@ const PostMutationPage = ({ defaultVal, isEditing, defaultThread, quotedPost }: 
             <Navbar
                 navTitle={isEditing ? "Edit Post" : "Create Post"}
                 OptionButton={(
-
-                    <OptionalChildren condition={!isEditing} fallback={(
-                        <button className="primary" onClick={requestSubmit}>
-                            Update
-                        </button>
-                    )}>
-
-                        <BottomSheet button="Create" className="primary" ref={threadSelectionSheet}>
-                            <ChooseThreadButton submit={takeThreadAndProceed} defaultVal={defaultThread} />
-                        </BottomSheet>
-                    </OptionalChildren>
+                    <button className="primary" onClick={requestSubmit}>
+                        {isEditing? "Update":"Create"}
+                    </button>
                 )}
             />
 
@@ -239,6 +231,10 @@ const PostMutationPage = ({ defaultVal, isEditing, defaultThread, quotedPost }: 
                     </div>
                 </IDS_Section>
             </InitialDescriptionSheet>
+
+            <BottomSheet state={false} ref={threadSelectionSheet}>
+                <ChooseThreadButton submit={takeThreadAndProceed} defaultVal={defaultThread} />
+            </BottomSheet>
 
         </>
     )

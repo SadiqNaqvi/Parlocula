@@ -111,12 +111,12 @@ export const POST = postHandler<SchemaType>({
         poster: shelf.poster ? getPoster({ path: shelf.poster, type: "poster", size: "w92", external: true }) : profile,
         path: "/notifications",
         message: [
-          { type: "link", label: username, path: `/user/${username}` },
+          { type: "link", label: username, path: `/u/${username}` },
           {
             type: "text",
             text: "has invited you to collaborate in one of their shelfs",
           },
-          { type: "link", label: shelf.name, path: `/shelf/${id}` },
+          { type: "link", label: shelf.name, path: `/s/${id}` },
         ],
         content_id: id,
         type: "request",

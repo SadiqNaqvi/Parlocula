@@ -68,7 +68,7 @@ export const POST = postHandler<MessageSchemaType>({
         title: "New message",
         body: `${room.display_name}: ${rest.content.slice(0, 50)}`,
         icon: room.poster ? getPoster({ external: false, path: room.poster.path, extSource: room.poster.extSource }) : undefined,
-        path: `/inbox/${room_id}-${room.display_name}`,
+        path: `/room/${room_id}-${room.display_name}`,
         tag: `message-${room_id}`,
       },
       { ...rest, room, room_id, user_id }

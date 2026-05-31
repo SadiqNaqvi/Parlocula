@@ -35,7 +35,7 @@ const StatusBanner = () => {
                 className="primary rounded-full btn"
                 type="button"
                 comp="link"
-                goto="/settings/notifications">
+                goto="/settings/notification">
                 View
             </Navigate>
 

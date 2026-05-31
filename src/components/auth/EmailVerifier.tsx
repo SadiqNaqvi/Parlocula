@@ -35,7 +35,7 @@ const CodeCounter = ({ canResend, func }: { canResend: boolean, func: () => void
         <button className="text-center smallBtn mx-auto" onClick={callFunc}>Resend code</button>
     )
 
-    else return <p className="text-sm text-center text-slate-500">You can resend an code in 2 mins.</p>
+    else return <p className="text-sm text-center text-slate-500">You can resend code in 2 mins.</p>
 }
 
 const toastIt = (message: string, type: "success" | "error") => {

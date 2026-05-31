@@ -35,7 +35,7 @@ export type ShowReturnType<T extends boolean> = TaleonReturnType<T, RefinedShowD
 export const fetchMovie = async<T extends boolean>(id: string, getInternalData: T): Promise<TaleonReturnType<T, RefinedMovieData> | undefined> => {
   if (!id) return;
 
-  const [ext_id] = id.split('-');
+  const [ext_id] = id.split('+');
 
   const [data, taleon] = await Promise.all([
     fetchExt<RefinedMovieData>(`movie?id=${ext_id}`),
@@ -222,7 +222,7 @@ export const fetchPerson = async (id: string) => {
 export const fetchShow = async <T extends boolean>(id: string, getInternalData: T): Promise<ShowReturnType<T> | undefined> => {
   if (!id) return;
 
-  const [ext_id] = id.split('-');
+  const [ext_id] = id.split('+');
 
   const [data, taleon] = await Promise.all([
     fetchExt<RefinedShowData>(`show?id=${ext_id}`),

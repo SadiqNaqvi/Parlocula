@@ -9,7 +9,7 @@ type Params = { id: string, season: string };
 type Props = { params: Promise<Params> };
 
 const fetchSeason = async ({ id, season }: Params, getInternalData: boolean) => {
-    const seasonNumber = parseInt(season.split('-')[1]);
+    const seasonNumber = parseInt(season.split('+')[1]);
     const [showPromise, seasonPromise] = await Promise.all([
         fetchShow(id, getInternalData),
         fetchSeasonForShow(id, isNaN(seasonNumber) ? 1 : seasonNumber),

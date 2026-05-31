@@ -9,7 +9,7 @@ import { Metadata } from "next";
 import { PropsWithChildren, Suspense } from "react";
 
 const fetchData = async (params: { id: string }) => {
-    const company_id = params.id.split('-')[0];
+    const company_id = params.id.split('+')[0];
     return await fetchPerson(company_id);
 }
 
@@ -24,7 +24,7 @@ export const generateMetadata = async ({ params }: ParloPageProps): Promise<Meta
     return generateDynamicMetadata({
         title: name,
         allowRobots: true,
-        description: biography,
+        description: `${biography.slice(0, 100)} - Discover biography, filmography, related movies, shows, shelves, and community discussions on Parlocula.`,
         url: `/explore/person/${awaitedParams.id}`,
     });
 };
@@ -94,7 +94,7 @@ const Page = async ({ params, children }: PropsWithChildren<{ params: { id: stri
 const ArtistPageLayout = async ({ children, params }: PropsWithChildren<ParloPageProps>) => {
 
     const awaitedParams = await params;
-    const [_, ...title] = awaitedParams.id.split('-');
+    const [_, ...title] = awaitedParams.id.split('+');
 
     return (
         <Suspense fallback={<TaleonWikiSkeleton title={title.join(' ')} backdrop={false} />}>

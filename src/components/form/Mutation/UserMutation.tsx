@@ -115,7 +115,7 @@ const UserMutationPage = ({ username, isEditing, defaultValues, dob, email }: Pr
         const { success, error } = await updateUser(fieldsToUpdate);
         if (!success) return error;
 
-        navigation.push(`/user/${user.username}`);
+        navigation.push(`/u/${user.username}`);
     }
 
     const submit = async (data: any) => {

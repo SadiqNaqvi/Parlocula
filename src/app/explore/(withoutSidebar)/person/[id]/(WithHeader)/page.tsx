@@ -1,9 +1,11 @@
 import { TaleonGrid } from "@app/explore/(withoutSidebar)/components";
+import JsonLd from "@components/JsonLd";
 import { fetchPerson } from "@lib/contentFetcher";
+import { generateJsonLdForArtist } from "@lib/seo/jsonld";
 import { ParloPageProps } from "@type/other";
 
 const fetchData = async (params: { id: string }) => {
-    const company_id = params.id.split('-')[0];
+    const company_id = params.id.split('+')[0];
     return await fetchPerson(company_id);
 }
 
@@ -13,8 +15,13 @@ const ArtistAsCastPage = async ({ params }: ParloPageProps) => {
 
     if (!content) return null;
 
+    const jsonLd = generateJsonLdForArtist(content);
+
     return (
-        <TaleonGrid content_id={content.tmdb_id} section="cast" data={content.credits.cast} />
+        <>
+            <JsonLd schemas={jsonLd} />
+            <TaleonGrid content_id={content.tmdb_id} section="cast" data={content.credits.cast} />
+        </>
     )
 }
 

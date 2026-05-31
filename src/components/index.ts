@@ -13,8 +13,6 @@ export { default as UserBasedButton, type UserBasedButtonProps, LoadingButton } 
 export { default as BottomSheet, type BottomSheetRef, DrawerPortal, NestedSheet, } from "./BottomSheet";
 export { default as CommentInput } from "./CommentInput";
 export { default as FancyCarousel } from "./FancyCarousel";
-export { default as FancyImage } from "./FancyImage";
-export { default as FramesCarousel } from "./FramesCarousel";
 export { default as GeneralTile } from "./GeneralTile";
 export { default as GiphyComponent } from "./GiphyComponent";
 export { default as ListSelector, type ListSelectorRef, type RefinedValues } from "./ListSelector"

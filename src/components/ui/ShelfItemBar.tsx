@@ -8,13 +8,13 @@ import { timeAgo } from "@lib/utils";
 type RequiredFields = "poster" | "title" | "year";
 type ShelfItemProps = Pick<ShelfItemType, RequiredFields> & Partial<Omit<ShelfItemType, RequiredFields>>;
 
-const ShelfItemContent = ({ poster, title, year, createdAt, added_by }: ShelfItemProps) => (
+const ShelfItemContent = ({ poster, title, year, createdAt, added_by, taleon_type }: ShelfItemProps) => (
     <article className="flex items-center gap-3 w-full">
         <ParloImage
             size={64}
             frame={poster}
             frameType="poster"
-            alt={`Poster for ${title}`}
+            alt={`Poster for the ${taleon_type} - ${title}`}
             sizes={[
                 { imageWidth: 48, maxScreenWidth: 480 },
                 { imageWidth: 64 },

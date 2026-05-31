@@ -56,7 +56,7 @@ const NewRoomSheet = ({ ruser }: { ruser: MereUser }) => {
                     classNameForFallback="min-w-8 size-8 p-1"
                     frame={ruser.profile}
                     size={48}
-                    alt="Poster of room"
+                    alt={`Profile Picture of ${ruser.username}`}
                 />
 
                 <h1>{ruser.username}</h1>

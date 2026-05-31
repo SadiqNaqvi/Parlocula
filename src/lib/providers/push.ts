@@ -35,7 +35,7 @@ export const subscribeToPushOnClient = async () => {
     console.log("subscribing to push on client");
     const registration = await navigator.serviceWorker.ready
     return await registration.pushManager.subscribe({
-        userVisibleOnly: false,
+        userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(
             process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!
         ),

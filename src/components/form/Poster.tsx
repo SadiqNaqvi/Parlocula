@@ -85,7 +85,7 @@ const Poster = forwardRef<InputManagerType<InputFrame | null>, Props>(
                     height={192}
                     src={poster}
                     priority
-                    alt="Poster"
+                    alt="Poster for the form"
                     className="size-full rounded-full object-cover"
                 />
             </div>

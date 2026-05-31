@@ -30,7 +30,7 @@ export const PushNotificationWarningToast = () => {
             title: "text-lg"
         },
         action: (
-            <Navigate comp="button" goto="/settings/notifications" className="inline primary btn col-start-1 col-end-2">
+            <Navigate comp="button" goto="/settings/notification" className="inline primary btn col-start-1 col-end-2">
                 View
             </Navigate>
         ),

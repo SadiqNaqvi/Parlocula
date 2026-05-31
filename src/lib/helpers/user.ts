@@ -75,7 +75,7 @@ export const setUserOnRefreshOrLogin = (user: CurrentUser, contentFiltering: boo
 
         if (typeof "window" === undefined) return;
 
-        else if (window.location.pathname.startsWith(`/inbox/${room_id}`)) {
+        else if (window.location.pathname.startsWith(`/room/${room_id}`)) {
             useRoomStore.getState().updateRoom({
                 seenAt: Date.now(),
             }, room_id);

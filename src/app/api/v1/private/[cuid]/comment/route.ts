@@ -95,22 +95,22 @@ export const POST = postHandler<CommentSchemaType>({
         .concatConditionally(post_author !== user_id,
           () => sendNotification([post_author], {
             message: [
-              { type: "link", label: username, path: `/user/${username}` },
+              { type: "link", label: username, path: `/u/${username}` },
               { type: "text", text: "commented on your post" },
               {
                 type: "link",
                 label: `${post.title.slice(0, 40).concat(post.title.length > 40 ? "..." : ".")}`,
-                path: `/post/${rest.post_id}?f=latest`,
+                path: `/p/${rest.post_id}?f=latest`,
               },
               {
                 type: "link",
                 label: "Open Comment.",
-                path: `/comment/${comment._id}`,
+                path: `/c/${comment._id}`,
               },
             ],
             title: `${username} commented on your post.`,
             poster: profile,
-            path: `/post/${rest.post_id}?f=latest`,
+            path: `/p/${rest.post_id}?f=latest`,
             metadata: {
               post_id: rest.post_id,
               comment_id: comment._id,
@@ -119,17 +119,17 @@ export const POST = postHandler<CommentSchemaType>({
         ).concatConditionally(comment_author && comment_author !== user_id, () =>
           sendNotification([comment_author||''], {
             message: [
-              { type: "link", label: username, path: `/user/${username}` },
+              { type: "link", label: username, path: `/u/${username}` },
               { type: "text", text: "replied to your" },
               {
                 type: "link",
                 label: "comment.",
-                path: `/comment/${rest.replied_to}?f=latest`,
+                path: `/c/${rest.replied_to}?f=latest`,
               },
             ],
             title: `${username} replied to your comment.`,
             poster: profile,
-            path: `/comment/${rest.replied_to}?f=latest`,
+            path: `/c/${rest.replied_to}?f=latest`,
             metadata: {
               post_id: rest.post_id,
               comment_id: comment._id,

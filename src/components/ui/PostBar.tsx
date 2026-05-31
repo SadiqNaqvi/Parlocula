@@ -1,4 +1,4 @@
-import FrameSlider from "@app/post/[id]/(WithHeader)/FrameSlider";
+import FrameSlider from "@app/p/[id]/(WithHeader)/FrameSlider";
 import { BookmarkIcon, CommentIcon, FrameIcon, LinkIcon, ThumbUpIcon } from "@assets/Icons";
 import { Navigate } from "@components";
 import { makeUrlSafe, numberConverter, timeAgo } from "@lib/utils";
@@ -17,7 +17,7 @@ const PostbarBreadCrumbs = ({ poster, profile, thread_id, thread_name, username,
 
     if (!section || section === "all") return (
         <div className="flex gap-3 items-center">
-            <Navigate comp="link" goto={`/user/${username}`}>
+            <Navigate comp="link" goto={`/u/${username}`}>
                 <ParloImage
                     frameType="userProfile"
                     frame={profile}
@@ -25,18 +25,18 @@ const PostbarBreadCrumbs = ({ poster, profile, thread_id, thread_name, username,
                     containerClassName={containerClassName}
                     classNameForFallback={fallbackClassName}
                     size={40}
-                    alt={`Profile picture of ${username} the author of this post`} />
+                    alt={`Profile picture of ${username} - The author of this post`} />
             </Navigate>
 
             <BreadCrumbs>
-                <BreadCrumbTile href={`/thread/${thread_id}`}>Thread</BreadCrumbTile>
-                <BreadCrumbTile href={`/user/${username}`}>{username}</BreadCrumbTile>
+                <BreadCrumbTile href={`/t/${thread_id}`}>Thread</BreadCrumbTile>
+                <BreadCrumbTile href={`/u/${username}`}>{username}</BreadCrumbTile>
             </BreadCrumbs>
         </div>
     )
 
     else if (section === "thread") return (
-        <Navigate comp="link" goto={`/user/${username}`} className="flex gap-3 items-center">
+        <Navigate comp="link" goto={`/u/${username}`} className="flex gap-3 items-center">
             <ParloImage
                 frameType="userProfile"
                 frame={username ? profile : undefined}
@@ -51,7 +51,7 @@ const PostbarBreadCrumbs = ({ poster, profile, thread_id, thread_name, username,
     )
 
     return (
-        <Navigate comp="link" goto={`/thread/${thread_id}`} className="flex gap-3 items-center">
+        <Navigate comp="link" goto={`/t/${thread_id}`} className="flex gap-3 items-center">
             <ParloImage
                 frameType="groupPoster"
                 frame={poster}
@@ -69,7 +69,7 @@ const PostbarBreadCrumbs = ({ poster, profile, thread_id, thread_name, username,
 
 }
 
-const PostHeader = ({ category, nsfw, spoiler, createdAt, poster, profile, thread_id, thread_name, username, additional, editedAt }: Pick<Props & MerePost, "profile" | "poster" | "nsfw" | "spoiler" | "thread_id" | "thread_name" | "username" | "additional" | "category" | "createdAt" | "editedAt">) => (
+const PostHeader = ({ category, nsfw, spoiler, createdAt, poster, profile, thread_id, thread_name, username, additional, edited_at }: Pick<Props & MerePost, "profile" | "poster" | "nsfw" | "spoiler" | "thread_id" | "thread_name" | "username" | "additional" | "category" | "createdAt" | "edited_at">) => (
     <header className="space-y-2">
         <PostbarBreadCrumbs poster={poster} profile={profile} thread_id={thread_id} thread_name={thread_name} username={username} section={additional?.section || "all"} />
         <MetadataTileContainer>
@@ -77,13 +77,13 @@ const PostHeader = ({ category, nsfw, spoiler, createdAt, poster, profile, threa
 
             <MetadataTile
                 condition={!!(category && category !== "none")}
-                href={`/thread/${thread_id}?c=${category}`}
+                href={`/t/${thread_id}?c=${category}`}
                 className="capitalize">
                 {category}
             </MetadataTile>
 
-            <MetadataTile className="px-2 py-1 bg-gray10 border-gray20 rounded-md" condition={!!editedAt}>
-                Edited: {timeAgo(editedAt || 0)}
+            <MetadataTile className="px-2 py-1 bg-gray10 border-gray20 rounded-md" condition={!!edited_at}>
+                Edited: {timeAgo(edited_at!)}
             </MetadataTile>
 
             <MetadataTile nsfw condition={nsfw}>NSFW</MetadataTile>
@@ -150,7 +150,7 @@ const PostBar = (props: Props & MerePost) => {
                 }}
                 role="button"
                 comp="link"
-                goto={`/post/${props._id}-${makeUrlSafe(props.title)}`}
+                goto={`/p/${props._id}-${makeUrlSafe(props.title)}`}
                 className="w-full"
             >
                 <PostHeader {...props} />
@@ -169,7 +169,7 @@ export const PostBarForReportList = ({ _id, category, createdAt, frames, nsfw, p
             <PostHeader
                 category={category}
                 createdAt={createdAt}
-                editedAt={null}
+                edited_at={undefined}
                 nsfw={nsfw}
                 poster={profile}
                 profile={profile}

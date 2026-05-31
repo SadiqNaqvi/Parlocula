@@ -6,10 +6,10 @@ import { OptionalChildren, ParloImage } from "@components/ui"
 const ThreadTile = ({ name, poster, _id, member_count, post_count }: MereThread) => {
     return (
         <Navigate
-            historyPayload={{ title: name, poster, type:"thread" }}
+            historyPayload={{ title: name, poster, type: "thread" }}
             role="button"
             comp="link"
-            goto={`/thread/${_id}-${makeUrlSafe(name)}`}
+            goto={`/t/${_id}-${makeUrlSafe(name)}`}
         >
             <article className="flex gap-2 items-center p-2">
                 <ParloImage
@@ -18,7 +18,7 @@ const ThreadTile = ({ name, poster, _id, member_count, post_count }: MereThread)
                     containerClassName="rounded-full overflow-hidden"
                     classNameForFallback="min-w-8 size-8 p-1"
                     frame={poster}
-                    alt="Poster"
+                    alt={`Poster of thread - ${name}`}
                     size={40}
                 />
                 <section className="space-y-1">

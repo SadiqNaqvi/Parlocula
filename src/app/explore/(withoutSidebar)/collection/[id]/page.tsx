@@ -6,9 +6,11 @@ import { getPoster } from "@lib/utils";
 import { ParloPageProps } from "@type/other";
 import { Metadata } from "next";
 import { TaleonGrid, TaleonWikiHeader, TaleonWikiSection } from "../../components";
+import JsonLd from "@components/JsonLd";
+import { generateJsonLdForCollection } from "@lib/seo/jsonld";
 
 const fetchData = async (params: { id: string }) => {
-    const collection_id = params.id.split('-')[0];
+    const collection_id = params.id.split('+')[0];
     return await fetchCollection(collection_id);
 }
 
@@ -18,12 +20,12 @@ export const generateMetadata = async ({ params }: ParloPageProps): Promise<Meta
 
     if (!data) return generateDynamicMetadata({});
 
-    const { title, overview, backdrop } = data;
+    const { title, overview, backdrop, parts } = data;
 
     return generateDynamicMetadata({
         title,
         allowRobots: true,
-        description: overview,
+        description: `${overview} - ${title} collection featuring ${parts.length} titles. Explore movies, shows, shelves, and community discussions.`,
         coverImage: backdrop ? getPoster({ path: backdrop, external: true, type: "backdrop", size: "w1280" }) : undefined,
         url: `/explore/collection/${awaitedParams.id}`,
     });
@@ -38,7 +40,11 @@ const Page = async ({ params }: ParloPageProps) => {
     if (!content) return (
         <NotFound
             title="Oops! Looks like The Parlocula Explorers came empty handed."
-            paras={["Possible Reason: The collection id is incorrect.", "Please try to search the collection in the explore page"]} />
+            paras={[
+                "Possible Reason: The collection id is incorrect.",
+                "Please try to search the collection in the explore page"
+            ]}
+        />
     )
 
     const metadata = [
@@ -46,8 +52,11 @@ const Page = async ({ params }: ParloPageProps) => {
         { label: "Movies", value: content.parts.length },
     ]
 
+    const jsonLd = generateJsonLdForCollection(content);
+
     return (
         <>
+            <JsonLd schemas={jsonLd} />
 
             <TaleonWikiHeader
                 backdrop={content.backdrop}

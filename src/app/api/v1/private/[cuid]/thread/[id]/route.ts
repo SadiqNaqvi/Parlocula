@@ -38,13 +38,13 @@ export const PATCH = updateHandler<ThreadUpdateSchema>({
         {
           title: `${username} updated the thread ${doc.name}`,
           message: [
-            { type: "link", label: username, path: `/user/${username}` },
+            { type: "link", label: username, path: `/u/${username}` },
             { type: "text", text: "updated the thread" },
-            { type: "link", label: doc.name, path: `/thread/${doc._id}` },
+            { type: "link", label: doc.name, path: `/t/${doc._id}` },
           ],
           poster: doc.poster?.path,
           metadata: { thread_id: doc._id },
-          path: `/thread/${doc._id}`,
+          path: `/t/${doc._id}`,
         },
         session
       )

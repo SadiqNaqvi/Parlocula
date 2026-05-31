@@ -63,6 +63,35 @@ export const convertByteIntoSize = (size: number | undefined): string => {
     return [int].concat([frac?.slice(0, 2)]).join('.').concat(` ${unit}`)
 }
 
+const twoDigit = (num: number) => num.toString().padStart(2, "0");
+
+export const formatTimeAsDuration = (seconds: number): string => {
+    if (seconds < 0 || !Number.isFinite(seconds)) {
+        return `00:00`;
+    }
+
+    const hrs = Math.floor(seconds / 3600);
+    const mins = Math.floor((seconds % 3600) / 60);
+    const secs = Math.floor(seconds % 60);
+
+
+    if (hrs > 0) {
+        // Format as HH:MM:SS if there is at least one hour
+        return `${twoDigit(hrs)}:${twoDigit(mins)}:${twoDigit(secs)}`;
+    } else {
+        // Otherwise, format as MM:SS
+        return `${twoDigit(mins)}:${twoDigit(secs)}`;
+    }
+}
+
+/**
+ * Generates thumbnail or snapshot of a provided video in the browser at the given time.
+ * 
+ * @param file Video File - Blob or File or video path as string
+ * @param timeInSeconds duration at which the snapshot should be taken
+ * @returns thumbnail or shapshot URL of the provided video at the given time
+ */
+
 export const generateSnapshot = async (file: FileAcceptTypes, timeInSeconds = 0.01) => {
     const path = getPath(file);
 
@@ -168,7 +197,6 @@ export const imagePathToBlob = async (
     // Convert to Blob
     return canvas.convertToBlob({ type, quality });
 }
-
 
 export const getImageData = async (img: FileAcceptTypes) => {
     const image = await loadImage(img);

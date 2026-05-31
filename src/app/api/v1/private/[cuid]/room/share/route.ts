@@ -36,7 +36,7 @@ export const POST = postHandler<SharedContentSchemaType>({
                     title: "New message",
                     body: `${username} shared a content in room.`,
                     icon: profile ? getPoster({ external: false, path: profile }) : undefined,
-                    path: `/inbox/${message.room_id}`,
+                    path: `/room/${message.room_id}`,
                     tag: `message-${message.room_id}`,
                 },
                 message

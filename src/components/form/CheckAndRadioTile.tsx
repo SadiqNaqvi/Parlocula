@@ -73,14 +73,16 @@ export const ClickableActionTile = ({ action, data, label, poster, checked, clas
             title={label}
             className={`inline-flex flex-cntr-between w-full capitalize px-4 py-2 pointer ${className}`}>
             <div className="flex gap-3 items-center">
-                {poster !== undefined && <Image
-                    height={48}
-                    width={48}
-                    alt={`Poster of ${label}`}
-                    loading="lazy"
-                    className="size-12 rounded-full object-cover"
-                    src={poster}
-                />}
+                {poster !== undefined && (
+                    <Image
+                        height={48}
+                        width={48}
+                        alt={`Poster of ${label}`}
+                        loading="lazy"
+                        className="size-12 rounded-full object-cover"
+                        src={poster}
+                    />
+                )}
 
                 <span className="font-medium">{label}</span>
             </div>

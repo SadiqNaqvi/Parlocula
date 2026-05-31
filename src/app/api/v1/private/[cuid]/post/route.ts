@@ -122,21 +122,21 @@ export const POST = postHandler<PostSchemaType>({
       ),
       {
         title: `${username} has created a new post in ${thread.name}`,
-        path: `/post/${post._id}`,
+        path: `/p/${post._id}`,
         poster: profile,
         message: [
-          { type: "link", label: username, path: `/user/${username}` },
+          { type: "link", label: username, path: `/u/${username}` },
           { type: "text", text: "has created a new post in thread" },
           {
             type: "link",
             label: `${thread.name}.`,
-            path: `/thread/${post.thread_id}`,
+            path: `/t/${post.thread_id}`,
           },
           { type: "text", text: "Be the first one to" },
           {
             type: "link",
             label: "check it out.",
-            path: `/post/${post._id}`,
+            path: `/p/${post._id}`,
           },
         ],
       },

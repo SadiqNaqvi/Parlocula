@@ -53,14 +53,14 @@ export const POST = postHandler<LikeSchemaType>({
             {
               type: "link",
               label: "Your comment",
-              path: `/comment/${comment._id}`,
+              path: `/c/${comment._id}`,
             },
             {
               type: "text",
               text: `has reached a new milestone. It got ${comment.likes_count} likes 🙌🥳`,
             },
           ],
-          path: `/comment/${comment._id}`,
+          path: `/c/${comment._id}`,
         },
         session
       );

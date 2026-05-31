@@ -124,12 +124,12 @@ export const POST = postHandler<SchemaType>({
         path: "/notifications",
         poster: thread.poster?.path,
         message: [
-          { type: "link", label: username, path: `/user/${username}` },
+          { type: "link", label: username, path: `/u/${username}` },
           {
             type: "text",
             text: "has invited you to become a manager of thread",
           },
-          { type: "link", label: thread.name, path: `/thread/${id}` },
+          { type: "link", label: thread.name, path: `/t/${id}` },
         ],
         type: "request",
         metadata: {

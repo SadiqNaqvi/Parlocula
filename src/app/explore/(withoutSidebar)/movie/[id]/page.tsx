@@ -1,14 +1,16 @@
+import JsonLd from "@components/JsonLd";
 import { getUserFromToken } from "@lib/auth/utils";
 import { fetchMovie } from "@lib/contentFetcher";
 import { getAllShelvesOfUser, getShelvesForTaleon } from "@lib/helpers/common";
 import { getQueryClient, prefetchInfiniteQuery, prefetchQuery } from "@lib/providers/queryClient";
+import { generateJsonLdForMovie } from "@lib/seo/jsonld";
+import generateDynamicMetadata from "@lib/seo/metadata";
 import { getPoster, getQueryKeys } from "@lib/utils";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { ParloPageProps } from "@type/other";
 import { Metadata } from "next";
 import { cookies } from "next/headers";
 import TaleonPage from "../../components/TaleonPage";
-import generateDynamicMetadata from "@lib/seo/metadata";
 
 export const generateMetadata = async ({ params }: ParloPageProps): Promise<Metadata> => {
     const { id } = await params;
@@ -16,18 +18,18 @@ export const generateMetadata = async ({ params }: ParloPageProps): Promise<Meta
 
     if (!data) return generateDynamicMetadata({});
 
-    const { title, plot, overview, backdrop } = data;
+    const { title, overview, backdrop } = data;
 
     return generateDynamicMetadata({
         title,
         allowRobots: true,
-        description: overview.length > plot.length ? overview : plot,
+        description: `${overview} - View cast, crew, ratings, reviews, related communities, thread, shelves, and discussions on Parlocula.`,
         coverImage: backdrop ? getPoster({ path: backdrop, external: true, type: "backdrop", size: "w1280" }) : undefined,
         url: `/explore/movie/${id}`,
     });
 };
 
-export default async function MoviePage({ params }: ParloPageProps) {
+const MoviePage = async ({ params }: ParloPageProps) => {
 
     const { id } = await params;
 
@@ -53,9 +55,16 @@ export default async function MoviePage({ params }: ParloPageProps) {
         ])
     }
 
+    const jsonLd = content ? generateJsonLdForMovie(content) : null;
+
     return (
-        <HydrationBoundary state={dehydrate(queryClient)}>
-            <TaleonPage content={content} type="movie" />
-        </HydrationBoundary>
+        <>
+            <JsonLd schemas={jsonLd} />
+            <HydrationBoundary state={dehydrate(queryClient)}>
+                <TaleonPage content={content} type="movie" />
+            </HydrationBoundary>
+        </>
     )
 };
+
+export default MoviePage;

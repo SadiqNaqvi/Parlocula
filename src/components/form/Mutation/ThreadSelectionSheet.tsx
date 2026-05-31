@@ -16,9 +16,10 @@ const ChoosenThread = ({ name, poster }: Pick<MereThread, "name" | "poster">) =>
     return (
         <div className="flex gap-2 items-center">
             <ParloImage
-                frameType="poster"
-              //  extSize="w92"
-                className="rounded-full min-w-12 size-12 object-cover"
+                frameType="groupPoster"
+                className="size-10 min-w-10 object-cover"
+                classNameForFallback="size-8 min-w-8 p-1"
+                containerClassName="rounded-full overflow-hidden"
                 frame={poster}
                 size={48}
                 alt={`Poster of thread ${name}`}
@@ -41,15 +42,21 @@ const ThreadChoice = ({ submitChoice }: { submitChoice: (chosenThread: MereThrea
     }
 
     const ThreadCheckTile = ({ _id, name, poster }: MereThread) => (
-        <GeneralTile title={name} poster={poster?.path} onClick={() => submit({ _id, name, poster })} />
+        <GeneralTile
+            showPoster
+            frameType="groupPoster"
+            title={name}
+            poster={poster?.path}
+            onClick={() => submit({ _id, name, poster })}
+        />
     )
 
     return (
         <>
-            <header className="">
+            <header className="px-2">
                 <h3>Choose Thread</h3>
             </header>
-            <section className="mt-4">
+            <section className="mt-4 px-2">
                 <InfiniteScroller
                     Component={ThreadCheckTile}
                     fetchData={p => joinedThreadsOfUser(meta.user_id, p)}
@@ -88,7 +95,7 @@ const ChooseThreadButton = ({ defaultVal, submit }: Props & { submit: (tid: stri
     }
 
     return (
-        <section>
+        <section className="px-2">
             <h5 className="text-lg font-semibold mb-4">Post In:</h5>
             <NestedSheet
                 ref={sheetRef}

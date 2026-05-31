@@ -22,12 +22,15 @@ import {
   RevalidateTagsArgs
 } from "@type/other";
 import { InputFrame } from "@type/schemas";
-import { customAlphabet } from "nanoid";
+import { nanoid } from "nanoid";
 import { NextRequest } from "next/server";
 import {
   cacheTags,
   errorCodes,
   externalImgUrlPrefix,
+  lengthForAvgParloId,
+  lengthForLongParloId,
+  lengthForShortParloId,
   queryFilters,
   queryKeys,
   queryLimit,
@@ -180,7 +183,7 @@ export const parseUnknownData = (data: any) => {
   if (typeof data === "string") {
     try {
       return JSON.parse(data);
-    } catch {}
+    } catch { }
   }
   return data;
 }
@@ -206,13 +209,13 @@ export const removeNullishFields = <T extends Record<string, any>>(obj: T): T =>
 }
 
 export const makeUrlSafe = (str: string) => {
-  if (!str) return "";
+  if (!str) return '';
 
   return str
     .slice(0, 100)
-    .replace(/[^\w\s]|_/g, "")
-    .replace(/\s+/g, "-")
-    .replace(/^_+|-+$/g, "");
+    .replace(/[^\w\s]|_/g, '')
+    .trim()
+    .replace(/\s+/g, "+");
 };
 
 export const getPoster = <T extends ExternalImageType>(config: GetPosterFunctionProps<T>): string => {
@@ -246,12 +249,6 @@ export const getPoster = <T extends ExternalImageType>(config: GetPosterFunction
     }
   }
 
-  else if (config.extSource === "vimeo") {
-    return `/api/v1/vimeo/${path}`;
-  }
-  else if (config.extSource === "youtube")
-    return `https://i.ytimg.com/vi/${path}/hqdefault.jpg`
-
   else return path;
 };
 
@@ -260,23 +257,19 @@ export const checkAndReturn = <T>(prop: T, equals?: any, notEquals?: any): T | u
   else return prop;
 }
 
-export const getThumbnail = (vid: string) => {
-  if (!vid || !vid.includes("cloudinary")) return placeholder.src;
-  const vidArr = vid.split(".");
-  vidArr.pop();
-  return vidArr.join(".").concat(".jpg");
-};
-
-export const parloId = (length = 12) => {
-  const nanoid = customAlphabet(
-    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789',
-    length,
-  )
+export const parloId = (length = lengthForAvgParloId) => {
   return nanoid(length);
 }
 
-// export const isValidParloId = (id: string) => Boolean(id.length === 12);
-export const isValidParloId = (id: string) => true;
+// Validate id from URL before hitting the database.
+// Suppose 1234 is passed as an id which obviously wont bring any result.
+// So validating it beforehand would be time and effort saving.
+export const isValidParloId = (id: string) => {
+  // Short to Avg ParloId can be of length 10 to 16, long ParloId are of length 21.
+  if (id.length < lengthForShortParloId || (id.length > lengthForAvgParloId && id.length !== lengthForLongParloId))
+    return false;
+  else /^[a-zA-Z0-9-_]{0,}$/.test(id);
+};
 
 export const getPageParams = (req: NextRequest, initial: number = 1) => {
   const searchParams = req.nextUrl.searchParams;
@@ -509,8 +502,8 @@ export const createArray = <T>(initial: T | T[]): ConditionalArray<T> => {
 };
 
 export const isMilestoneReached = (n: number | undefined | null) => {
-  if (!n || n < 10) return false;
-  const num = Number(n.toString().replaceAll("0", ""));
+  if (!n || n < 10 || !Number.isInteger(n)) return false;
+  const num = Number(n.toString().replace(/0/g, ''));
   return [10, 25, 50].includes(num < 10 ? num * 10 : num);
 };
 

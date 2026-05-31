@@ -9,7 +9,7 @@ const ShelfBar = ({ _id, item_count, name, poster, shelfKey, isPrivate, shelf_ty
         <Navigate
             key={_id}
             comp="link"
-            goto={`/shelf/${_id}${isPrivate ? `?k=${shelfKey}` : ''}`}
+            goto={`/s/${_id}${isPrivate ? `?k=${shelfKey}` : ''}`}
             historyPayload={{
                 title: name,
                 poster,

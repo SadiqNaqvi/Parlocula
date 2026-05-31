@@ -41,7 +41,7 @@ const ParentCommentBar = ({ parentComment }: { parentComment: ReplyInputType | u
     if (!content && attachment) return (
         <Navigate
             className="block my-1 p-2 border border-gray20 rounded-md w-full"
-            comp="link" type="button" goto={`/comment/${replied_to}`}>
+            comp="link" type="button" goto={`/c/${replied_to}`}>
             <p className="mb-1 text-xs sm:text-sm text-zinc-500">Replied to:</p>
             <div className="w-full">
                 <Image
@@ -60,7 +60,7 @@ const ParentCommentBar = ({ parentComment }: { parentComment: ReplyInputType | u
         return (
             <Navigate
                 className="block my-1 p-2 border border-gray20 rounded-md w-full"
-                comp="link" type="button" goto={`/comment/${replied_to}`}>
+                comp="link" type="button" goto={`/c/${replied_to}`}>
                 <p className="mb-1 text-xs sm:text-sm text-zinc-500">Replied to:</p>
                 <p className="text-sm line-clamp-2">{content}</p>
             </Navigate>
@@ -70,7 +70,7 @@ const ParentCommentBar = ({ parentComment }: { parentComment: ReplyInputType | u
 
 const CommentHeader = ({ profile, username, createdAt, edited_at, nsfw, spoiler }: Pick<MereComment, "profile" | "username" | "edited_at" | "nsfw" | "spoiler" | "createdAt">) => (
     <>
-        <div className="flex gap-3 items-center">
+        <header className="flex gap-3 items-center">
             <ParloImage
                 frameType="userProfile"
                 frame={profile}
@@ -78,7 +78,7 @@ const CommentHeader = ({ profile, username, createdAt, edited_at, nsfw, spoiler 
                 containerClassName="rounded-full overflow-hidden"
                 classNameForFallback="size-6"
                 size={32}
-                alt={`profile picture of ${username}`}
+                alt={`Profile picture of the user - ${username}`}
             />
             <OptionalChildren condition={username} fallback={(
                 <span className="text-gray-500 font-semibold">*Deleted User*</span>
@@ -91,13 +91,13 @@ const CommentHeader = ({ profile, username, createdAt, edited_at, nsfw, spoiler 
                     }}
                     comp="link"
                     role="button"
-                    goto={`/user/${username}`}
+                    goto={`/u/${username}`}
                     className="font-semibold"
                 >
                     {username}
                 </Navigate>
             </OptionalChildren>
-        </div>
+        </header>
 
         <MetadataTileContainer className="mt-2">
             <MetadataTile className="text-xs" condition={!!createdAt}>{timeAgo(createdAt)}</MetadataTile>
@@ -116,7 +116,7 @@ export const CommentBody = ({ content, attachment }: Pick<MereComment, "content"
         <OptionalChildren condition={attachment}>
             <Image
                 src={attachment}
-                alt="Attachment"
+                alt="GIF attached with the comment"
                 className="size-24 rounded-md border border-gray30 object-contain"
                 unoptimized
                 height={96}
@@ -184,7 +184,7 @@ const CommentBar = (props: Props) => {
                         type: "comment",
                     }}
                     status={status}
-                    link={`/comment/${_id}`}
+                    link={`/c/${_id}`}
                     className="space-y-4 my-2"
                 >
                     <div className="my-2 space-y-4">
@@ -215,7 +215,7 @@ export const CommentBarForReport = ({ attachment, content, nsfw, spoiler, profil
                     type: "comment",
                 }}
                 status="sent"
-                link={`/comment/${_id}`}
+                link={`/c/${_id}`}
                 className="space-y-4 my-2"
             >
                 <CommentBody attachment={attachment} content={content} />

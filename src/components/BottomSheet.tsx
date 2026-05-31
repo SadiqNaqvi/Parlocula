@@ -118,7 +118,7 @@ export const BottomSheet = forwardRef(({ children, description, title, state, on
       if (!open) return;
 
       // Only handle if this sheet owns the state
-      if (event.state?.sheetId !== sheetId.current) return;
+      if (event.state?.sheetId === sheetId.current) return;
 
       isPopped = true;
       setOpen(false);

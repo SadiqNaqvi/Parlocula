@@ -140,7 +140,7 @@ export const getParticipantsOfRoom = async (room_id: string): Promise<{ uid: str
     const participants = await redis.smembers(`room:${room_id}:participants`);
 
     return participants.map(p => {
-        const [uid, type] = p.split('-') as [string, ParticipantEnumType]
+        const [uid, type] = p.split('+') as [string, ParticipantEnumType]
         return { uid, type }
     });
 }
@@ -160,7 +160,7 @@ export const getParticipantsOfRooms = async (rooms: string[]): Promise<{ uid: st
 
         return participantsArray.map(participants => {
             return participants.map(p => {
-                const [uid, type] = p.split('-') as [string, ParticipantEnumType]
+                const [uid, type] = p.split('+') as [string, ParticipantEnumType]
                 return { uid, type }
             })
         });
@@ -429,7 +429,7 @@ const createPipelineForRoomList = (user_id: string, page: number, invitation?: b
                     const participants = store.get(`room:${room_id}:participants`) as string[]
                     const room = store.get(`room:${room_id}`) as CachedFullRoomType;
 
-                    const otherParticipant_id = room.type === "private" && participants.filter(uid => uid.split('-')[0] !== user_id).at(0)?.split('-')[0];
+                    const otherParticipant_id = room.type === "private" && participants.filter(uid => uid.split('+')[0] !== user_id).at(0)?.split('+')[0];
                     if (otherParticipant_id) {
                         roomToOtherParticipantMap[room_id] = otherParticipant_id;
                     }
@@ -844,7 +844,7 @@ const updateLastMessageFieldsOfRoom = async (room_id: string, message: MessageMo
     setRoomDetail(room_id, update, pipeline);
 
     participants.forEach(participant => {
-        const [uid] = participant.split('-');
+        const [uid] = participant.split('+');
         transaction.zadd(`rooms:${uid}`, { score: time, member: room_id });
     });
 

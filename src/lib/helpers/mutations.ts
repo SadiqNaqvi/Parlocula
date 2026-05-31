@@ -482,7 +482,7 @@ export const updateCommentMutation = async (cid: string, uid: string, data: Comm
         },
         onError: ({ context }) => {
             appToast.error(
-                () => LinkToast({ title: `Failed to update your comment`, href: `/comment/${cid}` })
+                () => LinkToast({ title: `Failed to update your comment`, href: `/c/${cid}` })
             )
             if (!context) return;
 
@@ -518,7 +518,7 @@ export const deleteCommentMutation = async (cid: string, uid: string, pid: strin
         onError: ({ context }) => {
             if (!context) return;
             appToast.error(
-                () => LinkToast({ title: `Failed to delete your comment`, href: `/comment/${cid}` })
+                () => LinkToast({ title: `Failed to delete your comment`, href: `/c/${cid}` })
             )
             queryClient.setQueryData(commentKey, context);
         }
@@ -561,7 +561,7 @@ export const createPostMutation = async (uid: string, data: PostSchemaType, navi
             queryClient.refetchQueries({ queryKey: postsOfUserKey });
             queryClient.refetchQueries({ queryKey: postsFoThreadKey });
 
-            navigation.replace(`/post/${data._id}`)
+            navigation.replace(`/p/${data._id}`)
         }
     })
 
@@ -583,7 +583,7 @@ export const updatePostMutation = async (pid: string, uid: string, data: PostUpd
         },
         onError: ({ context }) => {
             appToast.error(
-                () => LinkToast({ title: `Failed to update your post`, href: `/post/${pid}` })
+                () => LinkToast({ title: `Failed to update your post`, href: `/p/${pid}` })
             )
             if (!context) return;
 
@@ -613,7 +613,7 @@ export const deletePostMutation = async (uid: string, pid: string, post: FullPos
         },
         onError: ({ context }) => {
             appToast.error(
-                () => LinkToast({ title: `Failed to delete your post`, href: `/post/${pid}` })
+                () => LinkToast({ title: `Failed to delete your post`, href: `/p/${pid}` })
             )
             if (!context) return;
             queryClient.setQueryData(postKey, context);
@@ -685,7 +685,7 @@ export const acceptCollaboratorInvitation = async (sid: string) => {
         },
         onError: ({ context }) => {
             appToast.error(
-                () => LinkToast({ title: `Failed to accept collaborate invitation`, href: `/shelf/${sid}` })
+                () => LinkToast({ title: `Failed to accept collaborate invitation`, href: `/s/${sid}` })
             );
             if (!context) return;
             queryClient.setQueryData(connectionKey, context.connection);
@@ -728,7 +728,7 @@ export const rejectCollaboratorInvitation = async (sid: string) => {
         },
         onError: ({ context }) => {
             appToast.error(
-                () => LinkToast({ title: `Failed to reject collaborate invitation`, href: `/shelf/${sid}` })
+                () => LinkToast({ title: `Failed to reject collaborate invitation`, href: `/s/${sid}` })
             )
             if (!context) return;
             queryClient.setQueryData(connectionKey, context.connection);
@@ -783,7 +783,7 @@ export const acceptManagerInvitation = async (tid: string) => {
         },
         onError: ({ context }) => {
             appToast.error(
-                () => LinkToast({ title: `Failed to accept manager invitation`, href: `/thread/${tid}` })
+                () => LinkToast({ title: `Failed to accept manager invitation`, href: `/t/${tid}` })
             )
             if (!context) return;
             queryClient.setQueryData(managersKey, context.managers);
@@ -835,7 +835,7 @@ export const rejectManagerInvitation = async (tid: string) => {
         },
         onError: ({ context }) => {
             appToast.error(
-                () => LinkToast({ title: `Failed to reject manager invitation`, href: `/thread/${tid}` })
+                () => LinkToast({ title: `Failed to reject manager invitation`, href: `/t/${tid}` })
             )
             if (!context) return;
             queryClient.setQueryData(managersKey, context.managers);
@@ -868,7 +868,7 @@ export const inviteCollaboratorsMutation = async (sid: string, users: ShelfColla
             console.log("context in inviteCollaborators", context);
 
             appToast.error(
-                () => LinkToast({ title: `Failed to invite collaborators`, href: `/shelf/${sid}/collaborators` })
+                () => LinkToast({ title: `Failed to invite collaborators`, href: `/s/${sid}/collaborators` })
             )
 
 
@@ -895,7 +895,7 @@ export const removeCollaboratorsMutation = async (sid: string, uid: string, data
         }),
         onError: ({ context }) => {
             appToast.error(
-                () => LinkToast({ title: `Failed to remove collaborators`, href: `/shelf/${sid}/collaborators` })
+                () => LinkToast({ title: `Failed to remove collaborators`, href: `/s/${sid}/collaborators` })
             )
             if (!context) return;
             queryClient.setQueryData(qkey, context);
@@ -970,7 +970,7 @@ export const addItemsInShelf = async (sid: string, uid: string, data: ItemsForSh
         onMutate: () => addDocsInInfiniteQueryResult<ShelfItemType[]>(shelfItemsKey, shelfItems),
         onError: ({ context }) => {
             appToast.error(
-                () => LinkToast({ title: `Failed to add taleons in Shelf`, href: `/shelf/${sid}` })
+                () => LinkToast({ title: `Failed to add taleons in Shelf`, href: `/s/${sid}` })
             )
             console.log(context);
             if (context) setDoc(shelfItemsKey, context);
@@ -1035,7 +1035,7 @@ export const createShelfMutation = async (uid: string, shelf: ShelfSchemaType, n
 
             });
 
-            if (navigation) navigation.replace(`/shelf/${data._id}`);
+            if (navigation) navigation.replace(`/s/${data._id}`);
         }
     })
 }
@@ -1090,7 +1090,7 @@ export const deleteShelfMutation = async (sid: string, uid: string) => {
         },
         onError: ({ context }) => {
             appToast.error(
-                () => LinkToast({ title: `Failed to delete shelf`, href: `/shelf/${sid}` })
+                () => LinkToast({ title: `Failed to delete shelf`, href: `/s/${sid}` })
             )
 
             if (!context) return;
@@ -1113,7 +1113,7 @@ export const banMembersMutation = async (tid: string, uid: string, users: MereUs
         },
         onError: ({ context }) => {
             appToast.error(
-                () => LinkToast({ title: `Failed to ban members`, href: `/thread/${tid}/settings/banned` })
+                () => LinkToast({ title: `Failed to ban members`, href: `/t/${tid}/settings/banned` })
             )
             if (!context) return;
             queryClient.setQueryData(qkey, context);
@@ -1131,7 +1131,7 @@ export const unbanMembersMutation = async (tid: string, uid: string, data: { use
         onMutate: () => filterDocsInInfiniteQueryResult(qkey, data.users),
         onError: ({ context }) => {
             appToast.error(
-                () => LinkToast({ title: `Failed to unban members`, href: `/thread/${tid}/settings/banned` })
+                () => LinkToast({ title: `Failed to unban members`, href: `/t/${tid}/settings/banned` })
             )
             if (!context) return;
             queryClient.setQueryData(qkey, context);
@@ -1178,7 +1178,7 @@ export const inviteManagersMutation = async (tid: string, uid: string, users: Mo
         }),
         onError: ({ context }) => {
             appToast.error(
-                () => LinkToast({ title: `Failed to invite managers`, href: `/thread/${tid}/settings/managers` })
+                () => LinkToast({ title: `Failed to invite managers`, href: `/t/${tid}/settings/managers` })
             )
             if (!context) return;
             queryClient.setQueryData(qkey, context);
@@ -1204,7 +1204,7 @@ export const removeManagersMutation = async (tid: string, uid: string, data: { u
         }),
         onError: ({ context }) => {
             appToast.error(
-                () => LinkToast({ title: `Failed to remove managers`, href: `/thread/${tid}/settings/managers` })
+                () => LinkToast({ title: `Failed to remove managers`, href: `/t/${tid}/settings/managers` })
             )
             if (!context) return;
             queryClient.setQueryData(qkey, context);
@@ -1297,11 +1297,11 @@ export const createRoomMutation = async (rmid: string, room: RoomSchemaType & { 
         onError: ({ context }) => {
             if (ruid) {
                 appToast.error(
-                    () => LinkToast({ title: `Unable to create room with ${display_name}`, href: `/user/${display_name}` })
+                    () => LinkToast({ title: `Unable to create room with ${display_name}`, href: `/u/${display_name}` })
                 )
             } else {
                 appToast.error(
-                    () => LinkToast({ title: `Unable to create group "${display_name}"`, href: `/inbox` })
+                    () => LinkToast({ title: `Unable to create group "${display_name}"`, href: `/room` })
                 )
             }
             if (!context) return;
@@ -1335,7 +1335,7 @@ export const acceptRoomInvitation = async (rmid: string, uid: string, room: Full
         onError: ({ context }) => {
             if (!context) return;
             appToast.error(
-                () => LinkToast({ title: `Failed to accept room invitation`, href: `/inbox/${rmid}` })
+                () => LinkToast({ title: `Failed to accept room invitation`, href: `/room/${rmid}` })
             );
             setDoc(invitationListKey, context.invitations);
             setDoc(roomListKey, context.roomList);
@@ -1355,7 +1355,7 @@ export const rejectRoomInvitation = async (rmid: string, uid: string) => {
         onError: ({ context }) => {
             if (!context) return;
             appToast.error(
-                () => LinkToast({ title: `Failed to reject room invitation`, href: `/inbox/${rmid}` })
+                () => LinkToast({ title: `Failed to reject room invitation`, href: `/room/${rmid}` })
             );
             setDoc(invitationListKey, context);
         }
@@ -1561,7 +1561,7 @@ export const unsendMessage = async (rmid: string, msgid: string, uid: string) =>
         onMutate: () => filterDocsInInfiniteQueryResult<MereMessage>(messagesKey, [msgid]),
         onError: ({ context }) => {
             appToast.error(
-                () => LinkToast({ title: `Failed to unsend message`, href: `/inbox/${rmid}` })
+                () => LinkToast({ title: `Failed to unsend message`, href: `/room/${rmid}` })
             );
 
             if (context) setDoc(messagesKey, context);
@@ -1578,7 +1578,7 @@ export const updateNotificationOfRoom = async (rmid: string, uid: string, newSta
         onMutate: () => updateDoc<FullRoomType>(roomKey, { mute: newState }),
         onError: ({ context }) => {
             appToast.error(
-                () => LinkToast({ title: `Failed to update notification of room`, href: `/inbox/${rmid}` })
+                () => LinkToast({ title: `Failed to update notification of room`, href: `/room/${rmid}` })
             );
             setDoc(roomKey, context);
         }
@@ -1598,7 +1598,7 @@ export const leaveRoom = async (rmid: string, uid: string) => {
         },
         onError: ({ context }) => {
             appToast.error(
-                () => LinkToast({ title: `Failed to leave room`, href: `/inbox/${rmid}` })
+                () => LinkToast({ title: `Failed to leave room`, href: `/room/${rmid}` })
             );
             setDoc(roomListKey, context);
         }
@@ -1618,7 +1618,7 @@ export const hideRoom = async (rmid: string, uid: string) => {
         },
         onError: ({ context }) => {
             appToast.error(
-                () => LinkToast({ title: `Failed to leave room`, href: `/inbox/${rmid}` })
+                () => LinkToast({ title: `Failed to leave room`, href: `/room/${rmid}` })
             );
             setDoc(roomListKey, context);
         }
@@ -1630,7 +1630,7 @@ export const inviteParticipants = async (rmid: string, uid: string, participants
         mutationFn: () => ppPostData({ url: `room/${rmid}/participant/invite`, uid, data: { users: participants } }),
         onError: () => {
             appToast.error(
-                () => LinkToast({ title: `Failed to invite participants`, href: `/inbox/${rmid}/participants` })
+                () => LinkToast({ title: `Failed to invite participants`, href: `/room/${rmid}/participants` })
             );
         }
     })
@@ -1644,7 +1644,7 @@ export const removeParticipants = async (rmid: string, uid: string, participants
         onMutate: () => filterDocsInInfiniteQueryResult(participantsKey, participants),
         onError: ({ context }) => {
             appToast.error(
-                () => LinkToast({ title: `Failed to remove participants`, href: `/inbox/${rmid}/participants` })
+                () => LinkToast({ title: `Failed to remove participants`, href: `/room/${rmid}/participants` })
             );
 
             if (context) setDoc(participantsKey, context);

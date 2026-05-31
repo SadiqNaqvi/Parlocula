@@ -69,10 +69,6 @@ const isInternalFrame = (type: ParloImageFrameType): type is Extract<ParloImageF
     return isEqual(type, "userProfile", "groupPoster");
 }
 
-const isEmbeddingFrame = (source: Frame["extSource"]) => {
-    return (source === "youtube" || source === "vimeo")
-}
-
 const getTmdbSourceSet = (src: string, type: ParloImageFrameType) => {
     if (isInternalFrame(type)) return '';
     const extType = type === "shelfPoster" ? "poster" : type;
@@ -125,13 +121,6 @@ const getFancyAttributes = (config: Pick<Props, "fancyGallery" | "fileNameToDown
 
 const iconClassName = "size-6 frameIconShadow text-zinc-200";
 
-const SourceIconMap = ({ extSource }: Pick<Frame, "extSource">) => {
-    if (extSource === "vimeo")
-        return <VimeoIcon className={iconClassName} />
-    else if (extSource === "youtube")
-        return <YoutubeIcon className={iconClassName} />
-}
-
 const ParloImage = ({ frame, alt, height, size, width, className, containerClassName, fullSizeFrame, sizes, classNameForFallback, fill, commonClassName, prioritize, fancyGallery, frameType, fileNameToDownload, showMediaType, showSize, showSourceIcon }: Props) => {
 
     if (!frame) return (
@@ -161,7 +150,7 @@ const ParloImage = ({ frame, alt, height, size, width, className, containerClass
                 srcSet={isTmdbImage ? getTmdbSourceSet(source, frameType) : getSourceSet(frame, sizes)}
                 className={twMerge(`cursor-pointer`, commonClassName, className)}
                 {...getFancyAttributes({ frameType, fancyGallery, fileNameToDownload }, source)}
-                crossOrigin="anonymous"
+                // crossOrigin="anonymous"
                 decoding={prioritize ? "sync" : "async"}
                 sizes={sizes ? turnSizesArrIntoString(sizes) : `${correctWidth}px`}
             />
@@ -182,25 +171,17 @@ const ParloImage = ({ frame, alt, height, size, width, className, containerClass
                 blurDataURL={frame.hash ? decodeHash(frame.hash) : undefined}
                 placeholder={frame.hash ? "blur" : "empty"}
                 {...getFancyAttributes({ frameType, fancyGallery, fileNameToDownload, fullSizeFrame }, source)}
-                crossOrigin="anonymous"
-                loader={isEmbeddingFrame(frame.extSource) ? ({ src }) => src : undefined}
+                // crossOrigin="anonymous"
                 decoding={prioritize ? "sync" : "async"}
-                sizes={isEmbeddingFrame(frame.extSource) ? undefined : sizes ? turnSizesArrIntoString(sizes) : `${correctWidth}px`}
+                sizes={sizes ? turnSizesArrIntoString(sizes) : `${correctWidth}px`}
             />
             <OptionalChildren condition={showSize || showMediaType || showSourceIcon}>
                 <div className="absolute bottom-4 right-4 flex gap-1 items-center text-zinc-200">
                     <OptionalChildren condition={showSize && frame.size}>
                         <span className="px-2 py-1 bg-black/50 text-sm rounded-md">{convertByteIntoSize(frame.size)}</span>
                     </OptionalChildren>
-                    <OptionalChildren condition={showSourceIcon && frame.extSource}>
-                        <SourceIconMap extSource={frame.extSource} />
-                    </OptionalChildren>
-                    <OptionalChildren condition={showMediaType && !(frame.extSource === "vimeo" || frame.extSource === "youtube")}>
-                        <OptionalChildren condition={frame.type === "image"}
-                            fallback={<PlayIcon className={iconClassName} />}
-                        >
-                            <ImageIconFill className={iconClassName} />
-                        </OptionalChildren>
+                    <OptionalChildren condition={showMediaType}>
+                        <ImageIconFill className={iconClassName} />
                     </OptionalChildren>
                 </div>
             </OptionalChildren>

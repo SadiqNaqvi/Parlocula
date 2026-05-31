@@ -27,7 +27,7 @@ export default function SearchTile({ id, image, media_type, name }: RefinedSearc
                     frameType={mediaFilter}
                     className={twMerge("w-12 md:w-16 object-center aspect-square", media_type === "person" ? "rounded-full object-cover " : media_type === "company" ? "object-contain" : "rounded-md object-cover")}
                     size={80}
-                    alt={`Poster of ${name}`}
+                    alt={`Poster of the ${media_type} - ${name}`}
                 />
                 <div className="flex-1 space-y-1">
                     <h4 className="sm:text-xl font-semibold line-clamp-1">{name}</h4>

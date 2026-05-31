@@ -54,7 +54,7 @@ export const POST = postHandler<{ reaction: string }>({
           [post.user_id],
           {
             title: `Congratulations! Your post has reached ${post.reaction_count} reactions 🙌🥳`,
-            path: `/post/${post._id}`,
+            path: `/p/${post._id}`,
             poster: undefined,
             message: [
               {
@@ -66,7 +66,7 @@ export const POST = postHandler<{ reaction: string }>({
                 label: post.title
                   .slice(0, 50)
                   .concat(post.title.length > 50 ? "..." : ""),
-                path: `/post/${post._id}`,
+                path: `/p/${post._id}`,
               },
               {
                 type: "text",

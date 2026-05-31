@@ -16,7 +16,7 @@ export const TabList = ({ children, className = "", href }: { children: React.Re
     const router = useRouter();
     const pathname = usePathname();
 
-    const path = pathname.split('/').map(el => el.split('-')[0]).join('/');
+    const path = pathname.split('/').map(el => el.split('+')[0]).join('/');
     const active = path === href;
 
     const changeTab = (e: any) => {

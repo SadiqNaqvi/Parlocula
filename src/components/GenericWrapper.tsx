@@ -36,7 +36,7 @@ type Props<T, P extends PropType> = {
 const GenericWrapper = <T, P extends PropType>(
     { component, getQueryProps, props, needUser, skipNotFound, placeholderData, loadingComponent }: Props<T, P>
 ) => {
-    const objectId = props?.id?.split('-')[0];
+    const objectId = props?.id?.split('+')[0];
     const userObj = useCurrentUser();
     const pathname = usePathname();
 

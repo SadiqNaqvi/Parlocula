@@ -1,5 +1,5 @@
-import type { MetadataRoute, Metadata, Viewport } from "next";
 import { app_production_url } from "@lib/constants";
+import type { Metadata, Viewport } from "next";
 
 const appURL = app_production_url;
 
@@ -10,16 +10,6 @@ export const name = "Parlocula"
 
 export const description = "Parlocula is The Cinematic Planet where movies and shows stay alive through people. Collect taleons into shelves, join meaningful threads, and live the moment after the credits roll."
 const shortDescription = "Where cinema lives beyond the screen. Explore taleons, build shelves, and join conversations that keep stories alive."
-
-const keywords = [
-    "cinema community",
-    "movie discussion platform",
-    "film culture",
-    "cinematic universe",
-    "movie shelves",
-    "cinema conversations",
-    "Parlocula",
-];
 
 const robotsMeta: Metadata["robots"] = {
     index: true,

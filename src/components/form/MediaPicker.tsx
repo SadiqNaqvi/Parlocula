@@ -48,7 +48,7 @@ const FrameContainer = ({ path, type, size, thumb, remove, className }: FrameToR
             <Image
                 className="aspect-square h-full object-contain"
                 src={thumb || path}
-                alt=""
+                alt="Chosen Frame"
                 width={240} height={240}
             />
             <ExtraComponents />

@@ -29,7 +29,7 @@ const UserBar = ({ profile, username, _id }: MereUser) => {
         <Navigate
             historyPayload={{ title: username, poster: profile, type: "user", }}
             comp="link"
-            goto={`/user/${username}`}
+            goto={`/u/${username}`}
         >
             <SimpleUserBar username={username} profile={profile} _id={_id} />
         </Navigate>

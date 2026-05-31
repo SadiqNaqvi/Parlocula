@@ -23,11 +23,11 @@ const ProfileButton = () => {
     )
 
     return (
-        <div className={`rounded-full border-2 ${pathname.startsWith(`/user/${meta.username}`) ? "border-secondary" : "border-gray-500"}`}>
-            <Navigate comp="link" goto={`/user/${meta.username}`}>
+        <div className={`rounded-full border-2 ${pathname.startsWith(`/u/${meta.username}`) ? "border-secondary" : "border-gray-500"}`}>
+            <Navigate comp="link" goto={`/u/${meta.username}`}>
                 <ParloImage
                     frameType="userProfile"
-                    alt="Profile picture of the current user"
+                    alt="Profile picture of the Current User"
                     size={40}
                     sizes={[
                         { maxScreenWidth: 480, imageWidth: 32 },
@@ -105,7 +105,7 @@ const Sidebar = () => {
                     <ExploreIcon className={iconSize} />
                 </SidebarButton>
 
-                <SidebarButton pathname={pathname} ActiveIcon={ShelfIconFill} href="/shelf" label="Shelf">
+                <SidebarButton pathname={pathname} ActiveIcon={ShelfIconFill} href="/s" label="Shelf">
                     <ShelfIcon />
                 </SidebarButton>
 
@@ -114,7 +114,7 @@ const Sidebar = () => {
                     <AddButton className="size-6" />
                 </SidebarButton> */}
 
-                <SidebarButton pathname={pathname} ActiveIcon={GroupIconFill} href="/thread" label="Threads">
+                <SidebarButton pathname={pathname} ActiveIcon={GroupIconFill} href="/t" label="Threads">
                     <GroupIcon className={iconSize} />
                 </SidebarButton>
 
@@ -122,7 +122,7 @@ const Sidebar = () => {
                     <NotificationButton />
                 </SidebarButton>
 
-                <SidebarButton className="hidden md:block" pathname={pathname} ActiveIcon={MessagesFillIcon} href="/inbox" label="Inbox">
+                <SidebarButton className="hidden md:block" pathname={pathname} ActiveIcon={MessagesFillIcon} href="/room" label="Inbox">
                     <MessagesIcon className={iconSize} />
                 </SidebarButton>
 

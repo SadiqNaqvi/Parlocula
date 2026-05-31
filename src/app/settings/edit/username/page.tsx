@@ -32,7 +32,7 @@ const Page = () => {
     const submit = async (data: { username: string, passkey: string }) => {
         const { success, error } = await updateUsername(data);
         if (!success) return error;
-        navigation.push(`/user/${data.username.trim()}`);
+        navigation.push(`/u/${data.username.trim()}`);
     }
 
     return (

@@ -111,7 +111,7 @@ const SettingPage = () => {
             </Sections>
 
             <Sections heading="personalize">
-                <SectionList href="/settings/notifications">
+                <SectionList href="/settings/notification">
                     <BellIcon />
                     <span>Notifications</span>
                 </SectionList>

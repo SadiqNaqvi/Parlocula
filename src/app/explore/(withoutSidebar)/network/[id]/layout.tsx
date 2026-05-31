@@ -9,7 +9,7 @@ import { PropsWithChildren, Suspense } from "react";
 import TaleonWikiHeader from "../../components/TaleonWikiPage";
 
 const fetchData = async (params: { id: string }) => {
-    const network_id = params.id.split('-')[0];
+    const network_id = params.id.split('+')[0];
     return await fetchNetwork(network_id);
 }
 
@@ -68,7 +68,7 @@ const Page = async ({ params, children }: PropsWithChildren<{ params: { id: stri
 const NetworkPageLayout = async ({ params, children }: PropsWithChildren<ParloPageProps>) => {
 
     const awaitedParams = await params;
-    const [_, ...title] = awaitedParams.id.split('-');
+    const [_, ...title] = awaitedParams.id.split('+');
 
     return (
         <Suspense fallback={<TaleonWikiSkeleton backdrop={false} title={title.join(' ')} />}>

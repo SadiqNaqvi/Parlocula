@@ -590,3 +590,9 @@ export const threadReportOptions: UidsForReportReason[] = [
   ...commonReportOptions,
   "mbfan", "dplt", "others"
 ];
+
+
+// For ParloId - Unique ids used to identify Sharable Content
+export const lengthForShortParloId = 10;
+export const lengthForAvgParloId = 16;
+export const lengthForLongParloId = 21;

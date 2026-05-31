@@ -2,13 +2,17 @@ import { Navigate } from "@components";
 import { Frame, MereFrame } from "@type/internal";
 import OptionalChildren from "./OptionalChildren";
 import ParloImage from "./ParloImage";
+import ParloVideo from "./MinimalVideoPlayer/ParloVideo";
 
 const RenderFrame = ({ title, ...frame }: Frame & { title: string }) => {
 
     if (frame.type === "video") return (
-        <video className="size-full object-contain" preload="metadata">
-            <source src={frame.path} />
-        </video>
+        <ParloVideo
+            className="size-full object-cover"
+            disablePopup
+            frame={frame}
+            alt={`Frame of Post - ${title}`}
+        />
     )
 
     return (
@@ -37,7 +41,7 @@ const FrameTile = ({ frames, spoiler, _id, title, profile }: MereFrame) => {
                     poster: profile,
                     type: "post",
                 }}
-                goto={`/post/${_id}`}
+                goto={`/p/${_id}`}
                 type="button"
                 comp="link"
                 className="relative"

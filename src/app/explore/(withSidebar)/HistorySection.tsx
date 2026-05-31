@@ -7,9 +7,9 @@ import { useRouter } from "next/navigation";
 import { twMerge } from "tailwind-merge";
 
 const predictFrameType = (path: string): ParloImageFrameType => {
-    if (path.includes("/thread")) return "groupPoster";
-    else if (path.includes("/user")) return "userProfile";
-    else if (path.includes("/shelf")) return "shelfPoster";
+    if (path.includes("/t")) return "groupPoster";
+    else if (path.includes("/u")) return "userProfile";
+    else if (path.includes("/s")) return "shelfPoster";
     return "poster";
 }
 
@@ -19,10 +19,10 @@ const HistoryBar = ({ path, poster, title, image, type }: HistoryStackType) => (
             <ParloImage
                 frame={poster}
                 frameType={predictFrameType(path)}
-                alt="Poster for the history item"
                 classNameForFallback="min-w-8 size-8 p-1"
                 className="size-10 min-w-10 object-cover"
-                containerClassName="rounded-full"
+                containerClassName="rounded-full overflow-hidden"
+                alt={`Poster Picture of the ${type} - ${title}`}
             />
             <div>
                 <OptionalChildren condition={title} fallback={(
@@ -39,7 +39,7 @@ const HistoryBar = ({ path, poster, title, image, type }: HistoryStackType) => (
             <ParloImage
                 frame={image}
                 frameType="poster"
-                alt="Poster for the history item"
+                alt={`Large Image of the ${type} - ${title}`}
                 className="max-w-60 w-full h-auto max-h-80 rounded-md object-cover"
                 containerClassName="mt-2"
             />

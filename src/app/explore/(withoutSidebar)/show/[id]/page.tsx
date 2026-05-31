@@ -9,6 +9,8 @@ import { Metadata } from "next";
 import { cookies } from "next/headers";
 import TaleonPage from "../../components/TaleonPage";
 import generateDynamicMetadata from "@lib/seo/metadata";
+import { generateJsonLdForShow } from "@lib/seo/jsonld";
+import JsonLd from "@components/JsonLd";
 
 export const generateMetadata = async ({ params }: ParloPageProps): Promise<Metadata> => {
 
@@ -22,7 +24,7 @@ export const generateMetadata = async ({ params }: ParloPageProps): Promise<Meta
     return generateDynamicMetadata({
         title,
         allowRobots: true,
-        description: overview.length > plot.length ? overview : plot,
+        description: `${overview} - Explore seasons, cast, ratings, communities, threads, shelves, and fan discussions on Parlocula.`,
         coverImage: backdrop ? getPoster({ path: backdrop, external: true, type: "backdrop", size: "w1280" }) : undefined,
         url: `/explore/show/${id}`,
     });
@@ -50,10 +52,15 @@ export default async function Page({ params }: ParloPageProps) {
             }),
         ])
     }
+    
+    const jsonLd = content ? generateJsonLdForShow(content) : null;
 
     return (
-        <HydrationBoundary state={dehydrate(queryClient)}>
-            <TaleonPage content={content} type="show" />
-        </HydrationBoundary>
+        <>
+            <JsonLd schemas={jsonLd} />
+            <HydrationBoundary state={dehydrate(queryClient)}>
+                <TaleonPage content={content} type="show" />
+            </HydrationBoundary>
+        </>
     )
 }

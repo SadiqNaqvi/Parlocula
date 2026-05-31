@@ -57,7 +57,7 @@ export const HomeNavbar = () => (
                 <NotificationButton />
             </Navigate>
 
-            <Navigate comp="link" className="p-2" goto="/inbox" >
+            <Navigate comp="link" className="p-2" goto="/room" >
                 <MessagesIcon />
             </Navigate>
         </div>
@@ -76,21 +76,21 @@ export const ThreadNavbar = () => (
 
             <BottomSheet className="p-2" button={<HamburgerIcon />}>
                 <section className="px-2 space-y-2">
-                    <Navigate comp="link" type="button" goto="/thread/joined" className={tileButtonClassnames}>
+                    <Navigate comp="link" type="button" goto="/t/joined" className={tileButtonClassnames}>
                         <div className="flex gap-2 items-center">
                             <GroupIcon />
                             <span>Joined Threads</span>
                         </div>
                         <RightChevron />
                     </Navigate>
-                    <Navigate comp="link" type="button" goto="/thread/created" className={tileButtonClassnames}>
+                    <Navigate comp="link" type="button" goto="/t/created" className={tileButtonClassnames}>
                         <div className="flex gap-2 items-center">
                             <AddIcon />
                             <span>Created Threads</span>
                         </div>
                         <RightChevron />
                     </Navigate>
-                    <Navigate comp="link" type="button" goto="/thread/manages" className={tileButtonClassnames}>
+                    <Navigate comp="link" type="button" goto="/t/manages" className={tileButtonClassnames}>
                         <div className="flex gap-2 items-center">
                             <ShieldIcon />
                             <span>Managed Threads</span>
@@ -113,14 +113,14 @@ export const ShelfNavbar = () => (
 
             <BottomSheet className="p-2" button={<HamburgerIcon />}>
                 <section className="px-2 space-y-2">
-                    <Navigate comp="link" type="button" goto="/shelf/invited" className={tileButtonClassnames}>
+                    <Navigate comp="link" type="button" goto="/s/invited" className={tileButtonClassnames}>
                         <div className="flex gap-2 items-center">
                             <GroupIcon />
                             <span>Invited Shelves</span>
                         </div>
                         <RightChevron />
                     </Navigate>
-                    <Navigate comp="link" type="button" goto="/shelf/collaborate" className={tileButtonClassnames}>
+                    <Navigate comp="link" type="button" goto="/s/collaborate" className={tileButtonClassnames}>
                         <div className="flex gap-2 items-center">
                             <AddIcon />
                             <span>Collaborative Shelves</span>

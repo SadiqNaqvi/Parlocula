@@ -12,6 +12,8 @@ export { default as OptionalChildren } from "./OptionalChildren";
 export { NestedSheetTrigger, default as OptionList } from "./OptionList";
 export { default as ParloFooter } from "./ParloFooter";
 export { default as ParloImage, type ParloImageFrameType } from "./ParloImage";
+export { default as ParloVideo } from "./MinimalVideoPlayer/ParloVideo";
+export { default as VideoPlayer } from "./MinimalVideoPlayer/VideoPlayer";
 export { default as PostBar } from "./PostBar";
 export { default as ReportedContentBar } from "./ReportedContentBar";
 export { default as RoomBar } from "./RoomBar";

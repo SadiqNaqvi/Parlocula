@@ -42,7 +42,7 @@ const TaleonWikiHeader = ({ className, posterClassName, title, frameType, titleT
                             { imageWidth: 768 },
                         ]}
                         className={twMerge("w-full rounded-md aspect-video h-auto max-h-[250px] object-cover object-top")}
-                        alt="Backdrop"
+                        alt={`Cover Image of ${title}`}
                         frame={backdrop}
                     />
                 </section>
@@ -56,7 +56,7 @@ const TaleonWikiHeader = ({ className, posterClassName, title, frameType, titleT
                     width={160}
                     prioritize
                     className={twMerge(`${backdrop ? "absolute -translate-y-[50%] top-0 border-4 border-primary" : ''} object-cover min-w-24 size-24 sm:min-w-40 sm:size-40 rounded-full`, posterClassName)}
-                    alt={`Poster of ${title}`}
+                    alt={`Poster Image of ${title}`}
                     frame={poster}
                     sizes={[
                         { maxScreenWidth: 480, imageWidth: 96 },
@@ -109,16 +109,15 @@ export const TaleonWikiSection = <T extends AllowedFunctionsForHorizontalList>({
 
     <section className={twMerge("space-y-2 px-2 sm:px-4 border-b last:border-b-0 border-gray30 xs:border-0 my-4 py-4", className)}>
         <div className={`${hrefForMoreButton ? "flex flex-cntr-between" : ''}`}>
-            <h4 className="parloHeading">{heading}</h4>
+            <h2 className="parloHeading">{heading}</h2>
             <OptionalChildren condition={hrefForMoreButton}>
                 <Navigate comp="link" role="button" className="text-sm" goto={hrefForMoreButton || ''}>More</Navigate>
             </OptionalChildren>
         </div>
 
-        {horizontalMovieListProps ? (
-            <DataFetcher {...horizontalMovieListProps} />
-        ) : children
-        }
+        <OptionalChildren condition={horizontalMovieListProps} fallback={children}>
+            <DataFetcher {...horizontalMovieListProps!} />
+        </OptionalChildren>
 
     </section>
 )

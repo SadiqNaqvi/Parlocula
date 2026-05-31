@@ -16,9 +16,9 @@ const Fancybox = ({ children }: { children: React.ReactNode }) => {
             dragToClose: true,
             fadeEffect: true,
             groupAttr: "parlo-gallery",
-            // Fullscreen: { autoStart: true },
             Carousel: {
-                transition:"tween",
+                // Fullscreen: { autoStart: true },
+                transition: "tween",
                 Toolbar: {
                     display: {
                         left: ["counter"],

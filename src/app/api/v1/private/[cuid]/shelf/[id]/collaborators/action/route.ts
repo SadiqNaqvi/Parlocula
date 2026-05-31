@@ -29,7 +29,7 @@ export const PATCH = updateHandler({
       {
         message: [
           { type: "text", text: "Congratulations! " },
-          { type: "link", label: `@${username}`, path: `/user/${username}` },
+          { type: "link", label: `@${username}`, path: `/u/${username}` },
           { type: "text", text: "has accepted your request to become a collaborator in your shelf." }
         ],
         title: `New Collaborator for your shelf 🥳`,

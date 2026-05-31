@@ -9,10 +9,10 @@ import { Metadata } from "next";
 type Ids = { id: string, season: string, episode: string }
 
 const fetchEpisode = async ({ id, episode, season }: Ids, getInternalData: boolean) => {
-    const refineSeason = parseInt(season.split('-')[1]);
+    const refineSeason = parseInt(season.split('+')[1]);
     const seasonNumber = isNaN(refineSeason) ? 1 : refineSeason;
 
-    const refineEpisode = parseInt(episode.split('-')[1]);
+    const refineEpisode = parseInt(episode.split('+')[1]);
     const episodeNumber = isNaN(refineEpisode) ? 1 : refineEpisode;
     const [showPromise, episodePromise] = await Promise.all([
         fetchShow(id, getInternalData),

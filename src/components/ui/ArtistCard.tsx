@@ -21,9 +21,7 @@ export default function ArtistCard({ img, title, detail, link }: { img: string |
                     className="object-cover min-w-20 size-20 rounded-full" />
 
                 <figcaption>
-
-                    <h4 className="font-medium text-center line-clamp-2">{title}</h4>
-
+                    <h3 className="font-medium text-center line-clamp-2">{title}</h3>
                     <p className="text-sm line-clamp-1 text-zinc-500 text-center">{detail}</p>
                 </figcaption>
             </figure>

@@ -114,7 +114,7 @@ const ShelfMutation = ({ defaultVals, taleons, isEditing }: Props) => {
         const { success, error } = await editShelfMutation(id, meta.user_id, { ...editedFields, itemsToDelete });
         if (!success) return error;
 
-        navigation.replace(`/shelf/${id}`);
+        navigation.replace(`/s/${id}`);
     }
 
     const submit = async (data: any) => {

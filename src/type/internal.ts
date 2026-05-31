@@ -198,7 +198,7 @@ type PostBasic = document & {
   reaction_count: number;
   comment_count: number;
   saved_count: number;
-  editedAt: GenericDate | null;
+  edited_at: GenericDate | undefined;
   category: string;
   quoted_post_id: string | undefined;
   quoted_post_title: string | undefined;
@@ -209,7 +209,6 @@ type PostBasic = document & {
 };
 
 export type FullPost = PostBasic & {
-  edited_at: GenericDate | undefined;
   body: string;
   frames: Frame[];
   links: Link[];

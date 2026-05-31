@@ -63,12 +63,12 @@ export const POST = postHandler<ShelfSchemaType>({
         followers.map(({ follower }) => follower),
         {
           title: `${username} has created a new shelf`,
-          path: `/shelf/${shelf._id}`,
+          path: `/s/${shelf._id}`,
           poster: profile,
           message: [
-            { type: "link", label: username, path: `/user/${username}` },
+            { type: "link", label: username, path: `/u/${username}` },
             { type: "text", text: "has created a new shelf" },
-            { type: "link", label: data.name, path: `/shelf/${shelf._id}` },
+            { type: "link", label: data.name, path: `/s/${shelf._id}` },
           ],
         },
         session

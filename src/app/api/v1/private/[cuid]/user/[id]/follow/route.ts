@@ -110,10 +110,10 @@ export const POST = postHandler<{ notification: boolean }>({
       [user._id],
       {
         title: `${username} started following you`,
-        path: `/user/${username}`,
+        path: `/u/${username}`,
         poster: profile,
         message: [
-          { type: "link", label: username, path: `/user/${username}` },
+          { type: "link", label: username, path: `/u/${username}` },
           { type: "text", text: "started following you." },
         ],
       },
