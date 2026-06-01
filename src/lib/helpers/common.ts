@@ -237,6 +237,14 @@ export const getCommentsOfUser = async (
     options: { uid },
   });
 
+export const getPopularShelves = async (p: number) => await ppGetData<AggregatedResponse<MereShelf>>({
+  url: "shelf",
+  searchParams: { p },
+  revalidate: oneDayInSeconds,
+  tag: "popularShelves",
+  options: {},
+})
+
 export const getShelvesOfUser = async (
   uid: string,
   page: number,
@@ -749,12 +757,6 @@ export const getReportReasonToCountMap = async (uid: string, cnid: string, type:
     options: { cnid },
     cookies,
   });
-
-// export const getReportsOnThread = async (tid: string, uid: string) =>
-//   await ppGetData<{ reports: ReportsType[] }>({
-//     url: `private/${uid}/report/${tid}/thread`,
-//     revalidate: oneMinInSeconds * 5
-//   });
 
 export const getReportedContents = async (tid: string, uid: string, type: "post" | "comment", page = 1) =>
   await ppGetData<AggregatedResponse<ReportsType>>({

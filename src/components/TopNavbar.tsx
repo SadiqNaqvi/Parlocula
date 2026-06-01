@@ -1,4 +1,4 @@
-import { AddIcon, AppIcon, GroupIcon, HamburgerIcon, MessagesIcon, PostIcon, RightChevron, ShelfIcon, ShieldIcon } from "@assets/Icons";
+import { AddIcon, AppIcon, EyesIcon, GlobeIcon, GroupIcon, HamburgerIcon, MessagesIcon, PostIcon, RightChevron, ShelfIcon, ShieldIcon } from "@assets/Icons";
 import { BottomSheet, ShareButton } from "@components";
 import { PropsWithChildren } from "react";
 import { twMerge } from "tailwind-merge";
@@ -76,21 +76,21 @@ export const ThreadNavbar = () => (
 
             <BottomSheet className="p-2" button={<HamburgerIcon />}>
                 <section className="px-2 space-y-2">
-                    <Navigate comp="link" type="button" goto="/t/joined" className={tileButtonClassnames}>
+                    <Navigate comp="link" type="button" goto="/thread/joined" className={tileButtonClassnames}>
                         <div className="flex gap-2 items-center">
                             <GroupIcon />
                             <span>Joined Threads</span>
                         </div>
                         <RightChevron />
                     </Navigate>
-                    <Navigate comp="link" type="button" goto="/t/created" className={tileButtonClassnames}>
+                    <Navigate comp="link" type="button" goto="/thread/created" className={tileButtonClassnames}>
                         <div className="flex gap-2 items-center">
                             <AddIcon />
                             <span>Created Threads</span>
                         </div>
                         <RightChevron />
                     </Navigate>
-                    <Navigate comp="link" type="button" goto="/t/manages" className={tileButtonClassnames}>
+                    <Navigate comp="link" type="button" goto="/thread/manages" className={tileButtonClassnames}>
                         <div className="flex gap-2 items-center">
                             <ShieldIcon />
                             <span>Managed Threads</span>
@@ -113,14 +113,35 @@ export const ShelfNavbar = () => (
 
             <BottomSheet className="p-2" button={<HamburgerIcon />}>
                 <section className="px-2 space-y-2">
-                    <Navigate comp="link" type="button" goto="/s/invited" className={tileButtonClassnames}>
+                    <Navigate comp="link" type="button" goto="/shelf/all" className={tileButtonClassnames}>
+                        <div className="flex gap-2 items-center">
+                            <ShelfIcon />
+                            <span>Your Shelves</span>
+                        </div>
+                        <RightChevron />
+                    </Navigate>
+                    <Navigate comp="link" type="button" goto="/shelf/public" className={tileButtonClassnames}>
+                        <div className="flex gap-2 items-center">
+                            <GlobeIcon />
+                            <span>Your Public Shelves</span>
+                        </div>
+                        <RightChevron />
+                    </Navigate>
+                    <Navigate comp="link" type="button" goto="/shelf/private" className={tileButtonClassnames}>
+                        <div className="flex gap-2 items-center">
+                            <EyesIcon />
+                            <span>Your Private Shelves</span>
+                        </div>
+                        <RightChevron />
+                    </Navigate>
+                    <Navigate comp="link" type="button" goto="/shelf/invited" className={tileButtonClassnames}>
                         <div className="flex gap-2 items-center">
                             <GroupIcon />
                             <span>Invited Shelves</span>
                         </div>
                         <RightChevron />
                     </Navigate>
-                    <Navigate comp="link" type="button" goto="/s/collaborate" className={tileButtonClassnames}>
+                    <Navigate comp="link" type="button" goto="/shelf/collaborate" className={tileButtonClassnames}>
                         <div className="flex gap-2 items-center">
                             <AddIcon />
                             <span>Collaborative Shelves</span>

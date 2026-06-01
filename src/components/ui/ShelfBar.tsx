@@ -4,7 +4,7 @@ import { numberConverter, timeAgo } from "@lib/utils";
 import { MereShelf } from "@type/internal";
 import { MetadataTile, MetadataTileContainer, ShelfPoster } from "./";
 
-const ShelfBar = ({ _id, item_count, name, poster, shelfKey, isPrivate, shelf_type, createdAt, last_added }: MereShelf) => {
+const ShelfBar = ({ _id, item_count, name, poster, shelfKey, isPrivate, shelf_type, createdAt, last_added, saved_count }: MereShelf) => {
     return (
         <Navigate
             key={_id}
@@ -27,11 +27,14 @@ const ShelfBar = ({ _id, item_count, name, poster, shelfKey, isPrivate, shelf_ty
                         <MetadataTile condition={!!createdAt}>
                             {timeAgo(createdAt, true)}
                         </MetadataTile>
+                        <MetadataTile condition={!!last_added}>
+                            Added: {timeAgo(last_added, true)}
+                        </MetadataTile>
                         <MetadataTile condition={!!item_count}>
                             {numberConverter(item_count || 0)} items
                         </MetadataTile>
-                        <MetadataTile condition={!!last_added}>
-                            Added: {timeAgo(last_added, true)}
+                        <MetadataTile condition={!!saved_count}>
+                            Saved by: {numberConverter(item_count || 0)}
                         </MetadataTile>
                     </MetadataTileContainer>
                 </div>

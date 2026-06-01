@@ -6,14 +6,15 @@ import { cookies } from "next/headers";
 import { PropsWithChildren } from "react";
 
 export const metadata = generateDynamicMetadata({
-    title: "Shelf"
+    title: "Shelf",
+    description: "Explore the collection of curated movies and shows collected by the die hard fans on Parlocula."
 });
 
 const ShelfHomeLayout = async ({ children }: PropsWithChildren) => {
     const user = await getUserFromToken(await cookies());
 
     if (!user) return (
-        <LoginModal redirectTo="/s" title="Shelves" />
+        <LoginModal redirectTo="/shelf" title="Shelves" />
     )
 
     return (

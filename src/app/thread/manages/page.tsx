@@ -1,7 +1,7 @@
 import { Navbar } from "@components";
 import LoginModal from "@components/fallbacks/LoginModal";
 import { getUserFromToken } from "@lib/auth/utils";
-import { joinedThreadsOfUser } from "@lib/helpers/common";
+import { threadsManageByUser } from "@lib/helpers/common";
 import { getQueryClient, prefetchInfiniteQuery } from "@lib/providers/queryClient";
 import generateDynamicMetadata from "@lib/seo/metadata";
 import { getQueryKeys } from "@lib/utils";
@@ -10,7 +10,7 @@ import { ParloPageProps } from "@type/other";
 import { cookies } from "next/headers";
 import ThreadList from "../ThreadList";
 
-export const metadata = generateDynamicMetadata({ title: "Joined Threads" });
+export const metadata = generateDynamicMetadata({ title: "Managed Threads" });
 
 const Page = async ({ searchParams }: ParloPageProps) => {
 
@@ -18,7 +18,7 @@ const Page = async ({ searchParams }: ParloPageProps) => {
     const user = await getUserFromToken(jar);
 
     if (!user) return (
-        <LoginModal skipFullScreen redirectTo="/t/joined" />
+        <LoginModal skipFullScreen redirectTo="/thread/manages" />
     );
 
     const queryClient = getQueryClient();
@@ -27,15 +27,15 @@ const Page = async ({ searchParams }: ParloPageProps) => {
 
     await prefetchInfiniteQuery({
         queryClient,
-        queryFn: () => joinedThreadsOfUser(user.user_id, page, jar),
-        queryKey: getQueryKeys("joinedThreadsOfUser_uid", { uid: user.user_id }),
+        queryFn: () => threadsManageByUser(user.user_id, page, jar),
+        queryKey: getQueryKeys("threadsManageByUser_uid", { uid: user.user_id }),
         initialPageParam: page,
     });
 
     return (
         <HydrationBoundary state={dehydrate(queryClient)}>
-            <Navbar navTitle="Joined Threads" />
-            <ThreadList section="joined" />
+            <Navbar navTitle="Managed Threads" />
+            <ThreadList section="manages" />
         </HydrationBoundary>
     )
 }

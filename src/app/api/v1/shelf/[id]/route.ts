@@ -26,8 +26,6 @@ export const GET = getHandler(async (r, params) => {
     })
   );
 
-  console.log(response);
-
   return {
     success: true,
     result: response[0] ?? { data: [], total: 0 },

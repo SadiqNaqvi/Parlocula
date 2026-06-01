@@ -169,7 +169,7 @@ const listOfReasons: ReasonProps[] = [
             postList: "A quick cleanup is easier than starting from zero.",
         },
         buttonLabel: "Let's clean your shelves",
-        href: "/s"
+        href: "/shelf/all"
     },
     {
         title: "My feed is full of NSFW contents.",
@@ -191,7 +191,7 @@ const listOfReasons: ReasonProps[] = [
             postList: "Your feed resets to what you actually like.",
         },
         buttonLabel: "Mute Threads",
-        href: "/t/joined"
+        href: "/thread/joined"
     },
     {
         title: "I'm concerned about my data.",

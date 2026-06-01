@@ -352,6 +352,8 @@ export const queryKeys: Record<AvailableQueryKeys, string[]> = {
   comment_cid: ["comment", "{cid}"],
   like_cid: ["like", "{cid}"],
   replies_cid_filter: ["replies", "{cid}", "{filter}"],
+  
+  popularShelves: ["popular-shelves"],
   shelf_sid: ["shelf", "{sid}"],
   shelvesOfUser_uid_filter: ["shelves-of-user", "{uid}", "{filter}"],
   itemsOfShelf_sid_filter: ["itemsOfShelf", "{sid}", "{filter}"],
@@ -432,6 +434,7 @@ export const cacheTags: Record<AvailableCacheTags, string[]> = {
 
   taleon_extid: ["taleon-{extid}"],
 
+  popularShelves: ["popularShelves"],
   shelf_sid: ["shelf-{sid}"],
   shelvesOfUser_uid: ["shelves-user-{uid}"],
   privateShelvesOfUser_uid: ["private-shelves-user-{uid}"],

@@ -105,7 +105,7 @@ const Sidebar = () => {
                     <ExploreIcon className={iconSize} />
                 </SidebarButton>
 
-                <SidebarButton pathname={pathname} ActiveIcon={ShelfIconFill} href="/s" label="Shelf">
+                <SidebarButton pathname={pathname} ActiveIcon={ShelfIconFill} href="/shelf" label="Shelf">
                     <ShelfIcon />
                 </SidebarButton>
 
@@ -114,7 +114,7 @@ const Sidebar = () => {
                     <AddButton className="size-6" />
                 </SidebarButton> */}
 
-                <SidebarButton pathname={pathname} ActiveIcon={GroupIconFill} href="/t" label="Threads">
+                <SidebarButton pathname={pathname} ActiveIcon={GroupIconFill} href="/thread" label="Threads">
                     <GroupIcon className={iconSize} />
                 </SidebarButton>
 

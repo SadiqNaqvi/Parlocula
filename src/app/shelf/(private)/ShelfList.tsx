@@ -4,10 +4,10 @@ import { InfiniteScroller, Navbar, FilterTiles } from "@components"
 import { OptionalChildren } from "@components/ui";
 import { ShelfBarListSkeleton } from "@components/ui/loading";
 import ShelfBar from "@components/ui/ShelfBar";
-import { getPrivateShelvesOfUser, getShelvesAsCollaborator, getShelvesAsInvitee, getShelvesOfUser } from "@lib/helpers/common";
+import { getAllShelvesOfUser, getPrivateShelvesOfUser, getShelvesAsCollaborator, getShelvesAsInvitee, getShelvesOfUser } from "@lib/helpers/common";
 import { getQueryKeys, refineSearchParams } from "@lib/utils";
 
-type ShelfListCategory = "public" | "private" | "collaborative" | "invited";
+type ShelfListCategory = "all" | "public" | "private" | "collaborative" | "invited";
 
 type KeysAndFn = { queryKeys: string[], queryFn: (p: number) => any }
 
@@ -27,9 +27,14 @@ const getQueryKeyAndFn = (type: ShelfListCategory, uid: string, filter: string):
         queryKeys: getQueryKeys("privateShelvesOfUser_uid", { uid })
     }
 
-    else return {
+    else if (type === "public") return {
         queryFn: (p) => getShelvesOfUser(uid, p, filter),
         queryKeys: getQueryKeys("shelvesOfUser_uid_filter", { uid, filter })
+    }
+
+    else return {
+        queryFn: (p) => getAllShelvesOfUser(uid, p),
+        queryKeys: getQueryKeys("allShelvesOfUser_uid", { uid })
     }
 }
 

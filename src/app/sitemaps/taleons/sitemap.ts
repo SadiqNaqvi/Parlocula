@@ -1,8 +1,11 @@
+import { app_production_url } from "@lib/constants";
 import { Taleon } from "@model";
 import { TaleonModelType } from "@type/models";
 import { MetadataRoute } from "next";
+import { connectDatabase } from "@lib/database";
 
 export const generateSitemaps = async () => {
+    await connectDatabase();
     const count = await Taleon.countDocuments();
 
     return Array.from(
@@ -19,8 +22,8 @@ const sitemap = async ({ id }: { id: number }): Promise<MetadataRoute.Sitemap> =
         .exec();
 
     return taleons.map(taleon => ({
-        url: `https://parlocula.vercel.app/explore/${taleon.taleon_type}/${taleon.ext_id}`,
-        lastModified: new Date(taleon.updatedAt),
+        url: `${app_production_url}/explore/${taleon.taleon_type}/${taleon.ext_id}`,
+        lastModified: new Date(taleon.updatedAt || Date.now()).toISOString(),
         changeFrequency: "weekly",
         priority: 0.8
     }));

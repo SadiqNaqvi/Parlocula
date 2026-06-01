@@ -20,7 +20,7 @@ const robots = (): MetadataRoute.Robots => {
                 "/collaborate/",
                 "/invited/",
                 "/private/",
-                "/s/public/",
+                "/shelf/public/",
                 "/created/",
                 "/joined/",
                 "/manages/",

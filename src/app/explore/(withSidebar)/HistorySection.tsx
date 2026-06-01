@@ -7,9 +7,9 @@ import { useRouter } from "next/navigation";
 import { twMerge } from "tailwind-merge";
 
 const predictFrameType = (path: string): ParloImageFrameType => {
-    if (path.includes("/t")) return "groupPoster";
-    else if (path.includes("/u")) return "userProfile";
-    else if (path.includes("/s")) return "shelfPoster";
+    if (path.includes("/t/")) return "groupPoster";
+    else if (path.includes("/u/")) return "userProfile";
+    else if (path.includes("/s/")) return "shelfPoster";
     return "poster";
 }
 

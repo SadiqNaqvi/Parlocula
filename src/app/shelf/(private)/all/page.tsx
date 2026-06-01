@@ -4,9 +4,9 @@ import { getQueryClient, prefetchInfiniteQuery } from "@lib/providers/queryClien
 import { getQueryKeys } from "@lib/utils";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { cookies } from "next/headers";
-import ShelfHomePage from "./ShelfHomePage";
+import ShelfList from "../ShelfList";
 
-const ShelfPage = async () => {
+const AllShelfPage = async () => {
 
     const jar = await cookies();
     const user = await getUserFromToken(jar)
@@ -23,10 +23,14 @@ const ShelfPage = async () => {
 
     return (
         <HydrationBoundary state={dehydrate(queryClient)}>
-            <ShelfHomePage />
+            <ShelfList
+                title="All Shelves"
+                type="all"
+                uid={user.user_id}
+            />
         </HydrationBoundary>
     )
 
 }
 
-export default ShelfPage;
+export default AllShelfPage;

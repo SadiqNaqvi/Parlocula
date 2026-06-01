@@ -1,7 +1,11 @@
+import { app_production_url } from "@lib/constants";
 import { Thread } from "@model";
 import { MetadataRoute } from "next";
+import { connectDatabase } from "@lib/database";
 
 export const generateSitemaps = async () => {
+    await connectDatabase();
+
     const count = await Thread.countDocuments();
 
     return Array.from(
@@ -18,8 +22,8 @@ const sitemap = async ({ id }: { id: number }): Promise<MetadataRoute.Sitemap> =
         .exec();
 
     return threads.map(thread => ({
-        url: `https://parlocula.vercel.app/t/${thread._id}`,
-        lastModified: new Date(thread.updatedAt),
+        url: `${app_production_url}/t/${thread._id}`,
+        lastModified: new Date(thread.updatedAt).toISOString(),
         changeFrequency: "weekly",
         priority: 0.7
     }));

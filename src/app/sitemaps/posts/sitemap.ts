@@ -1,7 +1,10 @@
+import { app_production_url } from "@lib/constants";
 import { Post } from "@model";
 import { MetadataRoute } from "next";
+import { connectDatabase } from "@lib/database";
 
 export const generateSitemaps = async () => {
+    await connectDatabase();
     const count = await Post.countDocuments();
 
     return Array.from(
@@ -18,8 +21,8 @@ const sitemap = async ({ id }: { id: number }): Promise<MetadataRoute.Sitemap> =
         .exec();
 
     return posts.map(post => ({
-        url: `https://parlocula.vercel.app/p/${post._id}`,
-        lastModified: new Date(post.updatedAt),
+        url: `${app_production_url}/p/${post._id}`,
+        lastModified: new Date(post.updatedAt).toISOString(),
         changeFrequency: "daily",
         priority: 0.8
     }));

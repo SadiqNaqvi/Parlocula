@@ -134,7 +134,7 @@ export default function InfiniteScroller({ Loading, showFooter, onSuccess, place
 
     return (
         <>
-            <ul className={twMerge(showFooter ? "h-size-screen" : "", className)} id="infiniteScroller">
+            <ol className={twMerge(showFooter ? "h-size-screen" : "", className)} id="infiniteScroller">
                 {data.pages.
                     flatMap(page => page.results)
                     .map((content, ind) => (
@@ -142,7 +142,7 @@ export default function InfiniteScroller({ Loading, showFooter, onSuccess, place
                             <Component {...content} callback={callback} additional={additional} user={meta} />
                         </li>
                     ))}
-            </ul>
+            </ol>
             <OptionalChildren condition={hasNextPage} fallback={showFooter && <ParloFooter className="mt-auto" />}>
                 <OptionalChildren
                     fallback={(

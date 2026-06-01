@@ -42,7 +42,6 @@ export const commentProjection = {
 
 export const shelfProjection = {
   user_id: 0,
-  saved_count: 0,
   updatedAt: 0,
 }
 

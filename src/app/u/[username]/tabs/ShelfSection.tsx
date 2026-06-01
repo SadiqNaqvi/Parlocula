@@ -47,7 +47,7 @@ const Shelves = ({ filter, page, user, current }: Props) => {
     <section className="h-size-screen">
 
       <OptionalChildren condition={current}>
-        <Navigate goto="/s" comp="link" className="my-4 mx-2 px-2 py-3 rounded-md border border-gray30 flex flex-cntr-between">
+        <Navigate goto="/shelf/all" comp="link" className="my-4 mx-2 px-2 py-3 rounded-md border border-gray30 flex flex-cntr-between">
           <span>View All Shelves</span>
           <RightChevron />
         </Navigate>

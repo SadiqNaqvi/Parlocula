@@ -34,7 +34,7 @@ export const taleonModel = new StrictSchema<TaleonModelType>({
   watched: numberSchema,
   recommended: numberSchema,
   editedAt: { type: Date, default: Date.now }
-});
+}, { timestamps: true });
 
 taleonModel.index({ ext_id: 1 }, { unique: true });
 

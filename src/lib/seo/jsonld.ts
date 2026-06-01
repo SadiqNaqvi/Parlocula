@@ -353,7 +353,7 @@ export const generateJsonLdForPost = ({
                     "@type": "ListItem",
                     "position": 2,
                     "name": "Thread",
-                    "item": `${app_production_url}/t`
+                    "item": `${app_production_url}/thread`
                 },
                 {
                     "@type": "ListItem",
@@ -432,7 +432,7 @@ export const generateJsonLdForShelf = ({
                 "@type": "ListItem",
                 "position": 2,
                 "name": "Shelf",
-                "item": `${app_production_url}/s`
+                "item": `${app_production_url}/shelf`
             },
             {
                 "@type": "ListItem",
@@ -479,7 +479,7 @@ export const generateJsonLdForThread = ({
                 "@type": "ListItem",
                 "position": 2,
                 "name": "Thread",
-                "item": `${app_production_url}/t`
+                "item": `${app_production_url}/thread`
             },
             {
                 "@type": "ListItem",
