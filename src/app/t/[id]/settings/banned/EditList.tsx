@@ -1,6 +1,7 @@
 
 import { CheckIcon } from "@assets/Icons";
 import { ListSelector, ListSelectorRef, Navbar } from "@components";
+import { Button } from "@components/ui";
 import { blockOrBanLimit } from "@lib/constants";
 import { searchBannedMembers, searchMembers } from "@lib/helpers/common";
 import { banMembersMutation, unbanMembersMutation } from "@lib/helpers/mutations";
@@ -24,7 +25,13 @@ export const UnbanAction = ({ tid, uid }: { tid: string, uid: string, back: Type
             <Navbar
                 navTitle="Select to Unban"
                 OptionButton={
-                    <button onClick={handleUnBan}><CheckIcon /></button>
+                    <Button
+                        id="submit-unban-button"
+                        title="Unban"
+                        onClick={handleUnBan}
+                    >
+                        <CheckIcon />
+                    </Button>
                 }
             />
             <ListSelector
@@ -57,9 +64,15 @@ export const BanAction = ({ tid, uid }: { tid: string, uid: string, back: TypedF
 
     return (
         <>
-            <Navbar navTitle="Select to Unban"
+            <Navbar navTitle="Select to Ban"
                 OptionButton={
-                    <button onClick={handleBan}><CheckIcon /></button>
+                    <Button
+                        id="submit-ban-button"
+                        title="Ban"
+                        onClick={handleBan}
+                    >
+                        <CheckIcon />
+                    </Button>
                 }
             />
             <ListSelector

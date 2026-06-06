@@ -7,7 +7,7 @@ import { twMerge } from "tailwind-merge";
 import { Drawer } from "vaul";
 import OptionalChildren from "./OptionalChildren";
 
-const defaultClassName = "px-2 py-3 capitalize hover:bg-zinc-500/20 transition-colors flex flex-cntr-between w-full";
+const defaultClassName = "px-2 py-3 capitalize hover:bg-zinc-500/10 rounded-md transition-colors flex items-center justify-between gap-2 w-full";
 
 export const NestedSheetTrigger = ({ children, button, className }: PropsWithChildren<{ button: React.ReactNode, className?: string }>) => {
     return (
@@ -25,13 +25,14 @@ type Props = {
     children: React.ReactNode;
     className?: string;
     disable?: boolean;
+    skipButtonWrapping?: boolean;
 }
 
-const OptionList = ({ onClick, children, link, className, disable }: Props) => {
+const OptionList = ({ onClick, children, link, className, disable, skipButtonWrapping }: Props) => {
     return (
         <li className={twMerge("w-full", disable ? "text-zinc-500" : '', className)}>
-            <OptionalChildren condition={!disable} fallback="children">
-                <Drawer.Close disabled={disable} onClick={onClick} className={defaultClassName}>
+            <OptionalChildren condition={!disable || skipButtonWrapping} fallback={children}>
+                <Drawer.Close disabled={disable} onClick={onClick} className={twMerge(defaultClassName, className)}>
                     <OptionalChildren condition={link} fallback={children}>
                         <Navigate comp="link" goto={link || ''}>{children}</Navigate>
                     </OptionalChildren>

@@ -10,7 +10,7 @@ export default function ExplorePage() {
     return (
         <>
             <header className="fullScreen bg-primary p-2 sticky z-1 top-0 border-b border-gray20">
-                <Navigate comp="link" role="button" goto={`/explore/search`} className="flex items-center rounded-md justify-start h-10 md:h-12 cursor-text w-full gap-2 px-4">
+                <Navigate comp="link" role="button" goto="/explore/search" className="flex items-center rounded-md justify-start h-10 md:h-12 cursor-text w-full gap-2 px-4">
                     <SearchIcon className="min-h-4 h-4 text-zinc-500" />
                     <span className="text-zinc-500 line-clamp-1 leading-tight select-none">
                         What are you looking for?

@@ -3,7 +3,7 @@
 import { Navbar } from "@components";
 import { LoginModal } from "@components/fallbacks";
 import ListSelector, { ListSelectorRef, RefinedValues } from "@components/ListSelector";
-import { MetadataTile, MetadataTileContainer, OptionalChildren, ShelfPoster } from "@components/ui";
+import { Button, MetadataTile, MetadataTileContainer, OptionalChildren, ShelfPoster } from "@components/ui";
 import { getItems } from "@lib/helpers/common";
 import { createShelfMutation, editShelfMutation } from "@lib/helpers/mutations";
 import appToast from "@lib/providers/toast";
@@ -129,7 +129,14 @@ const ShelfMutation = ({ defaultVals, taleons, isEditing }: Props) => {
             <Navbar
                 navTitle={isEditing ? "Edit Shelf" : "Create Shelf"}
                 OptionButton={(
-                    <button className="primary" onClick={reqSubmit}>{isEditing ? "Update" : "Create"}</button>
+                    <Button
+                        id="submit"
+                        title={isEditing ? "Update" : "Create"}
+                        className="primary"
+                        onClick={reqSubmit}
+                    >
+                        {isEditing ? "Update" : "Create"}
+                    </Button>
                 )}
             />
 

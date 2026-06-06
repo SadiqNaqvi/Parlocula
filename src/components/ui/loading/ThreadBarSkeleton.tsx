@@ -1,4 +1,4 @@
-import { HeadingSkeleton, MetaDataSkeleton, PosterSkeleton } from "./tools";
+import { HeadingSkeleton, MetaDataSkeleton, PageWrapper, PosterSkeleton } from "./tools";
 
 const ThreadBarSkeleton = () => (
     <div className="flex gap-2 items-center p-2 max-w-3xl mx-auto w-full">
@@ -17,5 +17,11 @@ export const ThreadListSkeleton = ({ count = 12 }: { count?: number }) => (
         ))}
     </ul>
 )
+
+export const FullPageShelfListSkeleton = ({ heading, count }: { heading?: string, count?: number }) => (
+    <PageWrapper heading={heading}>
+        <ThreadListSkeleton count={count} />
+    </PageWrapper>
+);
 
 export default ThreadBarSkeleton;

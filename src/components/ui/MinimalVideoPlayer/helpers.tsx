@@ -103,7 +103,7 @@ const VideoOptionsContext = createContext<VideoOptionsContextType | null>(null);
 //
 // 7️⃣ Provider
 //
-export const VideoOptionsProvider = ({ children }: PropsWithChildren) => {
+export const VideoOptionsProvider = ({ children}: PropsWithChildren) => {
 
     const { setter, ...state } = useVideoReducer(initialState);
 
@@ -238,9 +238,9 @@ export const VideoOptionsProvider = ({ children }: PropsWithChildren) => {
 
         // after a small delay (e.g., 300 ms), actually perform the jump
         messageHideTimeout.current = setTimeout(() => {
-            v.currentTime += jumped;   // apply total accumulated jump
-            jumpInterval.current = 0;                // reset accumulator
-            setter({ message: null });                 // clear message
+            v.currentTime += jumped; // apply total accumulated jump
+            jumpInterval.current = 0; // reset accumulator
+            setter({ message: null }); // clear message
             messageHideTimeout.current = null;
         }, 500);
     };

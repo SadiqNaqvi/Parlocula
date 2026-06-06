@@ -35,7 +35,7 @@ export type ShowReturnType<T extends boolean> = TaleonReturnType<T, RefinedShowD
 export const fetchMovie = async<T extends boolean>(id: string, getInternalData: T): Promise<TaleonReturnType<T, RefinedMovieData> | undefined> => {
   if (!id) return;
 
-  const [ext_id] = id.split('+');
+  const [ext_id] = id.split('-');
 
   const [data, taleon] = await Promise.all([
     fetchExt<RefinedMovieData>(`movie?id=${ext_id}`),
@@ -90,9 +90,7 @@ export const fetchMoviesWithGenres = async ({
   page: number;
   sort_by: SortOptions;
 }): Promise<GeneralGetReturn<ExtGeneralPaginatedData>> => {
-  const data = await fetchExt<ExtGeneralPaginatedData>(`movies?g=${genre}&sort=${sort_by}&p=${page}`)
-
-  console.log("movies with genres", data);
+  const data = await fetchExt<ExtGeneralPaginatedData>(`movies?g=${genre}&sort=${sort_by}&p=${page}`);
 
   if (data.status) return {
     success: true,
@@ -222,7 +220,7 @@ export const fetchPerson = async (id: string) => {
 export const fetchShow = async <T extends boolean>(id: string, getInternalData: T): Promise<ShowReturnType<T> | undefined> => {
   if (!id) return;
 
-  const [ext_id] = id.split('+');
+  const [ext_id] = id.split('-');
 
   const [data, taleon] = await Promise.all([
     fetchExt<RefinedShowData>(`show?id=${ext_id}`),
@@ -452,9 +450,7 @@ export const searchTaleonsOnly = async (query: string, page = 1): Promise<Genera
 
 export const fetchTrendingMovies = async (page: number = 1) => {
 
-  const data = await fetchExt<ExtGeneralPaginatedData>(`trending?t=movie&p=${page}`)
-
-  console.log("trendingMovies", data);
+  const data = await fetchExt<ExtGeneralPaginatedData>(`trending?t=movie&p=${page}`);
 
   if (typeof data.response === "string") {
     console.error(

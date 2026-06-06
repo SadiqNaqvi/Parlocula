@@ -14,7 +14,7 @@ const QuotesPage = async ({ params, searchParams }: ParloPageProps) => {
     const { id } = await params;
     const sp = await searchParams;
 
-    const pid = id.split('+')[0];
+    const pid = id.split('-')[0];
     if (pid && !isValidParloId(pid)) return null;
 
     const page = parseInt(sp.p || "1") || 1;

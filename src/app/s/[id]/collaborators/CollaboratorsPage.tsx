@@ -2,7 +2,7 @@
 
 import { AddIcon } from "@assets/Icons";
 import { GenericWrapper, Navbar } from "@components";
-import { OptionalChildren } from "@components/ui";
+import { Button, OptionalChildren } from "@components/ui";
 import { UserBarSkeletonList } from "@components/ui/loading";
 import { SimpleUserBar } from "@components/ui/UserBar";
 import { shelfCollaboratorsLimit } from "@lib/constants";
@@ -24,16 +24,24 @@ const CollaboratorsNavbar = ({ total, setSection }: { total: number, setSection:
             className="border-b border-gray30"
             OptionButton={(
                 <div className="flex gap-2">
-
-                    {Boolean(total) && (
-                        <button onClick={() => setSection("remove")}>Remove</button>
-                    )}
-
-                    {Boolean(shelfCollaboratorsLimit - total) && (
-                        <button onClick={() => setSection("invite")}>
+                    <OptionalChildren condition={!!total}>
+                        <Button
+                            id="remove-collaborators-button"
+                            title="Remove Collaborators"
+                            onClick={() => setSection("remove")}
+                        >
+                            Remove
+                        </Button>
+                    </OptionalChildren>
+                    <OptionalChildren condition={shelfCollaboratorsLimit - total}>
+                        <Button
+                            id="invite-collaborators-button"
+                            title="Invite Collaborators"
+                            onClick={() => setSection("invite")}
+                        >
                             <AddIcon className="size-5" />
-                        </button>
-                    )}
+                        </Button>
+                    </OptionalChildren>
                 </div>
             )}
         />

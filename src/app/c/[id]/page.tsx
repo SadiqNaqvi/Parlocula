@@ -7,7 +7,7 @@ import { ParloPageProps } from "@type/other"
 
 const Page = async ({ params, searchParams }: ParloPageProps) => {
 
-    const cid = (await params).id.split('+')[0];
+    const cid = (await params).id.split('-')[0];
     const sp = await searchParams;
 
     const { filter, page } = refineSearchParams("comments", sp.p, sp.f);

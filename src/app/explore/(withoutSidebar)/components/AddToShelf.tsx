@@ -14,6 +14,7 @@ import { PredefinedShelves } from "@type/models";
 import { ConfirmedTaleon } from "@type/schemas";
 import { useEffect, useRef, useState } from "react";
 import AddToCollaborativeShelf from "./AddToCollaborativeShelf";
+import { Button } from "@components/ui";
 
 const buttonClassName = "w-full py-2 flex flex-cntr-between";
 
@@ -53,7 +54,14 @@ const AddToShelf = ({ className, taleon, released }: { className?: string, taleo
     else if (isFetching && !isRefetching) return <LoadingButton />
 
     else if (isError || !data) return (
-        <button className="secondary" onClick={() => refetch()}>Try Again</button>
+        <Button
+            title="Try again"
+            id="shelf-try-again-button"
+            className="secondary"
+            onClick={() => refetch()}
+        >
+            Try Again
+        </Button>
     )
 
     const { shelves } = data;
@@ -131,56 +139,54 @@ const AddToShelf = ({ className, taleon, released }: { className?: string, taleo
 
     return (
         <BottomSheet onClose={submit} ref={sheetRef} button="Add To Shelf" className={className}>
-            <>
-                <header className="px-2 sticky bottom-0 space-y-2 w-full pb-4 border-b border-gray30">
+            <header className="px-2 sticky bottom-0 space-y-2 w-full pb-4 border-b border-gray30">
 
-                    <Navigate
-                        goto={`/new/shelf?extid=${taleon.ext_id}&type=${taleon.taleon_type}`}
-                        comp="link" className={buttonClassName}
-                    >
-                        <div className="flex items-center gap-2">
-                            <AddIcon />
-                            <span>Create New Shelf</span>
+                <Navigate
+                    goto={`/new/shelf?extid=${taleon.ext_id}&type=${taleon.taleon_type}`}
+                    comp="link" className={buttonClassName}
+                >
+                    <div className="flex items-center gap-2">
+                        <AddIcon />
+                        <span>Create New Shelf</span>
+                    </div>
+                    <RightChevron />
+                </Navigate>
+
+                <AddToCollaborativeShelf
+                    taleon={{
+                        id: taleon.taleon_id,
+                        ext_id: taleon.ext_id,
+                        type: taleon.taleon_type,
+                        year: taleon.year,
+                    }}
+                    uid={meta.user_id}
+                    className={buttonClassName}
+                />
+            </header>
+
+            <section className="px-2 space-y-1 my-4">
+                <ul className="space-y-2">
+                    {user.predefinedShelves.map(s => (
+                        <li key={s._id}>
+                            <ShelfSelectorBar {...s} />
+                        </li>
+                    ))}
+                </ul>
+            </section>
+            <section className="px-2 space-y-1 my-4">
+                <h4 className="text-xs uppercase">Your Shelves</h4>
+                <InfiniteScroller
+                    Component={ShelfSelectorBar}
+                    fetchData={(p) => getAllShelvesOfUser(meta.user_id, p)}
+                    queryKeys={getQueryKeys("allShelvesOfUser_uid", { uid: meta.user_id })}
+                    NotFoundSection={(
+                        <div className="my-4">
+                            <p>Uh oh! Looks like it{"'"}s time to create a new shelf.</p>
                         </div>
-                        <RightChevron />
-                    </Navigate>
-
-                    <AddToCollaborativeShelf
-                        taleon={{
-                            id: taleon.taleon_id,
-                            ext_id: taleon.ext_id,
-                            type: taleon.taleon_type,
-                            year: taleon.year,
-                        }}
-                        uid={meta.user_id}
-                        className={buttonClassName}
-                    />
-                </header>
-
-                <section className="px-2 space-y-1 my-4">
-                    <ul className="space-y-2">
-                        {user.predefinedShelves.map(s => (
-                            <li key={s._id}>
-                                <ShelfSelectorBar {...s} />
-                            </li>
-                        ))}
-                    </ul>
-                </section>
-                <section className="px-2 space-y-1 my-4">
-                    <h4 className="text-xs uppercase">Your Shelves</h4>
-                    <InfiniteScroller
-                        Component={ShelfSelectorBar}
-                        fetchData={(p) => getAllShelvesOfUser(meta.user_id, p)}
-                        queryKeys={getQueryKeys("allShelvesOfUser_uid", { uid: meta.user_id })}
-                        NotFoundSection={(
-                            <div className="my-4">
-                                <p>Uh oh! Looks like it{"'"}s time to create a new shelf.</p>
-                            </div>
-                        )}
-                        className="space-y-2"
-                    />
-                </section>
-            </>
+                    )}
+                    className="space-y-2"
+                />
+            </section>
         </BottomSheet>
     )
 

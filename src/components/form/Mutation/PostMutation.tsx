@@ -5,7 +5,7 @@ import { AddIcon, BookmarkIcon, CommentIcon, ReactIcon } from "@assets/Icons";
 import { BottomSheet, BottomSheetRef, LinkInputManager, Navbar, OptionMenu } from "@components";
 import { Form, MediaInputManager, PostCategoryPicker, ToggleButton } from "@components/form";
 import ChooseThreadButton from "@components/form/Mutation/ThreadSelectionSheet";
-import { OptionalChildren, OptionList } from "@components/ui";
+import { Button, OptionalChildren, OptionList } from "@components/ui";
 import PostPageMockup from "@components/ui/mockup/PostPageMockup";
 import { createPostMutation, updatePostMutation } from "@lib/helpers/mutations";
 import { postClientSchema } from "@lib/schemas";
@@ -122,9 +122,14 @@ const PostMutationPage = ({ defaultVal, isEditing, defaultThread, quotedPost }: 
             <Navbar
                 navTitle={isEditing ? "Edit Post" : "Create Post"}
                 OptionButton={(
-                    <button className="primary" onClick={requestSubmit}>
-                        {isEditing? "Update":"Create"}
-                    </button>
+                    <Button
+                        id="submit"
+                        title={isEditing ? "Update" : "Create"}
+                        className="primary"
+                        onClick={requestSubmit}
+                    >
+                        {isEditing ? "Update" : "Create"}
+                    </Button>
                 )}
             />
 

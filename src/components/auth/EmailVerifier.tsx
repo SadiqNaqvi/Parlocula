@@ -1,8 +1,8 @@
 "use client"
 
-import { Form, Input, FormSubmitReturnType, OTPInput } from "@components/form";
+import { Form, FormSubmitReturnType, Input, OTPInput } from "@components/form";
 import Navbar from "@components/Navbar";
-import { LoadingSpinner, OptionalChildren } from "@components/ui";
+import { Button, LoadingSpinner, OptionalChildren } from "@components/ui";
 import generateFingerprint from "@lib/auth/fingerprint";
 import { sendVerificationCode } from "@lib/helpers/server";
 import { useCustomReducer } from "@lib/hooks";
@@ -32,7 +32,14 @@ const CodeCounter = ({ canResend, func }: { canResend: boolean, func: () => void
     )
 
     else if (canSend) return (
-        <button className="text-center smallBtn mx-auto" onClick={callFunc}>Resend code</button>
+        <Button
+            id="resend-code-button"
+            title="Resend Code"
+            className="text-center smallBtn mx-auto"
+            onClick={callFunc}
+        >
+            Resend code
+        </Button>
     )
 
     else return <p className="text-sm text-center text-slate-500">You can resend code in 2 mins.</p>
@@ -80,13 +87,11 @@ const EmailVerifier = ({ callback, navTitle, containerClasses }: Props) => {
 
     const verifyCode = async () => {
         if (tries >= 3)
-            return "You've reached the limit to verify your email. Please try again in an hour.";
+            return toastIt("You've reached the limit to verify your email. Please try again in an hour.", "error");
 
         else if (sentAt && (Date.now() > getTimeInFuture({ unit: "m", from: sentAt, timeVal: 5 })))
-            return "Code expired. Please re-send a verification code or try again in an hour.";
+            return toastIt("Code expired. Please re-send a verification code or try again in an hour.", "error");
 
-
-        console.log("verify me aaya");
         const { success, data, error } = verifyCodeToLoginSchema.safeParse({ code: otpRef.current?.otp });
 
         if (!success) {
@@ -125,7 +130,7 @@ const EmailVerifier = ({ callback, navTitle, containerClasses }: Props) => {
         <div className={containerClasses}>
 
             <OptionalChildren condition={isPending}>
-                <aside className="fixed backdrop-brightness-50 z-[10] inset-0 flex flex-cntr-all">
+                <aside className="fixed backdrop-brightness-50 z-10 inset-0 flex flex-cntr-all">
                     <LoadingSpinner />
                 </aside>
             </OptionalChildren>
@@ -139,7 +144,16 @@ const EmailVerifier = ({ callback, navTitle, containerClasses }: Props) => {
 
             <div className="max-w-80 mx-auto">
                 <OTPInput onSubmit={verifyCode} getterRef={otpRef} />
-                <button onClick={verifyCode} className="primary w-full mt-4">Verify</button>
+
+                <Button
+                    id="verify-button"
+                    title="Verify"
+                    onClick={verifyCode}
+                    className="primary w-full mt-4"
+                >
+                    Verify
+                </Button>
+
             </div>
 
             <div className="mt-6">
@@ -170,7 +184,14 @@ const EmailVerifier = ({ callback, navTitle, containerClasses }: Props) => {
                     placeholder="example@parlocula.com"
                     label="Email"
                 />
-                <button type="submit" className="primary mt-auto w-full">Continue</button>
+                <Button
+                    id="verification-submit"
+                    title="Continue"
+                    type="submit"
+                    className="primary mt-auto w-full"
+                >
+                    Continue
+                </Button>
             </Form>
         </div>
     )

@@ -18,7 +18,7 @@ const RoomMembersPage = async ({ params }: ParloPageProps) => {
     if (!user) return null;
 
     const uid = user.user_id;
-    const [rmid] = id.split('+');
+    const [rmid] = id.split('-');
 
     const queryClient = getQueryClient();
 

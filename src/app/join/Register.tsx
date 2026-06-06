@@ -3,6 +3,7 @@
 import { DateInput, Form, Input } from "@components/form";
 import UserMutationPage from "@components/form/Mutation/UserMutation";
 import Navbar from "@components/Navbar";
+import { Button } from "@components/ui";
 import { isUsernameAvailable } from "@lib/helpers/common";
 import { useCustomReducer } from "@lib/hooks";
 import { usernameSchema } from "@lib/schemas";
@@ -43,7 +44,14 @@ const Register = ({ email }: { email: string }) => {
                 <DateInput dateRef={dobRef} onComplete={storeDob} />
             </div>
 
-            <button onClick={storeDob} className="primary w-full ">Next</button>
+            <Button
+                id="next-page-button-dob"
+                title="Go Next"
+                onClick={storeDob}
+                className="primary w-full"
+            >
+                Next
+            </Button>
             <p className="text-center text-sm text-zinc-500 mt-2">DOB will not appear on your profile.</p>
         </>
     )
@@ -70,7 +78,14 @@ const Register = ({ email }: { email: string }) => {
                     autoFocus
                 />
 
-                <button type="submit" className="primary w-full mt-4">Next</button>
+                <Button
+                    id="username-submit-button"
+                    title="Go Next"
+                    type="submit"
+                    className="primary w-full mt-4"
+                >
+                    Next
+                </Button>
 
             </Form>
             <p className="text-center text-sm text-zinc-500 mt-2">You can change them later.</p>

@@ -30,7 +30,7 @@ const MessageBar = ({ nextMsgAuthor, prevMsgAuthor, otherParticipantSeenAt, cuid
     const correctStatus = !currentAuthor ? undefined : status === "sent" ? hasSeen ? "seen" : "sent" : status;
     const statusForBottomSheet = currentAuthor ? correctStatus ?? (hasSeen ? "seen" : "sent") : undefined;
 
-    const handleContextMenu: MouseEventHandler<HTMLButtonElement | HTMLAnchorElement> = (e) => {
+    const handleContextMenu: MouseEventHandler<HTMLDivElement | HTMLButtonElement | HTMLAnchorElement> = (e) => {
         e.preventDefault();
         e.stopPropagation();
         setSelectedMessage({ ...message, status: statusForBottomSheet });
@@ -62,9 +62,9 @@ const MessageBar = ({ nextMsgAuthor, prevMsgAuthor, otherParticipantSeenAt, cuid
                 </OptionalChildren>
 
                 <OptionalChildren condition={message.sharedContent} fallback={(
-                    <button className={messageClassName} onContextMenu={handleContextMenu}>
+                    <div className={messageClassName} onContextMenu={handleContextMenu}>
                         {content}
-                    </button>
+                    </div>
                 )}>
                     <Navigate onContextMenu={handleContextMenu} comp="link" goto={message.sharedContent!} className={messageClassName.concat(" text-sky-500")}>
                         {content || "Open Attached Content"}

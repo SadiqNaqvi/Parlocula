@@ -3,7 +3,7 @@
 import { CommentIcon, QuoteIcon } from "@assets/Icons";
 import { GenericWrapper, Navbar, Navigate, SaveButton } from "@components";
 import { ContentFiltered } from "@components/fallbacks";
-import { BreadCrumbs, BreadCrumbTile, LinksSection, MetadataTile, MetadataTileContainer, OptionalChildren, ParloImage } from "@components/ui";
+import { BreadCrumbs, BreadCrumbTile, Button, LinksSection, MetadataTile, MetadataTileContainer, OptionalChildren, ParloImage } from "@components/ui";
 import PostPageSkeleton from "@components/ui/loading/PostPageSkeleton";
 import { getPostById } from "@lib/helpers/common";
 import { getQueryKeys, makeUrlSafe, numberConverter, timeAgo } from "@lib/utils";
@@ -12,7 +12,11 @@ import FrameSlider from "./FrameSlider";
 import OptionsButton from "./OptionsButton";
 import ReactionButton from "./ReactionButton";
 
-type Props = { id: string, uid: string | undefined }
+type Props = {
+    id: string;
+    uid: string | undefined;
+    filterContent: boolean;
+}
 
 const getQueryProps = ({ id }: Props) => ({
     queryKeys: getQueryKeys("post_id", { id }),
@@ -24,14 +28,14 @@ const handleFocus = () => {
     document.querySelector<HTMLInputElement>("input[data-testid=commentInput]")?.focus();
 }
 
-const Component = (data: FullPost, { uid }: Props) => {
+const Component = (data: FullPost, { uid,filterContent }: Props) => {
 
     const { _id, username, poster, edited_at, user_id, saved_count, thread_name, body, comment_count, quoted_post_frames_count, quoted_post_id, quoted_post_links_count, quoted_post_title, createdAt, frames, links, nsfw, reaction_count, spoiler, category, thread_id, title, } = data;
 
     return (
         <>
             <OptionalChildren condition={nsfw}>
-                <ContentFiltered allow={uid === user_id} redirectPath={`/p/${_id}`} />
+                <ContentFiltered filterContent={filterContent} allow={uid === user_id} redirectPath={`/p/${_id}`} />
             </OptionalChildren>
 
             <Navbar
@@ -47,17 +51,20 @@ const Component = (data: FullPost, { uid }: Props) => {
                     <Navigate comp="link" role="button" goto={`/t/${thread_id}`}>
                         <ParloImage
                             frameType="groupPoster"
-                            containerClassName="p-2 rounded-full size-8 max-h-8 max-w-8 overflow-hidden"
-                            className="min-w-8 size-8"
+                            containerClassName="rounded-full overflow-hidden"
+                            classNameForFallback="p-2 size-8"
+                            className="min-w-10 size-10"
                             frame={poster}
                             size={32}
                             alt={`Profile picture of the author of the post - ${username}`}
                         />
                     </Navigate>
+
                     <BreadCrumbs>
                         <BreadCrumbTile href={`/t/${thread_id}-${makeUrlSafe(thread_name)}`}>{thread_name}</BreadCrumbTile>
                         <BreadCrumbTile className={username ? '' : "text-gray-500"} href={username ? `/u/${username}` : undefined}>{username || "Parlocula User"}</BreadCrumbTile>
                     </BreadCrumbs>
+
                 </header>
 
                 <MetadataTileContainer className="my-4 px-2">
@@ -123,19 +130,20 @@ const Component = (data: FullPost, { uid }: Props) => {
             <section className="px-2 flex items-center gap-2">
                 <ReactionButton uid={uid} id={_id} count={reaction_count} />
 
-                <button
-                    title="Comment Button"
+                <Button
+                    id="post-comment-button"
+                    title="Go To Comments"
                     onClick={handleFocus}
                     className="gap-2 text-sm items-center py-2 px-3 rounded-full border border-gray30"
                 >
                     <span><CommentIcon /></span>
                     <span>{numberConverter(comment_count)}</span>
-                </button>
+                </Button>
 
 
                 <Navigate
                     comp="link"
-                    title="Quote "
+                    title="Quote"
                     goto={`/new/post?qpid=${data._id}`}
                     className="flex gap-2 items-center py-2 px-3 text-sm rounded-full border border-gray30">
                     <QuoteIcon />

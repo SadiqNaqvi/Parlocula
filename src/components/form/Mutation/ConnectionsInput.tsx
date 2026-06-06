@@ -2,7 +2,7 @@
 
 import { AddIcon, XmarkIcon } from "@assets/Icons";
 import { BottomSheet, BottomSheetRef, ListSelector, ListSelectorRef, RefinedValues } from "@components";
-import { OptionalChildren } from "@components/ui";
+import { Button, OptionalChildren } from "@components/ui";
 import { searchAllContent } from "@lib/contentFetcher";
 import { RefinedSearchData } from "@type/external";
 import { InputManagerType } from "@type/other";
@@ -20,7 +20,7 @@ const refiner = ({ id, media_type, image, name }: RefinedSearchData): RefinedVal
     } as CType
 });
 
-const ConnectionsInput = ({ defaultConnections, connectionsRef }: { defaultConnections?: CType[], connectionsRef: RefObject<InputManagerType<CType[]>|null> }) => {
+const ConnectionsInput = ({ defaultConnections, connectionsRef }: { defaultConnections?: CType[], connectionsRef: RefObject<InputManagerType<CType[]> | null> }) => {
 
     const [connections, setConnections] = useState<CType[]>(defaultConnections ?? []);
     const callbackRef = useRef<ListSelectorRef<CType>>(null);
@@ -51,9 +51,15 @@ const ConnectionsInput = ({ defaultConnections, connectionsRef }: { defaultConne
                         {connections.map(({ extid, name }) => (
                             <li key={extid} className="inline-flex text-sm gap-3 whitespace-nowrap text-nowrap flex-cntr-between px-2 py-1 rounded-md bg-gray10 border border-gray20">
                                 <span>{name}</span>
-                                <button className="p-1 bg-gray20 rounded-md" type="button" onClick={() => removeConnection(extid)}>
+                                <Button
+                                    id={`connection-remove-${name}`}
+                                    title={`Remove "${name}" connection`}
+                                    className="p-1 bg-gray20 rounded-md"
+                                    type="button"
+                                    onClick={() => removeConnection(extid)}
+                                >
                                     <XmarkIcon className="size-2" />
-                                </button>
+                                </Button>
                             </li>
                         ))}
                     </ul>

@@ -8,6 +8,7 @@ import {
   extMediaSource,
   megaFilePattern,
   numberOfFrames,
+  pagesEnumForBugOrSuggestion,
   urlPattern,
   usernamePattern
 } from "./constants";
@@ -472,3 +473,20 @@ export const createArrayOfUidsSchema = (limit: number) => z.object({
       message: "user id is invalid! Please re-select and try again"
     }),
 });
+
+export const reportOrSuggestionSchemaClient = z.object({
+  page: z.enum(pagesEnumForBugOrSuggestion),
+  desc: z.string()
+  .trim()
+  .min(10, "At least 10 characters are required.")
+  .max(5000, "At most 5000 characters are allowed.")
+});
+
+export const reportOrSuggestionSchemaServer = z.object({
+  user: z.object({
+    username: z.string(),
+    email: z.string(),
+    id: z.string(),
+  }),
+  type: z.enum(["report", "suggestion"])
+}).and(reportOrSuggestionSchemaClient);

@@ -1,4 +1,4 @@
-import { oneDayInSeconds, queryLimit } from "@lib/constants";
+import { oneDayInSeconds, oneHourInSeconds, queryLimit } from "@lib/constants";
 import { getHandler } from "@lib/helpers/handlers";
 import { attachNsfwInPipeline, createPipeline, postsAggregationPipeline } from "@lib/pipelines";
 import { getUpstashRedis, zaddInUpstash } from "@lib/providers/redis";
@@ -168,12 +168,14 @@ const getPostsFromRedis = async (cuid: string, page: number, nsfw: boolean) => {
 
 const storePostsInRedis = async (cuid: string, posts: { score: number, _id: string, [key: string]: any }[]) => {
 
+    if (!posts.length) return;
+
     const pipeline = (await getUpstashRedis()).multi();
     const key = `feed:${cuid}`;
 
     zaddInUpstash(key, posts.flatMap(({ score, _id }) => ({ score, member: _id })), pipeline, { nx: true });
     pipeline.zremrangebyrank(key, 0, -(queryLimit * 5));
-    pipeline.expire(key, oneDayInSeconds);
+    pipeline.expire(key, oneHourInSeconds);
 
     await pipeline.exec();
 }
@@ -236,7 +238,7 @@ export const GET = getHandler(async (r, { cuid }) => {
     const page = getPageParams(r) - 1;
     const nsfw = Boolean(r.nextUrl.searchParams.get("nsfw") === "true");
     const redis = await getUpstashRedis();
-
+    
     const postIdsInRedisCount = await redis.zcount(`feed:${cuid}`, "-inf", "+inf");
 
     if (postIdsInRedisCount && postIdsInRedisCount > (queryLimit * page)) {

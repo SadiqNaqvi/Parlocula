@@ -8,7 +8,7 @@ import { cookies } from "next/headers";
 import { PropsWithChildren } from "react";
 import FeedPage from "./FeedPage";
 
-const HomeFeedPage = async ({ searchParams, children }: PropsWithChildren<ParloPageProps>) => {
+const HomeFeedPage = async ({ searchParams }: ParloPageProps) => {
 
     const jar = await cookies();
     const user = await getUserFromToken(jar);

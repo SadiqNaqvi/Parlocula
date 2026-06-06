@@ -23,7 +23,7 @@ const CollaboratorsPage = async ({ params }: ParloPageProps) => {
         />
     )
 
-    const sid = id.split('+')[0];
+    const sid = id.split('-')[0];
 
     const queryClient = getQueryClient();
 

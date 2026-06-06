@@ -4,6 +4,7 @@ import { getPageParams, getQueryKeys } from "@lib/utils";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import ShelfHomePage from "./ShelfHomePage";
 import { ParloPageProps } from "@type/other";
+import { Sidebar } from "@components";
 
 const ShelfPage = async ({ searchParams }: ParloPageProps) => {
 

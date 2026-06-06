@@ -19,15 +19,18 @@ type Props = {
 const LinksSection = ({ extLinks, genres }: { genres: string[], extLinks: Link[] }) => (
     <ul className="my-4 flex gap-2 overflow-x-auto noScroll">
         {genres.map(el => (
-            <LinkTile
-                key={el}
-                path={`/explore/genres/${el.toLowerCase().replaceAll(' ', '-')}`}
-                label={el}
-            />
+            <li key={el}>
+                <LinkTile
+                    path={`/explore/genres/${el.toLowerCase().replaceAll(' ', '-')}`}
+                    label={el}
+                />
+            </li>
         ))}
-        <span className="h-inherit min-w-[2px] bg-gray-500"></span>
+        <li className="h-inherit min-w-[2px] bg-gray-500"></li>
         {extLinks.map(link => (
-            <LinkTile key={link.path} {...link} />
+            <li key={link.path}>
+                <LinkTile {...link} />
+            </li>
         ))}
     </ul>
 )
@@ -121,7 +124,7 @@ const TaleonPage = ({ content, type }: Props) => {
                 <div className="overflow-x-auto flex gap-4 pb-2">
                     {content.cast.map((el: RefinedCast) => (
                         <ArtistCard
-                            link={`/explore/person/${el.id}-${makeUrlSafe(el.name)}`}
+                            link={`/explore/artist/${el.id}-${makeUrlSafe(el.name)}`}
                             detail={el.character}
                             key={el.id}
                             img={el.poster}
@@ -177,7 +180,10 @@ const TaleonPage = ({ content, type }: Props) => {
 
             <TaleonWikiSection
                 heading="Connected Threads"
-                hrefForMoreButton={`${content.tmdb_id}/threads`}
+                moreButton={{
+                    path: `${content.tmdb_id}/threads`,
+                    label: "More Threads"
+                }}
             >
                 <HorizontalThreadList id={content.tmdb_id} type={type} />
             </TaleonWikiSection>
@@ -195,7 +201,10 @@ const TaleonPage = ({ content, type }: Props) => {
             {content.cast.splice(0, 2).map((el) => (
                 <TaleonWikiSection
                     heading={`More of ${el.name}`}
-                    hrefForMoreButton={`/explore/person/${el.id}`}
+                    moreButton={{
+                        path: `/explore/artist/${el.id}`,
+                        label: "More Movies"
+                    }}
                     key={el.id}
                     horizontalMovieListProps={{
                         type: "movie",

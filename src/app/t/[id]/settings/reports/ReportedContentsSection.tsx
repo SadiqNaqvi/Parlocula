@@ -1,7 +1,7 @@
 "use client";
 
 import { BottomSheet, InfiniteScroller, Navbar } from "@components";
-import { LoadingSpinner, OptionalChildren, ReportedContentBar } from "@components/ui";
+import { Button, LoadingSpinner, OptionalChildren, ReportedContentBar } from "@components/ui";
 import { actionOnReportedContents } from "@lib/helpers/mutations";
 import { getReportedContents } from "@lib/helpers/common";
 import { getQueryClient } from "@lib/providers/queryClient";
@@ -78,21 +78,30 @@ const ReportedContentsSection = ({ tid, type, uid }: Props) => {
             <ReportedContentBar content={report}>
                 <section className="mt-4">
                     <div className="grid gap-2 grid-cols-2 grid-rows-2 xs:grid-rows-1 xs:grid-cols-3">
-                        <button
+                        <Button
+                            id="action-keep-button"
+                            title="Keep"
                             className={`secondary ${decisionBuffer.get(content._id) === "keep" ? "bg-zinc-50" : ''}`}
-                            onClick={() => handleDecision(content._id, "keep")}>
+                            onClick={() => handleDecision(content._id, "keep")}
+                        >
                             Keep
-                        </button>
-                        <button
+                        </Button>
+                        <Button
+                            id="action-warn-button"
+                            title="Warn"
                             className={`secondary ${decisionBuffer.get(content._id) === "warn" ? "bg-zinc-50" : ''}`}
-                            onClick={() => handleDecision(content._id, "warn")}>
+                            onClick={() => handleDecision(content._id, "warn")}
+                        >
                             Warn
-                        </button>
-                        <button
+                        </Button>
+                        <Button
+                            id="action-delete-button"
+                            title="Delete"
                             className={`secondary col-span-2 xs:col-span-1 ${decisionBuffer.get(content._id) === "delete" ? "bg-zinc-50" : ''}`}
-                            onClick={() => handleDecision(content._id, "delete")}>
+                            onClick={() => handleDecision(content._id, "delete")}
+                        >
                             Delete
-                        </button>
+                        </Button>
                     </div>
                     {decisionBuffer.has(content._id) && (
                         <p className="mt-2 text-center text-sm">Taken Decision: {decisionBuffer.get(content._id)}</p>
@@ -124,7 +133,16 @@ const ReportedContentsSection = ({ tid, type, uid }: Props) => {
 
             <Navbar
                 navTitle="Reported Posts"
-                OptionButton={<button className="primary" onClick={handleSave}>Save</button>}
+                OptionButton={(
+                    <Button
+                        id="submit-button"
+                        title="Save"
+                        className="primary"
+                        onClick={handleSave}
+                    >
+                        Save
+                    </Button>
+                )}
             />
 
             <DetailsSection type={type} />

@@ -2,6 +2,7 @@
 
 import { ListSelector, ListSelectorRef, Navbar } from "@components";
 import { RefinedValues } from "@components/ListSelector";
+import { Button } from "@components/ui";
 import { threadManagersLimit } from "@lib/constants";
 import { getMembers, searchMembers } from "@lib/helpers/common";
 import { inviteManagersMutation, removeManagersMutation } from "@lib/helpers/mutations";
@@ -50,7 +51,14 @@ export const RemoveManagers = ({ back, tid, managers, uid }: Props & { managers:
                 navTitle="Remove Managers"
                 onGoBack={back}
                 OptionButton={
-                    <button className="primary" onClick={handleRemoval}>Remove</button>
+                    <Button
+                        id="remove-managers-submit-button"
+                        title="Remove"
+                        className="primary"
+                        onClick={handleRemoval}
+                    >
+                        Remove
+                    </Button>
                 }
             />
 
@@ -97,9 +105,14 @@ export const InviteManagers = ({ back, uid, tid, managersCount }: Props & { mana
                 navTitle="Invite Managers"
                 onGoBack={back}
                 OptionButton={(
-                    <button className="primary" onClick={handleSubmit}>
+                    <Button
+                        id="invite-managers-submit-button"
+                        title="Invite"
+                        className="primary"
+                        onClick={handleSubmit}
+                    >
                         Invite
-                    </button>
+                    </Button>
                 )}
             />
 

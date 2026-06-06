@@ -7,7 +7,7 @@ import { ParloPageProps } from "@type/other";
 
 const Page = async ({ params }: ParloPageProps) => {
 
-    const tid = (await params).id.split('+')[0];
+    const tid = (await params).id.split('-')[0];
 
     const queryClient = getQueryClient();
 

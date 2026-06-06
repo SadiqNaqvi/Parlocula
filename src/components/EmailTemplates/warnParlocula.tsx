@@ -58,12 +58,6 @@ const WarnTeamParlocula = ({ desc, path, title }: Props) => (
                         <Link href={path}>{path}</Link>
                     </Section>
 
-                    <Hr />
-
-                    <Text>
-                        This message was produced and distributed by Parlocula, a software application brought to you by Q-Core Technologies Pvt. Ltd. | All rights reserved.
-                    </Text>
-
                 </Container>
             </Body>
         </Tailwind>

@@ -12,7 +12,7 @@ import { generateJsonLdForShelf } from "@lib/seo/jsonld";
 
 export const generateMetadata = async ({ params, searchParams }: ParloPageProps): Promise<Metadata> => {
     const { id } = await params;
-    const lid = id.split('+')[0];
+    const lid = id.split('-')[0];
 
     if (!isValidParloId(lid)) return { title: { absolute: "Parlocula - The Cinematic Planet" } };
 
@@ -41,7 +41,7 @@ const Page = async ({ params, searchParams }: ParloPageProps) => {
 
     const queryClient = getQueryClient();
 
-    const sid = id.split('+')[0];
+    const sid = id.split('-')[0];
 
     const { filter, page } = refineSearchParams("items", sp.p, sp.f);
     const key = sp.k || sp.key;
@@ -75,6 +75,7 @@ const Page = async ({ params, searchParams }: ParloPageProps) => {
 
         ])
     );
+
     const jsonLd = shelf ? generateJsonLdForShelf(shelf, items.data || []) : null;
 
     return (

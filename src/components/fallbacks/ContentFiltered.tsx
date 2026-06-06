@@ -5,16 +5,16 @@ import useCurrentUser from "@store/user";
 import { PropsWithChildren } from "react";
 
 const Wrapper = ({ children }: PropsWithChildren) => (
-    <aside className="preventScrolling fullScreen fixed z-[5] overflow-hidden inset-0 flex flex-cntr-all backdrop-blur-md">
+    <aside className="preventScrolling fullScreen fixed z-2 overflow-hidden inset-0 flex flex-cntr-all backdrop-blur-md">
         <section className="mx-2 p-4 max-w-96 m-auto bg-primarylight rounded-md">
             {children}
         </section>
     </aside>
 )
 
-const ContentFiltered = ({ allow, redirectPath }: { allow?: boolean, redirectPath: string }) => {
+const ContentFiltered = ({ allow, redirectPath, filterContent }: { allow?: boolean, redirectPath: string, filterContent: boolean }) => {
 
-    const { filterContent, user, isHydrated } = useCurrentUser();
+    const { user, isHydrated } = useCurrentUser();
 
     if (!isHydrated) return null;
 

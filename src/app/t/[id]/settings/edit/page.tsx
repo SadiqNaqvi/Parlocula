@@ -9,7 +9,7 @@ import { cookies } from "next/headers";
 const ThreadEditPage = async ({ params }: ParloPageProps) => {
 
     const { id } = await params;
-    const [tid] = id.split('+');
+    const [tid] = id.split('-');
 
     const queryClient = getQueryClient();
 

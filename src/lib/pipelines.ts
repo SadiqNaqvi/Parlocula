@@ -439,17 +439,7 @@ export const currentUserPipeline = (filter: PipelineStage.Match["$match"]) => [
       from: "shelves",
       let: { id: "$_id" },
       pipeline: [
-        // convertMatchToLookupExpr({ user_id: "$$id", shelf_type: "custom" })
-        {
-          $match: {
-            $expr: {
-              $and: [
-                { $eq: ["$user_id", "$$id"] },
-                { $ne: ["$shelf_type", "custom"] },
-              ],
-            },
-          },
-        },
+        convertMatchToLookupExpr({ user_id: "$$id", shelf_type: { $ne: "custom" } }),
         { $project: shelfProjection }
       ],
       as: "predefinedShelves",

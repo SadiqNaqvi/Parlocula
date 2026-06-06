@@ -6,7 +6,7 @@ import { PropsWithChildren } from "react";
 const ShelfLayout = async ({ children, params }: PropsWithChildren<ParloPageProps>) => {
 
     const awaitedParams = await params;
-    const lid = awaitedParams.id.split('+')[0];
+    const lid = awaitedParams.id.split('-')[0];
 
     if (!isValidParloId(lid)) return (
         <NotFound

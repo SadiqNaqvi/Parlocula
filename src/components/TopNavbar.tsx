@@ -1,4 +1,4 @@
-import { AddIcon, AppIcon, EyesIcon, GlobeIcon, GroupIcon, HamburgerIcon, MessagesIcon, PostIcon, RightChevron, ShelfIcon, ShieldIcon } from "@assets/Icons";
+import { AddIcon, AppIcon, CollaborateIcon, EyesIcon, GlobeIcon, GroupIcon, HamburgerIcon, MessagesIcon, PostIcon, RightChevron, ShelfIcon, ShieldIcon } from "@assets/Icons";
 import { BottomSheet, ShareButton } from "@components";
 import { PropsWithChildren } from "react";
 import { twMerge } from "tailwind-merge";
@@ -6,7 +6,13 @@ import Navigate from "./Navigate";
 import NotificationButton from "./notifications/NotificationButton";
 import { OptionalChildren } from "./ui";
 
-export const TopNavbar = ({ className, children, heading, headingClassName }: PropsWithChildren<{ className?: string; heading?: string, headingClassName?: string }>) => (
+type TopNavbarProps = PropsWithChildren<{
+    className?: string;
+    heading?: string;
+    headingClassName?: string;
+}>
+
+export const TopNavbar = ({ className, children, heading, headingClassName }: TopNavbarProps) => (
     <nav className={twMerge("fullScreen sticky z-3 top-0 p-2 border-b border-gray10 flex flex-cntr-between bg-primary", className)}>
         <div>
             <OptionalChildren condition={heading} fallback={(
@@ -49,7 +55,11 @@ const AddButton = ({ className }: { className?: string }) => {
 }
 
 export const HomeNavbar = () => (
-    <TopNavbar>
+    <nav className={"fullScreen sticky z-3 top-0 p-2 border-b border-gray10 flex flex-cntr-between bg-primary"}>
+        <div>
+            <AppIcon className="size-6 overflow-visible md:hidden" />
+            <h1 className="text-lg hidden md:inline">Parlocula</h1>
+        </div>
         <div className="flex">
             <AddButton />
 
@@ -61,7 +71,7 @@ export const HomeNavbar = () => (
                 <MessagesIcon />
             </Navigate>
         </div>
-    </TopNavbar>
+    </nav>
 )
 
 const tileButtonClassnames = "p-2 rounded-md border border-gray10 flex flex-cntr-between"
@@ -143,7 +153,7 @@ export const ShelfNavbar = () => (
                     </Navigate>
                     <Navigate comp="link" type="button" goto="/shelf/collaborate" className={tileButtonClassnames}>
                         <div className="flex gap-2 items-center">
-                            <AddIcon />
+                            <CollaborateIcon />
                             <span>Collaborative Shelves</span>
                         </div>
                         <RightChevron />

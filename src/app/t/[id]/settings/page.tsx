@@ -7,7 +7,7 @@ import { PropsWithChildren } from "react"
 const ListContainer = ({ children, href }: PropsWithChildren<{ href?: string }>) => (
     <li className="px-2 *:py-3">
         <OptionalChildren condition={href} fallback={children}>
-            <Navigate comp="link" goto={href || ""} className="size-full flex flex-cntr-between">
+            <Navigate comp="link" goto={href!} className="size-full flex flex-cntr-between">
                 <div className="flex gap-2 items-center">
                     {children}
                 </div>

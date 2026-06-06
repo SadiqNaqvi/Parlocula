@@ -1,7 +1,6 @@
 export { default as ArtistCard } from "./ArtistCard";
 export { BreadCrumbs, BreadCrumbTile } from "./Breadcrumbs";
 export { default as CommentBar, CommentBarWithoutReply } from "./CommentBar";
-export { default as Dropdown } from "./Dropdown";
 export { default as FrameTile } from "./FrameTile";
 export { default as InteractiveDetailSection } from "./InteractiveDetailSection";
 export { default as LinkTile, LinksSection } from "./LinkTile";
@@ -26,4 +25,5 @@ export { default as ThreadBox } from "./ThreadBox";
 export { default as ThreadTile } from "./ThreadTile";
 export { SimpleUserBar, default as UserBar } from "./UserBar";
 export { default as VerticleMovieCard } from "./VerticleMovieCard";
+export { default as Button } from "./Button";
 

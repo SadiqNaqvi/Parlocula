@@ -15,7 +15,7 @@ import { ReplyInputType } from "@type/schemas";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { useRef, useState } from "react";
-import { OptionalChildren } from "./ui";
+import { Button, OptionalChildren } from "./ui";
 
 export type CommentInputRefType = {
     focus: () => void;
@@ -61,11 +61,13 @@ const ReplyBar = ({ reply, removeReply }: { reply: ReplyInputType | undefined, r
                     src={attachment}
                     className="object-contain size-12 rounded-md"
                 />
-                <button
+                <Button
+                    id="remove-gif-button"
+                    title="Remove attachment"
                     onClick={removeReply}
                     className="p-2 rounded-full bg-gray20 border border-gray30">
                     <XmarkIcon className="size-2" />
-                </button>
+                </Button>
             </div>
         </section>
     )
@@ -77,11 +79,13 @@ const ReplyBar = ({ reply, removeReply }: { reply: ReplyInputType | undefined, r
             </OptionalChildren>
             <div className="flex flex-cntr-between gap-2 w-full">
                 <p className="text-sm line-clamp-2">{content}</p>
-                <button
+                <Button
+                    id="remove-reply-button"
+                    title="Remove Reply"
                     onClick={removeReply}
                     className="p-2 rounded-full bg-gray20 border border-gray30">
                     <XmarkIcon className="size-2" />
-                </button>
+                </Button>
             </div>
         </section>
     )
@@ -118,9 +122,14 @@ const CommentInput = ({ post_author, post_id, section, editing, defaultValue, ci
                     name="content"
                 />
 
-                <button type="submit" className="p-2 h-fit border border-gray10 rounded-full bg-gray10">
+                <Button
+                    id="disabled-submit-comment-button"
+                    title="Send"
+                    type="submit"
+                    className="p-2 h-fit border border-gray10 rounded-full bg-gray10"
+                >
                     <SendIcon className="size-4 color-secondary" />
-                </button>
+                </Button>
             </Form>
         </footer>
     )
@@ -172,8 +181,7 @@ const CommentInput = ({ post_author, post_id, section, editing, defaultValue, ci
                 if (success) return;
 
                 const input = getElement();
-
-                console.log(input, input?.value, !!reply, !!gif)
+                
                 if (!input) return;
 
                 // Check if user started creating a new comment, if yes then do nothing;
@@ -205,11 +213,13 @@ const CommentInput = ({ post_author, post_id, section, editing, defaultValue, ci
 
                     <OptionalChildren condition={gif}>
                         <div className="relative w-fit">
-                            <button
+                            <Button
+                                id="select-git-button"
+                                title="Attach GIF"
                                 onClick={() => setGif('')}
                                 className="p-2 border border-gray30 bg-primary rounded-full absolute top-0 right-0 mt-1 mr-1">
                                 <XmarkIcon className="size-2" />
-                            </button>
+                            </Button>
                             <Image
                                 unoptimized
                                 src={gif}
@@ -237,9 +247,14 @@ const CommentInput = ({ post_author, post_id, section, editing, defaultValue, ci
                                     name="content"
                                 />
 
-                                <button type="submit" className="p-2 h-fit border border-gray10 rounded-full bg-gray10">
+                                <Button
+                                    id="submit-comment-button"
+                                    title="Send"
+                                    type="submit"
+                                    className="p-2 h-fit border border-gray10 rounded-full bg-gray10"
+                                >
                                     <SendIcon className="size-4 color-secondary" />
-                                </button>
+                                </Button>
                             </div>
 
                             <div className="flex gap-2 items-center py-2">

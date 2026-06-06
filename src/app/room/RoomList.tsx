@@ -19,6 +19,7 @@ import { twMerge } from "tailwind-merge";
 import CreateGroup from "./CreateGroup";
 import InvitationRoomsList from "./InvitationRoomList";
 import RoomSearchList from "./RoomSearchList";
+import { Button } from "@components/ui";
 
 const InvitationsCount = ({ uid }: { uid: string }) => {
     const { data } = useQueryHook({
@@ -166,7 +167,14 @@ const RoomsList = ({ uid }: RoomListProps) => {
                         </div>
                         :
                         <div className="w-full flex flex-cntr-all">
-                            <button className="primary" onClick={manuallyLoadNextPage}>Load More</button>
+                            <Button
+                                id="load-more-button"
+                                title="Load More"
+                                className="primary"
+                                onClick={manuallyLoadNextPage}
+                            >
+                                Load More
+                            </Button>
                         </div>
                     )
                 }

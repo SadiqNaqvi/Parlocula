@@ -7,7 +7,7 @@ import { oneHourInSeconds } from "@lib/constants";
 import { connectDatabase } from "@lib/database";
 import { getAblyRest, publishAblyEvent } from "@lib/providers/ably";
 import { getRedis } from "@lib/providers/redis";
-import { verificationCodeSchema } from "@lib/schemas";
+import { reportOrSuggestionSchemaServer, verificationCodeSchema } from "@lib/schemas";
 import { getTimeInFuture } from "@lib/utils";
 import { Notification, ShelfItem, Taleon, User } from "@model";
 import { render } from "@react-email/components";
@@ -15,12 +15,13 @@ import { GeneralGetReturn, GeneralPostReturn } from "@type/internal";
 import { NotificationModelType, ShelfItemModelType, TaleonModelType } from "@type/models";
 import type { ClientSession } from "@type/mongoose";
 import { AblyEventParams, PushNotificationType } from "@type/other";
-import { ConfirmedTaleon, TaleonSchemaType } from "@type/schemas";
+import { AppBugOrSuggestionSchemaServer, ConfirmedTaleon, TaleonSchemaType } from "@type/schemas";
 import { randomInt } from "crypto";
 import { cookies } from "next/headers";
 import { createTransport } from "nodemailer";
 import webpush, { PushSubscription } from 'web-push';
 import { getParticipantMuteState } from "./redis/messaging";
+import BugOrSuggestionTemplate from "@components/EmailTemplates/BugOrSuggestion";
 
 webpush.setVapidDetails(
   `mailto:contact.qcore@gmail.com`,
@@ -141,6 +142,24 @@ export const sendEmail = async ({ email, subject, template }: SendEmailProps) =>
   });
 }
 
+export const reportBugOrSuggestion = async (payload: AppBugOrSuggestionSchemaServer) => {
+  const { success, data, error } = reportOrSuggestionSchemaServer.safeParse(payload);
+
+  if (!success) return { success, errors: error.issues };
+  try {
+    await sendEmail({
+      email: process.env.CREATOR_EMAIL!,
+      subject: `${data.type} on ${data.page}`,
+      template: await render(BugOrSuggestionTemplate(data))
+    });
+
+    return { success: true }
+  } catch (e) {
+    console.error("Error while reporting bug or suggestion", e);
+    return { success: false, errors: ["Something went wrong! Please try again."] }
+  }
+}
+
 export const sendVerificationCode = async (
   email: string,
   fingerprint: string,
@@ -157,8 +176,6 @@ export const sendVerificationCode = async (
   const payload: EmailPayload | null = await redis
     .get(`limits:email:${fingerprint}`)
     .then(r => JSON.parse(r ?? "null"));
-
-  console.log(payload);
 
   if (payload && payload.triedTimes >= 5)
     return { success: false, errCode: "email_verification_limit_exceed" }
@@ -186,7 +203,7 @@ export const sendVerificationCode = async (
     return { success: true, result: null };
 
   } catch (err: any) {
-    console.log("Error occured while sending verification email", err.message);
+    console.warn("Error occured while sending verification email", err.message);
     return { success: false, errCode: "unknown_error" };
   }
 };

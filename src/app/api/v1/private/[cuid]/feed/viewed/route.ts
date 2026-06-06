@@ -20,7 +20,7 @@ export const POST = async (req: NextRequest, { params }: { params: Promise<Handl
         return NextResponse.json({ success: true, result: null }, { status: 200 })
 
     } catch (e: any) {
-        console.log("Error occured while updating user viewed feed posts");
+        console.warn("Error occured while updating user viewed feed posts");
         return NextResponse.json({ success: false, errCode: "uncaught_error" }, { status: 500 })
     }
 

@@ -3,6 +3,7 @@
 import { LeftChevron, SearchIcon } from "@assets/Icons";
 import { Form, Input } from "@components/form";
 import Navigate from "@components/Navigate";
+import { Button } from "@components/ui";
 import { searchFilters } from "@lib/constants";
 import { useChageSearchParams, useSearchHistoryStack } from "@lib/hooks";
 import { SearchHistoryStackType } from "@type/other";
@@ -56,17 +57,21 @@ const SearchHeader = ({ filter }: { filter: string }) => {
                     />
                 </Form>
             </section>
-            <section className="mt-2 flex gap-4 noScroll overflow-x-auto bounceEffect overscroll-x-contain">
+            <ul className="mt-2 flex gap-4 noScroll overflow-x-auto bounceEffect overscroll-x-contain">
                 {searchFilters.map(el => (
-                    <button
-                        key={el}
-                        className={`relative border-0 border-b-2 capitalize px-2 py-2 ${filter === el ? "border-secondary" : "border-transparent"}`}
-                        onClick={() => updateFilter(el)}
-                    >
-                        {el}
-                    </button>
+                    <li>
+                        <Button
+                            key={el}
+                            id={`${el}-filter-button`}
+                            title={el}
+                            className={`relative border-0 border-b-2 capitalize px-2 py-2 ${filter === el ? "border-secondary" : "border-transparent"}`}
+                            onClick={() => updateFilter(el)}
+                        >
+                            {el}
+                        </Button>
+                    </li>
                 ))}
-            </section>
+            </ul>
         </header>
     )
 }

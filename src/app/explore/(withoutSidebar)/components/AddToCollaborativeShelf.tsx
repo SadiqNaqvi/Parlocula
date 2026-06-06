@@ -1,6 +1,6 @@
 "use client"
 
-import { RightChevron } from "@assets/Icons";
+import { CollaborateIcon, RightChevron } from "@assets/Icons";
 import { BottomSheet, ListSelector, ListSelectorRef } from "@components";
 import { ShelfSelector } from "@components/form";
 import { getShelvesAsCollaborator } from "@lib/helpers/common";
@@ -59,7 +59,10 @@ const AddToCollaborativeShelf = ({ uid, taleon, className }: Props) => {
         <BottomSheet
             button={(
                 <>
-                    <span>Add in Collaborative Shelves</span>
+                    <div className="flex gap-2 items-center">
+                        <CollaborateIcon />
+                        <span>Add in Collaborative Shelves</span>
+                    </div>
                     <RightChevron />
                 </>
             )}

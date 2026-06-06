@@ -2,7 +2,7 @@
 
 import { BellIcon, BellSlashIcon, EyeSlashIcon, LeaveIcon, LinkIcon, RightChevron, UserIcon } from "@assets/Icons";
 import { BottomSheet, Navigate, NestedSheet, WarningModal } from "@components";
-import { OptionalChildren, ParloImage } from "@components/ui";
+import { Button, OptionalChildren, ParloImage } from "@components/ui";
 import { hideRoom, leaveRoom, updateNotificationOfRoom } from "@lib/helpers/mutations";
 import { useDebounce } from "@lib/hooks";
 import { FullRoomType } from "@type/internal";
@@ -25,7 +25,12 @@ const MuteButton = ({ mute, rmid, uid }: { mute: boolean } & Props) => {
     }
 
     return (
-        <button onClick={debounceMute} className="p-2 flex flex-col gap-2 flex-1 sm:w-fit border border-gray40 rounded-md">
+        <Button
+            id="mute-button"
+            title={`Turn ${isMute ? "on" : "off"} room notifications`}
+            onClick={debounceMute}
+            className="p-2 flex flex-col gap-2 flex-1 sm:w-fit border border-gray40 rounded-md"
+        >
             <OptionalChildren condition={isMute} fallback={(
                 <>
                     <BellIcon />
@@ -35,7 +40,7 @@ const MuteButton = ({ mute, rmid, uid }: { mute: boolean } & Props) => {
                 <BellSlashIcon />
                 <span className="text-sm">Unmute</span>
             </OptionalChildren>
-        </button>
+        </Button>
     )
 
 }
@@ -76,10 +81,15 @@ const HideRoomButton = ({ rmid, uid }: Props) => {
     }
 
     return (
-        <button onClick={handleHide} className="p-2 flex flex-col gap-2 border border-gray40 rounded-md">
+        <Button
+            id="room-hide-button"
+            title="Hide Room"
+            onClick={handleHide}
+            className="p-2 flex flex-col gap-2 border border-gray40 rounded-md"
+        >
             <EyeSlashIcon />
             <span>Hide</span>
-        </button>
+        </Button>
     )
 }
 

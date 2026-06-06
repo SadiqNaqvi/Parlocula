@@ -1,6 +1,7 @@
 "use client";
 
 import { ThumbUpIcon, ThumbUpIconFill } from "@assets/Icons";
+import { Button } from "@components/ui";
 import UserBasedButton, { UserBasedButtonProps } from "@components/UserBasedButton";
 import { checkLikeOnComment } from "@lib/helpers/common";
 import { getQueryKeys, numberConverter } from "@lib/utils";
@@ -24,7 +25,7 @@ const className = "flex py-2 px-3 gap-2 items-center border border-gray20 rounde
 
 const LikeButton = ({ id, likesCount, author, uid }: { id: string, likesCount: number, author: string, uid: string | undefined }) => {
 
-    const Button = ({ onClick, state, user_id }: UserBasedButtonProps<boolean>) => {
+    const ResponsiveButton = ({ onClick, state, user_id }: UserBasedButtonProps<boolean>) => {
 
         const handleClick = () => {
             if (state) {
@@ -36,24 +37,24 @@ const LikeButton = ({ id, likesCount, author, uid }: { id: string, likesCount: n
         }
 
         return (
-            <button
-                title="Like Button"
+            <Button
+                title="Like"
+                id="comment-like-button"
                 className={className}
                 onClick={handleClick
-
                 }>
                 {state ? <ThumbUpIconFill /> : <ThumbUpIcon />}
                 <span>
                     {numberConverter(likesCount + (state ? 1 : 0))}
                 </span>
-            </button>
+            </Button>
         )
     };
 
     return (
         <UserBasedButton
             uid={uid}
-            Button={Button}
+            Button={ResponsiveButton}
             noUserStateChilren={<NoUserStateButton count={likesCount} />}
             noUserStateClassName={className}
             redirectAfterLogin={`/c/${id}`}

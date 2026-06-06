@@ -7,7 +7,7 @@ import { usePathname } from "next/navigation";
 import React, { PropsWithChildren } from "react";
 import { twMerge } from "tailwind-merge";
 import NotificationButton from "./notifications/NotificationButton";
-import { OptionalChildren, ParloImage } from "./ui";
+import { Button, OptionalChildren, ParloImage } from "./ui";
 
 const ProfileButton = () => {
 
@@ -46,7 +46,7 @@ const ProfileButton = () => {
 
 type ButtonProps = {
     href?: string,
-    label?: string,
+    label: string,
     pathname?: string;
     ActiveIcon?: React.ComponentType<{ className?: string }>,
     className?: string;
@@ -76,9 +76,13 @@ const SidebarButton = ({ href, label, pathname, ActiveIcon, children, className,
     return (
         <li title={label} key={label} className={twMerge(defaultButtonClasses, className)}>
             <OptionalChildren condition={!skipButtonWrapping} fallback={children}>
-                <button className="flex flex-cntr-all w-full">
+                <Button
+                    id={`sidebar-button-for-${label}`}
+                    title={label}
+                    className="flex flex-cntr-all w-full"
+                >
                     {children}
-                </button>
+                </Button>
             </OptionalChildren>
         </li>
     )
@@ -122,7 +126,7 @@ const Sidebar = () => {
                     <NotificationButton />
                 </SidebarButton>
 
-                <SidebarButton className="hidden md:block" pathname={pathname} ActiveIcon={MessagesFillIcon} href="/room" label="Inbox">
+                <SidebarButton className="hidden md:block" pathname={pathname} ActiveIcon={MessagesFillIcon} href="/room" label="Rooms">
                     <MessagesIcon className={iconSize} />
                 </SidebarButton>
 

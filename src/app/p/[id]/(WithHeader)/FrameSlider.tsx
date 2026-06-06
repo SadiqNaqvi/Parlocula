@@ -6,8 +6,9 @@ import ParloImage from "@components/ui/ParloImage";
 import { getPoster } from "@lib/utils";
 import { Frame } from "@type/internal";
 
-const className = "sm:rounded-md sm:border border-gray40 object-cover object-center size-full";
+const className = "sm:rounded-md sm:border border-gray40 object-cover object-center size-full cursor-pointer";
 const containerClassName = "w-full min-w-full h-auto aspect-square sm:w-60 sm:min-h-60 sm:min-w-60";
+
 const sizes = [
     { maxScreenWidth: 480, imageWidth: "100vw" },
     { imageWidth: 240 },
@@ -33,6 +34,7 @@ const FrameContainer = ({ disablePopping, index, ...frame }: Frame & { index: nu
             frameType="poster"
             sizes={sizes}
             className={className}
+            fancyGallery={true}
             fullSizeFrame={disablePopping ? undefined : getPoster({ path, external: false, extSource })}
             showMediaType
             showSize
@@ -43,18 +45,19 @@ const FrameContainer = ({ disablePopping, index, ...frame }: Frame & { index: nu
 
 }
 
-const FrameSlider = ({ frames, disablePopping }: { frames: Frame[], id: string, disablePopping?: boolean }) => {
+const FrameSlider = ({ frames, disablePopping, className }: { frames: Frame[], id: string, disablePopping?: boolean, className?: string }) => {
 
     if (!frames || !frames.length) return null;
 
     return (
-        <FancyCarousel>
+        <FancyCarousel className={className}>
             {frames.map((frame, ind) => (
                 <li
                     className="f-carousel__slide"
-                    key={frame.path}>
+                    key={frame.path}
+                >
                     <FrameContainer
-                        index={ind}
+                        index={ind + 1}
                         disablePopping={disablePopping}
                         {...frame}
                     />

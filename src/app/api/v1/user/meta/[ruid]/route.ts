@@ -11,7 +11,7 @@ export const GET = async (r: any, { params }: { params: Promise<{ ruid: string }
             result: await getUserMetaFromCache(ruid),
         }
     } catch (e: any) {
-        console.log("Error occured while fetching user metadata", e.message);
+        console.warn("Error occured while fetching user metadata", e.message);
         return { success: false, errCode: "unknown_error" };
     }
 }

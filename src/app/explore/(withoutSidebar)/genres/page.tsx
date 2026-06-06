@@ -36,7 +36,10 @@ export default function Page() {
 
                 <TaleonWikiSection
                     heading={`${el.value} ${el.type}s`}
-                    hrefForMoreButton={`genres/${el.value}`}
+                    moreButton={{
+                        path: `genres/${el.value}`,
+                        label: `More ${el.type}s`
+                    }}
                     horizontalMovieListProps={{
                         args: [{ genre: el.value, page: 1, sort_by: "popularity" }],
                         type: el.type,

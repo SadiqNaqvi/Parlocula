@@ -1,15 +1,21 @@
+import { ExpandIcon, LockIcon, MuteIcon, PauseIcon, PlayIcon, ShrinkIcon, UnlockIcon, VolumeIcon } from "@assets/Icons";
 import { PropsWithChildren, useEffect, useRef } from "react";
-import { ExpandIcon, MuteIcon, PauseIcon, PlayIcon, ShrinkIcon, UnlockIcon, VolumeIcon } from "@assets/Icons";
+import Button from "../Button";
 import { useGlobalOptions } from "./helpers";
-import InteractiveProgressBar from "./InteractiveProgressBar";
 
 type Func = () => void
 
-const OptionsButton = ({ children, onClick }: PropsWithChildren<{ onClick?: Func }>) => (
-    <button className="p-1" onClick={onClick}>
+const OptionsButton = ({ children, onClick, title }: PropsWithChildren<{ onClick?: Func, title: string }>) => (
+    <Button
+        title={title}
+        className="p-1"
+        onClick={onClick}
+    >
         {children}
-    </button>
+    </Button>
 )
+
+const classNameForIcon =  "text-zinc-100 showShadow"
 
 const ControlSection = () => {
 
@@ -50,9 +56,9 @@ const ControlSection = () => {
 
     if (screenLock) return (
         <div className="absolute bottom-0 right-0 mb-4 mr-4 z-2">
-            <button onClick={toggleScreenLock}>
-                <UnlockIcon />
-            </button>
+            <Button title="Unlock" onClick={toggleScreenLock}>
+                <UnlockIcon className={classNameForIcon} />
+            </Button>
         </div>
     )
 
@@ -60,25 +66,29 @@ const ControlSection = () => {
         <section ref={overlayContainerRef} className={`absolute bottom-0 w-full z-2 mt-auto px-3 ${controlsSeen ? "fade-in" : "fade-out"}`}>
             <div className="flex flex-cntr-between py-2">
                 <span>
-                    <OptionsButton onClick={togglePlayState}>
+                    <OptionsButton onClick={togglePlayState} title={playing ? "Pause" : "Play"}>
                         {playing
-                            ? <PauseIcon className="text-zinc-100 showShadow" />
-                            : <PlayIcon className="text-zinc-100 showShadow" />
+                            ? <PauseIcon className={classNameForIcon} />
+                            : <PlayIcon className={classNameForIcon} />
                         }
                     </OptionsButton>
                 </span>
                 <span className="flex gap-2">
-                    <OptionsButton onClick={handleMute}>
+                    <OptionsButton onClick={handleMute} title={videoRef.current?.muted ? "Unmute" : "Mute"}>
                         {videoRef.current?.muted
-                            ? <MuteIcon className="text-zinc-100 showShadow" />
-                            : <VolumeIcon className="text-zinc-100 showShadow" />
+                            ? <MuteIcon className={classNameForIcon} />
+                            : <VolumeIcon className={classNameForIcon} />
                         }
                     </OptionsButton>
 
-                    <OptionsButton onClick={toggleFullScreen}>
+                    <OptionsButton onClick={toggleScreenLock} title="Lock Screen">
+                        <LockIcon className={classNameForIcon} />
+                    </OptionsButton>
+
+                    <OptionsButton onClick={toggleFullScreen} title={fullScreen ? "Exit Fullscreen" : "Enter Fullscreen"}>
                         {fullScreen
-                            ? <ShrinkIcon className="text-zinc-100 showShadow" />
-                            : <ExpandIcon className="text-zinc-100 showShadow" />
+                            ? <ShrinkIcon className={classNameForIcon} />
+                            : <ExpandIcon className={classNameForIcon} />
                         }
                     </OptionsButton>
                 </span>

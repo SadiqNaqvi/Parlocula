@@ -2,7 +2,7 @@
 
 import { AddIcon, GlobeIcon, LeftChevron, MegaIcon, VimeoIcon, XmarkIcon, YoutubeIcon } from "@assets/Icons";
 import BottomSheet, { BottomSheetRef, NestedSheet } from "@components/BottomSheet";
-import { LoadingSpinner, OptionalChildren } from "@components/ui";
+import { Button, LoadingSpinner, OptionalChildren } from "@components/ui";
 import { mediaInputConfig, mediaUrlPattern, numberOfFrames, vimeoLinkPattern, youtubeLinkPattern } from "@lib/constants";
 import { createThumbHash, scaleImage, convertByteIntoSize } from "@lib/helpers/media";
 import appToast from "@lib/providers/toast";
@@ -29,11 +29,13 @@ const FrameContainer = ({ path, type, size, thumb, remove, className }: FrameToR
     const ExtraComponents = () => (
         <>
             <OptionalChildren condition={remove}>
-                <button
+                <Button
+                    id="frame-remove"
+                    title="Remove Frame"
                     onClick={() => remove?.(path)}
                     className="absolute smallBtn p-1 right-0 top-0 mt-1 mr-1 bg-black/50 text-white border border-gray40 rounded-md">
                     <XmarkIcon className="h-4" />
-                </button>
+                </Button>
             </OptionalChildren>
             <OptionalChildren condition={size}>
                 <span className="absolute bottom-0 right-0 mr-2 mb-2 bg-black/50 text-sm text-white rounded-md p-1">
@@ -92,13 +94,19 @@ const UploadFromRest = ({ setUrl, goBack, section }: { setUrl: TypedFunction<str
 
     return (
         <div className="px-2">
-            <div>
+            <header>
                 <div className="mx-auto flex gap-2 items-center">
-                    <button onClick={goBack}><LeftChevron /></button>
+                    <Button
+                        id="back-button"
+                        title="Go Back"
+                        onClick={goBack}
+                    >
+                        <LeftChevron />
+                    </Button>
                     <h4 className="text-lg capitalize">Upload from {section}</h4>
                 </div>
                 <p className="text-sm text-center">Just copy the link of the content and past it here. Simple</p>
-            </div>
+            </header>
 
             <Form className="mt-4" submit={handleSubmit}>
                 <Input
@@ -107,7 +115,14 @@ const UploadFromRest = ({ setUrl, goBack, section }: { setUrl: TypedFunction<str
                     description={section === "web" ? "Make sure it is the link of the content, not the page" : undefined}
                 />
 
-                <button type="submit" className="primary mt-3 w-full">Upload</button>
+                <Button
+                    id="submit"
+                    title="Upload"
+                    type="submit"
+                    className="primary mt-3 w-full"
+                >
+                    Upload
+                </Button>
             </Form>
 
         </div>
@@ -128,7 +143,13 @@ const UploadFromMega = ({ setUrl, goBack }: { setUrl: TypedFunction<string>, goB
         <section className="px-2">
             <div>
                 <div className="mx-auto flex gap-2 items-center">
-                    <button onClick={goBack}><LeftChevron /></button>
+                    <Button
+                        id="back"
+                        title="Go Back"
+                        onClick={goBack}
+                    >
+                        <LeftChevron />
+                    </Button>
                     <h4 className="text-lg">Upload from Mega</h4>
                 </div>
                 <p className="text-sm text-center">This is the best way to upload large videos and images here. Just upload your file on Mega and drop the link here.</p>
@@ -141,7 +162,14 @@ const UploadFromMega = ({ setUrl, goBack }: { setUrl: TypedFunction<string>, goB
                     description="Make sure key is attached with the url"
                 />
 
-                <button type="submit" className="primary mt-3 w-full">Upload</button>
+                <Button
+                    id="submit"
+                    title="Upload"
+                    type="submit"
+                    className="primary mt-3 w-full"
+                >
+                    Upload
+                </Button>
             </Form>
 
         </section>
@@ -257,7 +285,7 @@ export const MediaInputPrompt = ({ type, callback }: { type: "image" | "both", c
 
             setFrame({ blob: null, isExternal: true, path: path, hash, shouldUpload: false, type: mediaType, extSource: section, size: size ?? undefined, thumb });
         } catch (e: any) {
-            console.log("error handling upload from url", e.message);
+            console.warn("Error handling upload from url", e.message);
             showError("Unstable Internet Connection!");
         } finally {
             setLoading(false);
@@ -340,8 +368,22 @@ export const MediaInputPrompt = ({ type, callback }: { type: "image" | "both", c
             <FrameContainer className="mx-auto" {...frame} />
 
             <div className="flex gap-2 flex-cntr-all">
-                <button className="flex-1 sm:flex-0 secondary" onClick={() => removeFrame()}>Cancel</button>
-                <button className="flex-1 sm:flex-0 secondary" onClick={returnMedia}>Add</button>
+                <Button
+                    id="upload-options-cancel"
+                    title="Cancel"
+                    className="flex-1 sm:flex-0 secondary"
+                    onClick={() => removeFrame()}
+                >
+                    Cancel
+                </Button>
+                <Button
+                    id="upload-options-add"
+                    title="Add"
+                    className="flex-1 sm:flex-0 secondary"
+                    onClick={returnMedia}
+                >
+                    Add
+                </Button>
             </div>
         </section>
     )
@@ -370,12 +412,14 @@ export const MediaInputPrompt = ({ type, callback }: { type: "image" | "both", c
                 <ul className="flex gap-2 overflow-x-auto noScroll">
                     {(type === "image" ? imageUrlUploadOptions : combineUploadOptions).map(({ icon, id, label }) => (
                         <li key={id}>
-                            <button
+                            <Button
+                                id={`url-upload-options-${id}`}
+                                title={label}
                                 onClick={() => setSection(id)}
                                 className="flex gap-1 items-center p-2 border border-gray40 rounded-md">
                                 {icon}
                                 <span className="text-sm">{label}</span>
-                            </button>
+                            </Button>
                         </li>
                     ))}
                 </ul>
@@ -383,7 +427,15 @@ export const MediaInputPrompt = ({ type, callback }: { type: "image" | "both", c
             <div className="mt-8 space-y-2">
                 <h4 className="parloHeading">Device Upload</h4>
                 <div className="relative pointer">
-                    <button className="primary w-full">Upload</button>
+
+                    <Button
+                        id="device-frame-upload"
+                        title="Upload from device"
+                        className="primary w-full"
+                    >
+                        Upload
+                    </Button>
+
                     <input
                         onChange={handleDeviceUpload}
                         className="absolute inset-0 opacity-0"
@@ -402,8 +454,8 @@ type ManagerProps = {
     allowBoth?: true,
     defaultFrames?: Frame[];
     className?: string;
-    getterRef: React.RefObject<InputManagerType<InputFrame[]>|null>;
-    promptRef?: React.RefObject<BottomSheetRef|null>;
+    getterRef: React.RefObject<InputManagerType<InputFrame[]> | null>;
+    promptRef?: React.RefObject<BottomSheetRef | null>;
 };
 
 const convertFrameToInputFrame = (frame: Frame[] | undefined): InputFrame[] => {
@@ -420,81 +472,81 @@ const convertFrameToInputFrame = (frame: Frame[] | undefined): InputFrame[] => {
     }))
 }
 
-const 
-MediaInputManager = ({ title, limit = 5, allowBoth, defaultFrames, getterRef, promptRef, className }: ManagerProps) => {
+const
+    MediaInputManager = ({ title, limit = 5, allowBoth, defaultFrames, getterRef, promptRef, className }: ManagerProps) => {
 
-    const [frames, setFrames] = useState<FrameToReturn[]>(convertFrameToInputFrame(defaultFrames));
-    const [frameType, setFrameType] = useState<"image" | "both">(allowBoth ? "both" : "image");
+        const [frames, setFrames] = useState<FrameToReturn[]>(convertFrameToInputFrame(defaultFrames));
+        const [frameType, setFrameType] = useState<"image" | "both">(allowBoth ? "both" : "image");
 
-    const getFrames = () => {
-        return frames.map(frame => {
-            const { thumb, ...rest } = frame;
-            return rest;
-        })
-    }
-
-    useImperativeHandle(getterRef, () => ({
-        getData: getFrames,
-        length: frames.length,
-    }));
-
-    const getframe = (frame: InputFrame) => {
-
-        if (frames.length >= (limit ?? 1)) return;
-
-        else if (frames.findIndex(f => f.path === frame.path) > -1) {
-            toast.error("Duplicate Frame removed!");
-            return;
+        const getFrames = () => {
+            return frames.map(frame => {
+                const { thumb, ...rest } = frame;
+                return rest;
+            })
         }
 
-        else if (frame.type === "video") {
-            const mediaUploadedVideoFramesCount = frames.filter(el => el.type === "video" && !el.isExternal).length;
-            if (mediaUploadedVideoFramesCount + 1 === numberOfFrames.videos)
-                setFrameType("image");
-            else if (mediaUploadedVideoFramesCount + 1 > numberOfFrames.videos) {
-                toast.error("No more media uploaded videos allowed!");
+        useImperativeHandle(getterRef, () => ({
+            getData: getFrames,
+            length: frames.length,
+        }));
+
+        const getframe = (frame: InputFrame) => {
+
+            if (frames.length >= (limit ?? 1)) return;
+
+            else if (frames.findIndex(f => f.path === frame.path) > -1) {
+                toast.error("Duplicate Frame removed!");
                 return;
             }
+
+            else if (frame.type === "video") {
+                const mediaUploadedVideoFramesCount = frames.filter(el => el.type === "video" && !el.isExternal).length;
+                if (mediaUploadedVideoFramesCount + 1 === numberOfFrames.videos)
+                    setFrameType("image");
+                else if (mediaUploadedVideoFramesCount + 1 > numberOfFrames.videos) {
+                    toast.error("No more media uploaded videos allowed!");
+                    return;
+                }
+            }
+
+            setFrames([...frames, frame]);
         }
 
-        setFrames([...frames, frame]);
-    }
+        const removeframe = (path: string) => {
+            setFrames(frames.filter(el => el.path !== path));
+        }
 
-    const removeframe = (path: string) => {
-        setFrames(frames.filter(el => el.path !== path));
-    }
+        if (!frames.length) return (
+            <NestedSheet ref={promptRef}>
+                <MediaInputPrompt callback={getframe} type={frameType} />
+            </NestedSheet>
+        );
 
-    if (!frames.length) return (
-        <NestedSheet ref={promptRef}>
-            <MediaInputPrompt callback={getframe} type={frameType} />
-        </NestedSheet>
-    );
+        return (
+            <section className={twMerge("space-y-4", className)}>
 
-    return (
-        <section className={twMerge("space-y-4", className)}>
-
-            <OptionalChildren condition={title}>
-                <h4 className="capitalize">{title}</h4>
-            </OptionalChildren>
-
-
-            <div className="flex gap-2 overflow-x-auto noScroll">
-
-                <OptionalChildren condition={frames.length < (limit || 1)}>
-                    <BottomSheet
-                        ref={promptRef}
-                        className="size-60 rounded-md border-dashed border border-gray40 aspect-square backdrop:brightness-50 flex flex-cntr-all"
-                        button={<AddIcon />}>
-                        <MediaInputPrompt callback={getframe} type={frameType} />
-                    </BottomSheet>
+                <OptionalChildren condition={title}>
+                    <h4 className="capitalize">{title}</h4>
                 </OptionalChildren>
 
-                {frames.map(frame => (
-                    <FrameContainer {...frame} remove={removeframe} key={frame.path} />
-                ))}
-            </div>
-        </section>
-    )
-}
+
+                <div className="flex gap-2 overflow-x-auto noScroll">
+
+                    <OptionalChildren condition={frames.length < (limit || 1)}>
+                        <BottomSheet
+                            ref={promptRef}
+                            className="size-60 rounded-md border-dashed border border-gray40 aspect-square backdrop:brightness-50 flex flex-cntr-all"
+                            button={<AddIcon />}>
+                            <MediaInputPrompt callback={getframe} type={frameType} />
+                        </BottomSheet>
+                    </OptionalChildren>
+
+                    {frames.map(frame => (
+                        <FrameContainer {...frame} remove={removeframe} key={frame.path} />
+                    ))}
+                </div>
+            </section>
+        )
+    }
 
 export default MediaInputManager;

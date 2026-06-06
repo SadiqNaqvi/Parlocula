@@ -14,7 +14,7 @@ const RoomSection = async ({ params }: ParloPageProps) => {
     const { id } = await params;
 
     const queryClient = getQueryClient();
-    const [rmid] = id.split('+');
+    const [rmid] = id.split('-');
     const jar = await cookies();
     const user = await getUserFromToken(jar);
 

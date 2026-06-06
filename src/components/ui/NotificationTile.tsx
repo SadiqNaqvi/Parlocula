@@ -4,6 +4,7 @@ import { timeAgo } from "@lib/utils";
 import { NotificationModelType } from "@type/models";
 import ParloImage from "./ParloImage";
 import OptionalChildren from "./OptionalChildren";
+import Button from "./Button";
 
 const RequestBar = ({ type, status, request_type, metadata }: Required<Pick<NotificationModelType, "type" | "status" | "request_type" | "metadata">>) => {
     if (type === "informative") return;
@@ -20,8 +21,18 @@ const RequestBar = ({ type, status, request_type, metadata }: Required<Pick<Noti
 
     if (status === "pending") return (
         <div className="flex mt-4 gap-2">
-            <button className="flex-1 primary" onClick={() => handleAction(true)}>Accept</button>
-            <button className="flex-1 secondary" onClick={() => handleAction(false)}>Deny</button>
+            <Button
+                title="Accept Request"
+                className="flex-1 primary"
+                onClick={() => handleAction(true)}>
+                Accept
+            </Button>
+            <Button
+                title="Deny Request"
+                className="flex-1 secondary"
+                onClick={() => handleAction(false)}>
+                Deny
+            </Button>
         </div>
     )
     return (

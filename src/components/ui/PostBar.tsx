@@ -96,9 +96,10 @@ const PostHeader = ({ category, nsfw, spoiler, createdAt, poster, profile, threa
 
 const PostBody = ({ _id, title, frames }: Pick<Props & MerePost, "title" | "_id" | "frames">) => (
     <section className="space-y-4 mb-4">
-        <h3 className="customize text-lg font-semibold line-clamp-4">{title}</h3>
 
-        <FrameSlider id={_id} frames={frames || []} />
+        <FrameSlider className="my-3" id={_id} frames={frames || []} />
+
+        <h3 className="customize text-lg font-semibold line-clamp-4">{title}</h3>
     </section>
 )
 
@@ -116,7 +117,7 @@ const PostMetadataSection = ({ comment_count, frames_count, links_count, reactio
     ]
 
     return (
-        <section className="flex gap-4">
+        <section className="flex gap-4 mt-3">
             <ul className="flex gap-3">
                 {counts.map(({ Icon, value }, i) => (
                     <li key={i} className="flex items-center gap-1 text-zinc-500">
@@ -141,8 +142,12 @@ const PostBar = (props: Props & MerePost) => {
 
     return (
         <article className="p-2 space-y-4 w-full my-2 bg-gray10 border border-gray10 rounded-md">
+            <PostHeader {...props} />
+
+            <FrameSlider className="my-3" id={props._id} frames={props.frames || []} />
+
             <Navigate
-                historyPayload={{
+            historyPayload={{
                     title: props.title.slice(0, 50).concat('...'),
                     poster: props.additional?.section === "user" ? props.poster : props.profile,
                     image: props.frames?.[0],
@@ -153,8 +158,8 @@ const PostBar = (props: Props & MerePost) => {
                 goto={`/p/${props._id}-${makeUrlSafe(props.title)}`}
                 className="w-full"
             >
-                <PostHeader {...props} />
-                <PostBody {...props} />
+                <h3 className="customize text-lg font-semibold line-clamp-4">{props.title}</h3>
+
                 <PostMetadataSection {...props} />
             </Navigate>
 

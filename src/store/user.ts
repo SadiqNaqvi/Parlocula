@@ -43,14 +43,11 @@ const useCurrentUser = create(
       filterContent: true,
       setUser: (user) => set({ user }),
       setUserMeta: (meta) => {
-        console.log("setUserMeta is called with",meta)
         set({ meta })
       },
 
       clearUser: () => {
-        // appToast.info("CLEAR USER IS CALLED")
-        alert("CLEAR USER IS CALLED");
-        // set({ user: null, meta: null, dataSaver: false, filterContent: true })
+        set({ user: null, meta: null, dataSaver: false, filterContent: true })
       },
 
       toggleDataSaver: () => set((prev) => ({ dataSaver: !prev.dataSaver })),

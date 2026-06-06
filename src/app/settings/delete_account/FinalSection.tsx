@@ -1,6 +1,7 @@
 import { BottomSheet } from "@components";
 import { BlogHeading3, BlogSubSection } from "@components/blog";
 import { Form, Input } from "@components/form";
+import { Button } from "@components/ui";
 import { deactivateAccount } from "@lib/helpers/mutations";
 import { getTimeInFuture } from "@lib/utils";
 import { useRouter } from "next/navigation";
@@ -49,9 +50,14 @@ const FinalSection = ({ uid, callback }: { uid: string, callback: (passkey: stri
                                 label="Passkey"
                                 placeholder="Please enter your passkey for security purpose"
                             />
-                            <button className="primary w-full mt-4 sm:mx-auto sm:w-fit" type="submit">
+                            <Button
+                                id="deactivate-button"
+                                title="Deactivate Account"
+                                className="primary w-full mt-4 sm:mx-auto sm:w-fit"
+                                type="submit"
+                            >
                                 Deactivate
-                            </button>
+                            </Button>
                         </Form>
                     </div>
                 </BottomSheet>
@@ -72,9 +78,14 @@ const FinalSection = ({ uid, callback }: { uid: string, callback: (passkey: stri
                                 placeholder="Please enter your passkey for security purpose"
                             />
 
-                            <button className="primary w-full mt-4 sm:mx-auto sm:w-fit" type="submit">
+                            <Button
+                                id="delete-account-button"
+                                title="Delete Account"
+                                className="primary w-full mt-4 sm:mx-auto sm:w-fit"
+                                type="submit"
+                            >
                                 Delete
-                            </button>
+                            </Button>
                         </Form>
                     </div>
                 </BottomSheet>

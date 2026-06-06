@@ -10,6 +10,7 @@ import { getQueryKeys } from "@lib/utils";
 import { TypedFunction } from "@type/other";
 import { useState } from "react";
 import { BanAction, UnbanAction } from "./EditList";
+import { Button } from "@components/ui";
 
 const nfm = {
     title: "No banned users",
@@ -27,19 +28,34 @@ const OptionButtons = ({ onAdd, onRemove, tid, uid }: { onRemove: TypedFunction,
 
     else if (data.total) return (
         <div className="flex gap-2">
-            <button onClick={onRemove} className="p-1">
+            <Button
+                id="remove-banned-members-button"
+                title="Remove Banned Members"
+                onClick={onRemove}
+                className="p-1"
+            >
                 Remove
-            </button>
-            <button onClick={onAdd} className="p-1">
+            </Button>
+            <Button
+                title="ban-members-button"
+                id="Ban Members"
+                onClick={onAdd}
+                className="p-1"
+            >
                 <AddIcon />
-            </button>
+            </Button>
         </div>
     )
 
     return (
-        <button onClick={onAdd} className="p-1">
+        <Button
+            title="ban-members-button"
+            id="Ban Members"
+            onClick={onAdd}
+            className="p-1"
+        >
             <AddIcon />
-        </button>
+        </Button>
     )
 
 }

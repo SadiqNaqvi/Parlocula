@@ -23,7 +23,7 @@ self.addEventListener("push", (event) => {
   } catch (e) {
     data = {
       title: "New Notification",
-      body: "Something is happening in your cinematic planet.",
+      body: "Something new happened in your cinematic planet. Open Parlocula now.",
     };
   }
   const { body, icon, title, path, tag, image } = data;
@@ -54,17 +54,15 @@ self.addEventListener("notificationclick", function (event) {
   const path = data && data.path ? data.path : "/notifications";
 
   event.waitUntil(
-    clients
-      .matchAll({ type: "window", includeUncontrolled: true })
-      .then((clientsArr) => {
-        for (const client of clientsArr) {
-          if (client.url.includes(self.location.origin)) {
-            client.navigate(path);
-            return client.focus();
-          }
+    clients.matchAll({ type: "window" }).then((clientsArr) => {
+      for (const client of clientsArr) {
+        if (client.url.includes(self.location.origin)) {
+          client.navigate(path);
+          return client.focus();
         }
+      }
 
-        return clients.openWindow(url);
-      })
+      return clients.openWindow(path);
+    }),
   );
 });

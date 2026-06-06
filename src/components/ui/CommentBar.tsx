@@ -3,9 +3,9 @@ import { Navigate, NavigateComponentProps } from "@components";
 import { numberConverter, timeAgo } from "@lib/utils";
 import useGlobalStore from "@store/globalStore";
 import { CurrentUser, MereComment, ReportedComment, ReportedContent } from "@type/internal";
-import Image from "next/image";
-import { ParloImage, OptionalChildren, MetadataTileContainer, MetadataTile } from "./";
 import { ReplyInputType } from "@type/schemas";
+import Image from "next/image";
+import { Button, MetadataTile, MetadataTileContainer, OptionalChildren, ParloImage } from "./";
 
 type LinkProps = {
     children: React.ReactNode,
@@ -155,7 +155,12 @@ const CommentMetadataSection = ({ likes_count, saved_count, restrictReply, post_
 
             <OptionalChildren condition={status !== "sending"} fallback={<span>Sending...</span>}>
                 <OptionalChildren condition={!restrictReply}>
-                    <button className="smallBtn my-auto border-0" onClick={handleReply}>Reply</button>
+                    <Button
+                        title="Reply to this comment"
+                        className="smallBtn my-auto border-0"
+                        onClick={handleReply}>
+                        Reply
+                    </Button>
                 </OptionalChildren>
             </OptionalChildren>
         </section>
@@ -190,8 +195,8 @@ const CommentBar = (props: Props) => {
                     <div className="my-2 space-y-4">
                         <CommentBody attachment={attachment} content={content} />
                     </div>
-                    <CommentMetadataSection {...props} />
                 </Link>
+                <CommentMetadataSection {...props} />
             </details>
         </article>
     )

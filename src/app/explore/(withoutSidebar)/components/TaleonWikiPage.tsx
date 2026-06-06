@@ -1,6 +1,7 @@
 import { DataFetcher, Navigate, ObserverHeader } from "@components";
 import { AllowedFunctionsForHorizontalList, HorizontalMovieListProps } from "@components/DataFetcher";
 import { InteractiveDetailSection, OptionalChildren, ParloImage } from "@components/ui";
+import { Link } from "@type/internal";
 import { ExternalImageType } from "@type/other";
 import { PropsWithChildren } from "react";
 import { twMerge } from "tailwind-merge";
@@ -100,18 +101,20 @@ const TaleonWikiHeader = ({ className, posterClassName, title, frameType, titleT
 
 type SectionProps<T extends AllowedFunctionsForHorizontalList> = {
     heading: string;
-    hrefForMoreButton?: string;
+    moreButton?: Link;
     horizontalMovieListProps?: HorizontalMovieListProps<T>;
     className?: string;
 }
 
-export const TaleonWikiSection = <T extends AllowedFunctionsForHorizontalList>({ className, heading, hrefForMoreButton, children, horizontalMovieListProps }: PropsWithChildren<SectionProps<T>>) => (
+export const TaleonWikiSection = <T extends AllowedFunctionsForHorizontalList>({ className, heading, moreButton, children, horizontalMovieListProps }: PropsWithChildren<SectionProps<T>>) => (
 
     <section className={twMerge("space-y-2 px-2 sm:px-4 border-b last:border-b-0 border-gray30 xs:border-0 my-4 py-4", className)}>
-        <div className={`${hrefForMoreButton ? "flex flex-cntr-between" : ''}`}>
+        <div className={`${moreButton ? "flex flex-cntr-between" : ''}`}>
             <h2 className="parloHeading">{heading}</h2>
-            <OptionalChildren condition={hrefForMoreButton}>
-                <Navigate comp="link" role="button" className="text-sm" goto={hrefForMoreButton || ''}>More</Navigate>
+            <OptionalChildren condition={moreButton}>
+                <Navigate comp="link" role="button" className="text-sm" goto={moreButton?.path!}>
+                    {moreButton?.label}
+                </Navigate>
             </OptionalChildren>
         </div>
 

@@ -14,7 +14,7 @@ const Page = async ({ params, searchParams }: ParloPageProps) => {
 
     const { id } = await params;
 
-    const pid = id.split('+')[0];
+    const pid = id.split('-')[0];
     if (pid && !isValidParloId(pid)) return null;
 
     const sp = await searchParams;

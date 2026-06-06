@@ -1,0 +1,63 @@
+select {
+  appearance: none; /* Remove default arrow (modern browsers) */
+  -webkit-appearance: none; /* Safari/Chrome */
+  -moz-appearance: none; /* Firefox */
+
+  width: 100%;
+  /* font-size: 16px; */
+  /* border-radius: 6px; */
+  cursor: pointer;
+  display: flex;
+  transition: 0.5s;
+  background: var(--primary);
+}
+
+select,
+::picker(select) {
+  appearance: base-select;
+}
+
+select::picker-icon {
+  color: #999999;
+  display: inline;
+  transition: 0.4s rotate;
+}
+
+select:open::picker-icon {
+  rotate: 180deg;
+}
+
+::picker(select) {
+  border: none;
+}
+
+option {
+  display: flex;
+
+  padding: 10px;
+  border: 2px solid #dddddd;
+  transition: 0.4s;
+}
+
+option:hover {
+  background-color: var(--secondary);
+  color: var(--primary);
+  transition: 0.4s;
+  padding: 4px;
+}
+
+option:first-child {
+  border-radius: 8px 8px 0 0;
+}
+
+option:last-of-type {
+  border-radius: 0 0 8px 8px;
+}
+
+::picker(select) {
+  border-radius: 8px;
+}
+
+option:not(option:last-of-type) {
+  border-bottom: none;
+}

@@ -2,7 +2,7 @@
 
 import { NotFound, ShowError } from "@components/fallbacks";
 import { HomeNavbar } from "@components/TopNavbar";
-import { OptionalChildren, PostBar, VerticleMovieCard } from "@components/ui";
+import { Button, OptionalChildren, PostBar, VerticleMovieCard } from "@components/ui";
 import { HomePageSkeleton } from "@components/ui/loading";
 import LoadingSpinner from "@components/ui/loading/LoadingSpinner";
 import { updateFeedViewed } from "@lib/helpers/mutations";
@@ -65,7 +65,7 @@ const FeedCard = ({ post, setViewed }: { post: FeedPost, setViewed: (post: strin
     )
 
     return (
-        <li ref={postListContainer} className="list-style-none group">
+        <li ref={postListContainer} className="list-style-none group px-2">
             <PostBar {...post} />
         </li>
     )
@@ -121,7 +121,7 @@ const FeedPage = () => {
         </>
     )
 
-    else if (!data) return (
+    else if (!data || !data.pages.length || data.pages[0].total_results === 0) return (
         <>
             <HomeNavbar />
             <NotFound
@@ -158,7 +158,14 @@ const FeedPage = () => {
                     </OptionalChildren>
                     <OptionalChildren condition={!(dataSaver || isFetchingNextPage)}>
                         <div className="w-full flex flex-cntr-all">
-                            <button className="primary" onClick={manuallyLoadNextPage}>Load More</button>
+                            <Button
+                                id="feed-load-more-button"
+                                title="Load More"
+                                className="primary"
+                                onClick={manuallyLoadNextPage}
+                            >
+                                Load More
+                            </Button>
                         </div>
                     </OptionalChildren>
                 </OptionalChildren>

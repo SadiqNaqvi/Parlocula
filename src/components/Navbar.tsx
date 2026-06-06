@@ -5,7 +5,7 @@ import { ShareButton } from "@components";
 import { useTheme } from "next-themes";
 import { useRouter } from "next/navigation";
 import { twMerge } from "tailwind-merge";
-import { OptionalChildren } from "./ui";
+import { Button, OptionalChildren } from "./ui";
 
 type Props = {
     className?: string,
@@ -43,14 +43,22 @@ const Navbar = ({ className = "", onGoBack, OptionButton, navTitle, titleToShare
                 <OptionalChildren
                     condition={!!onGoBack}
                     fallback={(
-                        <button onClick={goBack}>
+                        <Button
+                            id="nav-back-button"
+                            title="Back"
+                            onClick={goBack}
+                        >
                             <LeftChevron />
-                        </button>
+                        </Button>
                     )}
                 >
-                    <button onClick={onGoBack}>
+                    <Button
+                        id="nav-back-button"
+                        title="Back"
+                        onClick={onGoBack}
+                    >
                         <LeftChevron />
-                    </button>
+                    </Button>
                 </OptionalChildren>
                 <OptionalChildren condition={navTitle}>
                     <span className={`line-clamp-1 text-lg`}>{navTitle}</span>
@@ -70,7 +78,6 @@ const Navbar = ({ className = "", onGoBack, OptionButton, navTitle, titleToShare
                 </OptionalChildren>
 
                 {OptionButton}
-
             </div>
         </nav>
     )

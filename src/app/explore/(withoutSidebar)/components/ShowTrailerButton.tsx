@@ -1,6 +1,7 @@
 "use client";
 
 import { PlayIcon } from "@assets/Icons";
+import { Button } from "@components/ui";
 import { Fancybox } from "@fancyapps/ui";
 
 const ShowTrailerButton = ({ trailers }: { trailers: { key: string, [key: string]: any }[] }) => {
@@ -12,10 +13,15 @@ const ShowTrailerButton = ({ trailers }: { trailers: { key: string, [key: string
     }
 
     return (
-        <button onClick={showTrailer} className="primary flex-1 sm:flex-none">
+        <Button
+            onClick={showTrailer}
+            className="primary flex-1 sm:flex-none"
+            id="watch-trailer-button"
+            title="Watch Trailer"
+        >
             <PlayIcon />
             Watch Trailer
-        </button>
+        </Button>
     )
 
 }

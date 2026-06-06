@@ -15,7 +15,7 @@ const PostReportsPage = async ({ params, searchParams }: ParloPageProps<{ id: st
 
     const jar = await cookies();
     const user = await getUserFromToken(jar);
-    const cnid = (await params).id.split('+')[0];
+    const cnid = (await params).id.split('-')[0];
 
     if (!user) return (
         <LoginModal

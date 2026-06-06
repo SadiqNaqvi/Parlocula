@@ -5,10 +5,9 @@ type Props = {
     src: string;
     startMute: boolean | undefined;
     poster: string | undefined;
-    autoPlay: boolean | undefined;
 }
 
-const VideoElement = forwardRef<HTMLVideoElement, Props>(({ poster, src, startMute,autoPlay }, ref) => {
+const VideoElement = forwardRef<HTMLVideoElement, Props>(({ poster, src, startMute }, ref) => {
     const { buffering, screenLock, controlsSeen, setPlaying } = useGlobalOptions();
     return (
         <div className={`size-full z-0 ${(controlsSeen || buffering) && !screenLock ? "transition-all duration-500 brightness-50" : ''}`}>
@@ -17,7 +16,8 @@ const VideoElement = forwardRef<HTMLVideoElement, Props>(({ poster, src, startMu
                 src={src}
                 muted={startMute}
                 poster={poster}
-                autoPlay={autoPlay}
+                disablePictureInPicture
+                disableRemotePlayback
                 className="size-full z-0 object-contain max-h-dvh"
                 preload="metadata"
                 onPlay={() => setPlaying(true)}

@@ -1,21 +1,20 @@
 import { NotFound } from "@components/fallbacks";
-import { FullPageLoadingSpinner } from "@components/ui/loading/LoadingSpinner";
+import JsonLd from "@components/JsonLd";
+import { ThreadPageSkeleton } from "@components/ui/loading";
 import { getUserFromToken } from "@lib/auth/utils";
 import { getThreadById, isMember } from "@lib/helpers/common";
 import { fetchQuery, getQueryClient, prefetchQuery } from "@lib/providers/queryClient";
+import { generateJsonLdForThread } from "@lib/seo/jsonld";
 import { createArray, getQueryKeys, isValidParloId } from "@lib/utils";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
+import { ParloPageProps } from "@type/other";
 import { Metadata } from "next";
 import { cookies } from "next/headers";
 import { PropsWithChildren, Suspense } from "react";
 import Thread from "./Thread";
-import { ParloPageProps } from "@type/other";
-import { ThreadPageSkeleton } from "@components/ui/loading";
-import { generateJsonLdForShelf, generateJsonLdForThread } from "@lib/seo/jsonld";
-import JsonLd from "@components/JsonLd";
 
 export const generateMetadata = async ({ params }: ParloPageProps): Promise<Metadata> => {
-    const thread_id = (await params).id.split('+')[0];
+    const thread_id = (await params).id.split('-')[0];
 
     if (!isValidParloId(thread_id))
         return { title: "Parlocula" }
@@ -61,7 +60,10 @@ const Fetcher = async ({ tid, children }: PropsWithChildren<{ tid: string }>) =>
 
             <JsonLd schemas={jsonLd} />
 
-            <Thread uid={user?.user_id} id={tid}>
+            <Thread
+                filterContent={user?.filterContent ?? true}
+                uid={user?.user_id}
+                id={tid}>
                 {children}
             </Thread>
 
@@ -72,7 +74,7 @@ const Fetcher = async ({ tid, children }: PropsWithChildren<{ tid: string }>) =>
 const ThreadLayout = async ({ children, params }: PropsWithChildren<ParloPageProps>) => {
 
     const { id } = await params;
-    const [tid, ...rest] = id.split('+');
+    const [tid, ...rest] = id.split('-');
 
     if (!isValidParloId(tid)) return (
         <NotFound

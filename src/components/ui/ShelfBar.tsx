@@ -34,7 +34,7 @@ const ShelfBar = ({ _id, item_count, name, poster, shelfKey, isPrivate, shelf_ty
                             {numberConverter(item_count || 0)} items
                         </MetadataTile>
                         <MetadataTile condition={!!saved_count}>
-                            Saved by: {numberConverter(item_count || 0)}
+                            Saved by: {numberConverter(saved_count || 0)}
                         </MetadataTile>
                     </MetadataTileContainer>
                 </div>

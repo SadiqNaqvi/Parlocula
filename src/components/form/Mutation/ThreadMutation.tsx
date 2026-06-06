@@ -4,7 +4,7 @@ import { AddIcon } from "@assets/Icons";
 import { BottomSheetRef, Navbar, OptionMenu } from "@components";
 import { LoginModal } from "@components/fallbacks";
 import { Form, LinkInputManager, Poster, ToggleButton } from "@components/form";
-import { MetadataTile, MetadataTileContainer, OptionalChildren, OptionList } from "@components/ui";
+import { Button, MetadataTile, MetadataTileContainer, OptionalChildren, OptionList } from "@components/ui";
 import { ThreadPageMockup } from "@components/ui/mockup";
 import { createThreadMutation, editThreadMutation } from "@lib/helpers/mutations";
 import appToast from "@lib/providers/toast";
@@ -131,7 +131,14 @@ const ThreadMutation = ({ isEditing, defaultValues }: Props) => {
             <Navbar
                 navTitle={isEditing ? "Edit Thread" : "Create Thread"}
                 OptionButton={
-                    <button type="submit" className="primary" onClick={requestSubmit}>{isEditing ? "Update" : "Create"}</button>
+                    <Button
+                        id="submit"
+                        title={isEditing ? "Update" : "Create"}
+                        className="primary"
+                        onClick={requestSubmit}
+                    >
+                        {isEditing ? "Update" : "Create"}
+                    </Button>
                 }
             />
             <section className="px-2">

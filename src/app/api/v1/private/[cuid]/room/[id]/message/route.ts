@@ -1,8 +1,7 @@
 import { getHandler, postHandler } from "@lib/helpers/handlers";
 import { checkIfParticipantExists, getMessagesFromCache, getParticipant, getParticipantsOfRoom, handleNewMessage, storeMessagesInCache } from "@lib/helpers/redis/messaging";
-import { sendNotificationForMessage, sendPushNotification } from "@lib/helpers/server";
+import { sendNotificationForMessage } from "@lib/helpers/server";
 import { createPipeline } from "@lib/pipelines";
-import { getAblyRest, publishAblyEvent } from "@lib/providers/ably";
 import { messageSchema } from "@lib/schemas";
 import { getPageParams, getPoster } from "@lib/utils";
 import { Message } from "@model";

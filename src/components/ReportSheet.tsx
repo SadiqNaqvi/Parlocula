@@ -10,7 +10,7 @@ import Choice from "./form/Choice";
 import { CheckIcon } from "@assets/Icons";
 import { ReportTypeEnum } from "@type/schemas";
 import { submitReportMutation } from "@lib/helpers/mutations";
-import { OptionalChildren } from "./ui";
+import { Button, OptionalChildren } from "./ui";
 import { UidsForReportReason } from "@type/other";
 import { toast } from "sonner";
 
@@ -51,7 +51,7 @@ const ReportSheet = ({ id, type, uid, ext_id }: { type: ReportTypeEnum, id: stri
             toast("Something went wrong. Please close and reopen the sheet and try again.");
             return;
         }
-        
+
         submitReportMutation(uid, id, type,
             {
                 content_id: id,
@@ -79,7 +79,14 @@ const ReportSheet = ({ id, type, uid, ext_id }: { type: ReportTypeEnum, id: stri
                     ))}
                 </div>
                 <div className="mt-4 bg-primary sticky w-full bottom-0 p-4 border-t border-gray30">
-                    <button type="submit" className="primary w-full">Next</button>
+                    <Button
+                        id="report-reason-submit"
+                        title="Next"
+                        type="submit"
+                        className="primary w-full"
+                    >
+                        Next
+                    </Button>
                 </div>
             </Form>
         </section>
@@ -95,7 +102,14 @@ const ReportSheet = ({ id, type, uid, ext_id }: { type: ReportTypeEnum, id: stri
                     description={chosenOption === "others" ? "Required" : "Optional"}
                     placeholder="Add details about your report. Please do not include any personal information or questions."
                 />
-                <button className="primary w-full mt-4" type="submit">Submit</button>
+                <Button
+                    id="report-submit"
+                    title="Submit"
+                    className="primary w-full mt-4"
+                    type="submit"
+                >
+                    Submit
+                </Button>
             </Form>
         </section>
     )

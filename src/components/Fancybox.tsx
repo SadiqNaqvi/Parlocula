@@ -2,7 +2,7 @@
 
 import React, { useEffect } from "react";
 
-import { Fancybox as NativeFancybox, FancyboxPlugins } from "@fancyapps/ui";
+import { Fancybox as NativeFancybox } from "@fancyapps/ui";
 import "@fancyapps/ui/dist/fancybox/fancybox.css";
 
 const Fancybox = ({ children }: { children: React.ReactNode }) => {
@@ -17,7 +17,6 @@ const Fancybox = ({ children }: { children: React.ReactNode }) => {
             fadeEffect: true,
             groupAttr: "parlo-gallery",
             Carousel: {
-                // Fullscreen: { autoStart: true },
                 transition: "tween",
                 Toolbar: {
                     display: {
@@ -30,7 +29,6 @@ const Fancybox = ({ children }: { children: React.ReactNode }) => {
         });
 
         return () => {
-            // NativeFancybox.unbind("[data-modal]");
             NativeFancybox.unbind("[data-frame]");
             NativeFancybox.close();
         };

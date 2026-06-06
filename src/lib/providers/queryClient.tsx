@@ -48,7 +48,7 @@ export const fetchQuery = async <T = unknown>({ queryClient, queryFn, queryKey }
             gcTime: 60 * 60 * 1000
         });
     } catch (e: any) {
-        console.log("Error occured while fetching content", e.message);
+        console.warn("Error occured while fetching content", e.message);
         return null;
     }
 }
@@ -62,7 +62,7 @@ export const prefetchQuery = ({ queryClient, queryFn, queryKey }: QueryProps) =>
 
 export const fetchInfiniteQuery = async  <T = unknown>({ queryClient, queryFn, queryKey, initialPageParam = 1 }: InfiniteQueryProps<T>) => {
     try {
-        const lala = await queryClient.fetchInfiniteQuery({
+        return await queryClient.fetchInfiniteQuery({
             queryKey,
             queryFn: () => refineResponseForInfiniteQuery(queryFn, initialPageParam) as Promise<T>,
             staleTime: 60 * 60 * 1000,
@@ -70,10 +70,9 @@ export const fetchInfiniteQuery = async  <T = unknown>({ queryClient, queryFn, q
             initialPageParam,
         });
 
-        
     } catch (e: any) {
-        console.log("Error occured while fetching infinite data", e.message);
-        return null;
+        console.warn("Error occured while fetching infinite data", e.message);
+        return { data: [], total: 0 };
     }
 }
 

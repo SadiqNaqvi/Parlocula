@@ -2,11 +2,13 @@
 
 import { PlayIcon, VimeoIcon, YoutubeIcon } from "@assets/Icons";
 import { OptionalChildren, VideoPlayer } from "@components/ui";
+import { Fancybox } from "@fancyapps/ui";
 import { formatTimeAsDuration } from "@lib/helpers/media";
-import { getPathForFrame } from "@lib/utils/frame";
+import { getPathForFrame, getVideoPath } from "@lib/utils/frame";
 import { Frame } from "@type/internal";
 import Image from "next/image";
-import { SyntheticEvent, useState } from "react";
+import { SyntheticEvent, useRef, useState } from "react";
+import { twMerge } from "tailwind-merge";
 
 const isEmbeddingFrame = (source: Frame["extSource"]) => {
     return (source === "youtube" || source === "vimeo")
@@ -34,18 +36,21 @@ type Props = {
 const ParloVideo = ({ className, containerClassName, frame, disablePopup, galleryId, alt }: Props) => {
 
     const [duration, setDuration] = useState('');
+    const [play, setPlay] = useState(false);
+    const uid = useRef(Math.random().toString(36));
 
     if (isEmbeddingFrame(frame.extSource)) return (
         <div
-            data-frame={disablePopup ? undefined : galleryId}
-            data-src={disablePopup ? undefined : getPathForFrame(frame)}
-            className={containerClassName}
+            data-frame={disablePopup ? undefined : galleryId || true}
+            data-src={disablePopup ? undefined : getVideoPath(frame.path, frame.extSource)}
+            className={twMerge("relative", containerClassName)}
             onContextMenu={e => { e.preventDefault() }}>
             <Image
                 fill
-                src={getPathForFrame(frame)}
+                src={getPathForFrame(frame.path, frame.extSource, frame.type)}
                 className={className}
                 alt={alt}
+                unoptimized
             />
             <div className="absolute bottom-4 right-4 flex gap-1 items-center text-zinc-200">
                 <SourceIconMap extSource={frame.extSource} />
@@ -58,12 +63,25 @@ const ParloVideo = ({ className, containerClassName, frame, disablePopup, galler
         setDuration(formatTimeAsDuration((e.target as HTMLVideoElement).duration));
     }
 
+    const handleClick = () => {
+        setPlay(true);
+        Fancybox.show([{
+            src: `#parloVideoPlayer-${uid}`,
+        }], {
+            on: {
+                "close": () => {
+                    setPlay(false);
+                }
+            },
+            closeButton: false
+        })
+    }
+
     return (
         <>
             <div
-                data-frame={disablePopup ? undefined : galleryId || true}
-                data-src={disablePopup ? undefined : "#parloVideoPlayer"}
                 className={containerClassName}
+                onClick={handleClick}
                 onContextMenu={e => { e.preventDefault() }}>
                 <video
                     className={className}
@@ -82,11 +100,16 @@ const ParloVideo = ({ className, containerClassName, frame, disablePopup, galler
                 </div>
             </div>
             <OptionalChildren condition={!disablePopup}>
-                <div style={{ margin: 0, padding: 0, height: "100%", width: "100%" }} className="hidden" id="parloVideoPlayer">
-                    <VideoPlayer src={frame.path} />
+                <div
+                    style={{ margin: 0, padding: 0, height: "100%", width: "100%" }}
+                    className="hidden"
+                    id={`parloVideoPlayer-${uid}`}
+                >
+                    <OptionalChildren condition={play}>
+                        <VideoPlayer playState={play} src={frame.path} />
+                    </OptionalChildren>
                 </div>
-
-            </OptionalChildren>
+            </OptionalChildren >
         </>
     )
 

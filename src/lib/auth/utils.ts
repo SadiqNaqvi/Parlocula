@@ -4,9 +4,7 @@ import { TokenPayload } from "@type/internal";
 import { CookiesType } from "@type/other";
 import { verifyToken } from "./token";
 
-export const getUserFromToken = async (
-  jar: CookiesType
-): Promise<TokenPayload | null> => {
+export const getUserFromToken = async (jar: CookiesType): Promise<TokenPayload | null> => {
 
   const token = jar.get("token")?.value;
 

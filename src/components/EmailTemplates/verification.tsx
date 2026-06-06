@@ -62,7 +62,7 @@ const VerifyEmail = ({ code }: { code: number }) => (
                     <Hr />
                     <Section>
                         <Text className='text-sm text-center mb-0'>
-                            Parlocula will never email you and ask you to disclose or verify your password, credit card, or banking account number.
+                            Parlocula will never email you and ask you to disclose or verify your passkey, credit card, or banking account number.
                         </Text>
                     </Section>
                     <Text className='text-center text-sm text-zinc-500 mb-0'>

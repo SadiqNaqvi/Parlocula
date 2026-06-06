@@ -22,7 +22,7 @@ import {
   RevalidateTagsArgs
 } from "@type/other";
 import { InputFrame } from "@type/schemas";
-import { nanoid } from "nanoid";
+import { customAlphabet } from "nanoid";
 import { NextRequest } from "next/server";
 import {
   cacheTags,
@@ -215,7 +215,7 @@ export const makeUrlSafe = (str: string) => {
     .slice(0, 100)
     .replace(/[^\w\s]|_/g, '')
     .trim()
-    .replace(/\s+/g, "+");
+    .replace(/\s+/g, "-");
 };
 
 export const getPoster = <T extends ExternalImageType>(config: GetPosterFunctionProps<T>): string => {
@@ -230,23 +230,10 @@ export const getPoster = <T extends ExternalImageType>(config: GetPosterFunction
     if (!config.size)
       return `${externalImgUrlPrefix}w185${path}`;
 
-    const { size, type } = config;
+    const { size } = config;
     if (!path) return placeholder.src;
-    switch (type) {
-      case "poster":
-      case "shelfPoster":
-        return `${externalImgUrlPrefix}${size}${path}`;
-      case "backdrop":
-        return `${externalImgUrlPrefix}${size}${path}`;
-      case "logo":
-        return `${externalImgUrlPrefix}${size}${path}`;
-      case "profile":
-        return `${externalImgUrlPrefix}${size}${path}`;
-      case "still":
-        return `${externalImgUrlPrefix}${size}${path}`;
-      default:
-        return "";
-    }
+
+    return `${externalImgUrlPrefix}${size}${path}`;
   }
 
   else return path;
@@ -257,6 +244,11 @@ export const checkAndReturn = <T>(prop: T, equals?: any, notEquals?: any): T | u
   else return prop;
 }
 
+const nanoid = customAlphabet(
+  "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_",
+  lengthForAvgParloId,
+);
+
 export const parloId = (length = lengthForAvgParloId) => {
   return nanoid(length);
 }
@@ -264,11 +256,12 @@ export const parloId = (length = lengthForAvgParloId) => {
 // Validate id from URL before hitting the database.
 // Suppose 1234 is passed as an id which obviously wont bring any result.
 // So validating it beforehand would be time and effort saving.
-export const isValidParloId = (id: string) => {
+
+export const isValidParloId = (id: string): boolean => {
   // Short to Avg ParloId can be of length 10 to 16, long ParloId are of length 21.
   if (id.length < lengthForShortParloId || (id.length > lengthForAvgParloId && id.length !== lengthForLongParloId))
     return false;
-  else /^[a-zA-Z0-9-_]{0,}$/.test(id);
+  else return /^[a-zA-Z0-9_]{0,}$/.test(id);
 };
 
 export const getPageParams = (req: NextRequest, initial: number = 1) => {

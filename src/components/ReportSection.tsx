@@ -10,6 +10,7 @@ import { ReportTypeEnum } from "@type/schemas";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import InfiniteScroller from "./InfiniteScroller";
+import { Button } from "./ui";
 
 type Props = {
     cnid: string,
@@ -42,12 +43,14 @@ const ReportHeader = ({ reports }: { reports: ReportsType[] }) => {
                     key={_id}
                     className={`w-fit border-2 rounded-full ${selectedReason === _id ? "border-secondary" : "border-gray20"}`}
                 >
-                    <button
+                    <Button
+                        id={`reports-tile-${_id}`}
+                        title={_id}
                         onClick={() => handleSelection(_id)}
                         className="px-4 py-2 flex gap-2 items-center">
                         <span>{allReasonsToReport[_id]}</span>
                         <span className="px-2 py-1 bg-gray30 rounded-full text-xs">{count}</span>
-                    </button>
+                    </Button>
                 </li>
             ))}
         </ul>

@@ -1,6 +1,7 @@
 import { Navbar } from "@components";
 import { Form, Input, Poster, Textarea } from "@components/form";
 import ListSelector, { ListSelectorRef } from "@components/ListSelector";
+import { Button } from "@components/ui";
 import { searchNonBlockedUsers } from "@lib/helpers/common";
 import { createRoomMutation } from "@lib/helpers/mutations";
 import { useCustomReducer } from "@lib/hooks";
@@ -70,7 +71,15 @@ const CreateGroup = () => {
                 hrefToRedirect="/room"
                 navTitle="Create Group"
                 OptionButton={(
-                    <button onClick={reqSubmit} type="submit" className="primary">Next</button>
+                    <Button
+                        id="room-data-submit-button"
+                        title="Go Next"
+                        onClick={reqSubmit}
+                        type="submit"
+                        className="primary"
+                    >
+                        Next
+                    </Button>
                 )}
             />
             <Poster ref={posterRef} className="mt-4 mb-2 mx-auto" />
@@ -106,7 +115,15 @@ const CreateGroup = () => {
                 onGoBack={() => setter({ page: 1 })}
                 navTitle="Create Group"
                 OptionButton={(
-                    <button onClick={create} type="submit" className="primary">Create</button>
+                    <Button
+                        id="room-create-button"
+                        title="Create"
+                        onClick={create}
+                        type="submit"
+                        className="primary"
+                    >
+                        Create
+                    </Button>
                 )}
             />
 

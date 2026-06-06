@@ -12,7 +12,7 @@ const BannedPage = async ({ params }: ParloPageProps) => {
     const { id } = await params;
 
     const queryClient = getQueryClient();
-    const tid = id.split('+')[0];
+    const tid = id.split('-')[0];
     const jar = await cookies();
     const user = await getUserFromToken(jar);
 

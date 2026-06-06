@@ -12,7 +12,7 @@ export const storeToRedis = async (id: string, exp: number, obj: Session) => {
     const resp = await redis.setex(`session:${id}`, exp, JSON.stringify(obj));
     return resp === "OK";
   } catch (err: any) {
-    console.log("Error occured while storing sessions", err.message);
+    console.warn("Error occured while storing sessions", err.message);
     return false;
   }
 };
@@ -34,7 +34,7 @@ export const getSession = async <T = undefined>(
     const session = (await redis.get(`session:${id}`)) as ReturnType<T>;
     return { success: true, result: parseUnknownData(session) };
   } catch (err) {
-    console.log("Error getting sessions", err);
+    console.warn("Error getting sessions", err);
     return { success: false, result: null };
   }
 };

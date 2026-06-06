@@ -1,6 +1,7 @@
 import React, { PropsWithChildren } from "react";
 import BottomSheet from "./BottomSheet";
 import { Drawer } from "vaul";
+import { Button } from "./ui";
 
 type ModalProps = PropsWithChildren<{
     button: React.ReactNode
@@ -32,9 +33,14 @@ export const WarningModal = ({ action, dangerFunc, details, dangerButton }: Warn
             </p>
 
             <div className="flex gap-2 mt-4">
-                <button className="bigBtn border-2 border-red-500 flex-1" onClick={dangerFunc}>
+                <Button
+                    id="modal-danger-button"
+                    title={typeof dangerButton === "string" ? dangerButton : action}
+                    className="h-10 px-4 rounded-md flex flex-cntr-all border-2 border-red-500 flex-1"
+                    onClick={dangerFunc}
+                >
                     {dangerButton}
-                </button>
+                </Button>
                 <Drawer.Close className="primary flex-1">
                     Cancel
                 </Drawer.Close>

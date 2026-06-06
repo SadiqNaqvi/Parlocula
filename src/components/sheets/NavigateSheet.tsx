@@ -1,32 +1,44 @@
-import { Navigate, ShareButton, BottomSheet, BottomSheetRef } from "@components";
+"use client";
+
+import { BottomSheet, BottomSheetRef, ShareButton } from "@components";
 import { OptionList } from "@components/ui";
 import { parloculaAppURL } from "@lib/constants";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { VisitIcon, CopyIcon } from "@assets/Icons"
 
 const NavigationSheet = ({ sheetRef, href }: { sheetRef: React.RefObject<BottomSheetRef | null>, href: string }) => {
+
+    const router = useRouter();
     const url = new URL(href, parloculaAppURL).href;
 
     const handleCopy = () => {
         if (navigator && "clipboard" in navigator) {
             navigator.clipboard.writeText(url)
-                .then(() => toast.success("Content copied to clipboard"));
+                .then(() => toast.success("Link copied to clipboard"));
         } else {
-            toast.error("Unable to copy text to clipboard");
+            toast.error("Unable to copy link to clipboard");
         }
+    }
+
+    const handleVisit = () => {
+        router.push(href);
     }
 
     return (
         <BottomSheet allowHandle ref={sheetRef}>
             <section className="space-y-2 overflow-x-hidden">
-                <div className="p-2 w-full text-sky-500 wrap-anywhere whitespace-break-spaces max-h-40 overflow-y-auto noScroll">{url}</div>
+                <p className="p-2 w-full text-sky-500 wrap-anywhere whitespace-break-spaces max-h-40 overflow-y-auto noScroll">{url}</p>
                 <ul>
-                    <OptionList>
-                        <Navigate className="w-full" comp="button" goto={href}>
-                            Visit
-                        </Navigate>
+                    <OptionList onClick={handleVisit} className="justify-start">
+                        <VisitIcon />
+                        <span>Visit</span>
                     </OptionList>
-                    <OptionList onClick={handleCopy}>Copy Link</OptionList>
-                    <OptionList>
+                    <OptionList onClick={handleCopy} className="justify-start">
+                        <CopyIcon />
+                        <span>Copy Link</span>
+                    </OptionList>
+                    <OptionList skipButtonWrapping>
                         <ShareButton textToShow="Share" title="Parlocula - The Cinematic Planet" url={url} className="w-full" />
                     </OptionList>
                 </ul>

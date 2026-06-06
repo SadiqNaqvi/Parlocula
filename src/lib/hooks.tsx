@@ -300,7 +300,7 @@ const refineResponse = (resp: GeneralGetReturn<AggregatedResponse<AggregatedPost
     const { success, errCode, result } = resp;
     if (success) return result;
     else {
-        console.log("Error occured:", errCode);
+        console.warn("Error occured:", errCode);
         return { data: [], total: 0 }
     }
 }
@@ -339,6 +339,7 @@ export const useFeedHook = () => {
     const { meta } = useCurrentUser();
     const uid = meta?.user_id;
     const [placeholder, setPlaceholder] = useOfflineStore<AggregatedResponse | undefined>(`usersFeed:${uid ?? "guest"}`, undefined);
+    const uniqueFeedPostsMap: Record<string, true> = {}
 
     const queryFn = async (p: number): Promise<GeneralMultipleReturn<FeedPost>> => {
 
@@ -351,33 +352,40 @@ export const useFeedHook = () => {
         const trendingPosts = refineResponse(trending);
         const curatedPosts = refineResponse(curated);
 
-        const uniqurePostsMap = new Map([...trendingPosts.data, ...curatedPosts.data].map(el => [el._id, el]));
-
         let finalFeed: FeedPost[] = [];
 
         const interval = Math.floor((trendingPosts.data.length + curatedPosts.data.length) / 2);
 
-        if (interval) {
-            Array.from(uniqurePostsMap.values())
-                .sort((a, b) => b.score - a.score)
-                .forEach((post, i) => {
-                    finalFeed.push(post);
+        if (interval !== 0) {
 
-                    if ((i + 1) % interval === 0) {
-                        const index = ((i + 1) / interval) - 1;
-                        const slide = slides[index];
-                        if (slide.data.length) {
-                            finalFeed.push({ ...slide, isSlide: true })
-                        }
+            const sortedPosts = trendingPosts.data.concat(curatedPosts?.data || [])
+                .sort((a, b) => b.score - a.score);
+
+            for (let i = 0; i < sortedPosts.length; i++) {
+                const post = sortedPosts[i];
+
+                if (post._id in uniqueFeedPostsMap) continue;
+
+                uniqueFeedPostsMap[post._id] = true;
+
+                finalFeed.push(post);
+
+                if ((i + 1) % interval === 0) {
+                    const index = ((i + 1) / interval) - 1;
+                    const slide = slides[index];
+                    if (slide.data.length) {
+                        finalFeed.push({ ...slide, isSlide: true })
                     }
-                });
+                }
+            }
         } else {
             finalFeed = slides.map(slide => ({ ...slide, isSlide: true }));
         }
 
+
         const queryPage = {
             data: finalFeed,
-            total: Math.max(trendingPosts.total, curatedPosts.total)
+            total: Math.max(trendingPosts.total || 0, curatedPosts.total || 0)
         }
 
         if (p === 1) setPlaceholder(queryPage);
@@ -392,22 +400,29 @@ export const useFeedHook = () => {
     });
 }
 
-export const useDebounce = (mutationFn: () => any, config?: { skipInSeconds?: number, initial?: any }) => {
-    const { skipInSeconds = 10, initial } = config ?? {};
+export const useDebounce = <T,>(
+    mutationFn: (initialState: T, finalState: T) => void,
+    config?: {
+        skipInSeconds?: number,
+        initial?: any
+    }
+) => {
+    const { skipInSeconds = 5, initial } = config ?? {};
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const initialState = useRef<any>(initial ?? null);
-    const finalState = useRef<any>(initial);
+    const initialState = useRef<T>(initial);
+    const finalState = useRef<T>(initial);
 
     useEffect(() => {
         return () => {
+
             if (timeoutRef.current) {
                 clearTimeout(timeoutRef.current);
             }
 
-            const changed = JSON.stringify(initialState.current) !== JSON.stringify(finalState.current)
+            const changed = JSON.stringify(initialState.current) !== JSON.stringify(finalState.current);
 
             if (changed) {
-                mutationFn();
+                mutationFn(initialState.current, finalState.current);
             }
         }
     }, []);
@@ -418,7 +433,10 @@ export const useDebounce = (mutationFn: () => any, config?: { skipInSeconds?: nu
             clearTimeout(timeout)
         }
 
-        timeoutRef.current = setTimeout(mutationFn, skipInSeconds * 1000);
+        timeoutRef.current = setTimeout(
+            () => mutationFn(initialState.current, finalState.current),
+            skipInSeconds * 1000
+        );
     }
 
     const setInitialState = (arg: any) => {

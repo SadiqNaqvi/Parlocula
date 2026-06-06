@@ -2,7 +2,7 @@
 
 import { AddIcon, EditIcon } from "@assets/Icons";
 import { GenericWrapper, Navbar } from "@components";
-import { OptionalChildren } from "@components/ui";
+import { Button, OptionalChildren } from "@components/ui";
 import { SimpleUserBar } from "@components/ui/UserBar";
 import { threadManagersLimit } from "@lib/constants";
 import { getManagers } from "@lib/helpers/common";
@@ -26,15 +26,23 @@ const ManagerNavbar = ({ managersCount, isCreator, onInvite, onRemove }: { manag
 
             <div className="flex gap-2">
                 <OptionalChildren condition={managersCount < threadManagersLimit}>
-                    <button onClick={onInvite}>
+                    <Button
+                        id="add-managers-button"
+                        title="Add"
+                        onClick={onInvite}
+                    >
                         <AddIcon />
-                    </button>
+                    </Button>
                 </OptionalChildren>
 
                 <OptionalChildren condition={isCreator}>
-                    <button onClick={onRemove}>
+                    <Button
+                        id="remove-managers-button"
+                        title="Remove"
+                        onClick={onRemove}
+                    >
                         <EditIcon />
-                    </button>
+                    </Button>
                 </OptionalChildren>
             </div>
         }
@@ -48,7 +56,7 @@ const Component = (data: ThreadModType, { tid, uid }: Props) => {
     const managersCount = data.managers?.length || 0;
     const managers = data.managers.filter(u => u.role === "moderator");
     const invitees = data.managers.filter(u => u.role === "moderator_invitee");
-    
+
     const handleBack = () => setSection("show");
 
     if (section === "invite") return (

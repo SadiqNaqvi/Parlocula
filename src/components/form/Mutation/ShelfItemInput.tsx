@@ -2,7 +2,7 @@
 
 import { XmarkIcon } from "@assets/Icons";
 import { BottomSheet, BottomSheetRef, ListSelector, ListSelectorRef, RefinedValues } from "@components";
-import { OptionalChildren, ShowOnlyShelfItem } from "@components/ui";
+import { Button, OptionalChildren, ShowOnlyShelfItem } from "@components/ui";
 import { searchTaleonsOnly } from "@lib/contentFetcher";
 import { ExtSearchDataTaleonOnly } from "@type/external";
 import { TaleonSchemaType as ItemType } from "@type/schemas";
@@ -28,7 +28,7 @@ const ShallowShelfItemBar = () => (
     </>
 )
 
-const ShelfItemInput = ({ itemsRef, defaultTaleons }: { itemsRef: RefObject<ListSelectorRef<ItemType>|null>, defaultTaleons?: ItemType[] }) => {
+const ShelfItemInput = ({ itemsRef, defaultTaleons }: { itemsRef: RefObject<ListSelectorRef<ItemType> | null>, defaultTaleons?: ItemType[] }) => {
 
     const [items, setItems] = useState<ItemType[]>(defaultTaleons ?? []);
     const callbackRef = useRef<ListSelectorRef<ItemType>>(null);
@@ -42,7 +42,7 @@ const ShelfItemInput = ({ itemsRef, defaultTaleons }: { itemsRef: RefObject<List
 
     const getItems = () => {
         const selectedItems = callbackRef.current?.();
-        
+
         if (!selectedItems || !selectedItems.length) return;
 
         const uniqueItems = selectedItems.filter(i => !items.some(e => e.ext_id === i.ext_id))
@@ -76,9 +76,17 @@ const ShelfItemInput = ({ itemsRef, defaultTaleons }: { itemsRef: RefObject<List
                     {items.map(item => (
                         <li key={item.ext_id} className="inline-flex gap-2 flex-cntr-between px-2 w-full">
                             <ShowOnlyShelfItem {...item} />
-                            <button className="p-1 bg-gray20 rounded-md" type="button" onClick={() => removeItems(item.ext_id)}>
+
+                            <Button
+                                id={`shelf-remove-${item.title}`}
+                                title={`Remove ${item.title}`}
+                                className="p-1 bg-gray20 rounded-md"
+                                type="button"
+                                onClick={() => removeItems(item.ext_id)}
+                            >
                                 <XmarkIcon className="size-4" />
-                            </button>
+                            </Button>
+
                         </li>
                     ))}
                 </ul>

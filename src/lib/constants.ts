@@ -67,7 +67,7 @@ export const emailPattern =
 
 export const externalImgUrlPrefix = "https://image.tmdb.org/t/p/";
 
-export const backdrop_sizes: ExternalImageTypeToSizeMap["backdrop"][] = ["w300", "w780", "w1280", "original"];
+export const backdrop_sizes: ExternalImageTypeToSizeMap["backdrop"][] = ["w300", "w780", "original"];
 export const logo_sizes: ExternalImageTypeToSizeMap["logo"][] = [
   "w45",
   "w92",
@@ -83,7 +83,6 @@ export const poster_sizes: ExternalImageTypeToSizeMap["poster"][] = [
   "w185",
   "w342",
   "w500",
-  "w780",
   "original",
 ];
 export const profile_sizes: ExternalImageTypeToSizeMap["profile"][] = ["w45", "w185", "h632", "original"];
@@ -352,7 +351,7 @@ export const queryKeys: Record<AvailableQueryKeys, string[]> = {
   comment_cid: ["comment", "{cid}"],
   like_cid: ["like", "{cid}"],
   replies_cid_filter: ["replies", "{cid}", "{filter}"],
-  
+
   popularShelves: ["popular-shelves"],
   shelf_sid: ["shelf", "{sid}"],
   shelvesOfUser_uid_filter: ["shelves-of-user", "{uid}", "{filter}"],
@@ -599,3 +598,20 @@ export const threadReportOptions: UidsForReportReason[] = [
 export const lengthForShortParloId = 10;
 export const lengthForAvgParloId = 16;
 export const lengthForLongParloId = 21;
+
+// Pages Enum 
+export const pagesEnumForBugOrSuggestion = [
+  "home",
+  "explore",
+  "movies",
+  "shows",
+  "artists",
+  "thread",
+  "shelf",
+  "comment",
+  "post",
+  "profile",
+  "chats",
+  "settings",
+  "notifications"
+]

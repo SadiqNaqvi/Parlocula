@@ -179,7 +179,7 @@ export const generateJsonLdForArtist = ({
         "identifier": tmdb_id,
 
         "sameAs": [
-            `https://www.themoviedb.org/person/${tmdb_id}`
+            `https://www.themoviedb.org/artist/${tmdb_id}`
         ]
     },
     breadcrumbs: {

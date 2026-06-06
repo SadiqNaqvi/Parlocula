@@ -9,7 +9,7 @@ import { ErrorCodes } from "@type/other";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect, useRef } from "react";
 import NotFound from "./fallbacks/NotFound";
-import { LoadingSpinner, OptionalChildren, ParloFooter } from "./ui";
+import { Button, LoadingSpinner, OptionalChildren, ParloFooter } from "./ui";
 import { ShowError } from "./fallbacks";
 import { twMerge } from "tailwind-merge";
 
@@ -125,7 +125,16 @@ export default function InfiniteScroller({ Loading, showFooter, onSuccess, place
         <NotFoundComponent
             title="Looks like you came across too far"
             paras={[`No data is available at page ${initialPage}`]}
-            ActionButton={<button className="primary" onClick={gotoTop}>Go to top</button>}
+            ActionButton={(
+                <Button
+                    id="remove-page-params-button"
+                    title="Go To Top"
+                    className="primary"
+                    onClick={gotoTop}
+                >
+                    Go to top
+                </Button>
+            )}
         />
     )
 
@@ -147,7 +156,14 @@ export default function InfiniteScroller({ Loading, showFooter, onSuccess, place
                 <OptionalChildren
                     fallback={(
                         <div className="w-full flex flex-cntr-all">
-                            <button className="primary" onClick={manuallyLoadNextPage}>Load More</button>
+                            <Button
+                                id="manual-load-button"
+                                title="Load More"
+                                className="primary"
+                                onClick={manuallyLoadNextPage}
+                            >
+                                Load More
+                            </Button>
                         </div>
                     )}
                     condition={(isHydrated && !dataSaver) || isFetchingNextPage}>

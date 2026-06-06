@@ -73,7 +73,7 @@ const UserHydrator = ({ payload, currentUser }: { payload: TokenPayload | null, 
                 if (!resp) logOutOnClient(user._id);
                 else router.refresh();
             })
-            .catch(e => console.log(e));
+            .catch(e => console.error(e));
 
         return setUserOnRefreshOrLogin(user, !!user.filterContent);
     }, [user]);
@@ -85,7 +85,7 @@ const UserHydrator = ({ payload, currentUser }: { payload: TokenPayload | null, 
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/sw.js')
-                    .catch(err => console.log('SW failed', err))
+                    .catch(err => console.error('SW failed', err))
             })
         }
 
@@ -102,9 +102,9 @@ const UserHydrator = ({ payload, currentUser }: { payload: TokenPayload | null, 
             userToStore = currentUser;
         }
 
+        // For offline
         else {
 
-            // For offline
             // The Local Storage (indexed db here) may got cleared but we know that the user exists.
             if (!user) return;
 

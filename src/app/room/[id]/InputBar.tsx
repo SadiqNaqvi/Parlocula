@@ -1,7 +1,7 @@
 "use client";
 
 import { SendIcon, XmarkIcon } from "@assets/Icons";
-import { OptionalChildren } from "@components/ui";
+import { Button, OptionalChildren } from "@components/ui";
 import { acceptRoomInvitation, rejectRoomInvitation, sendMessage } from "@lib/helpers/mutations";
 import { getAblyOnClient } from "@lib/providers/ably";
 import { parloId } from "@lib/utils";
@@ -19,7 +19,7 @@ type Props = {
 }
 
 const FooterWrapper = ({ children }: PropsWithChildren) => (
-    <footer className="w-stretch absolute bottom-0 px-2 py-4 border-t border-gray40 bg-primary">
+    <footer className="z-1 w-stretch absolute bottom-0 px-2 py-4 border-t border-gray40 bg-primary">
         {children}
     </footer>
 );
@@ -33,7 +33,7 @@ const InputBar = ({ rmid, room }: Props) => {
     const typingIndicatorInterval = useRef<NodeJS.Timeout>(null);
     const channel = useRef<RealtimeChannel>(null);
 
-    const isRoomPending = Boolean(room.participant_count <2 && room.participantType === "creator");
+    const isRoomPending = Boolean(room.participant_count < 2 && room.participantType === "creator");
 
     useEffect(() => {
         if (!meta) return;
@@ -55,8 +55,22 @@ const InputBar = ({ rmid, room }: Props) => {
     if (room.participantType === "invitee") return (
         <FooterWrapper>
             <div className="flex flex-cntr-all gap-4">
-                <button className="flex-1 sm:max-w-fit primary" onClick={acceptRoom}>Accept</button>
-                <button className="flex-1 sm:max-w-fit secondary" onClick={rejectRoom}>Reject</button>
+                <Button
+                    id="invitation-accept-button"
+                    title="Accept"
+                    className="flex-1 sm:max-w-fit primary"
+                    onClick={acceptRoom}
+                >
+                    Accept
+                </Button>
+                <Button
+                    id="invitation-reject-button"
+                    title="Reject"
+                    className="flex-1 sm:max-w-fit secondary"
+                    onClick={rejectRoom}
+                >
+                    Reject
+                </Button>
             </div>
         </FooterWrapper>
     )
@@ -103,7 +117,6 @@ const InputBar = ({ rmid, room }: Props) => {
             clearTimeout(typingIndicatorInterval.current);
 
         typingIndicatorInterval.current = setTimeout(() => {
-            console.log("Stopped Typing");
             channel.current?.presence.update({ status: "stopped_typing", room_id: rmid })
             typingIndicatorInterval.current = null;
         }, 5000);
@@ -116,9 +129,14 @@ const InputBar = ({ rmid, room }: Props) => {
             <OptionalChildren condition={reply}>
                 <div className="pb-3 px-2 flex gap-2 flex-cntr-between">
                     <p className="line-clamp-2 text-sm">{reply?.replied_content}</p>
-                    <button className="p-2 bg-gray20 rounded-full" onClick={() => setReply(undefined)}>
+                    <Button
+                        id="remove-reply-button"
+                        title="Remove Reply"
+                        className="p-2 bg-gray20 rounded-full"
+                        onClick={() => setReply(undefined)}
+                    >
                         <XmarkIcon className="size-2" />
-                    </button>
+                    </Button>
                 </div>
             </OptionalChildren>
 
@@ -134,9 +152,14 @@ const InputBar = ({ rmid, room }: Props) => {
                     maxLength={3000}
                     className="flex-1 p-3 border border-gray10 bg-gray10 rounded-full"
                 />
-                <button type="submit" className="size-fit p-2">
+                <Button
+                    id="message-send-button"
+                    title="Send"
+                    type="submit"
+                    className="size-fit p-2"
+                >
                     <SendIcon />
-                </button>
+                </Button>
             </form>
         </FooterWrapper>
     )

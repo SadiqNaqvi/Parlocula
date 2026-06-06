@@ -2,7 +2,7 @@
 
 import { CheckIcon } from "@assets/Icons";
 import { InfiniteScroller, ListSelector, ListSelectorRef, Navbar } from "@components";
-import { UserBar } from "@components/ui";
+import { Button, UserBar } from "@components/ui";
 import { getParticipantsOfRoom, searchFollowers } from "@lib/helpers/common";
 import { inviteParticipants, removeParticipants } from "@lib/helpers/mutations";
 import { getQueryKeys } from "@lib/utils";
@@ -23,18 +23,23 @@ const InviteSection = ({ rmid, uid }: Props & { back: TypedFunction }) => {
     }
 
     return (
-        <>
+        <section className="flex-1">
             <Navbar
                 navTitle="Invite Participants"
                 OptionButton={
-                    <button onClick={handleInvitation}>
+                    <Button
+                        id="submit-button"
+                        title="Invite"
+                        onClick={handleInvitation}
+                    >
                         <CheckIcon />
-                    </button>
+                    </Button>
                 }
             />
             <ListSelector
                 mode="search"
                 callbackRef={callbackRef}
+                className="px-2"
                 queryKeys={(query) => getQueryKeys("search-followers_uid_query", { uid, query })}
                 queryFn={(q, p) => searchFollowers(q, uid, p)}
                 refiner={(user) => ({
@@ -43,7 +48,7 @@ const InviteSection = ({ rmid, uid }: Props & { back: TypedFunction }) => {
                     poster: user.profile,
                 })}
             />
-        </>
+        </section>
     )
 
 }
@@ -61,11 +66,15 @@ const RemoveSection = ({ rmid, uid }: Props & { back: TypedFunction }) => {
     return (
         <>
             <Navbar
-                navTitle="Invite Participants"
+                navTitle="Remove Participants"
                 OptionButton={
-                    <button onClick={handleRemoval}>
+                    <Button
+                        id="submit-button"
+                        title="Remove"
+                        onClick={handleRemoval}
+                    >
                         <CheckIcon />
-                    </button>
+                    </Button>
                 }
             />
             <ListSelector

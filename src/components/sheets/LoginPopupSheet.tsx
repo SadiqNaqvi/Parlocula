@@ -11,7 +11,12 @@ const LoginPopupSheet = ({ sheetRef, href, section }: { sheetRef: React.RefObjec
                 <h4 className="parloHeading">{title}</h4>
                 <p className="text-sm text-zinc-500 text-center">{desc}</p>
             </div>
-            <Navigate comp="link" className="btn primary w-full" goto={`/join${href ? "?url=" + href : ''}`}>Log-In</Navigate>
+            <Navigate
+                comp="link"
+                className="btn primary w-full" goto={`/join${href ? "?url=" + href : ''}`}
+            >
+                Log-In
+            </Navigate>
             <div className="text-center text-sm text-zinc-500 space-y-2">
                 <p>Do not worry since your {section || "content"} are saved locally. You need to log-in to post it globally.</p>
             </div>

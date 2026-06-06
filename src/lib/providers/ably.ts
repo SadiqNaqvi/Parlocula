@@ -47,7 +47,7 @@ export const getAblyRealtime = async (): Promise<Ably.Realtime> => {
         resolve();
       });
       ably_realtime!.connection.once('failed', (err) => {
-        console.log("Error Occured while getting Ably RealTime");
+        console.warn("Error Occured while getting Ably RealTime");
         reject(err);
       });
     });

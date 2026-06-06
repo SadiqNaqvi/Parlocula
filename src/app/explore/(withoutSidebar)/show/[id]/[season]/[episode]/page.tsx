@@ -9,10 +9,10 @@ import { Metadata } from "next";
 type Ids = { id: string, season: string, episode: string }
 
 const fetchEpisode = async ({ id, episode, season }: Ids, getInternalData: boolean) => {
-    const refineSeason = parseInt(season.split('+')[1]);
+    const refineSeason = parseInt(season.split('-')[1]);
     const seasonNumber = isNaN(refineSeason) ? 1 : refineSeason;
 
-    const refineEpisode = parseInt(episode.split('+')[1]);
+    const refineEpisode = parseInt(episode.split('-')[1]);
     const episodeNumber = isNaN(refineEpisode) ? 1 : refineEpisode;
     const [showPromise, episodePromise] = await Promise.all([
         fetchShow(id, getInternalData),
@@ -70,7 +70,7 @@ const EpisodePage = async ({ params }: ParloPageProps<Ids>) => {
         <TaleonWikiSection heading="Top Cast">
             <div className="flex gap-4 overflow-x-auto pb-2">
                 {episode.cast.map(el => (
-                    <ArtistCard key={el.id} title={el.name} detail={el.character} img={el.poster} link={`/explore/person/${el.id}-${makeUrlSafe(el.name)}`} />
+                    <ArtistCard key={el.id} title={el.name} detail={el.character} img={el.poster} link={`/explore/artist/${el.id}-${makeUrlSafe(el.name)}`} />
                 ))}
             </div>
         </TaleonWikiSection>
@@ -88,7 +88,10 @@ const EpisodePage = async ({ params }: ParloPageProps<Ids>) => {
         {episode.cast.splice(0, 2).map((el) => (
             <TaleonWikiSection
                 heading={`More of ${el.name}`}
-                hrefForMoreButton={`/explore/person/${el.id}`}
+                moreButton={{
+                    path: `/explore/artist/${el.id}`,
+                    label: "More Movies"
+                }}
                 key={el.id}
                 horizontalMovieListProps={{
                     type: "movie",

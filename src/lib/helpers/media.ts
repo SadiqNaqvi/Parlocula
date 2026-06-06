@@ -35,7 +35,7 @@ export const scaleImage = async (file: File): Promise<Blob | null> => {
         );
         return blob;
     } catch (err: any) {
-        console.log("Failed scaling image" + err);
+        console.error("Failed scaling image" + err);
         return null;
     }
 };

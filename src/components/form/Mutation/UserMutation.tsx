@@ -2,7 +2,7 @@
 
 import { AddIcon } from "@assets/Icons";
 import { BottomSheetRef, Navbar, OptionMenu } from "@components";
-import { MetadataTile, MetadataTileContainer, OptionalChildren, OptionList } from "@components/ui";
+import { Button, MetadataTile, MetadataTileContainer, OptionalChildren, OptionList } from "@components/ui";
 import { UserPageMockup } from "@components/ui/mockup";
 import { parloculaAppURL, urlPattern } from "@lib/constants";
 import { registerUserMutation, updateUser } from "@lib/helpers/mutations";
@@ -130,12 +130,14 @@ const UserMutationPage = ({ username, isEditing, defaultValues, dob, email }: Pr
             <Navbar
                 navTitle={isEditing ? "Edit Profile" : "Create"}
                 OptionButton={(
-                    <button
+                    <Button
+                        id="submit"
+                        title={isEditing ? "Update" : "Join Parlocula"}
                         className="primary"
                         onClick={requestSubmit}
                     >
                         {isEditing ? "Update" : "Join"}
-                    </button>
+                    </Button>
                 )}
             />
 

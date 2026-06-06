@@ -12,7 +12,11 @@ import { Thread as ThreadType } from "@type/internal";
 import { PropsWithChildren } from "react";
 import { ActionsButton, EllipsisButton, ThreadDetailsSheet } from "./";
 
-type Props = { id: string, uid?: string }
+type Props = {
+    id: string,
+    uid?: string
+    filterContent: boolean;
+}
 
 const getQueryProps = ({ id }: Props) => ({
     queryKeys: getQueryKeys("thread_id", { id }),
@@ -20,14 +24,14 @@ const getQueryProps = ({ id }: Props) => ({
     args: [id],
 });
 
-const Component = (data: ThreadType, { id, uid, children }: PropsWithChildren<Props>) => {
+const Component = (data: ThreadType, { id, uid, children, filterContent }: PropsWithChildren<Props>) => {
 
     const { _id, connections, creator, createdAt, created_by, description, links, member_count, nsfw, edited_by, poster, post_count, name, managers } = data;
 
     return (
         <>
             <OptionalChildren condition={nsfw}>
-                <ContentFiltered allow={uid === created_by} redirectPath={`/t/${_id}`} />
+                <ContentFiltered filterContent={filterContent} allow={uid === created_by} redirectPath={`/t/${_id}`} />
             </OptionalChildren>
             <ObserverHeader
                 navTitle={name}

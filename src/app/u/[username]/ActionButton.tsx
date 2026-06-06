@@ -4,6 +4,7 @@ import OptionList from "@components/ui/OptionList";
 import { checkUserConnection } from "@lib/helpers/common";
 import { AvailableMutations } from "@lib/providers/mutationStore";
 import { getQueryKeys } from "@lib/utils";
+import { Button } from "@react-email/components";
 import { UserConnectionType } from "@type/internal";
 import { useRef } from "react";
 import { toast } from "sonner";
@@ -40,15 +41,17 @@ const ActionButton = ({ rid, uid, username }: Props) => {
         </>
     )
 
-    const Button = ({ user_id, onClick, state }: UserBasedButtonProps<UserConnectionType>) => {
+    const ResponsiveButton = ({ user_id, onClick, state }: UserBasedButtonProps<UserConnectionType>) => {
 
         if (!state || state.isBlocked) return (
-            <button
+            <Button
+                id="disabled-follow-button"
+                title="Follow"
                 className={primaryButtonClassName}
                 onClick={() => toast("Uh Oh! Something went wrong")}
             >
                 Follow
-            </button>
+            </Button>
         )
 
         const handleClick = (action: AvailableMutations) => {
@@ -76,15 +79,25 @@ const ActionButton = ({ rid, uid, username }: Props) => {
         const { followBack, follows, haveBlocked, notification } = state;
 
         if (haveBlocked) return (
-            <button className={secondaryButtonClassName} onClick={() => handleClick("unblock_user")}>
+            <Button
+                id="unblock-button"
+                title="Unblock"
+                className={secondaryButtonClassName}
+                onClick={() => handleClick("unblock_user")}
+            >
                 Unblock
-            </button>
+            </Button>
         )
 
         else if (!follows) return (
-            <button className={primaryButtonClassName} onClick={() => handleClick("follow_user")}>
+            <Button
+                id="follow-button"
+                title={followBack ? "Follow back" : "Follow"}
+                className={primaryButtonClassName}
+                onClick={() => handleClick("follow_user")}
+            >
                 {followBack ? "Follow back" : "Follow"}
-            </button>
+            </Button>
         )
 
         else return (
@@ -105,7 +118,7 @@ const ActionButton = ({ rid, uid, username }: Props) => {
 
     return (
         <UserBasedButton
-            Button={Button}
+            Button={ResponsiveButton}
             noUserStateChilren="Follow"
             redirectAfterLogin={`/u/${username}`}
             noUserStateClassName={primaryButtonClassName}

@@ -1,7 +1,8 @@
 "use client";
 
+import { PushNotificationWarningToast } from "@app/UserHydrator";
 import { getAblyOnClient } from "@lib/providers/ably";
-import { getPushState, subscribeToPushAndSync, unsubscribeToPushAndSync } from "@lib/providers/push";
+import { getPushState, unsubscribeToPushAndSync } from "@lib/providers/push";
 import { getQueryKeys } from "@lib/utils";
 import useNotification from "@store/notification";
 import useRoomStore from "@store/roomStore";
@@ -11,21 +12,13 @@ import { AblyEventParams } from "@type/other";
 import { ConnectionStateChange } from "ably";
 import { toast } from "sonner";
 import { refetchQueries, showMessageOptimistically, updateDoc, updateDocInInfiniteQueryResult } from "./mutations";
-import { PushNotificationWarningToast } from "@app/UserHydrator";
 
-const checkNotificationAndSubscribe = async (uid: string) => {
-    // If user Notification 
+const checkNotificationAndAlert = async () => {
     if (Notification.permission !== "granted") {
         PushNotificationWarningToast();
         return;
     }
     else if (await getPushState() === "granted") return;
-
-    // const { success, errCode } = await subscribeToPushAndSync(uid);
-    // if (success) return;
-
-    // console.warn("Subscibe to push on start failed", errCode);
-    // PushNotificationWarningToast();
 }
 
 const setUser = (user: CurrentUser, contentFiltering: boolean) => {
@@ -45,10 +38,9 @@ export const setUserOnRefreshOrLogin = (user: CurrentUser, contentFiltering: boo
     const channel = ably.channels.get(user._id);
     channel.presence.enter({ status: "online" });
 
-    checkNotificationAndSubscribe(user._id);
+    checkNotificationAndAlert();
 
     const handleConnectionStateChange = (stateChange: ConnectionStateChange) => {
-        console.log("Connection state:", stateChange.current);
         if (stateChange.current === 'connected') {
             channel.presence.enter({ status: 'online' });
         }
@@ -92,7 +84,6 @@ export const setUserOnRefreshOrLogin = (user: CurrentUser, contentFiltering: boo
     }
 
     const handleEnterChat = ({ data }: { data?: AblyEventParams["entered_chat"] }) => {
-        console.log("Entered chat", data);
         if (!data || data.user_id === user._id) return;
 
         updateDoc(

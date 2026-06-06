@@ -2,7 +2,7 @@
 
 import { ErrorFaceIcon } from "@assets/Icons";
 import Navbar from "@components/Navbar";
-import { OptionalChildren } from "@components/ui";
+import { Button, OptionalChildren } from "@components/ui";
 import { codetoError } from "@lib/utils";
 import { ErrorCodes } from "@type/other";
 import { twMerge } from "tailwind-merge";
@@ -36,7 +36,17 @@ const ShowError = ({ heading, errCode, messages = [], retry, fullScreen, classNa
                     <p key={ind} className="text-xs text-zinc-500 text-center space-y-2">{msg}</p>
                 ))}
 
-                {retry && <button className="secondary mx-auto" onClick={retry}>Try again</button>}
+                <OptionalChildren condition={!!retry}>
+                    <Button
+                        id="retry-button"
+                        title="Try Again"
+                        className="secondary mx-auto"
+                        onClick={retry}
+                    >
+                        Try again
+                    </Button>
+                </OptionalChildren>
+
             </div>
         </>
     )

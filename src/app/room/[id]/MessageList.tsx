@@ -85,8 +85,10 @@ const MessageList = ({ uid, room }: { uid: string, room: FullRoomType }) => {
     )
 
     else if (!data || !data.pages[0]?.results?.length) return (
-        <section className="px-2">
-            <p className="p-2 rounded-full text-center bg-gray10 border border-gray10 backdrop-blur-xs">Messages dissapear every 24 hours. Send a message to start conversation.</p>
+        <section className="px-2 h-size-screen pt-4 relative">
+            <p className="p-2 rounded-md text-center bg-gray10 border border-gray10 backdrop-blur-xs">
+                Messages dissapear every 24 hours. Send a message to start conversation.
+            </p>
             <div className="patternBackground"></div>
         </section>
     );

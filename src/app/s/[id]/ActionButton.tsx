@@ -8,6 +8,7 @@ import { useQueryHook } from "@lib/hooks";
 import { getQueryKeys } from "@lib/utils";
 import { AllShelves } from "@type/models";
 import AddItemsButton from "./AddItemsButton";
+import { Button } from "@components/ui";
 
 type Props = {
     id: string;
@@ -53,20 +54,22 @@ const CheckShelfConnection = ({ uid, sid, shelf_type }: { uid: string, sid: stri
     else if (data?.type === "invitee") return (
         <>
             <div className="contents">
-                <button
+                <Button
+                    id="accept-invitation-button"
+                    title="Accept"
                     className="primary"
                     onClick={acceptInvitation}
-                    title="Accept invitation button"
                 >
                     Accept
-                </button>
-                <button
+                </Button>
+                <Button
+                    id="reject-invitation-button"
+                    title="Reject"
                     className="secondary"
                     onClick={rejectInvitation}
-                    title="Reject invitation button"
                 >
                     Reject
-                </button>
+                </Button>
             </div>
             <p className="text-xs sm:text-sm text-zinc-500 text-center col-span-2 sm:col-span-4 row-start-3">
                 You{"'"}re invited to become a collaborator of this shelf

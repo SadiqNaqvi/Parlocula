@@ -1,9 +1,12 @@
+import { AlertIcon, CommentIcon, QuoteIcon } from "@assets/Icons";
+import { NotFound, ShowError } from "@components/fallbacks";
+import JsonLd from "@components/JsonLd";
 import { OptionalChildren, TabContainer, TabList } from "@components/ui";
-import { NotFound } from "@components/fallbacks";
 import PostPageSkeleton from "@components/ui/loading/PostPageSkeleton";
 import { getUserFromToken } from "@lib/auth/utils";
 import { checkIfItemSaved, getPostById, getReactionOnPost } from "@lib/helpers/common";
 import { fetchQuery, getQueryClient, prefetchQuery } from "@lib/providers/queryClient";
+import { generateJsonLdForPost } from "@lib/seo/jsonld";
 import { calculateAge, getQueryKeys, isValidParloId } from "@lib/utils";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { ParloPageProps } from "@type/other";
@@ -11,13 +14,10 @@ import { Metadata } from "next";
 import { cookies } from "next/headers";
 import { PropsWithChildren, Suspense } from "react";
 import PostHeader from "./PostHeader";
-import { AlertIcon, CommentIcon, QuoteIcon } from "@assets/Icons";
-import JsonLd from "@components/JsonLd";
-import { generateJsonLdForPost } from "@lib/seo/jsonld";
 
 export const generateMetadata = async ({ params }: ParloPageProps): Promise<Metadata> => {
 
-    const id = (await params).id.split('+')[0];
+    const id = (await params).id.split('-')[0];
 
     if (!isValidParloId(id)) return { title: "Parlocula" }
 
@@ -84,7 +84,11 @@ const Fetcher = async ({ id, children }: PropsWithChildren<{ id: string }>) => {
 
             <JsonLd schemas={jsonLd} />
 
-            <PostHeader uid={user?.user_id} id={id} />
+            <PostHeader
+                filterContent={user?.filterContent ?? true}
+                uid={user?.user_id}
+                id={id}
+            />
 
             <div className="my-6">
                 <TabContainer>
@@ -112,16 +116,17 @@ const Fetcher = async ({ id, children }: PropsWithChildren<{ id: string }>) => {
 
 const PostLayout = async ({ children, params }: PropsWithChildren<ParloPageProps>) => {
     const { id } = await params;
-    const [pid] = id.split('+');
+    const [pid] = id.split('-');
 
     if (!isValidParloId(pid)) return (
         <main>
-            <NotFound
-                title="Oops! Look's like you came across a wrong path."
-                paras={[
+            <ShowError
+                heading="Oops! Look's like you came across a wrong path."
+                messages={[
                     "Post id is incorrect",
                     "Please search the post in explore page."
                 ]}
+                fullScreen
             />
         </main>
     );

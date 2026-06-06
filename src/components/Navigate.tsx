@@ -8,6 +8,7 @@ import { useRef } from "react";
 import { BottomSheetRef } from "./BottomSheet";
 import NavigationSheet from "./sheets/NavigateSheet";
 import { HistoryStackType } from "@type/other";
+import { Button } from "./ui";
 
 export type NavigateComponentProps = {
     children: React.ReactNode;
@@ -35,7 +36,7 @@ const Navigate = ({ children, comp, goto, type, className, preload, onContextMen
             return;
         }
 
-        if (historyPayload) pushInStack({...historyPayload, path: goto});
+        if (historyPayload) pushInStack({ ...historyPayload, path: goto });
 
         navigator.push(goto);
     }

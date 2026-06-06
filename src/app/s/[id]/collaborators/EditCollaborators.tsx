@@ -2,6 +2,7 @@
 
 import { Navbar } from "@components";
 import ListSelector, { ListSelectorRef, RefinedValues } from "@components/ListSelector";
+import { Button } from "@components/ui";
 import { shelfCollaboratorsLimit } from "@lib/constants";
 import { getFollowers, searchFollowers } from "@lib/helpers/common";
 import { inviteCollaboratorsMutation, removeCollaboratorsMutation } from "@lib/helpers/mutations";
@@ -46,7 +47,14 @@ export const RemoveCollaborators = ({ back, total, sid, uid }: Props) => {
                 navTitle="Remove Collaborators"
                 onGoBack={back}
                 OptionButton={
-                    <button className="primary" onClick={handleRemoval}>Remove</button>
+                    <Button
+                        id="remove-collaborators-submit-button"
+                        title="Remove Selected Collaborators"
+                        className="primary"
+                        onClick={handleRemoval}
+                    >
+                        Remove
+                    </Button>
                 }
             />
 
@@ -83,7 +91,14 @@ export const InviteCollaborators = ({ uid, back, total, sid }: Props) => {
                 navTitle="Invite Collaborators"
                 onGoBack={back}
                 OptionButton={
-                    <button className="primary" onClick={handleSubmit}>Invite</button>
+                    <Button
+                        id="invite-collaborators-submit-button"
+                        title="Invite Selected Users"
+                        className="primary"
+                        onClick={handleSubmit}
+                    >
+                        Invite
+                    </Button>
                 }
             />
 

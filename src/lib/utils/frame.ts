@@ -23,10 +23,15 @@ export const getVideoThumb = (path: string, source: Required<Frame["extSource"]>
 
 }
 
-export const getPathForFrame = (frame: Frame) => {
-    if (frame.type === "image")
-        return getPoster({ path: frame.path, external: false, extSource: frame.extSource })
-    else return getVideoPath(frame.path, frame.extSource)
+export const getPathForFrame = (path: string, source: Frame["extSource"], type: Frame["type"]) => {
+    if (source === "youtube")
+        return `https://i.ytimg.com/vi/${path}/hqdefault.jpg`
+
+    else if (source === "vimeo")
+        return `/api/v1/vimeo/${path}`;
+    if (type === "image")
+        return getPoster({ path, external: false, extSource: source })
+    else return getVideoPath(path, source)
 }
 
 export const getThumbForFrame = (frame: Frame) => {

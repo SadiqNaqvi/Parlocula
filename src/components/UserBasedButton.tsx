@@ -6,7 +6,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { ReactElement, useRef } from "react";
 import BottomSheet from "./BottomSheet";
 import { LoginModal } from "./fallbacks";
-import { OptionalChildren } from "./ui";
+import { Button, OptionalChildren } from "./ui";
 
 type OnClickFunc = <M extends AvailableMutations, T>(newState: T, action: M, args: MutationFunctionAgruments<M>) => void
 
@@ -30,10 +30,10 @@ type Props<T> = {
 }
 
 export const LoadingButton = ({ primary = true }: { primary?: boolean }) => (
-    <button className={primary ? "primary gap-3" : undefined}>
+    <div className={primary ? "py-2 px-4 bg-secondary rounded-md gap-3" : undefined}>
         <span className="animate-spin size-3 inline-flex rounded-full border-2 border-b-transparent border-gray-500 aspect-square"></span>
         {primary && <span>Loading...</span>}
-    </button>
+    </div>
 );
 
 const UserBasedButton = <T,>({ Button, queryFn, queryKeys, errorStateClassName, ErrorComponent, redirectAfterLogin, noUserStateChilren, noUserStateClassName, Loading, uid }: Props<T>) => {
@@ -71,6 +71,8 @@ const UserBasedButton = <T,>({ Button, queryFn, queryKeys, errorStateClassName, 
     else if (error) return (
         <OptionalChildren condition={!ErrorComponent} fallback={ErrorComponent}>
             <button
+                title="Retry"
+                aria-label="Retry"
                 onClick={() => refetch()}
                 className={errorStateClassName || "secondary"}>
                 ⚠Try Again

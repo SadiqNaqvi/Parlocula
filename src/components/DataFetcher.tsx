@@ -8,6 +8,7 @@ import { useEffect, useRef, useState } from "react";
 import { twMerge } from "tailwind-merge";
 import { VerticalTaleonCardSkeletonList } from "./ui/loading";
 import VerticleMovieCard from "./ui/VerticleMovieCard";
+import { Button } from "./ui";
 
 export type AllowedFunctionsForHorizontalList =
     | "fetchMoviesWithCast"
@@ -100,7 +101,14 @@ const DataFetcher = <T extends AllowedFunctionsForHorizontalList>({ func, args, 
         return (
             <section className="py-4 w-full space-y-4">
                 <p className="text-lg text-center">Something Went Wrong! Please Try again</p>
-                <button className="secondary mx-auto" onClick={() => refetch()}>Try again</button>
+                <Button
+                    id="refetch-button"
+                    title="Try Again"
+                    className="secondary mx-auto"
+                    onClick={() => refetch()}
+                >
+                    Try again
+                </Button>
             </section>
         )
 

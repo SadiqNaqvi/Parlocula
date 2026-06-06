@@ -1,10 +1,8 @@
-import { getPoster } from "@lib/utils";
+import { makeUrlSafe } from "@lib/utils";
 import { RefinedSearchData } from "@type/external";
-import Navigate from "../Navigate";
-import { GetPosterFunctionProps } from "@type/other";
-import Image from "next/image";
-import ParloImage from "./ParloImage";
 import { twMerge } from "tailwind-merge";
+import Navigate from "../Navigate";
+import ParloImage from "./ParloImage";
 
 export default function SearchTile({ id, image, media_type, name }: RefinedSearchData) {
 
@@ -15,7 +13,7 @@ export default function SearchTile({ id, image, media_type, name }: RefinedSearc
             <Navigate
                 comp="link"
                 className="h-full w-full flex gap-2 items-center"
-                goto={`/explore/${media_type === "tv" ? "show" : media_type}/${id}-${name?.replaceAll(' ', '-')}`}
+                goto={`/explore/${media_type === "tv" ? "show" : media_type}/${id}-${makeUrlSafe(name)}`}
                 historyPayload={{
                     title: name,
                     poster: image,

@@ -2,6 +2,7 @@
 
 import { BottomSheet, Navbar } from "@components";
 import { Form, Input } from "@components/form";
+import { Button } from "@components/ui";
 import { FullPageLoadingSpinner } from "@components/ui/loading/LoadingSpinner";
 import { deactivateAccount } from "@lib/helpers/mutations";
 import useCurrentUser from "@store/user";
@@ -77,9 +78,14 @@ const DeactivateAccountPage = () => {
                                 label="Passkey"
                                 placeholder="Please enter your passkey for security purpose"
                             />
-                            <button className="primary w-full mt-4 sm:mx-auto sm:w-fit" type="submit">
+                            <Button
+                                id="deactivate-button"
+                                title="Deactivate Account"
+                                className="primary w-full mt-4 sm:mx-auto sm:w-fit"
+                                type="submit"
+                            >
                                 Deactivate
-                            </button>
+                            </Button>
                         </Form>
                     </div>
                 </BottomSheet>

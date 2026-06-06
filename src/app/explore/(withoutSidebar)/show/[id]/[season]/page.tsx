@@ -9,7 +9,7 @@ type Params = { id: string, season: string };
 type Props = { params: Promise<Params> };
 
 const fetchSeason = async ({ id, season }: Params, getInternalData: boolean) => {
-    const seasonNumber = parseInt(season.split('+')[1]);
+    const seasonNumber = parseInt(season.split('-')[1]);
     const [showPromise, seasonPromise] = await Promise.all([
         fetchShow(id, getInternalData),
         fetchSeasonForShow(id, isNaN(seasonNumber) ? 1 : seasonNumber),
@@ -66,7 +66,7 @@ const SeasonPage = async ({ params }: Props) => {
             <TaleonWikiSection heading="Top Cast">
                 <div className="flex gap-4 overflow-x-auto pb-2">
                     {season.cast.map(el => (
-                        <ArtistCard key={el.id} title={el.name} detail={el.character} img={el.poster} link={`/explore/person/${el.id}-${makeUrlSafe(el.name)}`} />
+                        <ArtistCard key={el.id} title={el.name} detail={el.character} img={el.poster} link={`/explore/artist/${el.id}-${makeUrlSafe(el.name)}`} />
                     ))}
                 </div>
             </TaleonWikiSection>
@@ -98,7 +98,10 @@ const SeasonPage = async ({ params }: Props) => {
                 <TaleonWikiSection
                     key={el.id}
                     heading={`More of ${el.name}`}
-                    hrefForMoreButton={`/explore/person/${el.id}`}
+                    moreButton={{
+                        path: `/explore/artist/${el.id}`,
+                    label:"More Movies"
+                    }}
                     horizontalMovieListProps={{
                         type: "movie",
                         func: "fetchMoviesWithCast",

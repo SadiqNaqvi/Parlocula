@@ -4,20 +4,23 @@ import { queryFilters } from "@lib/constants";
 import { QueryFilterType } from "@type/other";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
+import { twMerge } from "tailwind-merge";
 
 type Props = ({
     type: QueryFilterType,
-    className?: undefined,
     filters?: undefined,
     onActive?: undefined,
+    className?: string,
+    containerClassName?: string;
 } | {
     type: "custom",
     className?: string,
+    containerClassName?: string;
     onActive?: string,
     filters: { id: string, label: string }[]
 })
 
-const FilterTiles = ({ type, className, filters, onActive }: Props) => {
+const FilterTiles = ({ type, className, filters, onActive, containerClassName }: Props) => {
     const router = useRouter();
     const params = useSearchParams();
     const filterParam = params.get("f") || '';
@@ -33,12 +36,12 @@ const FilterTiles = ({ type, className, filters, onActive }: Props) => {
     }
 
     return (
-        <ul className="flex gap-2 overflow-x-auto noScroll">
+        <ul className={twMerge("flex gap-2 overflow-x-auto noScroll", containerClassName)}>
             {availableFilters.map(({ id, label }) => (
                 <li
                     key={id}
                     onClick={() => updateFilter(id)}
-                    className={`${className ?? "py-2 px-3 bg-gray20 rounded-2xl"} pointer text-sm capitalize min-w-fit ${currentFilter === id ? `${onActive ?? "bg-secondary color-primary"}` : ""}`}>
+                    className={twMerge("py-2 px-3 bg-gray20 rounded-2xl pointer text-sm capitalize min-w-fit", currentFilter === id ? onActive ?? "bg-secondary color-primary" : "", className)}>
                     {label.replaceAll('_', ' ')}
                 </li>
             ))}

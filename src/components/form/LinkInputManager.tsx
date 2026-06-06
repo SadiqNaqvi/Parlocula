@@ -3,7 +3,7 @@
 
 import { AddIcon, LinkIcon, XmarkIcon } from "@assets/Icons";
 import BottomSheet, { BottomSheetRef } from "@components/BottomSheet";
-import { OptionalChildren } from "@components/ui";
+import { Button, OptionalChildren } from "@components/ui";
 import { linkSchema } from "@lib/schemas";
 import { InputManagerType, TypedFunction } from "@type/other";
 import { LinkSchema } from "@type/schemas";
@@ -30,7 +30,14 @@ export const InputPrompt = ({ submit, className = "", }: { submit: TypedFunction
                 placeholder="path"
             />
 
-            <button className="secondary w-full" type="submit">Add</button>
+            <Button
+                id="link-prompt-add"
+                title="Add"
+                className="secondary w-full"
+                type="submit"
+            >
+                Add
+            </Button>
         </Form>
     )
 }
@@ -41,9 +48,14 @@ const LinkTile = ({ remove, path }: { remove: TypedFunction<string>, path: strin
     <li className={linkTileClassName}>
         <LinkIcon className="size-4" />
         <span className="text-sky-500">{path}</span>
-        <button onClick={() => remove(path)} type="button" className=" border border-gray30 bg-gray20 p-1 rounded-md">
+        <Button
+            title="Remove"
+            onClick={() => remove(path)}
+            type="button"
+            className=" border border-gray30 bg-gray20 p-1 rounded-md"
+        >
             <XmarkIcon className="h-2" />
-        </button>
+        </Button>
     </li>
 )
 

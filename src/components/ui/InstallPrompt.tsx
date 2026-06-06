@@ -22,7 +22,7 @@ const InstallPrompt = () => {
                         title="Install Parlocula"
                         description="To install Parlocula on your device"
                         button="View"
-                        className="primary w-full sm:w-80"
+                        className="primary w-full sm:w-80 mx-auto mt-4"
                     >
                         <ol className="list-decimal list-inside px-2 space-y-1">
                             <li>Click on the options ( ⋮ ) button</li>

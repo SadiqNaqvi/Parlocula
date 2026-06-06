@@ -4,7 +4,7 @@ import { EmailIcon, FacebookIcon, LinkIcon, MessengerIcon, RedditIcon, ShareIcon
 import BottomSheet, { BottomSheetRef } from "@components/BottomSheet";
 import { Form, Input } from "@components/form";
 import ListSelector, { ListSelectorRef } from "@components/ListSelector";
-import { OptionalChildren } from "@components/ui";
+import { Button, OptionalChildren } from "@components/ui";
 import { parloculaAppURL } from "@lib/constants";
 import { getRooms, searchRooms } from "@lib/helpers/common";
 import { sendContentToRooms } from "@lib/helpers/mutations";
@@ -17,12 +17,17 @@ import { toast } from "sonner";
 type SharingContentProps = { title?: string, path?: string }
 
 const ExternalSharingButton = ({ title, children, onClick }: PropsWithChildren<{ title: string, onClick: () => void }>) => (
-    <button onClick={onClick} className="p-2 last:pr-0 first:pl-0 flex flex-col flex-cntr-all gap-2 min-w-18">
+    <Button
+        id={`ext-sharing-${title}`}
+        title={title}
+        onClick={onClick}
+        className="p-2 last:pr-0 first:pl-0 flex flex-col flex-cntr-all gap-2 min-w-18"
+    >
         <span className="p-2 bg-gray30 rounded-full">
             {children}
         </span>
         <p className="text-xs">{title}</p>
-    </button>
+    </Button>
 )
 
 const ExternalSharingOptionsTray = ({ title, path }: SharingContentProps) => {
@@ -160,7 +165,16 @@ const ContentSharingSheet = ({ children, className, ...props }: PropsWithChildre
                     <footer className="flex gap-2 sticky bottom-0 p-2 border-t border-gray20 overflow-x-auto noScroll mt-4">
                         <Form className="w-full space-y-2" submit={sendToRooms} hideLoading>
                             <Input className="border-0" name="message" placeholder="Send Message" maxLength={500} />
-                            <button className="primary w-full" type="submit">Send</button>
+
+                            <Button
+                                id="share-message-send"
+                                title="Send"
+                                className="primary w-full"
+                                type="submit"
+                            >
+                                Send
+                            </Button>
+
                         </Form>
                     </footer>
                 </OptionalChildren>

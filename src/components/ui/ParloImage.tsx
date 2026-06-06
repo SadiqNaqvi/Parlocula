@@ -28,7 +28,7 @@ type Props = {
     frame: string | Frame | undefined;
     frameType: ExternalImageType | InternalFrameType;
     fullSizeFrame?: string;
-    fancyGallery?: string;
+    fancyGallery?: string | true;
     fileNameToDownload?: string;
     fill?: boolean,
     sizes?: ImageSize[];
@@ -113,7 +113,7 @@ const getFancyAttributes = (config: Pick<Props, "fancyGallery" | "fileNameToDown
     return {
         "data-src": source,
         "parlo-gallery": fancyGallery,
-        "data-frame": true,
+        "data-frame": fancyGallery || true,
         "data-download-src": fileNameToDownload ? source : undefined,
         "data-download-filename": fileNameToDownload,
     }
@@ -124,7 +124,7 @@ const iconClassName = "size-6 frameIconShadow text-zinc-200";
 const ParloImage = ({ frame, alt, height, size, width, className, containerClassName, fullSizeFrame, sizes, classNameForFallback, fill, commonClassName, prioritize, fancyGallery, frameType, fileNameToDownload, showMediaType, showSize, showSourceIcon }: Props) => {
 
     if (!frame) return (
-        <div className={twMerge("p-2 bg-gray10 flex flex-cntr-all", fill ? '' : "min-w-fit", containerClassName)}>
+        <div className={twMerge("p-2 bg-gray10 flex flex-cntr-all", fill ? '' : "w-fit", containerClassName)}>
             <FallbackIcon
                 type={frameType}
                 className={twMerge(commonClassName, classNameForFallback)}
@@ -139,7 +139,9 @@ const ParloImage = ({ frame, alt, height, size, width, className, containerClass
     const correctHeight = height || size || 50;
 
     if (isTmdbImage) return (
-        <div className={twMerge(fill ? '' : "min-w-fit", containerClassName)}>
+        <div
+            onContextMenu={e => e.preventDefault()}
+            className={twMerge(fill ? '' : "min-w-fit", containerClassName)}>
             <img
                 height={fill ? undefined : correctHeight}
                 width={fill ? undefined : correctWidth}
@@ -158,7 +160,10 @@ const ParloImage = ({ frame, alt, height, size, width, className, containerClass
     )
 
     return (
-        <div className={twMerge("relative overflow-hidden", fill ? '' : "min-w-fit", containerClassName)}>
+        <div
+            onContextMenu={e => e.preventDefault()}
+            className={twMerge("relative overflow-hidden", fill ? '' : "min-w-fit", containerClassName)}
+        >
             <Image
                 height={fill ? undefined : correctHeight}
                 width={fill ? undefined : correctWidth}
@@ -171,7 +176,6 @@ const ParloImage = ({ frame, alt, height, size, width, className, containerClass
                 blurDataURL={frame.hash ? decodeHash(frame.hash) : undefined}
                 placeholder={frame.hash ? "blur" : "empty"}
                 {...getFancyAttributes({ frameType, fancyGallery, fileNameToDownload, fullSizeFrame }, source)}
-                // crossOrigin="anonymous"
                 decoding={prioritize ? "sync" : "async"}
                 sizes={sizes ? turnSizesArrIntoString(sizes) : `${correctWidth}px`}
             />

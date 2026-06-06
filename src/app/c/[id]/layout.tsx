@@ -15,7 +15,7 @@ import { generateJsonLdForComment } from "@lib/seo/jsonld";
 
 export const generateMetadata = async ({ params }: ParloPageProps): Promise<Metadata> => {
 
-    const cid = (await params).id.split('+')[0];
+    const cid = (await params).id.split('-')[0];
 
     if (!isValidParloId(cid))
         return { title: "Parlocula" }
@@ -86,7 +86,11 @@ const Fetcher = async ({ cid, children }: PropsWithChildren<{ cid: string }>) =>
         <HydrationBoundary state={dehydrate(queryClient)}>
 
             <JsonLd schemas={jsonLd} />
-            <CommentHeader uid={user?.user_id} id={cid} />
+            <CommentHeader
+                filterContent={user?.filterContent ?? true}
+                uid={user?.user_id}
+                id={cid}
+            />
             {children}
         </HydrationBoundary>
     )
@@ -94,7 +98,7 @@ const Fetcher = async ({ cid, children }: PropsWithChildren<{ cid: string }>) =>
 
 const CommentLayout = async ({ children, params }: PropsWithChildren<ParloPageProps>) => {
 
-    const cid = (await params).id.split('+')[0];
+    const cid = (await params).id.split('-')[0];
 
     if (cid && !isValidParloId(cid)) return (
         <NotFound

@@ -13,7 +13,7 @@ import DefaultSection from "../DefaultSection";
 const ChatLayout = async ({ params, children }: PropsWithChildren<ParloPageProps>) => {
     const { id } = await params;
 
-    const [rmid] = id.split('+');
+    const [rmid] = id.split('-');
 
     const queryClient = getQueryClient();
     const jar = await cookies();

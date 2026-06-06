@@ -15,6 +15,7 @@ import { AlertIcon, CommentIcon } from "@assets/Icons";
 type Props = {
     id: string,
     uid: string | undefined,
+    filterContent: boolean,
 }
 
 const getQueryProps = ({ id }: Props) => ({
@@ -23,7 +24,7 @@ const getQueryProps = ({ id }: Props) => ({
     queryFn: getCommentById
 });
 
-const Component = (data: FullComment, { uid, id }: Props) => {
+const Component = (data: FullComment, { uid, id, filterContent }: Props) => {
 
     const {
         _id, thread_id, parentComment, saved_count, attachment, content, createdAt, user_id, post_id, replied_to, edited_at, likes_count, profile, username, post_author, nsfw, spoiler
@@ -32,7 +33,8 @@ const Component = (data: FullComment, { uid, id }: Props) => {
     return (
         <>
 
-            <ContentFiltered allow={user_id === uid} redirectPath={`/c/${_id}`} />
+            <ContentFiltered filterContent={filterContent} allow={user_id === uid} redirectPath={`/c/${_id}`} />
+
             <Navbar
                 titleToShare={`Read the comment by ${username} and their replies on Parlocula`}
                 className="sticky bg-primary -mt-4 mb-4"
@@ -75,9 +77,11 @@ const Component = (data: FullComment, { uid, id }: Props) => {
                     <MetadataTile className="px-2 py-1 bg-gray10 border-orange-500 text-orange-500 rounded-md" condition={spoiler}>Spoiler</MetadataTile>
                 </MetadataTileContainer>
 
-                <section className="flex gap-4 flex-col sm:flex-row">
+                <section className="flex gap-4 flex-col">
 
-                    <p>{content}</p>
+                    <OptionalChildren condition={!!content.length}>
+                        <p>{content}</p>
+                    </OptionalChildren>
 
                     <OptionalChildren condition={attachment}>
                         <Image

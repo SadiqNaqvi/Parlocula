@@ -54,7 +54,7 @@ type Props = { rmid: string, uid: string }
 const Component = (data: FullRoomType, { rmid, uid }: Props) => {
     return (
         <>
-            <header className="sticky top-0 bg-primary border-b border-gray40 flex h-16 px-2 items-center gap-2">
+            <header className="z-1 sticky top-0 bg-primary border-b border-gray40 flex h-16 px-2 items-center gap-2">
                 <Navigate comp="button" goto="back">
                     <LeftChevron />
                 </Navigate>

@@ -3,6 +3,7 @@
 import { CheckBoxIcon, EmptyBoxIcon } from "@assets/Icons";
 import { Navigate } from "@components";
 import { BlogHeading1, BlogHeading3, BlogList, BlogSection, BlogSubSection } from "@components/blog";
+import { Button } from "@components/ui";
 import { RefObject, useRef, useState } from "react";
 
 type ReasonProps = {
@@ -25,9 +26,12 @@ const Reason = ({ description, title, active, href, buttonLabel, textareaRef, on
     if (description) return (
         <li className="p-2 border border-gray20">
 
-            <button
+            <Button
+                id={`descriptive-check-button-${title}`}
+                title={title}
                 onClick={handleClick}
-                className="flex flex-cntr-between gap-2">
+                className="flex flex-cntr-between gap-2"
+            >
                 <span>{title}</span>
                 <span>
                     {active ? (
@@ -36,7 +40,7 @@ const Reason = ({ description, title, active, href, buttonLabel, textareaRef, on
                         <EmptyBoxIcon />
                     )}
                 </span>
-            </button>
+            </Button>
 
             <BlogSubSection className={active ? "block" : "hidden"}>
 
@@ -68,7 +72,9 @@ const Reason = ({ description, title, active, href, buttonLabel, textareaRef, on
 
     return (
         <li className="p-2 border border-gray20">
-            <button
+            <Button
+                id={`nondescriptive-check-button-${title}`}
+                title={title}
                 onClick={handleClick}
                 className="flex flex-cntr-between gap-2">
                 <span>{title}</span>
@@ -79,7 +85,7 @@ const Reason = ({ description, title, active, href, buttonLabel, textareaRef, on
                         <EmptyBoxIcon />
                     )}
                 </span>
-            </button>
+            </Button>
             <div className={active ? "block" : "hidden"}>
                 <textarea
                     ref={textareaRef}
@@ -272,9 +278,15 @@ const ReasonSection = ({ callback }: { callback: (reason: string) => void }) => 
             </BlogSection>
 
             <footer className="px-2 py-4">
-                <button className="primary w-full sm:w-fit sm:mx-auto" disabled={!selectedReason.length} onClick={returnReason}>
+                <Button
+                    id="reason-continue-button"
+                    title="Continue"
+                    className="primary w-full sm:w-fit sm:mx-auto"
+                    disabled={!selectedReason.length}
+                    onClick={returnReason}
+                >
                     Continue
-                </button>
+                </Button>
             </footer>
         </>
     )

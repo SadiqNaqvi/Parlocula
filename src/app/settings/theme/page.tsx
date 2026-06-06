@@ -2,7 +2,7 @@
 
 import { CheckBoxIcon, EmptyBoxIcon, MoonIcon, RainbowIcon, SunIcon } from "@assets/Icons";
 import { Navbar } from "@components";
-import { OptionalChildren } from "@components/ui";
+import { Button, OptionalChildren } from "@components/ui";
 import { useTheme } from "next-themes";
 
 const CorrectIcon = ({ theme }: { theme: string }) => {
@@ -22,7 +22,12 @@ const AppThemePage = () => {
                 <ul>
                     {themes.map(themeItem => (
                         <li key={themeItem} className="w-full">
-                            <button className="w-full p-2 gap-2 flex flex-cntr-between" onClick={() => setTheme(themeItem)}>
+                            <Button
+                                id={`${themeItem}-theme-button`}
+                                title={themeItem}
+                                className="w-full p-2 gap-2 flex flex-cntr-between"
+                                onClick={() => setTheme(themeItem)}
+                            >
                                 <div className="flex gap-2 items-center">
                                     <CorrectIcon theme={themeItem} />
                                     <span className="capitalize">{themeItem}</span>
@@ -32,7 +37,7 @@ const AppThemePage = () => {
                                         <CheckBoxIcon />
                                     </OptionalChildren>
                                 </span>
-                            </button>
+                            </Button>
                         </li>
                     ))}
                 </ul>

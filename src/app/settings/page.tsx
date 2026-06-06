@@ -47,8 +47,9 @@ const SettingPage = () => {
     else if (!user) return null;
 
     const handleLogout = () => {
-        logoutUser();
-        navigation.replace('/join')
+        logoutUser().then(() => {
+            navigation.replace('/join');
+        });
     }
 
     return (

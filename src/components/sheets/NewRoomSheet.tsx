@@ -2,7 +2,7 @@
 
 import { SendIcon } from "@assets/Icons";
 import { Form, Input } from "@components/form";
-import { MessageBar, OptionalChildren, ParloImage } from "@components/ui";
+import { Button, MessageBar, OptionalChildren, ParloImage } from "@components/ui";
 import { createRoomMutation } from "@lib/helpers/mutations";
 import { parloId } from "@lib/utils";
 import useGlobalStore from "@store/globalStore";
@@ -86,6 +86,7 @@ const NewRoomSheet = ({ ruser }: { ruser: MereUser }) => {
                         ref={formRef}
                         className="flex items-center gap-2"
                         submit={createRoom}>
+
                         <Input
                             placeholder="Send Message"
                             enterKeyHint="send"
@@ -94,9 +95,15 @@ const NewRoomSheet = ({ ruser }: { ruser: MereUser }) => {
                             containerClasses="flex-1"
                             className="flex-1 border border-invert p-3 bg-transparent rounded-2xl"
                         />
-                        <button type="submit" className="size-fit p-2">
+
+                        <Button
+                            id="message-submit"
+                            title="Send Message"
+                            type="submit"
+                            className="size-fit p-2"
+                        >
                             <SendIcon />
-                        </button>
+                        </Button>
                     </Form>
                 </OptionalChildren>
             </footer>

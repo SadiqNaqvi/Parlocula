@@ -8,9 +8,9 @@ import PassiveProgressBar from "./PassiveProgressBar";
 import VideoElement from "./VideoElement";
 import InteractiveProgressBar from "./InteractiveProgressBar";
 
-export type VideoPlayerConfig ={
+export type VideoPlayerConfig = {
     startMute?: boolean;
-    autoplay?: boolean;
+    playState?: boolean;
     poster?: string;
 }
 
@@ -18,9 +18,9 @@ type Props = {
     src: string;
 } & VideoPlayerConfig;
 
-const VideoPlayer = ({ src, poster, startMute,autoplay }: Props) => {
+const VideoPlayer = ({ src, poster, startMute, playState }: Props) => {
 
-    const { setProgress, setDuration, setBuffering, setPlaying,setFullScreen, playbackRate, videoContainerRef, videoRef } = useGlobalOptions();
+    const { setProgress, setDuration, setBuffering, setFullScreen, videoContainerRef, videoRef, setPlaying } = useGlobalOptions();
 
     useEffect(() => {
         const video = videoRef.current;
@@ -47,7 +47,7 @@ const VideoPlayer = ({ src, poster, startMute,autoplay }: Props) => {
         }
 
         const handleFullScreenChange = () => {
-            if (document.fullscreenElement === videoContainerRef.current) 
+            if (document.fullscreenElement === videoContainerRef.current)
                 setFullScreen(true);
             else setFullScreen(false);
         }
@@ -72,6 +72,10 @@ const VideoPlayer = ({ src, poster, startMute,autoplay }: Props) => {
 
     }, []);
 
+    useEffect(() => {
+        setPlaying(!!playState);
+    }, [playState]);
+
     return (
         <div
             ref={videoContainerRef}
@@ -83,7 +87,6 @@ const VideoPlayer = ({ src, poster, startMute,autoplay }: Props) => {
                 src={src}
                 poster={poster}
                 startMute={startMute}
-                autoPlay={autoplay}
             />
 
             <OverlaySection />

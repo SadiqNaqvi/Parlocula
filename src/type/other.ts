@@ -325,8 +325,8 @@ export type profile_sizes = "w45" | "w185" | "h632" | "original";
 export type still_sizes = "w92" | "w185" | "w300" | "original";
 
 export type ExternalImageTypeToSizeMap = {
-  "poster": poster_sizes,
-  "backdrop": backdrop_sizes,
+  poster: poster_sizes,
+  backdrop: backdrop_sizes,
   logo: logo_sizes,
   still: still_sizes,
   profile: profile_sizes;

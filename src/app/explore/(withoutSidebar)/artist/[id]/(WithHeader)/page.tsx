@@ -5,7 +5,7 @@ import { generateJsonLdForArtist } from "@lib/seo/jsonld";
 import { ParloPageProps } from "@type/other";
 
 const fetchData = async (params: { id: string }) => {
-    const company_id = params.id.split('+')[0];
+    const company_id = params.id.split('-')[0];
     return await fetchPerson(company_id);
 }
 

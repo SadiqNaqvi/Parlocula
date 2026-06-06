@@ -19,7 +19,7 @@ const Page = async ({ params }: ParloPageProps) => {
 
     const { id } = await params;
 
-    const sid = id.split('+')[0];
+    const sid = id.split('-')[0];
 
     if (!isValidParloId(sid)) return (
         <NotFound

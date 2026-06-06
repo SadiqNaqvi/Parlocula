@@ -13,7 +13,7 @@ export const GET = async (r: NextRequest, { params }: { params: Promise<{ id: st
         return await fetch(res[0]?.thumbnail_large);
 
     } catch (e: any) {
-        console.log("Error occured while getting vimeo thumb", e);
+        console.warn("Error occured while getting vimeo thumb", e);
         return new Response(e.message, { status: 500 });
     }
 

@@ -70,13 +70,15 @@ export const getCurrentUser = async (id: string, cookies?: CookiesType) =>
 
 export const getTrendingPosts = async (p: number) =>
   await ppGetData<AggregatedResponse<MerePost & { score: number }>>({
-    url: "post/trending", revalidate: oneDayInSeconds,
+    url: "post/trending",
+    revalidate: oneDayInSeconds,
     searchParams: { p }
   })
 
 export const getUserFeed = async (cuid: string, page: number, cookies?: CookiesType) =>
   await ppGetData<AggregatedResponse<MerePost & { score: number }>>({
     url: `private/${cuid}/feed`,
+    revalidate: oneHourInSeconds,
     searchParams: { p: page },
     cookies,
   })
@@ -422,16 +424,12 @@ export const getTaleon = async (ext_id: string, type: "movie" | "show"): Promise
 
   const id = ext_id.split("-")[0];
 
-  console.log("just before fetching taleon")
-
   const item = await ppGetData<FullTaleonType>({
     url: `taleon/${id}`,
     revalidate: oneDayInSeconds * 3,
     tag: "taleon_extid",
     options: { extid: id },
   });
-
-  console.log(item);
 
   if (item.success) {
     // Updating taleon after 3 days of editing
@@ -443,7 +441,6 @@ export const getTaleon = async (ext_id: string, type: "movie" | "show"): Promise
 
 
   if (item.errCode == "resource_not_found") {
-    console.log("time to store taleon");
     return await createUpdateTaleon(ext_id, type, false);
   }
 

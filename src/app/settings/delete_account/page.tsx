@@ -11,6 +11,7 @@ import FinalSection from "./FinalSection";
 import ProcedureSection from "./ProcedureSection";
 import ReasonSection from "./ReasonSection";
 import { useRouter } from "next/navigation";
+import { Button } from "@components/ui";
 
 const ThingsToLooseList = ({ count, description, heading, }: { heading: string, count: number | null, description: string }) => {
     if (count !== null && count < 1) return;
@@ -57,11 +58,13 @@ const DeleteAccountPage = () => {
             <Navbar />
             <ProcedureSection />
             <footer className="px-2 py-4">
-                <button
+                <Button
+                    id="continue-button"
+                    title="Continue"
                     onClick={() => setSection("final")}
                     className="primary w-full sm:w-fit sm:mx-auto">
                     Continue
-                </button>
+                </Button>
             </footer>
         </>
     )
@@ -168,9 +171,14 @@ const DeleteAccountPage = () => {
 
             <footer className="space-y-3">
                 <p className="text-sm">This action <strong>cannot be undone</strong>. Do not proceed unless you are sure.</p>
-                <button
+                <Button
+                    id="first-page-continue"
+                    title="Continue"
                     onClick={() => setSection("reason")}
-                    className="primary w-full sm:w-fit sm:mx-auto">Continue</button>
+                    className="primary w-full sm:w-fit sm:mx-auto"
+                >
+                    Continue
+                </Button>
             </footer>
         </>
     )

@@ -13,7 +13,7 @@ const TaleonThreadPage = async ({ params, searchParams }: ParloPageProps) => {
     const sp = await searchParams;
     const { filter, page } = refineSearchParams("threads", sp.p, sp.f)
 
-    const id = (await params).id.split('+')[0];
+    const id = (await params).id.split('-')[0];
 
     const user = await getUserFromToken(await cookies());
 

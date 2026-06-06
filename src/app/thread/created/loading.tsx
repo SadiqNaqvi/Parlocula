@@ -1,3 +1,7 @@
-import { ThreadListSkeleton } from "@components/ui/loading";
+import { FullPageShelfListSkeleton } from "@components/ui/loading";
 
-export default ThreadListSkeleton;
+const Loading = () => {
+    <FullPageShelfListSkeleton heading="Created Threads" />
+}
+
+export default Loading;

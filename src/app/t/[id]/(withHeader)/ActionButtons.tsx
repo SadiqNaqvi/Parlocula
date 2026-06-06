@@ -2,6 +2,7 @@
 
 import { BellIcon, BellSlashIcon } from "@assets/Icons";
 import { Navigate, OptionMenu, UserBasedButton, UserBasedButtonProps } from "@components";
+import { Button } from "@components/ui";
 import OptionList from "@components/ui/OptionList";
 import { isMember } from "@lib/helpers/common";
 import { acceptManagerInvitation, rejectManagerInvitation } from "@lib/helpers/mutations";
@@ -25,8 +26,22 @@ const RoleBasedActionButtons = ({ role, tid }: { tid: string, role: ThreadMember
     if (role === "moderator_invitee") return (
         <>
             <div className="contents">
-                <button onClick={acceptInvite} className="primary">Accept</button>
-                <button onClick={rejectInvite} className="secondary">Reject</button>
+                <Button
+                    id="moderator-invitation-accept-button"
+                    title="Accept Invitation"
+                    onClick={acceptInvite}
+                    className="primary"
+                >
+                    Accept
+                </Button>
+                <Button
+                    id="moderator-invitation-reject-button"
+                    title="Reject Invitation"
+                    onClick={rejectInvite}
+                    className="secondary"
+                >
+                    Reject
+                </Button>
             </div>
             <p className="text-sm text-zinc-500 col-span-2 sm:col-span-4 text-center">You are invited to become a Manager of this thread.</p>
         </>
@@ -44,14 +59,16 @@ const className = "primary w-full sm:w-fit";
 
 const JoinButton = ({ thread, uid }: { thread: MereThread, uid?: string }) => {
 
-    const Button = ({ onClick, state, user_id }: UserBasedButtonProps<ThreadMembership>) => {
+    const ResponsiveButton = ({ onClick, state, user_id }: UserBasedButtonProps<ThreadMembership>) => {
 
         if (state?.banned) return (
-            <button
+            <Button
+                id="disabled-join-button"
+                title="Join Thread"
                 className={className}
                 onClick={() => toast.error(" Uh Oh! Something went wrong")}>
                 Join
-            </button>
+            </Button>
         )
 
         const handleClick = (action: AvailableMutations) => {
@@ -64,11 +81,13 @@ const JoinButton = ({ thread, uid }: { thread: MereThread, uid?: string }) => {
 
 
         if (!state) return (
-            <button
+            <Button
+                id="join-button"
+                title="Join Thread"
                 className={className}
                 onClick={() => handleClick("join_thread")}>
                 Join
-            </button>
+            </Button>
         )
 
         return (
@@ -96,7 +115,7 @@ const JoinButton = ({ thread, uid }: { thread: MereThread, uid?: string }) => {
 
     return (
         <UserBasedButton
-            Button={Button}
+            Button={ResponsiveButton}
             noUserStateChilren="Join"
             noUserStateClassName={className}
             redirectAfterLogin={`/t/${thread._id}`}

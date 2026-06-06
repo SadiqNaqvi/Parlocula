@@ -10,7 +10,7 @@ import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { ParloPageProps } from "@type/other";
 import { Metadata } from "next";
 import { cookies } from "next/headers";
-import TaleonPage from "../../components/TaleonPage";
+import TaleonPage from "@app/explore/(withoutSidebar)/components/TaleonPage";
 
 export const generateMetadata = async ({ params }: ParloPageProps): Promise<Metadata> => {
     const { id } = await params;

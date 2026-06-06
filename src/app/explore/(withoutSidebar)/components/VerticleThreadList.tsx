@@ -1,7 +1,6 @@
 "use client";
 
-import { InfiniteScroller } from "@components";
-import FilterDropdown from "@components/FiltersDropdown";
+import { FilterTiles, InfiniteScroller } from "@components";
 import { ThreadTile } from "@components/ui";
 import { getThreadsForTaleonOrArtist } from "@lib/helpers/common";
 import useCurrentUser from "@store/user";
@@ -12,11 +11,11 @@ const VerticleThreadList = ({ id, filter, page }: { id: string, filter: string, 
 
     return (
         <>
-            <header className="flex flex-cntr-between">
+            <header className="flex flex-cntr-between px-2">
                 <h1 className="text-xl font-semibold">Threads</h1>
-                <FilterDropdown type="threads" />
+                <FilterTiles type="threads" containerClassName="my-2" />
             </header>
-            <section className="mt-4">
+            <section className="mt-4 px-2">
                 <InfiniteScroller
                     Component={ThreadTile}
                     fetchData={() => getThreadsForTaleonOrArtist(id, page, !filterContent, filter)}

@@ -15,6 +15,8 @@ import {
   registerUserSchemaClient,
   registerUserSchemaServer,
   reportActionSchema,
+  reportOrSuggestionSchemaClient,
+  reportOrSuggestionSchemaServer,
   reportSchema,
   roomSchema,
   roomUpdateSchema,
@@ -96,3 +98,6 @@ export type ConfirmedTaleon = Omit<TaleonSchemaType, "taleon_id"> & { taleon_id:
 export type AvailableActionsForReport = "keep" | "delete" | "warn"
 
 export type ReportTypeEnum = "post" | "comment" | "user" | "thread";
+
+export type AppBugOrSuggestionSchemaClient = z.infer<typeof reportOrSuggestionSchemaClient>
+export type AppBugOrSuggestionSchemaServer = z.infer<typeof reportOrSuggestionSchemaServer>

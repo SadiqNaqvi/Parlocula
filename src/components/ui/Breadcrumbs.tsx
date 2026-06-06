@@ -3,6 +3,7 @@ import Navigate from "@components/Navigate";
 import { TypedFunction } from "@type/other";
 import { PropsWithChildren } from "react";
 import { twMerge } from "tailwind-merge";
+import Button from "./Button";
 
 type BreadCrumbProps = { className?: string }
 
@@ -13,7 +14,7 @@ const BreadCrumb = ({ children, className }: PropsWithChildren<BreadCrumbProps>)
     </div>
 )
 
-export const BreadCrumbTile = ({ children, href, onClick, className }: PropsWithChildren<{ href?: string, onClick?: TypedFunction }> & BreadCrumbProps) => {
+export const BreadCrumbTile = ({ children, href, onClick, className, title }: PropsWithChildren<{ href?: string, onClick?: TypedFunction, title?: string }> & BreadCrumbProps) => {
 
     if (!children) return;
 
@@ -32,9 +33,14 @@ export const BreadCrumbTile = ({ children, href, onClick, className }: PropsWith
 
     else if (onClick) return (
         <li className="group">
-            <button onClick={onClick} className="inline">
+            <Button
+                id={`breadcrumb-${title}`}
+                title={String(title)}
+                onClick={onClick}
+                className="inline"
+            >
                 <BreadCrumb className={className}>{children}</BreadCrumb>
-            </button>
+            </Button>
         </li>
     )
 

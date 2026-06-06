@@ -10,7 +10,7 @@ import JsonLd from "@components/JsonLd";
 import { generateJsonLdForCollection } from "@lib/seo/jsonld";
 
 const fetchData = async (params: { id: string }) => {
-    const collection_id = params.id.split('+')[0];
+    const collection_id = params.id.split('-')[0];
     return await fetchCollection(collection_id);
 }
 

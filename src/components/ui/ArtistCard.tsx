@@ -18,7 +18,8 @@ export default function ArtistCard({ img, title, detail, link }: { img: string |
                     frame={img || undefined}
                     frameType="profile"
                     alt={`Picture of ${title}`}
-                    className="object-cover min-w-20 size-20 rounded-full" />
+                    containerClassName="rounded-full"
+                    className="object-cover min-w-20 size-20" />
 
                 <figcaption>
                     <h3 className="font-medium text-center line-clamp-2">{title}</h3>

@@ -5,7 +5,7 @@ import { UserBasedButton } from "@components";
 import { checkIfItemSaved } from "@lib/helpers/common";
 import { getQueryKeys, numberConverter } from "@lib/utils";
 import { LoadingButton, UserBasedButtonProps } from "./UserBasedButton";
-import { OptionalChildren } from "./ui";
+import { Button, OptionalChildren } from "./ui";
 
 type Props = {
     id: string,
@@ -29,7 +29,7 @@ const NoUserStateButton = ({ count, type }: Pick<Props, "type" | "count">) => (
 
 const SaveButton = ({ id, count, type, uid, author, className }: Props) => {
 
-    const Button = ({ onClick, state, user_id }: UserBasedButtonProps<boolean>) => {
+    const ResponsiveButton = ({ onClick, state, user_id }: UserBasedButtonProps<boolean>) => {
 
         const handleClick = () => {
             if (state) {
@@ -43,7 +43,12 @@ const SaveButton = ({ id, count, type, uid, author, className }: Props) => {
         }
 
         return (
-            <button className={className} onClick={handleClick}>
+            <Button
+                id="save-button"
+                title={`Save ${type}`}
+                className={className}
+                onClick={handleClick}
+            >
                 <span>
                     {state ? <BookmarkFillIcon /> : <BookmarkIcon />}
                 </span>
@@ -52,7 +57,7 @@ const SaveButton = ({ id, count, type, uid, author, className }: Props) => {
                         {numberConverter((count || 0) + (state ? 1 : 0))}
                     </OptionalChildren>
                 </span>
-            </button>
+            </Button>
         )
     };
 
@@ -64,7 +69,7 @@ const SaveButton = ({ id, count, type, uid, author, className }: Props) => {
             noUserStateClassName={className}
             redirectAfterLogin={`/${type.toLocaleLowerCase()}/${id}`}
             errorStateClassName="flex p-2 border border-gray-500 border-opacity-30 rounded-md"
-            Button={Button}
+            Button={ResponsiveButton}
             queryFn={(uid) => checkIfItemSaved(id, uid)}
             queryKeys={getQueryKeys("isContentSaved_type_id", { type: type.toLowerCase(), id })}
         />
