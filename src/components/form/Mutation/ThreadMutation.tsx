@@ -4,7 +4,7 @@ import { AddIcon } from "@assets/Icons";
 import { BottomSheetRef, Navbar, OptionMenu } from "@components";
 import { LoginModal } from "@components/fallbacks";
 import { Form, LinkInputManager, Poster, ToggleButton } from "@components/form";
-import { Button, MetadataTile, MetadataTileContainer, OptionalChildren, OptionList } from "@components/ui";
+import { Button, MetadataTile, MetadataTileContainer, NestedSheetTrigger, OptionalChildren, OptionList } from "@components/ui";
 import { ThreadPageMockup } from "@components/ui/mockup";
 import { createThreadMutation, editThreadMutation } from "@lib/helpers/mutations";
 import appToast from "@lib/providers/toast";
@@ -190,11 +190,15 @@ const ThreadMutation = ({ isEditing, defaultValues }: Props) => {
                 <ConnectionsInput defaultConnections={defaultValues?.connections} connectionsRef={connectionsRef} />
             </section>
 
-            <OptionMenu ButtonElement={<AddIcon className="size-5 sm:size-7" />} heading="Attach" className="fixed bottom-4 right-4 p-2 bg-secondary color-primary rounded-full">
-                <OptionList
-                    disable={(linksRef.current?.length || 0) >= 5}
-                    onClick={() => linkPromptRef.current?.open()}>External Links</OptionList>
-            </OptionMenu>
+            <OptionalChildren condition={(linksRef.current?.length || 0) < 5}>
+                <OptionMenu ButtonElement={<AddIcon className="size-5 sm:size-7" />} heading="Attach" className="fixed bottom-4 right-4 p-2 bg-secondary color-primary rounded-full">
+                    <OptionList
+                        onClick={() => linkPromptRef.current?.open()}
+                    >
+                        External Links
+                    </OptionList>
+                </OptionMenu>
+            </OptionalChildren>
 
             <LinkInputManager
                 defaultLinks={defaultValues?.links}

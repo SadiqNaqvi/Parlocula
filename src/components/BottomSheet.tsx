@@ -3,6 +3,7 @@
 import { forwardRef, PropsWithChildren, RefObject, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { Content, Drawer, Handle, Overlay, Portal, Root } from "vaul";
 import { OptionalChildren } from "./ui";
+import { twMerge } from "tailwind-merge";
 
 type PortalProps = PropsWithChildren<{
   allowHandle?: boolean
@@ -77,13 +78,13 @@ export const NestedSheet = forwardRef(({ children, description, title, state, on
 export const DrawerPortal = ({ children, allowHandle = true, description, title, ref }: PortalProps) => (
   <Portal>
     <Overlay className="z-10 fixed inset-0 bg-black/40" />
-    <Content ref={ref} className="h-fit fixed z-10 border-t border-gray60 bottom-0 left-0 right-0 outline-none bg-primary py-4 sm:max-w-100 sm:mx-auto sm:border-0 sm:rounded-md sm:bottom-2 sm:overflow-hidden">
+    <Content ref={ref} className="min-h-fit fixed z-11 border-t border-gray60 bottom-0 left-0 right-0 outline-none bg-primary py-4 md:max-w-100 md:mx-auto md:border-0 md:rounded-md md:bottom-2 md:overflow-hidden">
       <OptionalChildren condition={allowHandle}>
         <Handle />
       </OptionalChildren>
-      <Drawer.Title className="parloHeading text-center my-2">{title}</Drawer.Title>
-      <Drawer.Description className="text-center mt-2">{description}</Drawer.Description>
-      <aside className="sheetContainer mt-4 min-h-40 w-full max-h-[80dvh] overflow-y-auto">
+      <Drawer.Title className={twMerge("parloHeading text-center", title ? "my-2" : "hidden")}>{title}</Drawer.Title>
+      <Drawer.Description className={twMerge("text-center", description ? "my-2" : "hidden")}>{description}</Drawer.Description>
+      <aside className="sheetContainer mt-4 min-h-40 w-full max-h-[85dvh] overflow-y-auto">
         {children}
       </aside>
     </Content>
@@ -140,13 +141,13 @@ export const BottomSheet = forwardRef(({ children, description, title, state, on
   useEffect(() => { setOpen(!!state) }, [state]);
 
   useImperativeHandle(ref, () => ({
-    open: () => setOpen(true),
+    open: () => setTimeout(() => setOpen(!open), 200),
     close: () => setOpen(false),
     toggle: () => setOpen(!open),
   }));
 
   const handleClick = () => {
-    setOpen(!open);
+    setTimeout(() => setOpen(!open), 200);
   }
 
   const handleOnClose = () => {
@@ -157,7 +158,9 @@ export const BottomSheet = forwardRef(({ children, description, title, state, on
   return (
     <Root snapPoints={snapPoints} open={open} onClose={handleOnClose}>
       <OptionalChildren condition={button}>
-        <Drawer.Trigger onClick={handleClick} className={className}>{button}</Drawer.Trigger>
+        <Drawer.Trigger onClick={handleClick} className={className}>
+          {button}
+        </Drawer.Trigger>
       </OptionalChildren>
       <DrawerPortal title={title} description={description} allowHandle={allowHandle}>
         {children}

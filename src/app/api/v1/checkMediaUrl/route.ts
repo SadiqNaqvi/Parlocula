@@ -1,3 +1,4 @@
+import { oneHourInSeconds } from "@lib/constants";
 import { binaryToBase64 } from "@lib/helpers/media";
 import { NextRequest, NextResponse } from "next/server";
 import sharp from "sharp";
@@ -47,6 +48,10 @@ export const GET = async (req: NextRequest) => {
         error: "Path is required"
     }, { status: 400 });
 
+    const headers = new Headers();
+
+    headers.set("Cache-Control", `public, max-age=${oneHourInSeconds}`);
+
     try {
         if (source === "mega") {
             const key = searchParams.get("key");
@@ -74,7 +79,10 @@ export const GET = async (req: NextRequest) => {
                 const hash = mime === "image" ? await createThumbHash(await fetch(url).then(r => r.arrayBuffer())) : undefined;
 
                 if (mime === "image" || mime === "video")
-                    return NextResponse.json({ success: true, result: { size, mime, ext, hash } })
+                    return NextResponse.json({
+                        success: true,
+                        result: { size, mime, ext, hash }
+                    }, { status: 200, headers });
 
             }
 
@@ -83,11 +91,17 @@ export const GET = async (req: NextRequest) => {
         } else if (source === "youtube") {
             const resp = await fetch(`https://youtube.com/oembed?url=${encodeURIComponent(path)}&format=json`)
 
-            if (resp.ok) return NextResponse.json({ success: true, result: await resp.json() });
+            if (resp.ok) return NextResponse.json({
+                success: true,
+                result: await resp.json()
+            }, { status: 200, headers });
         } else if (source === "vimeo") {
             const resp = await fetch(path, { method: "HEAD" });
 
-            if (resp.ok) return NextResponse.json({ success: true, result: null });
+            if (resp.ok) return NextResponse.json({
+                success: true,
+                result: null
+            }, { status: 200, headers });
         } else {
             const url = new URL(path);
             const pathWithoutSParams = url.origin + url.pathname;
@@ -99,12 +113,16 @@ export const GET = async (req: NextRequest) => {
             if (respWithoutSp.ok) {
                 const result = await workOnWebMedia(respWithoutSp);
                 if (result)
-                    return NextResponse.json({ success: true, result });
+                    return NextResponse.json({
+                        success: true, result
+                    }, { status: 200, headers });
             }
             else if (respWithSp.ok) {
                 const result = await workOnWebMedia(respWithSp);
                 if (result)
-                    return NextResponse.json({ success: true, result });
+                    return NextResponse.json({
+                        success: true, result
+                    }, { status: 200, headers });
             }
 
         }

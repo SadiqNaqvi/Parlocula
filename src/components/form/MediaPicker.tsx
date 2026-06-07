@@ -80,7 +80,7 @@ const UploadFromRest = ({ setUrl, goBack, section }: { setUrl: TypedFunction<str
         if (section === "web") {
             if (mediaUrlPattern.test(url))
                 setUrl(url);
-            else return "Invalid Link! Make sure it contains https"
+            else return "Invalid URL! Make sure it contains https and ends with an extension like .jpg, .png, .mp4, etc."
         }
         else {
             const { success, error } = urlSchema.safeParse(url);
@@ -134,7 +134,7 @@ const UploadFromMega = ({ setUrl, goBack }: { setUrl: TypedFunction<string>, goB
 
     const handleSubmit = async ({ url }: { url: string }) => {
         const { success, data, error } = megaFileSchema.safeParse(url);
-        console.log(success, data, error)
+        
         if (success) setUrl(data);
         else return error.issues[0].message;
     }
@@ -197,7 +197,7 @@ type MegaAndWebResponse = { size: number, mime: "image" | "video", ext: string, 
 const checkMediaLink = async <T,>(url: string, returnBoolean?: boolean): Promise<T | undefined | boolean> => {
 
     const resp = await fetch(url);
-    console.log("response", resp.ok, resp.status, resp.statusText);
+    
     const { error, result, success } = await resp.json() as MediaCheckedResponse<T>;
 
     if (resp.ok && success) return returnBoolean ? true : result as T;
@@ -363,7 +363,7 @@ export const MediaInputPrompt = ({ type, callback }: { type: "image" | "both", c
     }
 
     if (frame) return (
-        <section className="space-y-4 p-4 h-80 max-h-fit">
+        <section className="space-y-4 p-4 overflow-auto">
 
             <FrameContainer className="mx-auto" {...frame} />
 
@@ -389,9 +389,9 @@ export const MediaInputPrompt = ({ type, callback }: { type: "image" | "both", c
     )
 
     else if (loading) return (
-        <section className="h-64 flex flex-cntr-all">
-            <div className="min-w-60 size-60 flex flex-cntr-all border rounded-md border-gray40 relative">
-                <span className="size-6 animate-spin border-2 border-gray-500/30 border-l-[var(--secondary)] rounded-full"></span>
+        <section>
+            <div className="min-w-60 mx-auto size-60 flex flex-cntr-all border rounded-md border-gray40 relative">
+                <span className="size-6 animate-spin border-2 border-gray-500/30 border-l-(--secondary) rounded-full"></span>
                 <span className="px-8 py-4 rounded-md absolute bottom-2 right-2 skeletonPulse"></span>
             </div>
         </section>

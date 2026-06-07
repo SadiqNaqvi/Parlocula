@@ -117,6 +117,13 @@ const PostMutationPage = ({ defaultVal, isEditing, defaultThread, quotedPost }: 
         requestSubmit();
     }
 
+    const openSheet = (type: "frame" | "link") => {
+        if (type === "frame")
+            mediaPromptRef.current?.open();
+        else
+            linkPromptRef.current?.open();
+    }
+
     return (
         <>
             <Navbar
@@ -206,10 +213,14 @@ const PostMutationPage = ({ defaultVal, isEditing, defaultThread, quotedPost }: 
             <OptionMenu ButtonElement={<AddIcon className="size-5 sm:size-7" />} heading="Attach" className="fixed bottom-4 right-4 p-2 bg-secondary color-primary rounded-full">
                 <OptionList
                     disable={(framesRef.current?.length || 0) >= 5}
-                    onClick={() => mediaPromptRef.current?.open()}>Frame</OptionList>
+                    onClick={() => openSheet("frame")}>
+                    Frame
+                </OptionList>
                 <OptionList
                     disable={(linksRef.current?.length || 0) >= 5}
-                    onClick={() => linkPromptRef.current?.open()}>External Link</OptionList>
+                    onClick={() => openSheet("link")}>
+                    External Link
+                </OptionList>
             </OptionMenu>
 
             <PostPageMockup />

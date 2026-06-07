@@ -86,7 +86,7 @@ const SearchInList = <T,>({ queryFn, queryKeys, className, searchInputClassName,
     else if (!query) return (
         <>
             <SearchHeader />
-            <div className={twMerge("flex flex-cntr-all h-size-screen", className)}>
+            <div className={twMerge("flex flex-cntr-all h-96", className)}>
                 <p>Results would appear here</p>
             </div>
         </>

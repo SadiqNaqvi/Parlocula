@@ -42,8 +42,6 @@ const CreateThreadPage = async ({ searchParams }: ParloPageProps<any, SearchPara
 
     const connection = await getConntection(sp);
 
-    console.log(connection);
-
     return (
         <ThreadMutation
             isEditing={false}
