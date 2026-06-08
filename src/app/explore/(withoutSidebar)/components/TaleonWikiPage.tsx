@@ -56,7 +56,7 @@ const TaleonWikiHeader = ({ className, posterClassName, title, frameType, titleT
                     height={160}
                     width={160}
                     prioritize
-                    className={twMerge(`${backdrop ? "absolute -translate-y-[50%] top-0 border-4 border-primary" : ''} object-cover min-w-24 size-24 sm:min-w-40 sm:size-40 rounded-full`, posterClassName)}
+                    className={twMerge("object-cover min-w-24 size-24 sm:min-w-40 sm:size-40 rounded-full", backdrop ? "absolute -translate-y-[50%] top-0 border-4 border-primary" : '', posterClassName)}
                     alt={`Poster Image of ${title}`}
                     frame={poster}
                     sizes={[
@@ -79,13 +79,13 @@ const TaleonWikiHeader = ({ className, posterClassName, title, frameType, titleT
                         {wikiMeta?.map(el => (
                             <li key={el.label} className="gap-1 md:gap-2 flex flex-col flex-cntr-all">
                                 <strong>{el.value}</strong>
-                                <span className="text-zinc-500 text-sm">{el.label}</span>
+                                <span className="ghostColor text-sm">{el.label}</span>
                             </li>
                         ))}
                     </ul>
                 </OptionalChildren>
 
-                <InteractiveDetailSection className="text-sm text-zinc-500">
+                <InteractiveDetailSection className="text-sm ghostColor">
                     {overviewOrBio}
                 </InteractiveDetailSection>
                 {descriptionSupport}

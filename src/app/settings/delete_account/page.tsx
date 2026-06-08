@@ -19,7 +19,7 @@ const ThingsToLooseList = ({ count, description, heading, }: { heading: string, 
     return (
         <li className="my-4 space-y-2">
             <h4 className="font-semibold">{heading}</h4>
-            <p className="text-sm text-zinc-500">{description}</p>
+            <p className="text-sm ghostColor">{description}</p>
         </li>
     )
 }

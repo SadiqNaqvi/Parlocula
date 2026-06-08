@@ -15,8 +15,6 @@ const RoomBarSheet = () => {
 
     const selectedRoom = selectedRoomId ? room[selectedRoomId] : undefined;
 
-    console.log(selectedRoom);
-
     if (!selectedRoom || !meta) return;
 
     const handleHide = () => {
@@ -28,7 +26,11 @@ const RoomBarSheet = () => {
     }
 
     return (
-        <OptionMenu state onClose={() => setSelectedRoomId(undefined)}>
+        <OptionMenu
+            buttonTitle="View Options for room"
+            state
+            onClose={() => setSelectedRoomId(undefined)}
+        >
             <OptionList onClick={handleHide}>Hide</OptionList>
             <OptionList onClick={handleNotification}>{selectedRoom.mute ? "Unmute" : "Mute"}</OptionList>
         </OptionMenu>

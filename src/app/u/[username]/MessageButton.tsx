@@ -30,7 +30,11 @@ const MessageButton = ({ ruid, username, profile }: { ruid: string, username: st
     )
 
     return (
-        <BottomSheet button="Message" className="btn secondary flex-1 sm:flex-none">
+        <BottomSheet
+            button="Message"
+            buttonTitle="Message"
+            className="btn secondary flex-1 sm:flex-none"
+        >
             <NewRoomSheet ruser={{ _id: ruid, username, profile }} />
         </BottomSheet>
     )

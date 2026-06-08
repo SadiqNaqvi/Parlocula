@@ -31,7 +31,12 @@ const AddItemsButton = ({ sid, uid, className, shelf_type }: { sid: string, uid:
     }
 
     return (
-        <BottomSheet onClose={handleSubmit} button="Add Items" className={twMerge("primary", className)}>
+        <BottomSheet
+            onClose={handleSubmit}
+            button="Add Items"
+            buttonTitle="Add Items"
+            className={twMerge("primary", className)}
+        >
             <section className="px-2">
                 <ListSelector
                     mode="search"

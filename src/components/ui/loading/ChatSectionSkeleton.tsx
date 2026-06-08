@@ -16,7 +16,7 @@ const ChatSectionSkeleton = () => (
         <MessagePageSkeleton />
 
         <footer className="flex gap-2 bg-primary sticky bottom-0 items-center w-full border-t border-gray40 px-2 py-4">
-            <div className="p-3 rounded-full flex-1 border border-gray10 bg-gray10 text-zinc-500">
+            <div className="p-3 rounded-full flex-1 border border-gray10 bg-gray10 ghostColor">
                 Send Message
             </div>
             <span className="size-5 rounded-full skeletonPulse"></span>

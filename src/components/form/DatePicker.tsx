@@ -19,7 +19,7 @@ const DatePicker = ({ label, name, description, defaultValue, className = '', ..
         <div className={`space-y-2 pb-2 border-b focus-within:border-gray-500 invalid:border-red-500 ${error ? "border-red-500" : "border-gray20"}`}>
 
             {label && (
-                <label className="text-zinc-500" htmlFor={name}>{label}</label>
+                <label className="ghostColor" htmlFor={name}>{label}</label>
             )}
 
             <input
@@ -32,7 +32,7 @@ const DatePicker = ({ label, name, description, defaultValue, className = '', ..
             />
             {error ? <p className="text-sm text-red-500">{error}</p>
                 :
-                description && <p className="text-zinc-500 text-sm">{description}</p>
+                description && <p className="ghostColor text-sm">{description}</p>
             }
         </div>
     )

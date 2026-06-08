@@ -61,7 +61,7 @@ const LinkTile = ({ remove, path }: { remove: TypedFunction<string>, path: strin
 
 const HollowLinkTile = () => (
     <li className={linkTileClassName}>
-        <span className="text-zinc-500">Link</span>
+        <span className="ghostColor">Link</span>
         <AddIcon className="size-4" />
     </li>
 )
@@ -97,7 +97,10 @@ const LinkInputManager = ({ title, limit = 5, defaultLinks, getterRef, promptRef
     }
 
     if (!links.length) return (
-        <BottomSheet ref={promptRef}>
+        <BottomSheet
+            ref={promptRef}
+            buttonTitle="Attach Links"
+        >
             <InputPrompt submit={getLinks} />
         </BottomSheet>
     );
@@ -115,7 +118,11 @@ const LinkInputManager = ({ title, limit = 5, defaultLinks, getterRef, promptRef
                 </ul>
                 <OptionalChildren condition={links.length < limit}>
                     <ul className="flex gap-2">
-                        <BottomSheet ref={promptRef} button={<HollowLinkTile />}>
+                        <BottomSheet
+                            ref={promptRef}
+                            button={<HollowLinkTile />}
+                            buttonTitle="Attach Links"
+                        >
                             <InputPrompt submit={getLinks} />
                         </BottomSheet>
                     </ul>

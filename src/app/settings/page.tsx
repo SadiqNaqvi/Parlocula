@@ -1,7 +1,8 @@
 "use client";
 
-import { AlertIcon, AppIcon, AtIcon, BellIcon, BlockOrBanIcon, BookIcon, CommentIcon, EditIcon, EmailIcon, FeedbackIcon, FilterIcon, HeartIcon, HistoryIcon, LeaveIcon, MoonIcon, ShelfIcon, PostIcon, RainbowIcon, RightChevron, ShieldIcon, SunIcon, GroupIcon, UserIcon, WifiIcon } from "@assets/Icons";
-import { BottomSheet, Navbar, Navigate, WarningModal } from "@components";
+import { AlertIcon, AppIcon, AtIcon, BellIcon, BlockOrBanIcon, BookIcon, CommentIcon, EditIcon, EmailIcon, FeedbackIcon, FilterIcon, GroupIcon, HeartIcon, LeaveIcon, PostIcon, RainbowIcon, RightChevron, ShelfIcon, ShieldIcon, UserIcon, WifiIcon } from "@assets/Icons";
+import { BottomSheet, Navbar, Navigate } from "@components";
+import { WarningSheet } from "@components/sheets";
 import { ParloFooter } from "@components/ui";
 import InstallPrompt from "@components/ui/InstallPrompt";
 import { FullPageLoadingSpinner } from "@components/ui/loading/LoadingSpinner";
@@ -155,13 +156,16 @@ const SettingPage = () => {
 
             <Sections heading="actions for your account">
                 <SectionList>
-                    <BottomSheet className="flex items-center gap-2 w-full" button={(
+                    <BottomSheet 
+                    className="flex items-center gap-2 w-full" 
+                    buttonTitle="Log out"
+                    button={(
                         <>
                             <LeaveIcon />
-                            <span>Logout</span>
+                            <span>Log out</span>
                         </>
                     )}>
-                        <WarningModal
+                        <WarningSheet
                             action="logout"
                             dangerButton="Logout"
                             dangerFunc={handleLogout}

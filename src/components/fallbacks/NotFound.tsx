@@ -51,7 +51,7 @@ const NotFound = ({ title, paras, ActionButton, fullScreen, redirectTo, redirect
                 <div>
                     {
                         paras.map((para: string, ind: number) => (
-                            <p key={ind} className="text-zinc-500 sapce-y-2 text-sm text-center">{para}</p>
+                            <p key={ind} className="ghostColor sapce-y-2 text-sm text-center">{para}</p>
                         ))
                     }
                 </div>

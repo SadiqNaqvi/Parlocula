@@ -52,7 +52,7 @@ const Component = (data: FullPost, { uid,filterContent }: Props) => {
                         <ParloImage
                             frameType="groupPoster"
                             containerClassName="rounded-full overflow-hidden"
-                            classNameForFallback="p-2 size-8"
+                            classNameForFallback="p-1 size-8"
                             className="min-w-10 size-10"
                             frame={poster}
                             size={32}
@@ -99,14 +99,14 @@ const Component = (data: FullPost, { uid,filterContent }: Props) => {
                                     {quoted_post_title}
                                 </p>
                                 <div className="flex gap-2">
-                                    <div className="text-sm text-zinc-500 flex items-center gap-2">
+                                    <div className="text-sm ghostColor flex items-center gap-2">
                                         <QuoteIcon />
                                         <span>Quoted</span>
                                     </div>
-                                    <div className="text-sm text-zinc-500">
+                                    <div className="text-sm ghostColor">
                                         Frames: {quoted_post_frames_count}
                                     </div>
-                                    <div className="text-sm text-zinc-500">
+                                    <div className="text-sm ghostColor">
                                         Links: {quoted_post_links_count}
                                     </div>
                                 </div>

@@ -1,7 +1,8 @@
 "use client";
 
 import { Ellipsis } from "@assets/Icons";
-import { OptionMenu, ReportSheet, WarningModal } from "@components";
+import { OptionMenu } from "@components";
+import { ReportSheet, WarningSheet } from "@components/sheets";
 import { NestedSheetTrigger } from "@components/ui/OptionList";
 import { blockUserMutation, deleteCommentMutation } from "@lib/helpers/mutations";
 import useCurrentUser from "@store/user";
@@ -28,12 +29,15 @@ const OptionsButton = ({ author, id, comment }: { author: string, id: string, co
 
 
     if (meta.user_id === author) return (
-        <OptionMenu ButtonElement={<Ellipsis />}>
+        <OptionMenu
+            buttonTitle="View Options"
+            ButtonElement={<Ellipsis />}
+        >
             <NestedSheetTrigger button="Edit">
                 <EditComment comment={comment} />
             </NestedSheetTrigger>
             <NestedSheetTrigger button="Delete">
-                <WarningModal
+                <WarningSheet
                     action="delete this comment"
                     dangerButton="Delete"
                     dangerFunc={handleDelete}
@@ -43,12 +47,15 @@ const OptionsButton = ({ author, id, comment }: { author: string, id: string, co
     )
 
     return (
-        <OptionMenu ButtonElement={<Ellipsis />}>
+        <OptionMenu
+            buttonTitle="View Options"
+            ButtonElement={<Ellipsis />}
+        >
             <NestedSheetTrigger button="Report">
                 <ReportSheet ext_id={comment.thread_id} uid={meta.user_id} id={id} type="comment" />
             </NestedSheetTrigger>
             <NestedSheetTrigger button="Block User">
-                <WarningModal
+                <WarningSheet
                     action="block the author of this comment"
                     dangerButton="Block"
                     dangerFunc={handleBlock}

@@ -27,6 +27,7 @@ type Props<T> = {
     Loading?: React.ReactNode,
     ErrorComponent?: React.ReactNode,
     redirectAfterLogin?: string,
+    buttonTitle?: string;
 }
 
 export const LoadingButton = ({ primary = true }: { primary?: boolean }) => (
@@ -36,7 +37,7 @@ export const LoadingButton = ({ primary = true }: { primary?: boolean }) => (
     </div>
 );
 
-const UserBasedButton = <T,>({ Button, queryFn, queryKeys, errorStateClassName, ErrorComponent, redirectAfterLogin, noUserStateChilren, noUserStateClassName, Loading, uid }: Props<T>) => {
+const UserBasedButton = <T,>({ Button, buttonTitle, queryFn, queryKeys, errorStateClassName, ErrorComponent, redirectAfterLogin, noUserStateChilren, noUserStateClassName, Loading, uid }: Props<T>) => {
 
     const queryClient = useQueryClient();
 
@@ -51,7 +52,11 @@ const UserBasedButton = <T,>({ Button, queryFn, queryKeys, errorStateClassName, 
     });
 
     if (!uid) return (
-        <BottomSheet button={noUserStateChilren} className={noUserStateClassName}>
+        <BottomSheet
+            button={noUserStateChilren}
+            className={noUserStateClassName}
+            buttonTitle={buttonTitle}
+        >
             <LoginModal
                 redirectTo={redirectAfterLogin}
                 skipFullScreen

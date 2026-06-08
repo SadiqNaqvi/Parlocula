@@ -173,7 +173,7 @@ const ShelfMutation = ({ defaultVals, taleons, isEditing }: Props) => {
                             />
                         </OptionalChildren>
 
-                        <p className="text-sm text-zinc-500">Created by @{defaultVals?.username || meta?.username || "you"}</p>
+                        <p className="text-sm ghostColor">Created by @{defaultVals?.username || meta?.username || "you"}</p>
                     </div>
 
                 </section>

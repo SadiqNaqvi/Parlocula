@@ -1,19 +1,6 @@
-import React, { PropsWithChildren } from "react";
-import BottomSheet from "./BottomSheet";
+import React from "react";
 import { Drawer } from "vaul";
-import { Button } from "./ui";
-
-type ModalProps = PropsWithChildren<{
-    button: React.ReactNode
-}>
-
-const Modal = ({ button, children }: ModalProps) => {
-    return (
-        <BottomSheet button={button}>
-            {children}
-        </BottomSheet>
-    )
-}
+import { Button } from "../ui";
 
 type WarningModalProps = {
     action: string,
@@ -22,13 +9,13 @@ type WarningModalProps = {
     dangerButton: React.ReactNode
 }
 
-export const WarningModal = ({ action, dangerFunc, details, dangerButton }: WarningModalProps) => {
+const WarningSheet = ({ action, dangerFunc, details, dangerButton }: WarningModalProps) => {
     return (
         <aside className="bg-primary w-full max-w-[500] p-4">
             <h4 className="text-lg text-center">
                 Are you sure you want to {action}?
             </h4>
-            <p className="mt-2 text-sm text-center text-zinc-500">
+            <p className="mt-2 text-sm text-center ghostColor">
                 {details || "This action cannot be undone."}
             </p>
 
@@ -50,4 +37,4 @@ export const WarningModal = ({ action, dangerFunc, details, dangerButton }: Warn
     )
 }
 
-export default Modal;
+export default WarningSheet;

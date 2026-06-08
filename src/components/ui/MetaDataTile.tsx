@@ -39,7 +39,7 @@ const MetadataTile = ({ children, className, skipDisc, condition, href, nsfw, sp
             <li
                 style={{ display: "flex" }}
                 className={twMerge(
-                    "gap-2 text-zinc-500 group items-center text-sm",
+                    "gap-2 ghostColor group items-center text-sm",
                     nsfw ? nsfwClassName : '',
                     spoiler ? spoilerClassName : '',
                     className

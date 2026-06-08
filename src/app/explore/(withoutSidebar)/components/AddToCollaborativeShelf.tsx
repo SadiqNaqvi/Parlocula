@@ -66,6 +66,7 @@ const AddToCollaborativeShelf = ({ uid, taleon, className }: Props) => {
                     <RightChevron />
                 </>
             )}
+            buttonTitle="Add in Collaborative Shelves"
             className={className}
             onClose={handleAdding}
         >

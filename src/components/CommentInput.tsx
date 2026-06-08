@@ -177,7 +177,7 @@ const CommentInput = ({ post_author, post_id, section, editing, defaultValue, ci
         createCommentMutation(comment, section, sp.get("f") || sp.get("filter"))
             .then(resp => {
                 const { success } = resp;
-                console.log(resp);
+                
                 if (success) return;
 
                 const input = getElement();
@@ -259,7 +259,12 @@ const CommentInput = ({ post_author, post_id, section, editing, defaultValue, ci
 
                             <div className="flex gap-2 items-center py-2">
 
-                                <BottomSheet ref={gifSheetRef} button="GIF" className="text-sm py-1 px-2 rounded-md border border-gray40">
+                                <BottomSheet 
+                                ref={gifSheetRef}
+                                 button="GIF"
+                                 buttonTitle="Attach GIF"
+                                  className="text-sm py-1 px-2 rounded-md border border-gray40"
+                                  >
                                     <GiphyComponent callback={handleGif} />
                                 </BottomSheet>
 

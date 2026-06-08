@@ -46,6 +46,7 @@ const ReactionButton = ({ id, count, uid }: { id: string, count: number, uid: st
                     }
                     className={className}
                     ref={sheetRef}
+                    buttonTitle="React on this Post"
                 >
                     <EmojiPicker
                         theme={resolvedTheme === "dark" ? Theme.DARK : Theme.LIGHT}
@@ -64,6 +65,7 @@ const ReactionButton = ({ id, count, uid }: { id: string, count: number, uid: st
 
     return (
         <UserBasedButton
+            buttonTitle="React on this Post"
             uid={uid}
             noUserStateChilren={<NoUserStateButton count={count} />}
             noUserStateClassName={className}

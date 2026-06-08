@@ -77,7 +77,7 @@ const InputBar = ({ rmid, room }: Props) => {
 
     else if (isRoomPending) return (
         <FooterWrapper>
-            <p className="text-sm text-center text-zinc-500">You need to wait till the user accepts your invitation.</p>
+            <p className="text-sm text-center ghostColor">You need to wait till the user accepts your invitation.</p>
         </FooterWrapper>
     )
 

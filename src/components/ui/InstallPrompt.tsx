@@ -14,7 +14,7 @@ const InstallPrompt = () => {
 
     return (
         <section className="my-4 px-2">
-            <div className="flex flex-col flex-cntr-all">
+            <div className="flex flex-col flex-cntr-all border border-gray10 rounded-md bg-gray10 p-2 mx-2">
                 <div className="space-y-1 mb-4">
                     <h3 className="text-center text-lg font-semibold">We don{"'"}t need the browser between us.</h3>
                     <p className="text-sm text-center">You can actually install Parlocula on your Home Screen.</p>
@@ -22,6 +22,7 @@ const InstallPrompt = () => {
                         title="Install Parlocula"
                         description="To install Parlocula on your device"
                         button="View"
+                        buttonTitle="Learn how to install"
                         className="primary w-full sm:w-80 mx-auto mt-4"
                     >
                         <ol className="list-decimal list-inside px-2 space-y-1">

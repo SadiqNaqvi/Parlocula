@@ -47,7 +47,7 @@ const Component = (data: FullShelf, { filter, page, uid, key }: Props) => {
 
                     <div>
                         <h1 data-observe className="selectable text-lg sm:text-2xl capitalize font-semibold">{name}</h1>
-                        <p className="text-sm text-zinc-500 space-x-1">
+                        <p className="text-sm ghostColor space-x-1">
                             <span>Created by:</span>
                             <Navigate goto={`/u/${username}`} comp="link">{username}</Navigate>
                         </p>

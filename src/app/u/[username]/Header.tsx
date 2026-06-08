@@ -99,7 +99,7 @@ const Component = (data: RequestedUser, props: Props) => {
                         {userMeta.map(({ label, value }) => (
                             <li className="gap-1 flex items-center text-nowrap" key={label}>
                                 <span className="text-base">{numberConverter(value)}</span>
-                                <span className="text-sm text-zinc-500">{label}</span>
+                                <span className="text-sm ghostColor">{label}</span>
                             </li>
                         ))}
                     </ul>

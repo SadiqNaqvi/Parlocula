@@ -61,7 +61,7 @@ const AccountDeleted = ({ username }: { username: string }) => (
 
                     <Hr />
 
-                    <Text className='text-xs text-center text-zinc-500'>
+                    <Text className='text-xs text-center ghostColor'>
                         This message was produced and distributed by Parlocula, a software application brought to you by Q-Core Technologies Pvt. Ltd. | All rights reserved.
                     </Text>
 

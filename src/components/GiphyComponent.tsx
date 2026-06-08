@@ -45,7 +45,7 @@ const Components = ({ callback }: { callback: TypedFunction<GifResultData> }) =>
                 fetchGifs={fetchGifs}
             />
             <div className="mt-2 py-1">
-                <p className="text-center text-xs text-zinc-500">Powered by GIPHY</p>
+                <p className="text-center text-xs ghostColor">Powered by GIPHY</p>
             </div>
         </div>
     )

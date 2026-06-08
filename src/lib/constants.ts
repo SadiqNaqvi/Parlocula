@@ -85,7 +85,7 @@ export const poster_sizes: ExternalImageTypeToSizeMap["poster"][] = [
   "w500",
   "original",
 ];
-export const profile_sizes: ExternalImageTypeToSizeMap["profile"][] = ["w45", "w185", "h632", "original"];
+export const profile_sizes: ExternalImageTypeToSizeMap["profile"][] = ["w45", "w185", "original"];
 export const still_sizes: ExternalImageTypeToSizeMap["still"][] = ["w92", "w185", "w300", "original"];
 
 export const oneKb = 1024;

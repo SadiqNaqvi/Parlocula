@@ -186,16 +186,18 @@ const PostMutationPage = ({ defaultVal, isEditing, defaultThread, quotedPost }: 
             />
 
             <OptionalChildren condition={!isEditing && quotedPost}>
-                <section className="m-2 w-full border border-gray50 rounded-md p-2">
-                    <p className="text-sm text-zinc-500">Quoted Post</p>
-                    <div className="space-y-4">
-                        <h4 className="font-semibold line-clamp-2">{quotedPost?.title}</h4>
-                        <FrameSlider disablePopping id={quotedPost?._id!} frames={quotedPost?.frames || []} />
+                <section className="my-2">
+                    <div className="mx-2 border border-gray50 rounded-md p-2">
+                        <p className="text-sm ghostColor">Quoted Post</p>
+                        <article className="space-y-4 mt-2">
+                            <h4 className="font-semibold line-clamp-2">{quotedPost?.title}</h4>
+                            <FrameSlider disablePopping id={quotedPost?._id!} frames={quotedPost?.frames || []} />
+                        </article>
                     </div>
                 </section>
             </OptionalChildren>
 
-            <ul className="px-2 sm:px-4 flex gap-4 text-zinc-500 w-full pb-4 my-4 border-b border-gray30">
+            <ul className="px-2 sm:px-4 flex gap-4 ghostColor w-full pb-4 my-4 border-b border-gray30">
                 <li className="flex gap-2">
                     <span className="font-semibold">X</span>
                     <ReactIcon />
@@ -210,7 +212,12 @@ const PostMutationPage = ({ defaultVal, isEditing, defaultThread, quotedPost }: 
                 </li>
             </ul>
 
-            <OptionMenu ButtonElement={<AddIcon className="size-5 sm:size-7" />} heading="Attach" className="fixed bottom-4 right-4 p-2 bg-secondary color-primary rounded-full">
+            <OptionMenu
+                buttonTitle="Attach Frames or Links"
+                ButtonElement={<AddIcon className="size-5 sm:size-7" />}
+                heading="Attach"
+                className="fixed bottom-4 right-4 p-2 bg-secondary color-primary rounded-full"
+            >
                 <OptionList
                     disable={(framesRef.current?.length || 0) >= 5}
                     onClick={() => openSheet("frame")}>

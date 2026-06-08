@@ -42,7 +42,7 @@ const ParentCommentBar = ({ parentComment }: { parentComment: ReplyInputType | u
         <Navigate
             className="block my-1 p-2 border border-gray20 rounded-md w-full"
             comp="link" type="button" goto={`/c/${replied_to}`}>
-            <p className="mb-1 text-xs sm:text-sm text-zinc-500">Replied to:</p>
+            <p className="mb-1 text-xs sm:text-sm ghostColor">Replied to:</p>
             <div className="w-full">
                 <Image
                     height={48}
@@ -61,7 +61,7 @@ const ParentCommentBar = ({ parentComment }: { parentComment: ReplyInputType | u
             <Navigate
                 className="block my-1 p-2 border border-gray20 rounded-md w-full"
                 comp="link" type="button" goto={`/c/${replied_to}`}>
-                <p className="mb-1 text-xs sm:text-sm text-zinc-500">Replied to:</p>
+                <p className="mb-1 text-xs sm:text-sm ghostColor">Replied to:</p>
                 <p className="text-sm line-clamp-2">{content}</p>
             </Navigate>
         )

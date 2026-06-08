@@ -56,6 +56,7 @@ const ShelfItemInput = ({ itemsRef, defaultTaleons }: { itemsRef: RefObject<List
                 onClose={getItems}
                 ref={sheetRef}
                 button={<ShallowShelfItemBar />}
+                buttonTitle="Add Taleons"
             >
                 <section className="p-2 sm:p-4">
                     <ListSelector

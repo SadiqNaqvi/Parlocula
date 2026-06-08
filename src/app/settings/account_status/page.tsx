@@ -19,7 +19,7 @@ const BannedSection = ({ banEndsAt }: { banEndsAt: GenericDate }) => (
             </li>
         </ul>
 
-        <p className="text-sm text-zinc-500">Your Banned will end on {new Date(banEndsAt).toDateString()}</p>
+        <p className="text-sm ghostColor">Your Banned will end on {new Date(banEndsAt).toDateString()}</p>
     </>
 )
 

@@ -39,7 +39,7 @@ const PostsSection = ({ id, page = 1, filter, category, section, allowNsfw }: Po
             <InfiniteScroller
                 Loading={<LoadingComponent section={section} />}
                 initialPage={page}
-                className={section === "frames" ? "grid grid-cols-3 xs:grid-cols-4 sm:grid-cols-5 gap-2" : undefined}
+                className={section === "frames" ? "grid grid-cols-3 sm:grid-cols-4 gap-2" : undefined}
                 notFoundMessage={notFoundMessages}
                 additional={{ section: "thread" }}
                 Component={(props) => <Component section={section} props={props} />}

@@ -35,7 +35,7 @@ const Input = ({ label, name, description, containerClasses, className, refObjec
                 <p className="text-sm text-red-500">{error}</p>
             </OptionalChildren>
             <OptionalChildren condition={description}>
-                <p className="text-zinc-500 text-sm">{description}</p>
+                <p className="ghostColor text-sm">{description}</p>
             </OptionalChildren>
         </div>
     )

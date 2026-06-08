@@ -30,22 +30,26 @@ const addButtonClasses = "size-[70px] flex gap-2 flex-cntr-all flex-col bg-prima
 const AddButton = ({ className }: { className?: string }) => {
 
     return (
-        <BottomSheet className="p-2" button={<AddIcon className={className} />}>
+        <BottomSheet
+            className="p-2"
+            button={<AddIcon className={className} />}
+            buttonTitle="Create"
+        >
             <section className="p-6">
                 <h3 className="text-center font-semibold">Start Creating Now</h3>
 
                 <div className="flex gap-4 mt-4 mx-auto w-fit">
                     <Navigate comp="link" type="button" goto="/new/post" className={addButtonClasses}>
                         <PostIcon className="size-6 mx-auto" />
-                        <p className="text-sm text-zinc-500">Post</p>
+                        <p className="text-sm ghostColor">Post</p>
                     </Navigate>
                     <Navigate comp="link" type="button" goto="/new/thread" className={addButtonClasses}>
                         <GroupIcon className="size-6 mx-auto" />
-                        <p className="text-sm text-zinc-500">Thread</p>
+                        <p className="text-sm ghostColor">Thread</p>
                     </Navigate>
                     <Navigate comp="link" type="button" goto="/new/shelf" className={addButtonClasses}>
                         <ShelfIcon className="size-5 mx-auto" />
-                        <p className="text-sm text-zinc-500">Shelf</p>
+                        <p className="text-sm ghostColor">Shelf</p>
                     </Navigate>
                 </div>
             </section>
@@ -63,11 +67,11 @@ export const HomeNavbar = () => (
         <div className="flex">
             <AddButton />
 
-            <Navigate comp="link" className="p-2" goto="/notifications" >
+            <Navigate comp="link" className="p-2 md:hidden" goto="/notifications">
                 <NotificationButton />
             </Navigate>
 
-            <Navigate comp="link" className="p-2" goto="/room" >
+            <Navigate comp="link" className="p-2 md:hidden" goto="/room">
                 <MessagesIcon />
             </Navigate>
         </div>
@@ -84,7 +88,10 @@ export const ThreadNavbar = () => (
                 <AddIcon />
             </Navigate>
 
-            <BottomSheet className="p-2" button={<HamburgerIcon />}>
+            <BottomSheet
+                className="p-2" button={<HamburgerIcon />}
+                buttonTitle="Create Thread"
+            >
                 <section className="px-2 space-y-2">
                     <Navigate comp="link" type="button" goto="/thread/joined" className={tileButtonClassnames}>
                         <div className="flex gap-2 items-center">
@@ -121,7 +128,11 @@ export const ShelfNavbar = () => (
                 <AddIcon />
             </Navigate>
 
-            <BottomSheet className="p-2" button={<HamburgerIcon />}>
+            <BottomSheet
+                className="p-2"
+                button={<HamburgerIcon />}
+                buttonTitle="Create Shelf"
+            >
                 <section className="px-2 space-y-2">
                     <Navigate comp="link" type="button" goto="/shelf/all" className={tileButtonClassnames}>
                         <div className="flex gap-2 items-center">

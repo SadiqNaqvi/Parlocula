@@ -59,7 +59,11 @@ const Poster = forwardRef<InputManagerType<InputFrame | null>, Props>(
 
         if (!poster) return (
             <div className={classNames}>
-                <BottomSheet button={<EditIcon />} className="rounded-full flex flex-cntr-all size-full">
+                <BottomSheet
+                    className="rounded-full flex flex-cntr-all size-full"
+                    button={<EditIcon />}
+                    buttonTitle="Attach Picture"
+                >
                     <MediaInputPrompt type="image" callback={addPoster} />
                 </BottomSheet>
             </div>
@@ -68,9 +72,10 @@ const Poster = forwardRef<InputManagerType<InputFrame | null>, Props>(
         return (
             <div className={classNames}>
                 <OptionMenu
+                    buttonTitle="View Options"
                     sheetRef={sheetRef}
                     ButtonElement={<EditButtonIcon />}
-                    className="size-full absolute z-[1] rounded-full border border-dashed border-slate-500 flex"
+                    className="size-full absolute z-1 rounded-full border border-dashed border-slate-500 flex"
                 >
                     <NestedSheetTrigger button="Change">
                         <MediaInputPrompt type="image" callback={addPoster} />

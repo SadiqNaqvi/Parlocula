@@ -73,7 +73,7 @@ const MessageBar = ({ nextMsgAuthor, prevMsgAuthor, otherParticipantSeenAt, cuid
             </div>
 
             <OptionalChildren condition={currentAuthor}>
-                <p className={`text-right text-xs ${correctStatus === "error" ? "text-red-500" : "text-zinc-500"}`}>{correctStatus}</p>
+                <p className={`text-right text-xs ${correctStatus === "error" ? "text-red-500" : "ghostColor"}`}>{correctStatus}</p>
             </OptionalChildren>
         </li>
     )

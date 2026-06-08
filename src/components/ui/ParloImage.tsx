@@ -124,7 +124,7 @@ const iconClassName = "size-6 frameIconShadow text-zinc-200";
 const ParloImage = ({ frame, alt, height, size, width, className, containerClassName, fullSizeFrame, sizes, classNameForFallback, fill, commonClassName, prioritize, fancyGallery, frameType, fileNameToDownload, showMediaType, showSize, showSourceIcon }: Props) => {
 
     if (!frame) return (
-        <div className={twMerge("p-2 bg-gray10 flex flex-cntr-all", fill ? '' : "w-fit", containerClassName)}>
+        <div className={twMerge("p-2 bg-gray10 flex flex-cntr-all overflow-hidden", fill ? '' : "w-fit", containerClassName)}>
             <FallbackIcon
                 type={frameType}
                 className={twMerge(commonClassName, classNameForFallback)}
@@ -141,7 +141,7 @@ const ParloImage = ({ frame, alt, height, size, width, className, containerClass
     if (isTmdbImage) return (
         <div
             onContextMenu={e => e.preventDefault()}
-            className={twMerge(fill ? '' : "min-w-fit", containerClassName)}>
+            className={twMerge("relative overflow-hidden", fill ? '' : "min-w-fit", containerClassName)}>
             <img
                 height={fill ? undefined : correctHeight}
                 width={fill ? undefined : correctWidth}
@@ -149,10 +149,9 @@ const ParloImage = ({ frame, alt, height, size, width, className, containerClass
                 loading={prioritize ? "eager" : "lazy"}
                 fetchPriority={prioritize ? "high" : "low"}
                 alt={alt || ""}
-                srcSet={isTmdbImage ? getTmdbSourceSet(source, frameType) : getSourceSet(frame, sizes)}
+                srcSet={getTmdbSourceSet(source, frameType)}
                 className={twMerge(`cursor-pointer`, commonClassName, className)}
                 {...getFancyAttributes({ frameType, fancyGallery, fileNameToDownload }, source)}
-                // crossOrigin="anonymous"
                 decoding={prioritize ? "sync" : "async"}
                 sizes={sizes ? turnSizesArrIntoString(sizes) : `${correctWidth}px`}
             />

@@ -31,7 +31,7 @@ const HistoryBar = ({ path, poster, title, image, type }: HistoryStackType) => (
                     <h4>{title}</h4>
                 </OptionalChildren>
                 <OptionalChildren condition={type}>
-                    <p className="text-xs sm:text-sm text-zinc-500">{type}</p>
+                    <p className="text-xs sm:text-sm ghostColor">{type}</p>
                 </OptionalChildren>
             </div>
         </div>

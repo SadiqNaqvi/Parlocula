@@ -1,7 +1,8 @@
 "use client";
 
-import { BellIcon, BellSlashIcon, EyeSlashIcon, LeaveIcon, LinkIcon, RightChevron, UserIcon } from "@assets/Icons";
-import { BottomSheet, Navigate, NestedSheet, WarningModal } from "@components";
+import { BellIcon, BellSlashIcon, EyeSlashIcon, LeaveIcon, RightChevron, UserIcon } from "@assets/Icons";
+import { BottomSheet, Navigate, NestedSheet } from "@components";
+import { WarningSheet } from "@components/sheets";
 import { Button, OptionalChildren, ParloImage } from "@components/ui";
 import { hideRoom, leaveRoom, updateNotificationOfRoom } from "@lib/helpers/mutations";
 import { useDebounce } from "@lib/hooks";
@@ -63,7 +64,7 @@ const LeaveRoomButton = ({ rmid, uid }: Props) => {
             )}
             className="p-2 flex gap-2 flex-col border border-gray40 rounded-md"
         >
-            <WarningModal
+            <WarningSheet
                 action="leave this room"
                 dangerButton="Leave"
                 dangerFunc={handleLeave}
@@ -123,7 +124,10 @@ const ActionSection = ({ display_name, mute, type, _id, uid }: Pick<FullRoomType
 const ChatInfoSection = ({ room, uid, children }: PropsWithChildren<{ room: FullRoomType, uid: string }>) => {
 
     return (
-        <BottomSheet button={children}>
+        <BottomSheet
+            button={children}
+            buttonTitle="View Details"
+        >
             <div className="w-full px-2 pb-4 space-y-4">
                 <section className="flex flex-cntr-all w-full gap-4">
                     <ParloImage
@@ -138,7 +142,7 @@ const ChatInfoSection = ({ room, uid, children }: PropsWithChildren<{ room: Full
                     <div>
                         <h1 className="text-xl">{room.display_name}</h1>
                         <OptionalChildren condition={room.createdAt}>
-                            <p className="text-zinc-500 text-xs sm:text-sm">
+                            <p className="ghostColor text-xs sm:text-sm">
                                 Created At: {new Date(room.createdAt).toDateString()}
                             </p>
                         </OptionalChildren>

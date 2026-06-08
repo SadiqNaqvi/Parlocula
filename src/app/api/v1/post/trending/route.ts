@@ -38,6 +38,10 @@ export const GET = getHandler(async (r) => {
             excludeQuotedPost: false,
             isLinkBased: false,
             page,
+            sort: {
+                score: -1,
+                createdAt: -1,
+            }
         })
     )
 

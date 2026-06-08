@@ -5,12 +5,12 @@ import { checkIfReportExists } from "@lib/helpers/common";
 import { useQueryHook } from "@lib/hooks";
 import { getQueryKeys } from "@lib/utils";
 import { useState } from "react";
-import { Form, Textarea } from "./form";
-import Choice from "./form/Choice";
+import { Form, Textarea } from "../form";
+import Choice from "../form/Choice";
 import { CheckIcon } from "@assets/Icons";
 import { ReportTypeEnum } from "@type/schemas";
 import { submitReportMutation } from "@lib/helpers/mutations";
-import { Button, OptionalChildren } from "./ui";
+import { Button, OptionalChildren } from "../ui";
 import { UidsForReportReason } from "@type/other";
 import { toast } from "sonner";
 

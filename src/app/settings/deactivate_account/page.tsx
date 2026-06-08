@@ -46,19 +46,19 @@ const DeactivateAccountPage = () => {
                 <ul className="space-y-3 list-decimal">
                     <li>
                         <h3 className="font-semibold text-sm uppercase">New Followers</h3>
-                        <p className="text-zinc-500 mt-2">
+                        <p className="ghostColor mt-2">
                             Others would not be able to find your profile, even in search.
                         </p>
                     </li>
                     <li>
                         <h3 className="font-semibold text-sm uppercase">New Reactions, Likes and Saves</h3>
-                        <p className="text-zinc-500 mt-2">
+                        <p className="ghostColor mt-2">
                             Others may not be able to find your posts, comments, shelves, or anything related to your profile.
                         </p>
                     </li>
                     <li>
                         <h3 className="font-semibold text-sm uppercase">Updates on Parlocula</h3>
-                        <p className="text-zinc-500 mt-2">
+                        <p className="ghostColor mt-2">
                             Deactivating your account would stop us from updating you about People you follow, Threads you are a member of, Posts of your followed People and Threads, Comments on your posts, Replies on your Comments and much.
                         </p>
                     </li>
@@ -70,6 +70,7 @@ const DeactivateAccountPage = () => {
                 <BottomSheet
                     className="primary w-full mt-4 sm:mx-auto sm:w-fit"
                     button="Yes, Deactivate My Account"
+                    buttonTitle="Deactivate"
                 >
                     <div className="my-4">
                         <Form submit={handleDeactivation} schema={schema}>

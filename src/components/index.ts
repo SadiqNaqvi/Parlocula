@@ -15,11 +15,9 @@ export { default as GeneralTile } from "./GeneralTile";
 export { default as GiphyComponent } from "./GiphyComponent";
 export { default as ListSelector, type ListSelectorRef, type RefinedValues } from "./ListSelector"
 export { default as SearchInList, type SearchInListProps } from "./SearchInList";
-export { default as Modal, WarningModal } from "./Modal"
 export { default as ObserverHeader } from "./ObserverHeader";
 export { default as PullToRefresh } from "./PullToRefresh";
 export { default as ReportSection } from "./ReportSection";
-export { default as ReportSheet } from "./ReportSheet";
 export { default as SaveButton } from "./SaveButton";
 export { default as ShareButton } from "./ShareButton";
 export { default as FancyBoxProvider } from "./Fancybox";

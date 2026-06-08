@@ -21,17 +21,20 @@ const LinkTile = ({ label, path }: LinkType) => {
     )
 
     return (
-        <BottomSheet button={<LabelAndIcon label={label} />}>
+        <BottomSheet
+            button={<LabelAndIcon label={label} />}
+            buttonTitle={`Visit ${label}`}
+        >
             <div className="p-4">
                 <h4 className="text-center text-lg mb-2">You are about to be redirected to this path.</h4>
-                <p className="text-zinc-500 text-center text-sm">Please make sure, you know this path well before you proceed.</p>
+                <p className="ghostColor text-center text-sm">Please make sure, you know this path well before you proceed.</p>
                 <div className="my-4 border border-gray20 bg-gray10 rounded-md p-2">
                     <Link className="text-sky-500 text-sm flex gap-2 flex-cntr-between" href={path}>
                         <span className="wrap-anywhere whitespace-anywhere">{path}</span>
                         <RightChevron className="min-w-4" />
                     </Link>
                 </div>
-                <p className="text-zinc-500 text-center text-sm">Click on this path to proceed.</p>
+                <p className="ghostColor text-center text-sm">Click on this path to proceed.</p>
             </div>
         </BottomSheet >
     )

@@ -120,7 +120,7 @@ const PostMetadataSection = ({ comment_count, frames_count, links_count, reactio
         <section className="flex gap-4 mt-3">
             <ul className="flex gap-3">
                 {counts.map(({ Icon, value }, i) => (
-                    <li key={i} className="flex items-center gap-1 text-zinc-500">
+                    <li key={i} className="flex items-center gap-1 ghostColor">
                         <Icon className="size-4" />
                         <span>{numberConverter(value || 0)}</span>
                     </li>
@@ -128,7 +128,7 @@ const PostMetadataSection = ({ comment_count, frames_count, links_count, reactio
             </ul>
             <ul className="flex gap-3">
                 {metadata.map(({ Icon, value }, i) => (
-                    <li key={i} className="flex items-center gap-1 text-zinc-500">
+                    <li key={i} className="flex items-center gap-1 ghostColor">
                         <Icon className="size-4" />
                         <span>{numberConverter(value || 0)}</span>
                     </li>

@@ -14,8 +14,8 @@ const DescriptionSection = () => (
     <ul className="space-y-1">
         <li className="text-center">This is personalized and curated for each individual user.</li>
         <li className="text-center">You can either log-in and enjoy this</li>
-        <li className="text-sm text-zinc-500 text-center">or</li>
-        <li className="text-center text-sm text-zinc-500">You can go back and enjoy the app as a guest.</li>
+        <li className="text-sm ghostColor text-center">or</li>
+        <li className="text-center text-sm ghostColor">You can go back and enjoy the app as a guest.</li>
     </ul>
 
 )
@@ -33,7 +33,7 @@ const LoginModal = ({ redirectTo, title, skipFullScreen, desc, heading }: Props)
                 <h1 className="font-semibold text-lg md:text-2xl text-center">{heading || "Hello Guest 👋"}</h1>
 
                 <OptionalChildren condition={desc?.length} fallback={<DescriptionSection />}>
-                    <ul className="space-y-1 text-sm text-zinc-500">
+                    <ul className="space-y-1 text-sm ghostColor">
                         {desc?.map((description, i) => (
                             <li key={i} className="text-center">{description}</li>
                         ))}

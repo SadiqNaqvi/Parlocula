@@ -321,7 +321,8 @@ export type poster_sizes =
   | "w500"
   | "w780"
   | "original";
-export type profile_sizes = "w45" | "w185" | "h632" | "original";
+  
+export type profile_sizes = "w45" | "w185" | "original";
 export type still_sizes = "w92" | "w185" | "w300" | "original";
 
 export type ExternalImageTypeToSizeMap = {

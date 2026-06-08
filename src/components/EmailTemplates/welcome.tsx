@@ -65,7 +65,7 @@ const WelcomeEmail = ({ passkey }: { passkey: string }) => {
                             </Text>
                         </Section>
                         <Hr />
-                        <Text className="text-xs text-center text-zinc-500">
+                        <Text className="text-xs text-center ghostColor">
                             This message was produced and distributed by Parlocula, an application of QCore Technologies Pvt. Ltd. | All rights reserved.
                         </Text>
                     </Container>

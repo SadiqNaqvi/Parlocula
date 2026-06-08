@@ -169,7 +169,7 @@ const AccountDeletionWarning = ({ username, warning, deleteOn, userDocsCount }: 
                                 Reminder: Parlocula will never ask you to send us any of your details through email. Our emails are just to notify you with things, you should never reply to any emails sent under the name {'"'}Parlocula{'"'}.
                             </Text>
                         </Section>
-                        <Text className='text-xs text-zinc-500 text-center'>
+                        <Text className='text-xs ghostColor text-center'>
                             This message was produced and distributed by Parlocula, a software application brought to you by Q-Core Technologies Pvt. Ltd. | All rights reserved.
                         </Text>
                     </Container>

@@ -43,7 +43,7 @@ const Dropdown = ({ name, options, label, containerClassName, description }: Dro
             </OptionalChildren>
 
             <OptionalChildren condition={description}>
-                <p className="text-zinc-500 text-sm">{description}</p>
+                <p className="ghostColor text-sm">{description}</p>
             </OptionalChildren>
 
         </div>

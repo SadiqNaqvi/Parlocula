@@ -10,8 +10,11 @@ const RenderFrame = ({ title, ...frame }: Frame & { title: string }) => {
         <ParloVideo
             className="size-full object-cover"
             disablePopup
+            hideDuraion
+            skipSourceIcon
             frame={frame}
             alt={`Frame of Post - ${title}`}
+            containerClassName="size-full"
         />
     )
 
@@ -33,19 +36,19 @@ const FrameTile = ({ frames, spoiler, _id, title, profile }: MereFrame) => {
     if (!frame) return null;
 
     return (
-        <article key={_id}>
-            <Navigate
-                historyPayload={{
-                    title,
-                    image: frame,
-                    poster: profile,
-                    type: "post",
-                }}
-                goto={`/p/${_id}`}
-                type="button"
-                comp="link"
-                className="relative"
-            >
+        <Navigate
+            historyPayload={{
+                title,
+                image: frame,
+                poster: profile,
+                type: "post",
+            }}
+            goto={`/p/${_id}`}
+            type="button"
+            comp="link"
+            className="size-full"
+        >
+            <article key={_id} className="size-full relative">
 
                 <OptionalChildren condition={spoiler}>
                     <div className="inset-0 absolute z-1 backdrop-blur-lg backdrop-brightness-50">
@@ -55,13 +58,11 @@ const FrameTile = ({ frames, spoiler, _id, title, profile }: MereFrame) => {
                     </div>
                 </OptionalChildren>
 
-                <div className="w-full aspect-2/3">
-                    <RenderFrame title={title} {...frame} />
-                </div>
+                <RenderFrame title={title} {...frame} />
 
-                <span className="absolute top-0 right-0 mr-2 mt-2 bg-gray-800 text-zinc-200 px-3 py-1 rounded-md">{frames.length}</span>
-            </Navigate>
-        </article>
+                <span className="absolute right-0 bottom-0 mr-2 mb-2 bg-black/60 text-zinc-200 px-3 py-1 rounded-md text-sm">{frames.length}</span>
+            </article>
+        </Navigate>
     )
 }
 

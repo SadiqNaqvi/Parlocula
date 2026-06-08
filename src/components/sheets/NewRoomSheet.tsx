@@ -63,7 +63,7 @@ const NewRoomSheet = ({ ruser }: { ruser: MereUser }) => {
             </header>
             <section className="p-4 min-h-[50dvh]">
                 <OptionalChildren condition={invitationMessage} fallback={(
-                    <p className="text-sm text-center text-zinc-500">Invite this user to chat with you. You can only send 1 message, make it worth.</p>
+                    <p className="text-sm text-center ghostColor">Invite this user to chat with you. You can only send 1 message, make it worth.</p>
                 )}>
                     <MessageBar
                         _id=""
@@ -80,7 +80,7 @@ const NewRoomSheet = ({ ruser }: { ruser: MereUser }) => {
             </section>
             <footer className="w-stretch sticky bottom-0 px-2 py-4">
                 <OptionalChildren condition={!invitationMessage} fallback={(
-                    <p className="text-center text-sm text-zinc-500">You have already invited this @{ruser.username}. Please wait for the acceptance your invitation.</p>
+                    <p className="text-center text-sm ghostColor">You have already invited this @{ruser.username}. Please wait for the acceptance your invitation.</p>
                 )}>
                     <Form
                         ref={formRef}

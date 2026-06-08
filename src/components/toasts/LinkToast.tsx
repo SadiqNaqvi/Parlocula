@@ -15,7 +15,7 @@ const LinkToast = ({ description, title, href }: { title: string, description?: 
         <div className="p-2" onClick={() => navigation.push(href)}>
             <h4>{title}</h4>
             <OptionalChildren condition={description}>
-                <p className="text-xs sm:text-sm text-zinc-500">{description}</p>
+                <p className="text-xs sm:text-sm ghostColor">{description}</p>
             </OptionalChildren>
         </div>
     )

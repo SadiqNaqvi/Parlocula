@@ -51,7 +51,7 @@ const Page = async ({ params, children }: PropsWithChildren<{ params: { id: stri
                 poster={content.poster}
                 title={content.title}
                 frameType="logo"
-                titleSupport={<p className="text-sm md:text-base text-zinc-500">Situated at: {content.headquarters}</p>}
+                titleSupport={<p className="text-sm md:text-base ghostColor">Situated at: {content.headquarters}</p>}
                 overviewOrBio={content.description}
                 titleToShare={`Check out some top rated movies from ${content.title} - Parlocula`}
                 posterClassName="object-contain rounded-none"

@@ -45,8 +45,8 @@ const ContentFiltered = ({ allow, redirectPath, filterContent }: { allow?: boole
         <Wrapper>
             <h4 className="text-lg mb-2">Oops! The Parlocula Guards stopped you</h4>
             <div className="space-y-2 my-4">
-                <p className="text-zinc-500">This content has been filtered out because it may contain explicit content.</p>
-                <p className="text-zinc-500">You can either update settings or Go back.</p>
+                <p className="ghostColor">This content has been filtered out because it may contain explicit content.</p>
+                <p className="ghostColor">You can either update settings or Go back.</p>
             </div>
             <div className="flex gap-2">
                 <Navigate

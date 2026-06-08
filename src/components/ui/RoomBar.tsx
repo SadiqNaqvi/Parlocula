@@ -50,7 +50,7 @@ const RoomBar = ({ lastMessageAt, lastMessageBy, mute, otherParticipant_seenAt, 
                         condition={status !== "error"}
                         fallback={<p className="text-red-500 text-xs">Failed To Send</p>}
                     >
-                        <MetadataTileContainer className="text-zinc-500 max-w-[60%]">
+                        <MetadataTileContainer className="ghostColor max-w-[60%]">
                             <MetadataTile condition={!!lastMessageAt} className="whitespace-nowrap text-xs">{timeAgo(lastMessageAt)}</MetadataTile>
                             <MetadataTile condition={!!textToShow} className="line-clamp-1 text-wrap text-xs">{textToShow}</MetadataTile>
                         </MetadataTileContainer>

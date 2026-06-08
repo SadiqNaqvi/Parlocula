@@ -317,25 +317,25 @@ const getTmdbSlides = async (p: number): Promise<Omit<TmdbSlide, "isSlide">[]> =
     ]
 }
 
-const trendingPostsFromCacheOrSource = async (p: number): Promise<GeneralMultipleReturn<AggregatedPost>> => {
+const trendingPostsFromCacheOrSource = async (p: number, allowNsfw: boolean): Promise<GeneralMultipleReturn<AggregatedPost>> => {
 
     const queryClient = getQueryClient();
     const cache = queryClient.getQueryData<CachedResponse>(getQueryKeys("trendingPosts", {}));
     const cachedPosts = cache?.pages[p];
     if (cachedPosts) return { success: true, result: { data: cachedPosts.results, total: cachedPosts.total_results } };
-    else return await getTrendingPosts(p);
+    else return await getTrendingPosts(p, allowNsfw);
 }
 
-const curatedPostsFromCacheOrSource = async (uid: string, p: number): Promise<GeneralMultipleReturn<AggregatedPost>> => {
+const curatedPostsFromCacheOrSource = async (uid: string, p: number, allowNsfw: boolean): Promise<GeneralMultipleReturn<AggregatedPost>> => {
 
     const queryClient = getQueryClient();
     const cache = queryClient.getQueryData<CachedResponse>(getQueryKeys("curatedPost_uid", { uid }));
     const cachedPosts = cache?.pages[p];
     if (cachedPosts) return { success: true, result: { data: cachedPosts.results, total: cachedPosts.total_results } };
-    else return await getUserFeed(uid, p);
+    else return await getUserFeed(uid, p, allowNsfw);
 }
 
-export const useFeedHook = () => {
+export const useFeedHook = (allowNsfw: boolean) => {
     const { meta } = useCurrentUser();
     const uid = meta?.user_id;
     const [placeholder, setPlaceholder] = useOfflineStore<AggregatedResponse | undefined>(`usersFeed:${uid ?? "guest"}`, undefined);
@@ -345,8 +345,8 @@ export const useFeedHook = () => {
 
         const [slides, trending, curated] = await Promise.all([
             getTmdbSlides(p),
-            trendingPostsFromCacheOrSource(p),
-            ...(uid ? [curatedPostsFromCacheOrSource(uid, p)] : []),
+            trendingPostsFromCacheOrSource(p, allowNsfw),
+            ...(uid ? [curatedPostsFromCacheOrSource(uid, p, allowNsfw)] : []),
         ]);
 
         const trendingPosts = refineResponse(trending);
@@ -373,7 +373,8 @@ export const useFeedHook = () => {
                 if ((i + 1) % interval === 0) {
                     const index = ((i + 1) / interval) - 1;
                     const slide = slides[index];
-                    if (slide.data.length) {
+
+                    if (slide && "data" in slide && slide.data.length) {
                         finalFeed.push({ ...slide, isSlide: true })
                     }
                 }

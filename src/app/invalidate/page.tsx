@@ -31,7 +31,7 @@ const InvalidateSection = ({ email }: { email: string }) => {
         <>
             <Navbar />
 
-            <p className="text-sm my-4 text-zinc-500 text-center">
+            <p className="text-sm my-4 ghostColor text-center">
                 You need to enter your PassKey to perform this action. This PassKey has been sent to you with your welcome email.
             </p>
 
@@ -39,7 +39,7 @@ const InvalidateSection = ({ email }: { email: string }) => {
                 <Input placeholder="PassKey" name="passKey" />
             </Form>
 
-            {/* <ul className="mt-2 text-zinc-500 text-sm space-y-1">
+            {/* <ul className="mt-2 ghostColor text-sm space-y-1">
                 <li>
                     Parlocula supports Time-based reversion.
                     This means you can revert your account upto a specified time in the past.
@@ -80,7 +80,7 @@ const InvalidatePage = () => {
     if (!email) return (
         <>
             <Navbar navTitle="Invalidate Session" />
-            <p className="text-sm my-4 text-zinc-500 text-center">
+            <p className="text-sm my-4 ghostColor text-center">
                 If you feel like someone has access to your account, you can invalidate your session. Within 10 minuets, everyone will be log-out of your account.
             </p>
             <EmailVerifier callback={verifyEmail} />

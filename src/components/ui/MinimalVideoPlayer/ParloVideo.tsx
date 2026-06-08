@@ -31,9 +31,11 @@ type Props = {
     disablePopup?: boolean,
     galleryId?: string,
     alt: string,
+    skipSourceIcon?: boolean;
+    hideDuraion?: boolean;
 }
 
-const ParloVideo = ({ className, containerClassName, frame, disablePopup, galleryId, alt }: Props) => {
+const ParloVideo = ({ className, containerClassName, frame, disablePopup, galleryId, alt, skipSourceIcon, hideDuraion }: Props) => {
 
     const [duration, setDuration] = useState('');
     const [play, setPlay] = useState(false);
@@ -60,10 +62,12 @@ const ParloVideo = ({ className, containerClassName, frame, disablePopup, galler
     )
 
     const handleDuration = (e: SyntheticEvent<HTMLVideoElement, Event>) => {
+        if (hideDuraion) return;
         setDuration(formatTimeAsDuration((e.target as HTMLVideoElement).duration));
     }
 
     const handleClick = () => {
+        if (disablePopup) return;
         setPlay(true);
         Fancybox.show([{
             src: `#parloVideoPlayer-${uid}`,
@@ -81,7 +85,7 @@ const ParloVideo = ({ className, containerClassName, frame, disablePopup, galler
         <>
             <div
                 className={containerClassName}
-                onClick={handleClick}
+                onClick={disablePopup ? undefined : handleClick}
                 onContextMenu={e => { e.preventDefault() }}>
                 <video
                     className={className}
@@ -93,10 +97,12 @@ const ParloVideo = ({ className, containerClassName, frame, disablePopup, galler
                     <source src={frame.path} />
                 </video>
                 <div className="absolute bottom-4 right-4 flex gap-1 items-center text-zinc-200">
-                    <OptionalChildren condition={duration}>
+                    <OptionalChildren condition={duration && !hideDuraion}>
                         <span className="px-2 py-1 bg-black/50 text-sm rounded-md">{duration}</span>
                     </OptionalChildren>
-                    <SourceIconMap extSource={frame.extSource} />
+                    <OptionalChildren condition={!skipSourceIcon}>
+                        <SourceIconMap extSource={frame.extSource} />
+                    </OptionalChildren>
                 </div>
             </div>
             <OptionalChildren condition={!disablePopup}>

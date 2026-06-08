@@ -52,7 +52,7 @@ const Register = ({ email }: { email: string }) => {
             >
                 Next
             </Button>
-            <p className="text-center text-sm text-zinc-500 mt-2">DOB will not appear on your profile.</p>
+            <p className="text-center text-sm ghostColor mt-2">DOB will not appear on your profile.</p>
         </>
     )
 
@@ -88,7 +88,7 @@ const Register = ({ email }: { email: string }) => {
                 </Button>
 
             </Form>
-            <p className="text-center text-sm text-zinc-500 mt-2">You can change them later.</p>
+            <p className="text-center text-sm ghostColor mt-2">You can change them later.</p>
         </>
     )
 

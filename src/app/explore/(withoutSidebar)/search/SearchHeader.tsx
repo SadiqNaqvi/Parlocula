@@ -44,7 +44,7 @@ const SearchHeader = ({ filter }: { filter: string }) => {
                     submit={updateQuery}
                     className="h-10 md:h-12 w-full flex items-center gap-2 pl-2">
 
-                    <SearchIcon className="size-4 text-zinc-500" />
+                    <SearchIcon className="size-4 ghostColor" />
 
                     <Input
                         type="search"

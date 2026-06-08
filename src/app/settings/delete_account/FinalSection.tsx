@@ -42,6 +42,7 @@ const FinalSection = ({ uid, callback }: { uid: string, callback: (passkey: stri
                 <BottomSheet
                     className="primary w-full mt-4 sm:mx-auto sm:w-fit"
                     button="Yes, Deactivate My Account"
+                    buttonTitle="Deactivate"
                 >
                     <div className="my-4">
                         <Form submit={handleDeactivation} schema={schema}>
@@ -68,6 +69,7 @@ const FinalSection = ({ uid, callback }: { uid: string, callback: (passkey: stri
                 <BottomSheet
                     className="primary w-full mt-4 sm:mx-auto sm:w-fit"
                     button="Yes, Delete My Account"
+                    buttonTitle="Delete"
                 >
                     <div className="my-4">
                         <Form submit={handleDeletion} schema={schema}>

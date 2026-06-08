@@ -23,7 +23,7 @@ const ThreadTile = ({ name, poster, _id, member_count, post_count }: MereThread)
                 />
                 <section className="space-y-1">
                     <h3 className="font-semibold line-clamp-1">{name}</h3>
-                    <div className="space-x-2 text-sm text-zinc-500">
+                    <div className="space-x-2 text-sm ghostColor">
                         <OptionalChildren condition={member_count}>
                             <span> {numberConverter(member_count)} Members</span>
                         </OptionalChildren>

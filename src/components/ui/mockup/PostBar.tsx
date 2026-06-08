@@ -19,7 +19,7 @@ const MockupPostBar = ({ username }: { username?: string }) => {
 
             <div className="group-odd:flex flex-col gap-2 md:flex-row-reverse">
                 <section className="space-y-4 my-2 flex-1">
-                    <ul className="flex gap-2 text-sm text-zinc-500">
+                    <ul className="flex gap-2 text-sm ghostColor">
                         {Array(3).fill(0).map((_, i) => (
                             <li key={i} className="h-2 w-10 rounded-md bg-gray60"></li>
                         ))}
@@ -36,7 +36,7 @@ const MockupPostBar = ({ username }: { username?: string }) => {
             </div>
 
             <section className="flex gap-6">
-                <div className="flex gap-2 text-sm text-zinc-500">
+                <div className="flex gap-2 text-sm ghostColor">
 
                     <div className="flex gap-1 items-center">
                         <ThumbUpIcon className="size-4" />
@@ -54,7 +54,7 @@ const MockupPostBar = ({ username }: { username?: string }) => {
                     </div>
                 </div>
 
-                <div className="flex gap-2 text-sm text-zinc-500">
+                <div className="flex gap-2 text-sm ghostColor">
                     <div className="flex gap-1 items-center">
                         <FrameIcon />
                         <span>X</span>

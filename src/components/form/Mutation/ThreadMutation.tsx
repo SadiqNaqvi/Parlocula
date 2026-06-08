@@ -164,7 +164,7 @@ const ThreadMutation = ({ isEditing, defaultValues }: Props) => {
                             className="text-lg xs:text-xl sm:text-2xl"
                             defaultVal={defaultValues?.name}
                         />
-                        <p className="text-sm text-zinc-500">Created by: @{isEditing ? defaultValues.creator : meta?.username || "you"}</p>
+                        <p className="text-sm ghostColor">Created by: @{isEditing ? defaultValues.creator : meta?.username || "you"}</p>
                     </div>
                 </section>
 
@@ -191,11 +191,16 @@ const ThreadMutation = ({ isEditing, defaultValues }: Props) => {
             </section>
 
             <OptionalChildren condition={(linksRef.current?.length || 0) < 5}>
-                <OptionMenu ButtonElement={<AddIcon className="size-5 sm:size-7" />} heading="Attach" className="fixed bottom-4 right-4 p-2 bg-secondary color-primary rounded-full">
+                <OptionMenu
+                    buttonTitle="Attach Links"
+                    ButtonElement={<AddIcon className="size-5 sm:size-7" />}
+                    heading="Attach"
+                    className="fixed bottom-4 right-4 p-2 bg-secondary color-primary rounded-full"
+                >
                     <OptionList
                         onClick={() => linkPromptRef.current?.open()}
                     >
-                        External Links
+                        Links
                     </OptionList>
                 </OptionMenu>
             </OptionalChildren>

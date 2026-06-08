@@ -68,18 +68,18 @@ export const getCurrentUser = async (id: string, cookies?: CookiesType) =>
     cookies,
   });
 
-export const getTrendingPosts = async (p: number) =>
+export const getTrendingPosts = async (p: number, nsfw: boolean) =>
   await ppGetData<AggregatedResponse<MerePost & { score: number }>>({
     url: "post/trending",
-    revalidate: oneDayInSeconds,
-    searchParams: { p }
+    revalidate: 500,
+    searchParams: { p, nsfw }
   })
 
-export const getUserFeed = async (cuid: string, page: number, cookies?: CookiesType) =>
+export const getUserFeed = async (cuid: string, page: number, nsfw: boolean, cookies?: CookiesType) =>
   await ppGetData<AggregatedResponse<MerePost & { score: number }>>({
     url: `private/${cuid}/feed`,
-    revalidate: oneHourInSeconds,
-    searchParams: { p: page },
+    revalidate: 500,
+    searchParams: { p: page, nsfw },
     cookies,
   })
 

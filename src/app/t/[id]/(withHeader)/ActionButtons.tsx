@@ -43,7 +43,7 @@ const RoleBasedActionButtons = ({ role, tid }: { tid: string, role: ThreadMember
                     Reject
                 </Button>
             </div>
-            <p className="text-sm text-zinc-500 col-span-2 sm:col-span-4 text-center">You are invited to become a Manager of this thread.</p>
+            <p className="text-sm ghostColor col-span-2 sm:col-span-4 text-center">You are invited to become a Manager of this thread.</p>
         </>
     )
 
@@ -93,6 +93,7 @@ const JoinButton = ({ thread, uid }: { thread: MereThread, uid?: string }) => {
         return (
             <div className="grid gap-2 grid-cols-2 sm:grid-cols-4">
                 <OptionMenu
+                    buttonTitle="View Options"
                     ButtonElement={<>Joined {state.notification ? <BellIcon className="min-w-4" /> : <BellSlashIcon className="min-w-4" />}</>}
                     className="secondary flex-1 sm:flex-0"
                 >
@@ -115,6 +116,7 @@ const JoinButton = ({ thread, uid }: { thread: MereThread, uid?: string }) => {
 
     return (
         <UserBasedButton
+            buttonTitle="Join thread"
             Button={ResponsiveButton}
             noUserStateChilren="Join"
             noUserStateClassName={className}

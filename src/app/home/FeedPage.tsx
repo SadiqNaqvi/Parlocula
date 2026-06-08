@@ -72,9 +72,9 @@ const FeedCard = ({ post, setViewed }: { post: FeedPost, setViewed: (post: strin
 
 }
 
-const FeedPage = () => {
+const FeedPage = ({ allowNsfw }: { allowNsfw: boolean }) => {
 
-    const { data, isLoading, error, hasNextPage, isFetchingNextPage, fetchNextPage, refetch } = useFeedHook();
+    const { data, isLoading, error, hasNextPage, isFetchingNextPage, fetchNextPage, refetch } = useFeedHook(allowNsfw);
     const viewedMap = useRef(new Map<string, true>());
     const loadingContainerRef = useRef<HTMLDivElement>(null);
     const { dataSaver, meta } = useCurrentUser();

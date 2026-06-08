@@ -21,7 +21,7 @@ const SearchHistorySection = () => {
     if (!stack || !stack.length) return (
         <section className="h-size-screen flex flex-cntr-all flex-col">
             <h3 className="text-lg md:text-2xl uppercase text-center font-semibold mb-2">Search what you like!</h3>
-            <p className="text-sm text-center md:text-base text-zinc-500">Movies, Shows, Threads, People, Users, Collections, Companies, etc...</p>
+            <p className="text-sm text-center md:text-base ghostColor">Movies, Shows, Threads, People, Users, Collections, Companies, etc...</p>
         </section>
     )
 
@@ -40,7 +40,7 @@ const SearchHistorySection = () => {
                             <HistoryIcon />
                             <div>
                                 <h4>{query}</h4>
-                                <p className="text-zinc-500 text-sm text-left">{filter}</p>
+                                <p className="ghostColor text-sm text-left">{filter}</p>
                             </div>
                         </Button>
                         <Button

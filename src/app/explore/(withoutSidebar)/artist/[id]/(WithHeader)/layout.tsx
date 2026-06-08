@@ -51,10 +51,10 @@ const Page = async ({ params, children }: PropsWithChildren<{ params: { id: stri
                 poster={content.profile}
                 title={content.name}
                 frameType="profile"
-                titleSupport={<p className="text-sm md:text-base text-zinc-500">Profession: {content.department}</p>}
+                titleSupport={<p className="text-sm md:text-base ghostColor">Profession: {content.department}</p>}
                 overviewOrBio={content.biography}
                 descriptionSupport={(
-                    <div className="mt-4 space-y-2 text-zinc-500 text-xs md:text-sm">
+                    <div className="mt-4 space-y-2 ghostColor text-xs md:text-sm">
                         <p>
                             Born on: {new Date(content.birth).toDateString()}{" "}
                             <OptionalChildren condition={content.place_of_birth}>

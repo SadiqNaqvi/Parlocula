@@ -53,6 +53,7 @@ const LikeButton = ({ id, likesCount, author, uid }: { id: string, likesCount: n
 
     return (
         <UserBasedButton
+            buttonTitle="Like this comment"
             uid={uid}
             Button={ResponsiveButton}
             noUserStateChilren={<NoUserStateButton count={likesCount} />}

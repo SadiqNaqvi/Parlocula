@@ -140,7 +140,7 @@ const EmailVerifier = ({ callback, navTitle, containerClasses }: Props) => {
                 navTitle="Verify Your Email"
                 onGoBack={() => setter({ page: "email" })} />
 
-            <p className="mb-8 text-center text-sm text-zinc-500">Enter 6 digit verification code that has been sent to your email {email}.</p>
+            <p className="mb-8 text-center text-sm ghostColor">Enter 6 digit verification code that has been sent to your email {email}.</p>
 
             <div className="max-w-80 mx-auto">
                 <OTPInput onSubmit={verifyCode} getterRef={otpRef} />
@@ -158,7 +158,7 @@ const EmailVerifier = ({ callback, navTitle, containerClasses }: Props) => {
 
             <div className="mt-6">
                 <CodeCounter canResend={canResend} func={sendCode} />
-                <p className="mt-4 text-xs text-zinc-500 text-center">Please check spam if you are unable to find the mail or check your email and try again.</p>
+                <p className="mt-4 text-xs ghostColor text-center">Please check spam if you are unable to find the mail or check your email and try again.</p>
             </div>
         </div>
     )

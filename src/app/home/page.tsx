@@ -5,7 +5,6 @@ import { createArray, getQueryKeys } from "@lib/utils";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { ParloPageProps } from "@type/other";
 import { cookies } from "next/headers";
-import { PropsWithChildren } from "react";
 import FeedPage from "./FeedPage";
 
 const HomeFeedPage = async ({ searchParams }: ParloPageProps) => {
@@ -20,14 +19,14 @@ const HomeFeedPage = async ({ searchParams }: ParloPageProps) => {
         createArray<any>(
             prefetchInfiniteQuery({
                 queryClient,
-                queryFn: () => getTrendingPosts(page),
+                queryFn: () => getTrendingPosts(page, !!user?.filterContent),
                 queryKey: getQueryKeys("trendingPosts", {}),
                 initialPageParam: page,
             })
         ).concatConditionally(user, (u) =>
             prefetchInfiniteQuery({
                 queryClient,
-                queryFn: () => getUserFeed(u.user_id, page),
+                queryFn: () => getUserFeed(u.user_id, page, !!user?.filterContent, jar),
                 queryKey: getQueryKeys("curatedPost_uid", { uid: u.user_id }),
                 initialPageParam: page
             })
@@ -36,7 +35,7 @@ const HomeFeedPage = async ({ searchParams }: ParloPageProps) => {
 
     return (
         <HydrationBoundary state={dehydrate(queryClient)}>
-            <FeedPage />
+            <FeedPage allowNsfw={!!user?.filterContent} />
         </HydrationBoundary>
     )
 }

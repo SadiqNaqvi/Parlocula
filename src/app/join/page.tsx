@@ -39,7 +39,7 @@ const Page = () => {
                 callback={handleLogin} />
 
             <div className="mt-6 text-center space-x-2 space-y-2">
-                <p className="inline text-sm text-center text-zinc-500">Feels like someone else is using your account?</p>
+                <p className="inline text-sm text-center ghostColor">Feels like someone else is using your account?</p>
                 <Navigate className="inline text-sm" comp="link" goto="invalidate">Log out everyone</Navigate>
             </div>
         </>

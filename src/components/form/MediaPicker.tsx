@@ -134,7 +134,7 @@ const UploadFromMega = ({ setUrl, goBack }: { setUrl: TypedFunction<string>, goB
 
     const handleSubmit = async ({ url }: { url: string }) => {
         const { success, data, error } = megaFileSchema.safeParse(url);
-        
+
         if (success) setUrl(data);
         else return error.issues[0].message;
     }
@@ -197,7 +197,7 @@ type MegaAndWebResponse = { size: number, mime: "image" | "video", ext: string, 
 const checkMediaLink = async <T,>(url: string, returnBoolean?: boolean): Promise<T | undefined | boolean> => {
 
     const resp = await fetch(url);
-    
+
     const { error, result, success } = await resp.json() as MediaCheckedResponse<T>;
 
     if (resp.ok && success) return returnBoolean ? true : result as T;
@@ -536,7 +536,9 @@ const
                         <BottomSheet
                             ref={promptRef}
                             className="size-60 rounded-md border-dashed border border-gray40 aspect-square backdrop:brightness-50 flex flex-cntr-all"
-                            button={<AddIcon />}>
+                            button={<AddIcon />}
+                            buttonTitle="Add Frame"
+                        >
                             <MediaInputPrompt callback={getframe} type={frameType} />
                         </BottomSheet>
                     </OptionalChildren>

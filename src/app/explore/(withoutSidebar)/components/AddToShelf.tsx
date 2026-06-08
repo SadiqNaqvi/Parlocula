@@ -39,7 +39,11 @@ const AddToShelf = ({ className, taleon, released }: { className?: string, taleo
     }, [data]);
 
     if (!meta || !user) return (
-        <BottomSheet className={className} button="Add To Shelf">
+        <BottomSheet
+            className={className}
+            button="Add To Shelf"
+            buttonTitle="Add To Shelf"
+        >
             <LoginModal
                 skipFullScreen
                 desc={[
@@ -138,7 +142,13 @@ const AddToShelf = ({ className, taleon, released }: { className?: string, taleo
     }
 
     return (
-        <BottomSheet onClose={submit} ref={sheetRef} button="Add To Shelf" className={className}>
+        <BottomSheet
+            onClose={submit}
+            ref={sheetRef}
+            button="Add To Shelf"
+            buttonTitle="Add To Shelf"
+            className={className}
+        >
             <header className="px-2 sticky bottom-0 space-y-2 w-full pb-4 border-b border-gray30">
 
                 <Navigate

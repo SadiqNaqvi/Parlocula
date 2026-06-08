@@ -10,8 +10,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
             changeFrequency: "always",
         },
         {
-            url: `${app_production_url}/app/about`,
-            priority: 0.8,
+            url: `${app_production_url}/join`,
+            priority: 0.9,
+            lastModified: new Date().toISOString(),
         },
         {
             url: `${app_production_url}/thread`,
@@ -22,6 +23,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
             url: `${app_production_url}/shelf`,
             priority: 0.8,
             changeFrequency:"daily",
+        },
+        {
+            url: `${app_production_url}/app/about`,
+            priority: 0.7,
         },
         {
             url: `${app_production_url}/app/privacy_policy`,

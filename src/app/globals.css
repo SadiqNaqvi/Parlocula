@@ -69,6 +69,15 @@ html.dark {
   --secondary-text: var(--light-text);
 }
 
+.ghostColor,
+html.light .ghostColor {
+  color: #4D4D4D;
+}
+
+html.dark .ghostColor {
+  color: #999999;
+}
+
 @layer utilities {
   .bg-gray10 {
     background-color: var(--gray10);

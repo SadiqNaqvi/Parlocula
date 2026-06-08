@@ -63,6 +63,7 @@ const SaveButton = ({ id, count, type, uid, author, className }: Props) => {
 
     return (
         <UserBasedButton
+            buttonTitle="Save"
             uid={uid}
             Loading={<LoadingButton primary={false} />}
             noUserStateChilren={<NoUserStateButton count={count} type={type} />}

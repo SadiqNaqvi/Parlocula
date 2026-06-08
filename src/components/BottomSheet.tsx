@@ -97,6 +97,8 @@ export type BottomSheetProps = PortalProps & {
   button?: React.ReactNode,
   className?: string,
   snapPoints?: (string | number)[],
+  buttonTitle?: string;
+  buttonId?: string;
 }
 
 export type BottomSheetRef = {
@@ -105,7 +107,7 @@ export type BottomSheetRef = {
   toggle: () => void,
 }
 
-export const BottomSheet = forwardRef(({ children, description, title, state, onClose, snapPoints, allowHandle, button, className }: BottomSheetProps, ref) => {
+export const BottomSheet = forwardRef(({ children, description, title, state, onClose, snapPoints, allowHandle, button, className, buttonId, buttonTitle }: BottomSheetProps, ref) => {
 
   const [open, setOpen] = useState<boolean>(false);
   const sheetId = useRef(Math.random().toString(36));
@@ -158,7 +160,13 @@ export const BottomSheet = forwardRef(({ children, description, title, state, on
   return (
     <Root snapPoints={snapPoints} open={open} onClose={handleOnClose}>
       <OptionalChildren condition={button}>
-        <Drawer.Trigger onClick={handleClick} className={className}>
+        <Drawer.Trigger
+          title={buttonTitle}
+          aria-label={buttonTitle}
+          id={buttonId}
+          onClick={handleClick}
+          className={className}
+        >
           {button}
         </Drawer.Trigger>
       </OptionalChildren>

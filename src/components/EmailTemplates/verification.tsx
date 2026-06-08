@@ -55,7 +55,7 @@ const VerifyEmail = ({ code }: { code: number }) => (
                         {/* <Text className='font-semibold text-center text-lg'>Verification code</Text> */}
 
                         <Text className='text-center font-semibold text-3xl mb-2'>{code}</Text>
-                        <Text className='text-center text-zinc-500 mt-0'>
+                        <Text className='text-center ghostColor mt-0'>
                             (This code is valid for 5 minutes)
                         </Text>
                     </Section>
@@ -65,7 +65,7 @@ const VerifyEmail = ({ code }: { code: number }) => (
                             Parlocula will never email you and ask you to disclose or verify your passkey, credit card, or banking account number.
                         </Text>
                     </Section>
-                    <Text className='text-center text-sm text-zinc-500 mb-0'>
+                    <Text className='text-center text-sm ghostColor mb-0'>
                         This message was produced and distributed by Parlocula, a software application of Q-Core Technologies Pvt. Ltd. | All rights reserved.
                     </Text>
                 </Container>

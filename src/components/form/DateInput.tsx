@@ -114,7 +114,7 @@ const DateInput: React.FC<DateInputProps> = ({ defaultVal, onComplete, dateRef }
         autoFocus
       />
 
-      <span className="text-zinc-500">/</span>
+      <span className="ghostColor">/</span>
 
       {/* Month */}
       <input
@@ -131,7 +131,7 @@ const DateInput: React.FC<DateInputProps> = ({ defaultVal, onComplete, dateRef }
         inputMode="numeric"
       />
 
-      <span className="text-zinc-500">/</span>
+      <span className="ghostColor">/</span>
 
       {/* Year */}
       <input

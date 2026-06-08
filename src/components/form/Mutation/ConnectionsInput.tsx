@@ -65,7 +65,12 @@ const ConnectionsInput = ({ defaultConnections, connectionsRef }: { defaultConne
                     </ul>
                 </OptionalChildren>
 
-                <BottomSheet onClose={getConnections} ref={sheetRef} button={<AddIcon />}>
+                <BottomSheet
+                    onClose={getConnections}
+                    ref={sheetRef}
+                    button={<AddIcon />}
+                    buttonTitle="Add Connections"
+                >
                     <section className="p-2 sm:p-4">
                         <ListSelector
                             mode="search"

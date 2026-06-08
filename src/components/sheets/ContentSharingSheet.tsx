@@ -109,7 +109,11 @@ const ContentSharingSheet = ({ children, className, ...props }: PropsWithChildre
     const sheetRef = useRef<BottomSheetRef>(null);
 
     if (!meta) return (
-        <BottomSheet button={children} className={className}>
+        <BottomSheet
+            buttonTitle="Share"
+            button={children}
+            className={className}
+        >
             <section className="space-y-4">
                 <div className="w-full h-24 flex flex-cntr-all">
                     <p>Join Parlocula to send this to your friends.</p>
@@ -120,7 +124,6 @@ const ContentSharingSheet = ({ children, className, ...props }: PropsWithChildre
     )
 
     const handleSelectionStart = (size: number) => {
-        console.log(size);
         setIsSelected(size > 0);
     }
 
@@ -136,9 +139,14 @@ const ContentSharingSheet = ({ children, className, ...props }: PropsWithChildre
         sheetRef.current?.close();
     }
 
-
     return (
-        <BottomSheet ref={sheetRef} onClose={() => setIsSelected(false)} button={children} className={className}>
+        <BottomSheet
+            buttonTitle="Share"
+            ref={sheetRef}
+            onClose={() => setIsSelected(false)}
+            button={children}
+            className={className}
+        >
             <section>
                 <div className="px-2">
                     <ListSelector

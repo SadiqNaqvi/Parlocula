@@ -1,5 +1,6 @@
 import { Ellipsis } from "@assets/Icons";
-import { OptionMenu, WarningModal } from "@components";
+import { OptionMenu } from "@components";
+import { WarningSheet } from "@components/sheets";
 import OptionList, { NestedSheetTrigger } from "@components/ui/OptionList";
 import { blockUserMutation, deleteShelfMutation, updateShelfKeyMutation } from "@lib/helpers/mutations";
 import useCurrentUser from "@store/user";
@@ -33,12 +34,15 @@ const EllipsisButton = ({ author, id, isPrivate }: { author: string, id: string,
 
 
     if (meta.user_id === author) return (
-        <OptionMenu ButtonElement={<Ellipsis />}>
+        <OptionMenu
+            buttonTitle="View Options"
+            ButtonElement={<Ellipsis />}
+        >
 
             <OptionList link={`${id}/edit`}>Edit</OptionList>
 
             <NestedSheetTrigger button="Delete">
-                <WarningModal
+                <WarningSheet
                     action="delete this shelf"
                     dangerButton="Delete"
                     dangerFunc={handleDelete}
@@ -47,7 +51,7 @@ const EllipsisButton = ({ author, id, isPrivate }: { author: string, id: string,
 
             {isPrivate && (
                 <NestedSheetTrigger button="Update your Shelf Key">
-                    <WarningModal
+                    <WarningSheet
                         action="update shelf-key"
                         details="Nobody can view your shelf with the old key anymore."
                         dangerButton="Update"
@@ -60,9 +64,12 @@ const EllipsisButton = ({ author, id, isPrivate }: { author: string, id: string,
     )
 
     return (
-        <OptionMenu ButtonElement={<Ellipsis />}>
+        <OptionMenu
+            buttonTitle="View Options"
+            ButtonElement={<Ellipsis />}
+        >
             <NestedSheetTrigger button="Block User">
-                <WarningModal
+                <WarningSheet
                     action="block the creator of this shelf"
                     dangerButton="Block"
                     dangerFunc={handleBlock}

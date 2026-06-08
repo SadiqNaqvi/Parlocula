@@ -21,7 +21,7 @@ const StatusBanner = () => {
     if (!meta) return null;
 
     if (!isEnabled) return (
-        <section className="px-2 my-4 py-4 space-y-3">
+        <section className="px-2 my-4 py-4 space-y-3 fullScreen mx-2 md:mx-auto">
 
             <h2 className="sm:text-xl">Push Notification is not enabled 😨</h2>
             <p className="text-sm">

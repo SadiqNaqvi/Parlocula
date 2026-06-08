@@ -103,6 +103,7 @@ const ActionButton = ({ rid, uid, username }: Props) => {
         else return (
             <>
                 <OptionMenu
+                    buttonTitle="View Options"
                     sheetRef={sheetRef}
                     ButtonElement={<>Unfollow {notification ? <BellIcon /> : <BellSlashIcon />}</>}
                     className={secondaryButtonClassName}
@@ -118,6 +119,7 @@ const ActionButton = ({ rid, uid, username }: Props) => {
 
     return (
         <UserBasedButton
+            buttonTitle="Follow"
             Button={ResponsiveButton}
             noUserStateChilren="Follow"
             redirectAfterLogin={`/u/${username}`}

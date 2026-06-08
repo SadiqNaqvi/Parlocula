@@ -22,7 +22,7 @@ const DetailsSection = ({ type }: Pick<Props, "type">) => {
     return (
         <section className="py-4">
             <BottomSheet
-                button="A Message for the Managers, Read this before taking any action."
+                state
                 className="mx-auto text-center underline"
             >
                 <div>

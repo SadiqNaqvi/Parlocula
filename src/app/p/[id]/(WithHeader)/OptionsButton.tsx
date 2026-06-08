@@ -1,8 +1,8 @@
 "use client";
 
 import { Ellipsis } from "@assets/Icons";
-import { OptionMenu, WarningModal } from "@components";
-import ReportSheet from "@components/ReportSheet";
+import { OptionMenu } from "@components";
+import { ReportSheet, WarningSheet } from "@components/sheets";
 import OptionList, { NestedSheetTrigger } from "@components/ui/OptionList";
 import { blockUserMutation, deletePostMutation } from "@lib/helpers/mutations";
 import useCurrentUser from "@store/user";
@@ -31,10 +31,13 @@ const OptionsButton = ({ post }: Props) => {
     }
 
     if (meta.user_id === post.user_id) return (
-        <OptionMenu ButtonElement={<Ellipsis />}>
+        <OptionMenu
+            buttonTitle="View Options"
+            ButtonElement={<Ellipsis />}
+        >
             <OptionList link={`${post._id}/edit`}>Edit</OptionList>
             <NestedSheetTrigger button="Delete">
-                <WarningModal
+                <WarningSheet
                     action="delete this post"
                     dangerButton="Delete"
                     dangerFunc={handleDelete}
@@ -45,12 +48,15 @@ const OptionsButton = ({ post }: Props) => {
 
     else return (
         <>
-            <OptionMenu ButtonElement={<Ellipsis />}>
+            <OptionMenu
+                buttonTitle="View Options"
+                ButtonElement={<Ellipsis />}
+            >
                 <NestedSheetTrigger button="Report">
                     <ReportSheet uid={meta.user_id} ext_id={post.thread_id} id={post._id} type="post" />
                 </NestedSheetTrigger>
                 <NestedSheetTrigger button="Block User">
-                    <WarningModal
+                    <WarningSheet
                         action="block the author of this post"
                         dangerButton="Block"
                         dangerFunc={handleBlock}

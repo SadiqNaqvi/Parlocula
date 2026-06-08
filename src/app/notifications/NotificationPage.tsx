@@ -34,6 +34,7 @@ const NotificationPage = () => {
                     Loading={<NotificationPageSkeleton count={12} />}
                     fetchData={(p) => getNotificationsOfUser(meta.user_id, p)}
                     queryKeys={getQueryKeys("notifications_uid", { uid: meta.user_id })}
+                    className="px-2"
                 />
             </section>
         </main>
