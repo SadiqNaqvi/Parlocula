@@ -21,6 +21,8 @@ export const BreadCrumbTile = ({ children, href, onClick, className, title }: Pr
     else if (href) return (
         <li className="group">
             <Navigate
+                aria-label={title}
+                title={title}
                 historyPayload={{ title: typeof children === "string" ? children : undefined }}
                 comp="link"
                 goto={href}

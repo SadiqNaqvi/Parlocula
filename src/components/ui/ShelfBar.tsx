@@ -15,6 +15,8 @@ const ShelfBar = ({ _id, item_count, name, poster, shelfKey, isPrivate, shelf_ty
                 poster,
                 type: "shelf",
             }}
+            title={`Visit ${name} - Shelf`}
+            aria-label={`Visit ${name} - Shelf`}
         >
             <article className="flex items-center gap-2 p-2 sm:px-4">
                 <ShelfPoster iconsClassName="p-2 bg-gray20" name={name} poster={poster} shelf_type={shelf_type} />

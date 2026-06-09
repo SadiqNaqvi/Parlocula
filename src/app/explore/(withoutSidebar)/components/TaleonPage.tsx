@@ -1,12 +1,12 @@
 import { CollectionIcon, CrownIcon, EyesIcon, HeartIcon, StarIcon } from "@assets/Icons";
 import { Navigate } from "@components";
-import { ArtistCard, LinkTile, ParloFooter, VerticleMovieCard } from "@components/ui";
 import { NotFound } from "@components/fallbacks";
+import { ArtistCard, LinkTile, ParloFooter, VerticleMovieCard } from "@components/ui";
 import { checkAndReturn, createArray, makeUrlSafe, numberConverter } from "@lib/utils";
 import { RefinedCast, RefinedMovieData, RefinedShowData } from "@type/external";
 import { FullTaleonType, Link } from "@type/internal";
-import { ConfirmedTaleon, TaleonSchemaType } from "@type/schemas";
-import { AddToShelf, ShowTrailerButton, HorizontalThreadList, TaleonWikiSection, TaleonWikiHeader } from ".";
+import { ConfirmedTaleon } from "@type/schemas";
+import { AddToShelf, HorizontalThreadList, ShowTrailerButton, TaleonWikiHeader, TaleonWikiSection } from ".";
 
 type Props = {
     type: "movie"
@@ -106,31 +106,34 @@ const TaleonPage = ({ content, type }: Props) => {
 
             {type === "show" && (
                 <TaleonWikiSection heading="Seasons">
-                    <div className="flex gap-4 overflow-x-auto pb-2">
+                    <ul className="flex gap-4 overflow-x-auto pb-2">
                         {content.seasons.map(el => (
-                            <VerticleMovieCard
-                                {...el}
-                                key={el.id}
-                                type="show"
-                                redirect={`${content.tmdb_id}/season-${el.season_number}`}
-                                year={new Date(el.release_date).getFullYear()}
-                            />
+                            <li key={el.id}>
+                                <VerticleMovieCard
+                                    {...el}
+                                    type="show"
+                                    redirect={`${content.tmdb_id}/season-${el.season_number}`}
+                                    year={new Date(el.release_date).getFullYear()}
+                                />
+                            </li>
                         ))}
-                    </div>
+                    </ul>
                 </TaleonWikiSection>
             )}
 
             <TaleonWikiSection heading="Top Cast">
-                <div className="overflow-x-auto flex gap-4 pb-2">
+                <ul className="overflow-x-auto flex gap-4 pb-2">
                     {content.cast.map((el: RefinedCast) => (
-                        <ArtistCard
-                            link={`/explore/artist/${el.id}-${makeUrlSafe(el.name)}`}
-                            detail={el.character}
-                            key={el.id}
-                            img={el.poster}
-                            title={el.name} />
+                        <li key={el.id}>
+                            <ArtistCard
+                                link={`/explore/artist/${el.id}-${makeUrlSafe(el.name)}`}
+                                detail={el.character}
+                                img={el.poster}
+                                title={el.name}
+                            />
+                        </li>
                     ))}
-                </div>
+                </ul>
             </TaleonWikiSection>
 
             <TaleonWikiSection heading="Deciding Factors">

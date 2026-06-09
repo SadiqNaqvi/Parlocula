@@ -7,7 +7,7 @@ import Link from "next/link"
 
 const LabelAndIcon = ({ label }: { label: string }) => (
     <div className="flex items-center gap-2 px-2 py-1 bg-gray10 rounded-md border border-gray30 whitespace-nowrap text-nowrap">
-        <span><LinkIcon className="size-4" /></span>
+        <LinkIcon className="size-4" />
         <span>{label}</span>
     </div>
 );

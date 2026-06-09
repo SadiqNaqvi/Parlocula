@@ -1,6 +1,6 @@
 import Navigate from "@components/Navigate";
 import { ShelfItemType } from "@type/internal";
-import ParloImage from "./ParloImage";
+import ParloImage from "./ParloImage/ParloImage";
 import MetadataTile, { MetadataTileContainer } from "./MetaDataTile";
 import { timeAgo } from "@lib/utils";
 

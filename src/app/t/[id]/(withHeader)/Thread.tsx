@@ -59,10 +59,10 @@ const Component = (data: ThreadType, { id, uid, children, filterContent }: Props
 
                     <div className="space-y-2">
                         <h1 data-observe className="selectable text-lg sm:text-xl md:text-2xl line-clamp-2 capitalize font-semibold">{name}</h1>
-                        <p className="text-sm space-x-2">
+                        <h2 className="text-sm space-x-2">
                             <span>Created by</span>
                             <Navigate className="inline underline" comp="link" goto={`/u/${creator}`}>@{creator}</Navigate>
-                        </p>
+                        </h2>
                     </div>
 
                 </section>

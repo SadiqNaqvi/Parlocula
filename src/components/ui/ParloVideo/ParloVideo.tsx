@@ -14,7 +14,7 @@ const isEmbeddingFrame = (source: Frame["extSource"]) => {
     return (source === "youtube" || source === "vimeo")
 }
 
-const iconClassName = "size-6 frameIconShadow text-zinc-200";
+const iconClassName = "size-6 showShadow text-zinc-200";
 
 const SourceIconMap = ({ extSource }: Pick<Frame, "extSource">) => {
     if (extSource === "vimeo")

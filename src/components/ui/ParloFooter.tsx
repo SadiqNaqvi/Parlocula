@@ -6,7 +6,7 @@ const ParloFooter = ({ className }: { className?: string; }) => (
         <div className="mb-4">
             <Monogram className="w-full h-auto text-gray-500 opacity-40 aspect-auto!" />
         </div>
-        <p className="text-center ghostColor text-sm">All Rights Reserved | QCore Technologies 2021</p>
+        <p className="text-center ghostColor text-sm">All Rights Reserved | QCore Technologies {new Date().getFullYear()}</p>
     </footer>
 )
 

@@ -1,0 +1,244 @@
+@import "tailwindcss";
+
+@theme {
+  --breakpoint-xs: 375px;
+  --breakpoint-sm: 480px;
+  --breakpoint-md: 640px;
+  --breakpoint-tablet: 768px;
+}
+
+*:not(.selectable) {
+  user-select: none;
+}
+
+:root {
+  font-size: 1rem;
+  line-height: 1.2;
+
+  color-scheme: light dark;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  --light-primary: #f5f5fa;
+  --light-secondary: #dadae4;
+  --light-text: #213547;
+  --dark-primary: #020514;
+  --dark-secondary: #232430;
+  --dark-text: #f5f5fa;
+
+  --gray10: rgba(128, 128, 128, 0.1);
+  --gray20: rgba(128, 128, 128, 0.2);
+  --gray30: rgba(128, 128, 128, 0.3);
+  --gray40: rgba(128, 128, 128, 0.4);
+  --gray50: rgba(128, 128, 128, 0.5);
+  --gray60: rgba(128, 128, 128, 0.6);
+  --gray80: rgba(128, 128, 128, 0.8);
+
+  --globalRadius: 8px;
+  --borderWidth: 2px;
+  --sidebarWidth: 5rem;
+  --paddingBottom: 2.5rem;
+
+  --primary: var(--light-primary);
+  --primarylight: var(--light-secondary);
+  --primaryText: var(--light-text);
+  --secondary: var(--light-text);
+  --secondary-text: var(--dark-text);
+}
+
+html.light {
+  --primary: var(--light-primary);
+  --primarylight: var(--light-secondary);
+  --primaryText: var(--light-text);
+  --secondary: var(--light-text);
+  --secondary-text: var(--dark-text);
+}
+
+html.dark {
+  --primary: var(--dark-primary);
+  --primarylight: var(--dark-secondary);
+  --primaryText: var(--dark-text);
+  --secondary: var(--dark-text);
+  --secondary-text: var(--light-text);
+}
+
+.ghostColor,
+html.light .ghostColor {
+  color: #4d4d4d;
+}
+
+html.dark .ghostColor {
+  color: #999999;
+}
+
+@layer utilities {
+  .bg-gray10 {
+    background-color: var(--gray10);
+  }
+
+  .bg-gray20 {
+    background-color: var(--gray20);
+  }
+
+  .bg-gray30 {
+    background-color: var(--gray30);
+  }
+
+  .bg-gray40 {
+    background-color: var(--gray40);
+  }
+
+  .bg-gray50 {
+    background-color: var(--gray50);
+  }
+
+  .bg-gray60 {
+    background-color: var(--gray60);
+  }
+
+  .bg-gray80 {
+    background-color: var(--gray80);
+  }
+
+  .bg-primary {
+    background-color: var(--primary);
+    transition:
+      background-color 500ms ease,
+      color 500ms ease;
+  }
+
+  .bg-primarylight {
+    background-color: var(--primarylight);
+    transition:
+      background-color 500ms ease,
+      color 500ms ease;
+  }
+
+  .color-primary {
+    color: var(--primary);
+    transition:
+      background-color 500ms ease,
+      color 500ms ease;
+  }
+
+  .bg-secondary {
+    background-color: var(--secondary);
+    transition:
+      background-color 500ms ease,
+      color 500ms ease;
+  }
+
+  .color-secondary {
+    color: var(--secondary);
+    transition:
+      background-color 500ms ease,
+      color 500ms ease;
+  }
+
+  .border-gray10 {
+    border-color: var(--gray10);
+  }
+
+  .border-gray20 {
+    border-color: var(--gray20);
+  }
+
+  .border-gray30 {
+    border-color: var(--gray30);
+  }
+
+  .border-gray40 {
+    border-color: var(--gray40);
+  }
+
+  .border-gray50 {
+    border-color: var(--gray50);
+  }
+
+  .border-gray60 {
+    border-color: var(--gray60);
+  }
+
+  .border-gray80 {
+    border-color: var(--gray80);
+  }
+
+  .border-primary {
+    border-color: var(--primary);
+  }
+
+  .border-primarylight {
+    border-color: var(--primarylight);
+  }
+
+  .border-invert {
+    border-color: var(--primaryText);
+  }
+
+  .border-secondary {
+    border-color: var(--secondary);
+  }
+
+  .border-radius {
+    border-radius: var(--globalRadius);
+  }
+}
+
+.flex-cntr-all {
+  align-items: center;
+  justify-content: center;
+}
+
+.flex-cntr-between {
+  align-items: center;
+  justify-content: space-between;
+}
+
+.flex-cntr-even {
+  align-items: center;
+  justify-content: space-evenly;
+}
+
+.flex-cntr-around {
+  align-items: center;
+  justify-content: space-around;
+}
+
+.size-screen {
+  height: 100dvh;
+  width: 100dvw;
+}
+
+.w-stretch {
+  width: -moz-available;
+  width: -webkit-fill-available;
+  width: fill-available;
+  width: stretch;
+}
+
+.h-stretch {
+  height: -moz-available;
+  height: -webkit-fill-available;
+  height: fill-available;
+  height: stretch;
+}
+
+.size-stretch {
+  height: stretch;
+  width: stretch;
+}
+
+.h-size-screen {
+  height: calc(100dvh - var(--paddingBottom));
+}
+
+.h-size-screen .h-size-screen {
+  height: unset;
+}
+
+main:has(nav) .h-size-screen {
+  height: calc(100dvh - 60px - var(--paddingBottom));
+}

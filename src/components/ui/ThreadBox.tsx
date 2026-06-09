@@ -1,7 +1,7 @@
 import Navigate from "@components/Navigate";
 import { makeUrlSafe } from "@lib/utils";
 import { MereThread } from "@type/internal";
-import ParloImage from "./ParloImage";
+import ParloImage from "./ParloImage/ParloImage";
 
 const ThreadBox = ({ _id, name, poster }: MereThread) => (
     <article className="size-24" key={_id}>

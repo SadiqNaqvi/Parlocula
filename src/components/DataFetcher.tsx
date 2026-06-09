@@ -66,7 +66,7 @@ const DataFetcher = <T extends AllowedFunctionsForHorizontalList>({ func, args, 
         }
     }, []);
 
-    const fetchDataWithNew = async (): Promise<GeneralGetReturn> => {
+    const queryFn = async (): Promise<GeneralGetReturn> => {
         const functionToFetch = funcMap[func] as (...args: any) => any;
 
         const response = await functionToFetch(...args);
@@ -86,7 +86,7 @@ const DataFetcher = <T extends AllowedFunctionsForHorizontalList>({ func, args, 
     const { refetch, isRefetching, isFetching, error, data } = useQueryHook<RefinedGeneralData[]>({
         enabled: isVisible,
         queryKeys: querykeys,
-        queryFn: fetchDataWithNew,
+        queryFn,
     });
 
     if (!isVisible) return (
@@ -113,11 +113,13 @@ const DataFetcher = <T extends AllowedFunctionsForHorizontalList>({ func, args, 
         )
 
     return (
-        <div className={twMerge("flex gap-4 pb-2 overflow-x-auto", className)}>
+        <ul className={twMerge("flex gap-4 pb-2 overflow-x-auto", className)}>
             {data.slice(0, 20).map((content: RefinedGeneralData) => (
-                <VerticleMovieCard {...content} key={content.id} />
+                <li key={content.id}>
+                    <VerticleMovieCard {...content} />
+                </li>
             ))}
-        </div>
+        </ul>
     )
 }
 

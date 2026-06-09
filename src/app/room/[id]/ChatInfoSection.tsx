@@ -62,7 +62,7 @@ const LeaveRoomButton = ({ rmid, uid }: Props) => {
                     <span>Leave</span>
                 </>
             )}
-            className="p-2 flex gap-2 flex-col border border-gray40 rounded-md"
+            className="p-2 flex gap-2 flex-1 flex-col border border-gray40 rounded-md"
         >
             <WarningSheet
                 action="leave this room"
@@ -86,7 +86,7 @@ const HideRoomButton = ({ rmid, uid }: Props) => {
             id="room-hide-button"
             title="Hide Room"
             onClick={handleHide}
-            className="p-2 flex flex-col gap-2 border border-gray40 rounded-md"
+            className="p-2 flex flex-1 flex-col gap-2 border border-gray40 rounded-md"
         >
             <EyeSlashIcon />
             <span>Hide</span>
@@ -102,7 +102,7 @@ const ActionSection = ({ display_name, mute, type, _id, uid }: Pick<FullRoomType
             <Navigate
                 goto={`/u/${display_name}`}
                 comp="link"
-                className="p-2 flex gap-2 flex-1 sm:w-fit border border-gray40 rounded-md"
+                className="p-2 flex flex-col gap-2 flex-1 sm:w-fit border border-gray40 rounded-md"
             >
                 <UserIcon />
                 <span className="text-sm">Profile</span>
@@ -128,7 +128,7 @@ const ChatInfoSection = ({ room, uid, children }: PropsWithChildren<{ room: Full
             button={children}
             buttonTitle="View Details"
         >
-            <div className="w-full px-2 pb-4 space-y-4">
+            <div className="w-full px-2 pb-4 space-y-4 mb-4">
                 <section className="flex flex-cntr-all w-full gap-4">
                     <ParloImage
                         frameType="userProfile"
@@ -140,7 +140,7 @@ const ChatInfoSection = ({ room, uid, children }: PropsWithChildren<{ room: Full
                         alt={`Poster of room ${room.display_name}`}
                     />
                     <div>
-                        <h1 className="text-xl">{room.display_name}</h1>
+                        <h1 className="text-lg">{room.display_name}</h1>
                         <OptionalChildren condition={room.createdAt}>
                             <p className="ghostColor text-xs sm:text-sm">
                                 Created At: {new Date(room.createdAt).toDateString()}

@@ -2,7 +2,7 @@ import Navigate from "@components/Navigate";
 import { makeUrlSafe } from "@lib/utils";
 import { RefinedGeneralData } from "@type/external";
 import { twMerge } from "tailwind-merge";
-import ParloImage from "./ParloImage";
+import ParloImage from "./ParloImage/ParloImage";
 
 export default function VerticleMovieCard({ id, type, poster, title, year, rating, redirect, className }: RefinedGeneralData & { redirect?: string, className?: string }) {
     const link = redirect ?? `/explore/${type}/${id}-${makeUrlSafe(title)}`;

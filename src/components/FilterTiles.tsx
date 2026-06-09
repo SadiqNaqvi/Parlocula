@@ -41,7 +41,7 @@ const FilterTiles = ({ type, className, filters, onActive, containerClassName }:
                 <li
                     key={id}
                     onClick={() => updateFilter(id)}
-                    className={twMerge("py-2 px-3 bg-gray20 rounded-2xl pointer text-sm capitalize min-w-fit", currentFilter === id ? onActive ?? "bg-secondary color-primary" : "", className)}>
+                    className={twMerge("py-2 px-3 bg-gray20 rounded-2xl cursor-pointer text-sm capitalize min-w-fit", currentFilter === id ? onActive ?? "bg-secondary color-primary" : "", className)}>
                     {label.replaceAll('_', ' ')}
                 </li>
             ))}

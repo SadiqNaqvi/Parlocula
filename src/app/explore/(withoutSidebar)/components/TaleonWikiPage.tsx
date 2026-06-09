@@ -31,7 +31,7 @@ const TaleonWikiHeader = ({ className, posterClassName, title, frameType, titleT
             <OptionalChildren condition={backdrop}>
                 <section className="w-full">
                     <ParloImage
-                        fancyGallery="backdrop for the wiki"
+                        fancyGallery
                         fileNameToDownload={`Cover Image of ${title} - Parlocula`}
                         frameType="backdrop"
                         containerClassName="w-full"
@@ -42,7 +42,7 @@ const TaleonWikiHeader = ({ className, posterClassName, title, frameType, titleT
                             { maxScreenWidth: 768, imageWidth: "100vw" },
                             { imageWidth: 768 },
                         ]}
-                        className={twMerge("w-full rounded-md aspect-video h-auto max-h-[250px] object-cover object-top")}
+                        className={twMerge("w-full rounded-md aspect-video h-auto max-h-64 object-cover object-top")}
                         alt={`Cover Image of ${title}`}
                         frame={backdrop}
                     />
@@ -57,13 +57,14 @@ const TaleonWikiHeader = ({ className, posterClassName, title, frameType, titleT
                     width={160}
                     prioritize
                     className={twMerge("object-cover min-w-24 size-24 sm:min-w-40 sm:size-40 rounded-full", backdrop ? "absolute -translate-y-[50%] top-0 border-4 border-primary" : '', posterClassName)}
+                    containerClassName="overflow-visible static"
                     alt={`Poster Image of ${title}`}
                     frame={poster}
                     sizes={[
                         { maxScreenWidth: 480, imageWidth: 96 },
                         { imageWidth: 160 },
                     ]}
-                    fancyGallery="taleon_poster"
+                    fancyGallery
                     fileNameToDownload={`Poster of ${title} - Parlocula`}
                 />
 

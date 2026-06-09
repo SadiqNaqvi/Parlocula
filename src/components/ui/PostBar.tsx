@@ -17,7 +17,10 @@ const PostbarBreadCrumbs = ({ poster, profile, thread_id, thread_name, username,
 
     if (!section || section === "all") return (
         <div className="flex gap-3 items-center">
-            <Navigate comp="link" goto={`/u/${username}`}>
+            <Navigate
+                aria-label={`Visit @${username} profile`}
+                title={`Visit @${username} profile`}
+                comp="link" goto={`/u/${username}`}>
                 <ParloImage
                     frameType="userProfile"
                     frame={profile}
@@ -29,14 +32,26 @@ const PostbarBreadCrumbs = ({ poster, profile, thread_id, thread_name, username,
             </Navigate>
 
             <BreadCrumbs>
-                <BreadCrumbTile href={`/t/${thread_id}`}>Thread</BreadCrumbTile>
-                <BreadCrumbTile href={`/u/${username}`}>{username}</BreadCrumbTile>
+                <BreadCrumbTile
+                    title={`Visit ${thread_name}`}
+                    href={`/t/${thread_id}`}>
+                    {thread_name}
+                </BreadCrumbTile>
+                <BreadCrumbTile
+                    title={`Visit ${username}`}
+                    href={`/u/${username}`}>
+                    {username}
+                </BreadCrumbTile>
             </BreadCrumbs>
         </div>
     )
 
     else if (section === "thread") return (
-        <Navigate comp="link" goto={`/u/${username}`} className="flex gap-3 items-center">
+        <Navigate
+            comp="link"
+            goto={`/u/${username}`}
+            className="flex gap-3 items-center"
+        >
             <ParloImage
                 frameType="userProfile"
                 frame={username ? profile : undefined}
@@ -51,7 +66,10 @@ const PostbarBreadCrumbs = ({ poster, profile, thread_id, thread_name, username,
     )
 
     return (
-        <Navigate comp="link" goto={`/t/${thread_id}`} className="flex gap-3 items-center">
+        <Navigate
+            aria-label={`Visit ${thread_name}`}
+            title={`Visit ${thread_name}`}
+            comp="link" goto={`/t/${thread_id}`} className="flex gap-3 items-center">
             <ParloImage
                 frameType="groupPoster"
                 frame={poster}
@@ -147,12 +165,14 @@ const PostBar = (props: Props & MerePost) => {
             <FrameSlider className="my-3" id={props._id} frames={props.frames || []} />
 
             <Navigate
-            historyPayload={{
+                historyPayload={{
                     title: props.title.slice(0, 50).concat('...'),
                     poster: props.additional?.section === "user" ? props.poster : props.profile,
                     image: props.frames?.[0],
                     type: "post",
                 }}
+                title={`Visit this post by ${props.username}`}
+                aria-label={`Visit this post by ${props.username}`}
                 role="button"
                 comp="link"
                 goto={`/p/${props._id}-${makeUrlSafe(props.title)}`}

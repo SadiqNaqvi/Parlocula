@@ -1,0 +1,65 @@
+
+.fancybox__content {
+  padding: 0 !important;
+  background: inherit !important;
+  color: inherit !important;
+}
+
+.fancybox__backdrop {
+  background-color: transparent !important;
+  backdrop-filter: blur(8px) brightness(0.8);
+}
+
+.f-carousel:not(:has(.f-carousel__dots)) {
+  flex-direction: row;
+  gap: 8px;
+  overflow: hidden;
+}
+
+.f-carousel:not(:has(.f-carousel__dots)) .f-carousel__slide {
+  height: auto;
+  min-width: 100%;
+}
+
+.f-button.is-arrow {
+  z-index: 1 !important;
+}
+
+@media screen and (width> 480px) {
+  .f-carousel {
+
+    --f-arrow-pos: 10px;
+
+    --f-arrow-width: 38px;
+    --f-arrow-height: 38px;
+
+    --f-arrow-svg-width: 16px;
+    --f-arrow-svg-height: 16px;
+    --f-arrow-svg-stroke-width: 2.5;
+
+    --f-arrow-color: #475569;
+    --f-arrow-shadow:
+      0 6px 12px -2px rgb(50 50 93 / 25%), 0 3px 7px -3px rgb(0 0 0 / 30%);
+
+    --f-arrow-border-radius: 50%;
+    --f-arrow-bg: #fff;
+    --f-arrow-hover-bg: #f9f9f9;
+    --f-arrow-active-bg: #f0f0f0;
+  }
+
+  .f-carousel:not(:has(.f-carousel__dots)) .f-carousel__slide {
+    height: 240px;
+    min-width: 240px;
+  }
+}
+
+@media screen and (width< 480px) {
+  .f-carousel {
+    --f-arrow-width: 0;
+    --f-arrow-height: 0;
+  }
+}
+
+.f-html {
+  padding: 0 !important;
+}

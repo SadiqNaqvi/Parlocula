@@ -10,7 +10,7 @@ const Choice = ({ label, name, description, type = "checkbox", group, ...args }:
         <label
             {...args}
             htmlFor={name}
-            className="px-4 py-2 pointer border-2 border-gray30 has-checked:border-(--secondary) rounded-full text-sm relative"
+            className="px-4 py-2 cursor-pointer border-2 border-gray30 has-checked:border-(--secondary) rounded-full text-sm relative"
         >
             {label}
             <input

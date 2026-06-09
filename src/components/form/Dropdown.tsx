@@ -1,4 +1,4 @@
-import "@assets/styles/select.css";
+import "@styles/select.css";
 import { OptionalChildren } from "@components/ui";
 import { useFormContext } from "react-hook-form";
 import { twMerge } from "tailwind-merge";

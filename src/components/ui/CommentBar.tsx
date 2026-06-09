@@ -41,7 +41,12 @@ const ParentCommentBar = ({ parentComment }: { parentComment: ReplyInputType | u
     if (!content && attachment) return (
         <Navigate
             className="block my-1 p-2 border border-gray20 rounded-md w-full"
-            comp="link" type="button" goto={`/c/${replied_to}`}>
+            comp="link"
+            type="button"
+            goto={`/c/${replied_to}`}
+            title="Visit Parent Comment"
+            aria-label="Visit Parent Comment"
+        >
             <p className="mb-1 text-xs sm:text-sm ghostColor">Replied to:</p>
             <div className="w-full">
                 <Image
@@ -59,6 +64,8 @@ const ParentCommentBar = ({ parentComment }: { parentComment: ReplyInputType | u
     else if (content)
         return (
             <Navigate
+                title="Visit Parent Comment"
+                aria-label="Visit Parent Comment"
                 className="block my-1 p-2 border border-gray20 rounded-md w-full"
                 comp="link" type="button" goto={`/c/${replied_to}`}>
                 <p className="mb-1 text-xs sm:text-sm ghostColor">Replied to:</p>
@@ -89,6 +96,8 @@ const CommentHeader = ({ profile, username, createdAt, edited_at, nsfw, spoiler 
                         poster: profile,
                         type: "user",
                     }}
+                    title={`Visit @${username}`}
+                    aria-label={`Visit @${username}`}
                     comp="link"
                     role="button"
                     goto={`/u/${username}`}
@@ -188,6 +197,8 @@ const CommentBar = (props: Props) => {
                         image: attachment,
                         type: "comment",
                     }}
+                    title={`Visit this comment by ${props.username}`}
+                    aria-label={`Visit this comment by ${props.username}`}
                     status={status}
                     link={`/c/${_id}`}
                     className="space-y-4 my-2"

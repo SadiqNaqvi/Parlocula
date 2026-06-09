@@ -98,7 +98,7 @@ export const ListSelectorBar = ({ disable, checked, poster, frameType, className
         >
             <label
                 htmlFor={id}
-                className={twMerge("inline-flex flex-cntr-between w-full capitalize py-2 pointer", disable ? "brightness-50" : '', className)}
+                className={twMerge("inline-flex flex-cntr-between w-full capitalize py-2 cursor-pointer", disable ? "brightness-50" : '', className)}
             >
 
                 <input

@@ -20,19 +20,12 @@ const robots = (): MetadataRoute.Robots => {
                 "/collaborate/",
                 "/invited/",
                 "/private/",
-                "/shelf/public/",
                 "/created/",
                 "/joined/",
                 "/manages/",
             ],
         },
-        sitemap: [
-            "https://parlocula.vercel.app/sitemaps/posts/sitemap.xml",
-            "https://parlocula.vercel.app/sitemaps/users/sitemap.xml",
-            "https://parlocula.vercel.app/sitemaps/shelves/sitemap.xml",
-            "https://parlocula.vercel.app/sitemaps/threads/sitemap.xml",
-            "https://parlocula.vercel.app/sitemaps/taleons/sitemap.xml",
-        ],
+        sitemap: "https://parlocula.vercel.app/sitemap.xml",
     };
 }
 

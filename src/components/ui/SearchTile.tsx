@@ -2,7 +2,7 @@ import { makeUrlSafe } from "@lib/utils";
 import { RefinedSearchData } from "@type/external";
 import { twMerge } from "tailwind-merge";
 import Navigate from "../Navigate";
-import ParloImage from "./ParloImage";
+import ParloImage from "./ParloImage/ParloImage";
 
 export default function SearchTile({ id, image, media_type, name }: RefinedSearchData) {
 

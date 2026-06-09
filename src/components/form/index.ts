@@ -1,3 +1,5 @@
+import "@styles/form.css";
+
 export { default as Form, type FormSubmitReturnType } from "./Form";
 export { default as Input } from "./Input";
 export { default as Textarea } from "./Textarea";

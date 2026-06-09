@@ -1,8 +1,8 @@
 import { Navigate } from "@components";
 import { Frame, MereFrame } from "@type/internal";
 import OptionalChildren from "./OptionalChildren";
-import ParloImage from "./ParloImage";
-import ParloVideo from "./MinimalVideoPlayer/ParloVideo";
+import ParloImage from "./ParloImage/ParloImage";
+import ParloVideo from "./ParloVideo/ParloVideo";
 
 const RenderFrame = ({ title, ...frame }: Frame & { title: string }) => {
 

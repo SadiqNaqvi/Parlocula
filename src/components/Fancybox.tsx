@@ -4,6 +4,7 @@ import React, { useEffect } from "react";
 
 import { Fancybox as NativeFancybox } from "@fancyapps/ui";
 import "@fancyapps/ui/dist/fancybox/fancybox.css";
+import "@styles/fancybox.css";
 
 const Fancybox = ({ children }: { children: React.ReactNode }) => {
 

@@ -57,7 +57,9 @@ const FeedCard = ({ post, setViewed }: { post: FeedPost, setViewed: (post: strin
                 <h3 className="font-semibold text-sm uppercase mb-2">{post.title}</h3>
                 <ul className="flex w-full overflow-x-auto noScroll gap-2">
                     {post.data.map(content => (
-                        <VerticleMovieCard key={content.id} {...content} />
+                        <li key={content.id} className="contents">
+                            <VerticleMovieCard {...content} />
+                        </li>
                     ))}
                 </ul>
             </article>

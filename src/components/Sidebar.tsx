@@ -16,7 +16,12 @@ const ProfileButton = () => {
 
     if (!meta) return (
         <div className={`rounded-full border-2 ${pathname.startsWith(`/guest`) ? "border-secondary" : "border-gray-500"}`}>
-            <Navigate comp="link" goto="/guest">
+            <Navigate
+                aria-label="Guest Profile"
+                title="Guest Profile"
+                comp="link"
+                goto="/guest"
+            >
                 <UserWithoutCircleIcon className="m-2.5 size-4 md:size-5" />
             </Navigate>
         </div>
@@ -24,7 +29,12 @@ const ProfileButton = () => {
 
     return (
         <div className={`rounded-full border-2 ${pathname.startsWith(`/u/${meta.username}`) ? "border-secondary" : "border-gray-500"}`}>
-            <Navigate comp="link" goto={`/u/${meta.username}`}>
+            <Navigate
+                aria-label="Visit Your Profile"
+                title="Your Profile"
+                comp="link"
+                goto={`/u/${meta.username}`}
+            >
                 <ParloImage
                     frameType="userProfile"
                     alt="Profile picture of the Current User"
@@ -61,6 +71,8 @@ const SidebarButton = ({ href, label, pathname, ActiveIcon, children, className,
     if (href && typeof pathname === "string") return (
         <li title={label} key={label} className={twMerge(defaultButtonClasses, className)}>
             <Navigate
+                aria-label={label}
+                title={label}
                 comp="link" goto={href}
                 className={`flex flex-cntr-all transition-colors p-2 rounded-md border ${pathname.startsWith(href) ? "color-secondary bg-gray10 border-gray30" : "bg-transparent border-transparent"}`}
             >
@@ -74,7 +86,7 @@ const SidebarButton = ({ href, label, pathname, ActiveIcon, children, className,
     )
 
     return (
-        <li title={label} key={label} className={twMerge(defaultButtonClasses, className)}>
+        <li key={label} className={twMerge(defaultButtonClasses, className)}>
             <OptionalChildren condition={!skipButtonWrapping} fallback={children}>
                 <Button
                     id={`sidebar-button-for-${label}`}

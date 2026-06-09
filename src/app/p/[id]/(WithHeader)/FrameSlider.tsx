@@ -2,7 +2,7 @@
 
 import FancyCarousel from "@components/FancyCarousel";
 import { ParloVideo } from "@components/ui";
-import ParloImage from "@components/ui/ParloImage";
+import ParloImage from "@components/ui/ParloImage/ParloImage";
 import { getPoster } from "@lib/utils";
 import { Frame } from "@type/internal";
 
@@ -52,7 +52,7 @@ const FrameSlider = ({ frames, disablePopping, className }: { frames: Frame[], i
     return (
         <FancyCarousel className={className}>
             {frames.map((frame, ind) => (
-                <li
+                <div
                     className="f-carousel__slide"
                     key={frame.path}
                 >
@@ -61,7 +61,7 @@ const FrameSlider = ({ frames, disablePopping, className }: { frames: Frame[], i
                         disablePopping={disablePopping}
                         {...frame}
                     />
-                </li>
+                </div>
             ))}
         </FancyCarousel>
     )

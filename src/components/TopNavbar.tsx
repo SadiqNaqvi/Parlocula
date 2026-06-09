@@ -10,20 +10,26 @@ type TopNavbarProps = PropsWithChildren<{
     className?: string;
     heading?: string;
     headingClassName?: string;
+    useH1?: boolean;
 }>
 
-export const TopNavbar = ({ className, children, heading, headingClassName }: TopNavbarProps) => (
-    <nav className={twMerge("fullScreen sticky z-3 top-0 p-2 border-b border-gray10 flex flex-cntr-between bg-primary", className)}>
+export const TopNavbar = ({ className, children, heading, headingClassName, useH1 }: TopNavbarProps) => (
+    <nav className={twMerge("fullScreen sticky z-5 top-0 p-2 border-b border-gray10 flex flex-cntr-between bg-primary", className)}>
         <div>
             <OptionalChildren condition={heading} fallback={(
                 <AppIcon className="size-6 overflow-visible" />
             )}>
-                <h2 className={twMerge("text-lg", headingClassName)}>{heading}</h2>
+                <OptionalChildren condition={useH1} fallback={(
+                    <h2 className={twMerge("text-lg", headingClassName)}>{heading}</h2>
+                )}>
+                    <h1 className={twMerge("text-lg", headingClassName)}>{heading}</h1>
+
+                </OptionalChildren>
             </OptionalChildren>
         </div>
         {children}
     </nav>
-)
+);
 
 const addButtonClasses = "size-[70px] flex gap-2 flex-cntr-all flex-col bg-primary rounded-md border border-gray40"
 
@@ -39,15 +45,36 @@ const AddButton = ({ className }: { className?: string }) => {
                 <h3 className="text-center font-semibold">Start Creating Now</h3>
 
                 <div className="flex gap-4 mt-4 mx-auto w-fit">
-                    <Navigate comp="link" type="button" goto="/new/post" className={addButtonClasses}>
+                    <Navigate
+                        aria-label="Create New Post"
+                        title="Create New Post"
+                        comp="link"
+                        type="button"
+                        goto="/new/post"
+                        className={addButtonClasses}
+                    >
                         <PostIcon className="size-6 mx-auto" />
                         <p className="text-sm ghostColor">Post</p>
                     </Navigate>
-                    <Navigate comp="link" type="button" goto="/new/thread" className={addButtonClasses}>
+                    <Navigate
+                        aria-label="Create New Thread"
+                        title="Create New Thread"
+                        comp="link"
+                        type="button"
+                        goto="/new/thread"
+                        className={addButtonClasses}
+                    >
                         <GroupIcon className="size-6 mx-auto" />
                         <p className="text-sm ghostColor">Thread</p>
                     </Navigate>
-                    <Navigate comp="link" type="button" goto="/new/shelf" className={addButtonClasses}>
+                    <Navigate
+                        aria-label="Create New Shelf"
+                        title="Create New Shelf"
+                        comp="link"
+                        type="button"
+                        goto="/new/shelf"
+                        className={addButtonClasses}
+                    >
                         <ShelfIcon className="size-5 mx-auto" />
                         <p className="text-sm ghostColor">Shelf</p>
                     </Navigate>
@@ -59,7 +86,7 @@ const AddButton = ({ className }: { className?: string }) => {
 }
 
 export const HomeNavbar = () => (
-    <nav className={"fullScreen sticky z-3 top-0 p-2 border-b border-gray10 flex flex-cntr-between bg-primary"}>
+    <nav className={"fullScreen sticky z-5 top-0 p-2 border-b border-gray10 flex flex-cntr-between bg-primary"}>
         <div>
             <AppIcon className="size-6 overflow-visible md:hidden" />
             <h1 className="text-lg hidden md:inline">Parlocula</h1>
@@ -67,29 +94,48 @@ export const HomeNavbar = () => (
         <div className="flex">
             <AddButton />
 
-            <Navigate comp="link" className="p-2 md:hidden" goto="/notifications">
+            <Navigate
+                aria-label="View Notifications"
+                title="Notifications"
+                comp="link"
+                className="p-2 md:hidden"
+                goto="/notifications"
+            >
                 <NotificationButton />
             </Navigate>
 
-            <Navigate comp="link" className="p-2 md:hidden" goto="/room">
+            <Navigate
+                aria-label="View Messages"
+                title="Messages"
+                comp="link"
+                className="p-2 md:hidden"
+                goto="/room"
+            >
                 <MessagesIcon />
             </Navigate>
         </div>
     </nav>
-)
+);
 
 const tileButtonClassnames = "p-2 rounded-md border border-gray10 flex flex-cntr-between"
 
 export const ThreadNavbar = () => (
-    <TopNavbar heading="Threads">
+    <TopNavbar heading="Threads" useH1>
         <div className="flex">
 
-            <Navigate comp="link" className="p-2" goto="/new/thread" >
+            <Navigate
+                aria-label="Create New Thread"
+                title="Create New Thread"
+                comp="link"
+                className="p-2"
+                goto="/new/thread"
+            >
                 <AddIcon />
             </Navigate>
 
             <BottomSheet
-                className="p-2" button={<HamburgerIcon />}
+                className="p-2"
+                button={<HamburgerIcon />}
                 buttonTitle="Create Thread"
             >
                 <section className="px-2 space-y-2">
@@ -118,13 +164,19 @@ export const ThreadNavbar = () => (
             </BottomSheet>
         </div>
     </TopNavbar>
-)
+);
 
 export const ShelfNavbar = () => (
-    <TopNavbar heading="Shelf">
+    <TopNavbar heading="Shelf" useH1>
         <div className="flex">
 
-            <Navigate comp="link" className="p-2" goto="/new/shelf" >
+            <Navigate
+                aria-label="View Your Shelves"
+                title="View Your Shelves"
+                comp="link"
+                className="p-2"
+                goto="/new/shelf"
+            >
                 <AddIcon />
             </Navigate>
 
@@ -173,7 +225,7 @@ export const ShelfNavbar = () => (
             </BottomSheet>
         </div>
     </TopNavbar>
-)
+);
 
 export const ProfileNavbar = ({ username }: { username: string }) => (
     <TopNavbar heading="Profile">
@@ -186,9 +238,16 @@ export const ProfileNavbar = ({ username }: { username: string }) => (
                 className="p-2"
             />
 
-            <Navigate comp="link" className="p-2" goto="/settings" type="button">
+            <Navigate
+                aria-label="Visit Settings"
+                title="Settings"
+                comp="link"
+                className="p-2"
+                goto="/settings"
+                type="button"
+            >
                 <HamburgerIcon />
             </Navigate>
         </div>
     </TopNavbar>
-)
+);

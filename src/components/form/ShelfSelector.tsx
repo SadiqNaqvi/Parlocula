@@ -18,7 +18,7 @@ const ShelfSelector = (props: ShelfSelectorProps) => {
     return (
         <label
             htmlFor={_id}
-            className={twMerge(`inline-flex ${disabled ? "brightness-50" : ""} flex-cntr-between w-full capitalize px-4 py-2 pointer`, className)}
+            className={twMerge(`inline-flex ${disabled ? "brightness-50" : ""} flex-cntr-between w-full capitalize px-4 py-2 cursor-pointer`, className)}
             onClick={() => onClick({ _id, shelf_type })}
         >
             <input

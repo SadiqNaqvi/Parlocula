@@ -2,7 +2,6 @@
 
 import { useEffect, useRef } from 'react';
 
-import "@/app/globals.css"
 import { Carousel as NativeCarousel, type CarouselOptions } from '@fancyapps/ui';
 import '@fancyapps/ui/dist/carousel/carousel.css';
 
@@ -40,9 +39,9 @@ const Carousel = ({ children, className }: { children: React.ReactNode, classNam
     }, []);
 
     return (
-        <ul className={twMerge("f-carousel", className)} ref={containerRef}>
+        <div className={twMerge("f-carousel", className)} ref={containerRef}>
             {children}
-        </ul>
+        </div>
     );
 }
 

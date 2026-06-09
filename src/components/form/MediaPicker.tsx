@@ -426,7 +426,7 @@ export const MediaInputPrompt = ({ type, callback }: { type: "image" | "both", c
             </div>
             <div className="mt-8 space-y-2">
                 <h4 className="parloHeading">Device Upload</h4>
-                <div className="relative pointer">
+                <div className="relative cursor-pointer">
 
                     <Button
                         id="device-frame-upload"

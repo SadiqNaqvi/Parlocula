@@ -1,6 +1,5 @@
 "use client";
 
-import "@/app/globals.css";
 import { Sidebar } from "@components";
 import { ShowError } from "@components/fallbacks";
 import { Metadata } from "next";

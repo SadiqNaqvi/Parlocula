@@ -178,6 +178,9 @@ const generateDynamicMetadata = (config: Partial<ParloMetadata>, root?: boolean)
             ]
         },
         manifest: "/manifest.json",
+        verification: {
+            google: "X7wLjElVSSkEDTG5XIb7-u1ZTenE_gW4wuqn4rlHEJI",
+        }
     };
 }
 

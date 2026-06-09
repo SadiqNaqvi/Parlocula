@@ -1,7 +1,7 @@
 import { CollectionIcon, EyeIcon, EyesIcon, HeartIcon, StarIcon } from "@assets/Icons";
 import { AllShelves } from "@type/models";
 import { twMerge } from "tailwind-merge";
-import ParloImage from "./ParloImage";
+import ParloImage from "./ParloImage/ParloImage";
 
 export const ShelfPosterIcons = ({ type, className }: { type: AllShelves, className?: string }) => {
 

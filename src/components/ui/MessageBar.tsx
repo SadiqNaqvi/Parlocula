@@ -52,7 +52,7 @@ const MessageBar = ({ nextMsgAuthor, prevMsgAuthor, otherParticipantSeenAt, cuid
             <OptionalChildren condition={prevMsgAuthor !== user_id && room_type === "group"}>
                 <p className="mb-1 text-sm">{currentAuthor ? "You" : username}</p>
             </OptionalChildren>
-            <div>
+            <div className={message.sharedContent ? "mt-2" : undefined}>
                 <OptionalChildren condition={replied_content && replied_to}>
                     <Link href={`#${replied_to}`} className="no-underline">
                         <div className={`${currentAuthor ? "ml-auto" : "mr-auto"} p-2 line-clamp-2 rounded-md rounded-b-none w-fit text-sm border border-b-0 border-gray20`}>

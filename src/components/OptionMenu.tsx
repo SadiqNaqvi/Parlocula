@@ -23,7 +23,7 @@ const OptionMenu = ({ children, heading, controls = "auto", ButtonElement, sheet
                         <h6 className="parloHeading">{heading}</h6>
                     </OptionalChildren>
                     <OptionalChildren condition={controls === "manual"}>
-                        <Drawer.Close type="button" className="iconBtn ml-auto">
+                        <Drawer.Close type="button" className="aspect-square ml-auto">
                             <XmarkIcon />
                         </Drawer.Close>
                     </OptionalChildren>

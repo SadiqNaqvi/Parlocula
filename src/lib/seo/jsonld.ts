@@ -14,7 +14,7 @@ export const generateJsonLdForRoot = () => ({
 });
 
 export const generateJsonLdForMovie = ({
-    overview, poster, release_date, title, directors, cast, awards, writers, rated, imdb_rating, tmdb_id, imdb_id
+    overview, poster, release_date, title, directors, cast, awards, writers, rated, tmdb_id, imdb_id,
 }: RefinedMovieData) => ({
     schema: {
         "@context": "https://schema.org",
@@ -35,13 +35,6 @@ export const generateJsonLdForMovie = ({
         ],
 
         "identifier": tmdb_id,
-
-        "aggregateRating": {
-            "@type": "AggregateRating",
-            "ratingValue": imdb_rating,
-            "bestRating": 10,
-            "worstRating": 1
-        },
 
         "director": directors.map(({ name }) => ({
             "@type": "Person",
@@ -84,7 +77,7 @@ export const generateJsonLdForMovie = ({
 });
 
 export const generateJsonLdForShow = ({
-    overview, poster, release_date, title, directors, cast, awards, writers, rated, imdb_rating, number_of_seasons, seasons, tmdb_id, imdb_id
+    overview, poster, release_date, title, directors, cast, awards, writers, rated, number_of_seasons, seasons, tmdb_id, imdb_id
 }: RefinedShowData) => ({
     schema: {
         "@context": "https://schema.org",
@@ -105,13 +98,6 @@ export const generateJsonLdForShow = ({
         ],
 
         "identifier": tmdb_id,
-
-        "aggregateRating": {
-            "@type": "AggregateRating",
-            "ratingValue": imdb_rating,
-            "bestRating": 10,
-            "worstRating": 1
-        },
 
         "director": directors.map(({ name }) => ({
             "@type": "Person",

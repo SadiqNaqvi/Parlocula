@@ -1,4 +1,6 @@
-import "@/app/globals.css";
+import "@app/globals.css";
+import "@styles/tailwind.css";
+import "@styles/components.css";
 import { FancyBoxProvider } from "@components";
 import { MainLoading } from "@components/ui/loading";
 import { getUserFromToken } from "@lib/auth/utils";

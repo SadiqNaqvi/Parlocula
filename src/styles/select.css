@@ -1,11 +1,9 @@
 select {
-  appearance: none; /* Remove default arrow (modern browsers) */
-  -webkit-appearance: none; /* Safari/Chrome */
-  -moz-appearance: none; /* Firefox */
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
 
   width: 100%;
-  /* font-size: 16px; */
-  /* border-radius: 6px; */
   cursor: pointer;
   display: flex;
   transition: 0.5s;

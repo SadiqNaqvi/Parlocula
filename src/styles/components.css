@@ -1,0 +1,93 @@
+.notificationBadge {
+  position: relative;
+}
+
+.notificationBadge::after {
+  position: absolute;
+  padding: 0.25rem;
+  content: "";
+  background-color: red;
+  border-radius: 100%;
+  top: -0.25rem;
+  right: -0.25rem;
+}
+
+*:has(> .forceCenter) {
+  height: stretch;
+  width: stretch;
+}
+
+.forceCenter {
+  height: stretch;
+  width: stretch;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sheetContainer > *:not(.customize) {
+  width: 100%;
+  margin-inline: auto;
+  max-width: 24rem;
+}
+
+#sidebar {
+  background-color: color-mix(in srgb, var(--primary), transparent 50%);
+  backdrop-filter: blur(12px);
+}
+
+.fade-effect {
+  background: linear-gradient(
+    transparent,
+    transparent,
+    rgba(0, 0, 0, 0.4),
+    rgba(0, 0, 0, 0.9)
+  );
+}
+
+.showShadow {
+  text-shadow: 0 0 4px black;
+  filter: drop-shadow(0 0 1px rgb(0 0 0 / 0.6))
+    drop-shadow(0 0 2px rgb(0 0 0 / 0.6));
+}
+
+summary:not(.allowMarker) {
+  display: block;
+  list-style: none;
+}
+
+summary:not(.allowMarker)::marker {
+  display: none;
+}
+
+.commentInputOptionsBar {
+  height: 0;
+  overflow: hidden;
+}
+
+.bounceEffect {
+  -webkit-overflow-scrolling: touch;
+}
+
+.nav-active {
+  position: relative;
+}
+
+.nav-active:before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  background-color: var(--secondary);
+  height: 100%;
+  aspect-ratio: 1;
+  border-radius: 8px;
+  rotate: 45deg;
+  translate: -70%;
+}
+
+@media screen and (width<640px) {
+  .nav-active:before {
+    all: unset;
+  }
+}

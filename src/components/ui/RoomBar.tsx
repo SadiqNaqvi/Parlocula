@@ -6,7 +6,7 @@ import useCurrentUser from "@store/user";
 import { MereRoomType } from "@type/internal";
 import { RoomBarSkeleton } from "./loading";
 import OptionalChildren from "./OptionalChildren";
-import ParloImage from "./ParloImage";
+import ParloImage from "./ParloImage/ParloImage";
 import useGlobalStore from "@store/globalStore";
 import MetadataTile, { MetadataTileContainer } from "./MetaDataTile";
 

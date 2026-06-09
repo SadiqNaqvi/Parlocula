@@ -1,5 +1,5 @@
 import { Navigate } from "@components";
-import ParloImage from "./ParloImage";
+import ParloImage from "./ParloImage/ParloImage";
 
 export default function ArtistCard({ img, title, detail, link }: { img: string | null, title: string, detail?: string, link: string }) {
     return (
