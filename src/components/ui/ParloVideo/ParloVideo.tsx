@@ -70,7 +70,7 @@ const ParloVideo = ({ className, containerClassName, frame, disablePopup, galler
         if (disablePopup) return;
         setPlay(true);
         Fancybox.show([{
-            src: `#parloVideoPlayer-${uid}`,
+            src: `#parloVideoPlayer-${uid.current}`,
         }], {
             on: {
                 "close": () => {
@@ -109,7 +109,7 @@ const ParloVideo = ({ className, containerClassName, frame, disablePopup, galler
                 <div
                     style={{ margin: 0, padding: 0, height: "100%", width: "100%" }}
                     className="hidden"
-                    id={`parloVideoPlayer-${uid}`}
+                    id={`parloVideoPlayer-${uid.current}`}
                 >
                     <OptionalChildren condition={play}>
                         <VideoPlayer playState={play} src={frame.path} />

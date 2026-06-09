@@ -2,6 +2,7 @@ import { ExpandIcon, LockIcon, MuteIcon, PauseIcon, PlayIcon, ShrinkIcon, Unlock
 import { PropsWithChildren, useEffect, useRef } from "react";
 import Button from "../Button";
 import { useGlobalOptions } from "./helpers";
+import InteractiveProgressBar from "./InteractiveProgressBar";
 
 type Func = () => void
 
@@ -64,6 +65,9 @@ const ControlSection = () => {
 
     return (
         <section ref={overlayContainerRef} className={`absolute bottom-0 w-full z-2 mt-auto px-3 ${controlsSeen ? "fade-in" : "fade-out"}`}>
+
+            <InteractiveProgressBar />
+
             <div className="flex flex-cntr-between py-2">
                 <span>
                     <OptionsButton onClick={togglePlayState} title={playing ? "Pause" : "Play"}>

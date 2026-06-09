@@ -6,7 +6,6 @@ import { useGlobalOptions, VideoOptionsProvider } from "./helpers";
 import OverlaySection from "./OverlaySection";
 import PassiveProgressBar from "./PassiveProgressBar";
 import VideoElement from "./VideoElement";
-import InteractiveProgressBar from "./InteractiveProgressBar";
 import "@styles/parloVideo.css";
 
 export type VideoPlayerConfig = {
@@ -91,8 +90,6 @@ const VideoPlayer = ({ src, poster, startMute, playState }: Props) => {
             />
 
             <OverlaySection />
-
-            <InteractiveProgressBar />
 
             <ControlSection />
 

@@ -1,3 +1,10 @@
+.fancybox__slide.has-html{
+  padding: 0 !important;
+}
+
+.f-panzoom__wrapper.is-error{
+  padding: 8px;
+}
 
 .fancybox__content {
   padding: 0 !important;
@@ -62,4 +69,5 @@
 
 .f-html {
   padding: 0 !important;
+  background: transparent !important; 
 }
