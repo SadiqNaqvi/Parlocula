@@ -9,7 +9,7 @@ type Props = Pick<Thread, "connections" | "createdAt" | "description" | "creator
 
 const Section = ({ children, condition, heading, fallback }: PropsWithChildren<{ condition?: any, heading: string, fallback?: React.ReactNode }>) => (
     <OptionalChildren condition={condition ?? true} fallback={fallback}>
-        <section className="mx-2 bg-gray-10 border border-gray10 rounded-md p-2 my-6 space-y-2">
+        <section className="mx-2 my-6 space-y-2">
             <h3 className="parloHeading">{heading}</h3>
             {children}
         </section>
@@ -51,11 +51,7 @@ const ThreadDetailSheet = ({ connections, createdAt, creator, description, edite
                 </div>
             </Section>
 
-            <Section heading="Managers" condition={managers.length} fallback={(
-                <div className="py-4">
-                    <p>No Managers Yet</p>
-                </div>
-            )}>
+            <Section heading="Managers" condition={managers.length}>
                 <ul className="space-y-2">
                     {managers.map(({ _id, username }) => (
                         <li key={_id} className="border border-gray20 rounded-md">

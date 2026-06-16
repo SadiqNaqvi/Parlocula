@@ -110,7 +110,6 @@ const InputBar = ({ rmid, room }: Props) => {
 
     const indicateTyping = async () => {
         if (!typingIndicatorInterval.current) {
-            console.log("Started typing");
             channel.current?.presence.update({ status: "started_typing", room_id: rmid })
         }
         else

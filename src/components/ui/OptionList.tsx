@@ -34,7 +34,7 @@ const OptionList = ({ onClick, children, link, className, disable, skipButtonWra
             <OptionalChildren condition={!disable || skipButtonWrapping} fallback={children}>
                 <Drawer.Close disabled={disable} onClick={onClick} className={twMerge(defaultClassName, className)}>
                     <OptionalChildren condition={link} fallback={children}>
-                        <Navigate comp="link" goto={link || ''}>{children}</Navigate>
+                        <Navigate comp="link" goto={link!}>{children}</Navigate>
                     </OptionalChildren>
                 </Drawer.Close>
             </OptionalChildren>

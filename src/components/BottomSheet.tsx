@@ -79,7 +79,10 @@ export const NestedSheet = forwardRef(({ children, description, title, state, on
 export const DrawerPortal = ({ children, allowHandle = true, description, title, ref, containerClassName }: PortalProps) => (
   <Portal>
     <Overlay className="z-10 fixed inset-0 bg-black/40" />
-    <Content ref={ref} className={twMerge("h-fit max-h-[85dvh] fixed z-11 border-t border-gray60 bottom-0 left-0 right-0 outline-none bg-primary py-4 md:max-w-100 md:mx-auto md:border-0 md:rounded-md md:bottom-2 md:overflow-hidden", containerClassName)}>
+    <Content
+      ref={ref}
+      className={twMerge("max-h-[85dvh] fixed z-11 border-t border-gray60 bottom-0 left-0 right-0 outline-none bg-primary py-4 md:max-w-100 md:mx-auto md:border-0 md:rounded-md md:bottom-2 md:overflow-hidden", containerClassName)}
+    >
       <OptionalChildren condition={allowHandle}>
         <Handle />
       </OptionalChildren>

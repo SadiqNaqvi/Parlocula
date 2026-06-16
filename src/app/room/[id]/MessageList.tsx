@@ -57,6 +57,11 @@ const MessageList = ({ uid, room }: { uid: string, room: FullRoomType }) => {
 
     }, []);
 
+    const messages = React.useMemo(() => {
+        return data?.pages?.flatMap(page => page?.results)
+            .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    }, [data]);
+
     if (isLoading) return <MessageSkeleton />
 
     else if (error) return (
@@ -92,11 +97,6 @@ const MessageList = ({ uid, room }: { uid: string, room: FullRoomType }) => {
             <div className="patternBackground"></div>
         </section>
     );
-
-    const messages = React.useMemo(() => {
-        return data?.pages.flatMap(page => page.results)
-            .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-    }, [data]);
 
     return (
         <section className="h-size-screen relative overflow-y-auto pt-4 pb-22">

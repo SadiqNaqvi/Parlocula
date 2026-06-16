@@ -24,19 +24,20 @@ const PresenceStatus = ({ otherParticipant, uid, rmid, room_type }: PresenceProp
 
     const presence = useAblyPresence(uid, otherParticipant, rmid);
 
-    if (room_type !== "private" || !otherParticipant) return;
+    
+    if (presence === "typing") return (
+        <div className="flex gap-1 items-center text-left text-orange-500">
+            <span className="text-lg leading-3">•</span>
+            <span className="text-xs">Typing...</span>
+        </div>
+    )
+
+    else if (room_type !== "private" || !otherParticipant) return;
 
     if (presence === "online") return (
         <div className="flex gap-1 items-center text-left text-lime-500">
             <span className="text-lg leading-3">•</span>
             <span className="text-xs">Online</span>
-        </div>
-    )
-
-    else if (presence === "typing") return (
-        <div className="flex gap-1 items-center text-left text-orange-500">
-            <span className="text-lg leading-3">•</span>
-            <span className="text-xs">Typing...</span>
         </div>
     )
 

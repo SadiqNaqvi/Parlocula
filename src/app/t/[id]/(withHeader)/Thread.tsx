@@ -57,9 +57,9 @@ const Component = (data: ThreadType, { id, uid, children, filterContent }: Props
                         prioritize
                     />
 
-                    <div className="space-y-2">
+                    <div className="space-y-1">
                         <h1 data-observe className="selectable text-lg sm:text-xl md:text-2xl line-clamp-2 capitalize font-semibold">{name}</h1>
-                        <h2 className="text-sm space-x-2">
+                        <h2 className="text-sm space-x-1">
                             <span>Created by</span>
                             <Navigate className="inline underline" comp="link" goto={`/u/${creator}`}>@{creator}</Navigate>
                         </h2>
@@ -94,13 +94,17 @@ const Component = (data: ThreadType, { id, uid, children, filterContent }: Props
                     </BottomSheet>
 
                     <OptionalChildren condition={connections.length}>
-                        <div className="mt-4">
+                        <div className="mt-4 sapce-y-2">
                             <h2 className="parloHeading">Connected to:</h2>
                             <ul className="flex gap-2 overflow-x-auto noScroll">
                                 {connections.map(({ name, extid, type }) => (
-                                    <li key={extid} className="border border-gray20 rounded-md whitespace-nowrap">
-                                        <Navigate className="p-2 flex gap-2 flex-cntr-between" comp="link" goto={`/explore/${type === "person" ? "artist" : type}/${extid}`}>
-                                            <VisitIcon />
+                                    <li key={extid} className="border border-gray20 bg-gray10 rounded-md whitespace-nowrap">
+                                        <Navigate
+                                            className="p-2 flex gap-2 flex-cntr-between"
+                                            comp="link"
+                                            goto={`/explore/${type === "person" ? "artist" : type}/${extid}`}
+                                        >
+                                            <VisitIcon className="size-4" />
                                             <span className="line-clamp-1">{name}</span>
                                         </Navigate>
                                     </li>

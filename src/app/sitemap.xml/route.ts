@@ -29,7 +29,7 @@ const getUrlsForSitemap = async (collection: "users" | "posts" | "shelves" | "th
   );
 }
 
-async function buildSitemapIndex(sitemaps: string[]) {
+const buildSitemapIndex = (sitemaps: string[]) => {
   let xml = '<?xml version="1.0" encoding="UTF-8"?>';
   xml += '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
 
@@ -47,17 +47,20 @@ export const GET = async () => {
 
   await connectDatabase();
 
-  let totalUrls: string[] = [
-    `${app_production_url}/sitemaps/static/sitemap.xml`
-  ];
+  const userUrls = await getUrlsForSitemap("users");
+  const postUrls = await getUrlsForSitemap("posts");
+  const shelveUrls = await getUrlsForSitemap("shelves");
+  const threadUrls = await getUrlsForSitemap("threads");
+  const taleonUrls = await getUrlsForSitemap("taleons");
 
-  totalUrls.concat(await getUrlsForSitemap("users"));
-  totalUrls.concat(await getUrlsForSitemap("posts"));
-  totalUrls.concat(await getUrlsForSitemap("shelves"));
-  totalUrls.concat(await getUrlsForSitemap("threads"));
-  totalUrls.concat(await getUrlsForSitemap("taleons"));
-
-  const sitemapIndexXML = await buildSitemapIndex(totalUrls);
+  const sitemapIndexXML = buildSitemapIndex([
+    `${app_production_url}/sitemaps/static/sitemap.xml`,
+    ...userUrls,
+    ...postUrls,
+    ...shelveUrls,
+    ...threadUrls,
+    ...taleonUrls,
+  ]);
 
   return new NextResponse(sitemapIndexXML, {
     headers: {
