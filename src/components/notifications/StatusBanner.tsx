@@ -21,23 +21,27 @@ const StatusBanner = () => {
     if (!meta) return null;
 
     if (!isEnabled) return (
-        <section className="px-2 my-4 py-4 space-y-3 fullScreen mx-2 md:mx-auto">
+        <section className="px-2 my-4">
 
-            <h2 className="sm:text-xl">Push Notification is not enabled 😨</h2>
-            <p className="text-sm">
-                This means we cannot notify you with any update related to you account when the app is closed.
-            </p>
-            <p className="text-sm">
-                Please enable notification to keep yourself updated even when the app is closed.
-            </p>
+            <div className="p-2 border border-gray10 bg-gray10 rounded-md">
+                <h2 className="sm:text-lg mb-3">Push Notification is not enabled 😨</h2>
+                <div className="sapce-y-1">
+                    <p className="text-sm ghostColor">
+                        This means we cannot notify you with any update related to you account when the app is closed.
+                    </p>
+                    <p className="text-sm ghostColor">
+                        Please enable notification to keep yourself updated even when the app is closed.
+                    </p>
+                </div>
 
-            <Navigate
-                className="primary rounded-full btn"
-                type="button"
-                comp="link"
-                goto="/settings/notification">
-                View
-            </Navigate>
+                <Navigate
+                    className="primary rounded-full btn sm:w-fit"
+                    type="button"
+                    comp="link"
+                    goto="/settings/notification">
+                    View
+                </Navigate>
+            </div>
 
         </section>
     )

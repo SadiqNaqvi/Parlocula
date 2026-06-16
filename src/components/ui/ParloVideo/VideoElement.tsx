@@ -17,7 +17,6 @@ const VideoElement = forwardRef<HTMLVideoElement, Props>(({ poster, src, startMu
                 muted={startMute}
                 poster={poster}
                 disablePictureInPicture
-                disableRemotePlayback
                 className="size-full z-0 object-contain max-h-dvh"
                 preload="metadata"
                 onPlay={() => setPlaying(true)}

@@ -79,7 +79,7 @@ const VideoPlayer = ({ src, poster, startMute, playState }: Props) => {
     return (
         <div
             ref={videoContainerRef}
-            className="relative size-full bg-black overflow-hidden select-none rounded-md touch-none"
+            className="relative size-full bg-black overflow-hidden select-none touch-none"
         >
 
             <VideoElement

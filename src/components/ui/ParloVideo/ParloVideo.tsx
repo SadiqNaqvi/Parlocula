@@ -39,7 +39,7 @@ const ParloVideo = ({ className, containerClassName, frame, disablePopup, galler
 
     const [duration, setDuration] = useState('');
     const [play, setPlay] = useState(false);
-    const uid = useRef(Math.random().toString(36));
+    const videoContainer = useRef<HTMLDivElement | null>(null);
 
     if (isEmbeddingFrame(frame.extSource)) return (
         <div
@@ -67,10 +67,10 @@ const ParloVideo = ({ className, containerClassName, frame, disablePopup, galler
     }
 
     const handleClick = () => {
-        if (disablePopup) return;
+        if (disablePopup || !videoContainer.current) return;
         setPlay(true);
         Fancybox.show([{
-            src: `#parloVideoPlayer-${uid.current}`,
+            src: videoContainer.current.id,
         }], {
             on: {
                 "close": () => {
@@ -86,6 +86,7 @@ const ParloVideo = ({ className, containerClassName, frame, disablePopup, galler
             <div
                 className={containerClassName}
                 onClick={disablePopup ? undefined : handleClick}
+                aria-haspopup
                 onContextMenu={e => { e.preventDefault() }}>
                 <video
                     className={className}
@@ -109,11 +110,11 @@ const ParloVideo = ({ className, containerClassName, frame, disablePopup, galler
                 <div
                     style={{ margin: 0, padding: 0, height: "100%", width: "100%" }}
                     className="hidden"
-                    id={`parloVideoPlayer-${uid.current}`}
+                    aria-hidden
+                    id={`parloVideoPlayer-${Math.random().toString(32).slice(2)}`}
+                    ref={videoContainer}
                 >
-                    <OptionalChildren condition={play}>
-                        <VideoPlayer playState={play} src={frame.path} />
-                    </OptionalChildren>
+                    <VideoPlayer playState={play} src={frame.path} />
                 </div>
             </OptionalChildren >
         </>

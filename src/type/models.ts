@@ -131,7 +131,7 @@ export type CommentModelType = {
   replies_count?: number;
   edited_at?: GenericDate | undefined;
   saved_count?: number;
-  warnedOn?:GenericDate,
+  warnedOn?: GenericDate,
 };
 
 export type MembershipModelType = {
@@ -190,6 +190,7 @@ export type ShelfModelType = {
   shelfKey: string | undefined;
   last_added?: GenericDate;
   item_count?: number;
+  last_order: number;
   shelf_type: AllShelves;
   saved_count?: number;
 };
@@ -198,6 +199,7 @@ export type ShelfItemModelType = {
   _id?: Nanoid;
   taleon_id: Nanoid;
   shelf_id: Nanoid;
+  order: number;
   user_id: Nanoid;
   ext_id: string;
   year: number;

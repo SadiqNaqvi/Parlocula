@@ -41,6 +41,7 @@ type TaleonDocType = TaleonModelType & { _id: string }
 
 export const addItemsInShelf = async (
   items: TaleonSchemaType[],
+  startingOrder: number,
   shelf_type: "custom" | "favourite" | "recommended" | "watched",
   id: string,
   user_id: string,
@@ -61,7 +62,7 @@ export const addItemsInShelf = async (
   // Step 2: Find existing items for unconfirmed items
   const extIds = unconfirmedItems.map((item) => item.ext_id);
   const existingItems: TaleonDocType[] = extIds.length
-    ? await Taleon.find({ ext_id: { $in: extIds } })
+    ? await Taleon.find({ ext_id: { $in: extIds } }, { ext_id: 1 })
     : [];
 
   // Step 3: Create missing items and get all item IDs
@@ -71,6 +72,7 @@ export const addItemsInShelf = async (
   );
 
   let createdItems: TaleonDocType[] = [];
+
   if (itemsToCreate.length > 0) {
     createdItems = await Taleon.create(
       itemsToCreate.map(
@@ -90,7 +92,7 @@ export const addItemsInShelf = async (
     );
   }
 
-  // Step 4: Create a map of tmdb_id to media_id
+  // Step 4: Create a map of tmdb_id to taleon_id
   const itemIdMap = new Map<string, string>();
 
   // Add existing and newly created items to the map
@@ -98,20 +100,29 @@ export const addItemsInShelf = async (
     itemIdMap.set(ext_id, _id);
   });
 
-  //Add Confirmed items to the map
+  // Add Confirmed items to the map
   confirmedItems.forEach(({ ext_id, taleon_id }) => {
     itemIdMap.set(ext_id, taleon_id);
   });
 
+
   // Step 5: Create shelf items
-  const itemsArr: ShelfItemModelType[] = items.map((item) => ({
-    shelf_id: id,
-    user_id: user_id,
-    taleon_id: itemIdMap.get(item.ext_id) as string,
-    ext_id: item.ext_id,
-    year: item.year,
-    createdAt: new Date(),
-  }));
+  let order = startingOrder;
+  const itemsArr: ShelfItemModelType[] = [];
+
+  items.forEach((item) => {
+    itemsArr.push({
+      shelf_id: id,
+      user_id: user_id,
+      taleon_id: itemIdMap.get(item.ext_id) as string,
+      ext_id: item.ext_id,
+      order,
+      year: item.year,
+      createdAt: new Date(),
+    });
+
+    order = order + 1;
+  });
 
   if (itemsArr.length > 0) {
     await ShelfItem.create(itemsArr, { session, ordered: true });

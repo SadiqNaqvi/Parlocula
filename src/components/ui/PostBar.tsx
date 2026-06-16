@@ -100,7 +100,7 @@ const PostHeader = ({ category, nsfw, spoiler, createdAt, poster, profile, threa
                 {category}
             </MetadataTile>
 
-            <MetadataTile className="px-2 py-1 bg-gray10 border-gray20 rounded-md" condition={!!edited_at}>
+            <MetadataTile skipDisc className="px-2 py-1 bg-gray10 border-gray20 rounded-md" condition={!!edited_at}>
                 Edited: {timeAgo(edited_at!)}
             </MetadataTile>
 

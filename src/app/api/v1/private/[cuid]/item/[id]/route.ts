@@ -5,6 +5,7 @@ import { taleonToAddAndRemove } from "@lib/schemas";
 import { getSearchParams } from "@lib/utils";
 import { Taleon, Shelf, ShelfItem } from "@model";
 import Collaborator from "@model/collaborators";
+import { ShelfModelType } from "@type/models";
 import { TaleonToAddAndRemoveType } from "@type/schemas";
 
 // Getting items for a shelf (public or private), id = shelf_id
@@ -64,7 +65,7 @@ export const POST = postHandler<TaleonToAddAndRemoveType>({
       .map(({ shelf_id }) => shelf_id);
 
 
-    const dataToCreate = add
+    const itemsToCreate = add
       .filter(s => !alreadyExisted.includes(s))
       .map((shelf_id) => ({
         shelf_id,
@@ -74,17 +75,27 @@ export const POST = postHandler<TaleonToAddAndRemoveType>({
         user_id: cuid,
       }));
 
-    if (dataToCreate.length) {
+    itemsToCreate.forEach(async (item) => {
 
-      await ShelfItem.create(dataToCreate, { session, ordered: true });
-
-      await Shelf.updateMany(
-        { _id: { $in: add } },
-        { $inc: { item_count: 1 } },
+      const shelf: ShelfModelType | null = await Shelf.findOneAndUpdate(
+        { _id: item.shelf_id },
+        {
+          $inc: {
+            item_count: 1,
+            order_count: 1
+          }
+        },
         { session }
       );
 
-    }
+      if (shelf)
+        await ShelfItem.create([{
+          ...item, order: shelf.last_order
+        }],
+          { session }
+        );
+
+    })
 
     if (remove.length) {
 

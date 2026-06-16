@@ -11,7 +11,7 @@ export const GET = getHandler(async (r) => {
     const response = await Shelf.aggregate(
         shelvesAggregationPipeline({
             filters: [{
-                $match: { isPrivate: false }
+                $match: { isPrivate: false, shelf_type: "custom" }
             }],
             page,
             sort: { last_added: -1, saved_count: -1 },

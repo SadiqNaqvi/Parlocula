@@ -538,6 +538,7 @@ const
                             className="size-60 rounded-md border-dashed border border-gray40 aspect-square backdrop:brightness-50 flex flex-cntr-all"
                             button={<AddIcon />}
                             buttonTitle="Add Frame"
+                            containerClassName="min-h-fit"
                         >
                             <MediaInputPrompt callback={getframe} type={frameType} />
                         </BottomSheet>

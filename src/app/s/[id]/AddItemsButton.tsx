@@ -45,7 +45,7 @@ const AddItemsButton = ({ sid, uid, className, shelf_type }: { sid: string, uid:
                     queryKeys={(q) => ["search", "taleonOnly", q]}
                     refiner={(data) => ({
                         id: data.tmdb_id,
-                        title: data.title,
+                        title: `${data.title} (${data.year})`,
                         poster: data.poster,
                         returnVal: data,
                     })}

@@ -20,6 +20,7 @@ const shelfItemModel = new StrictSchema<ShelfItemModelType>({
     ref: "User",
     required: true,
   },
+  order: { type: Number, required: true },
   ext_id: { type: String, required: true },
   year: { type: Number, required: true },
   createdAt: { type: Date, default: Date.now },

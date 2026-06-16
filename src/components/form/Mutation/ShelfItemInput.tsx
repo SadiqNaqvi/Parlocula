@@ -10,7 +10,7 @@ import { RefObject, useImperativeHandle, useRef, useState } from "react";
 
 const refiner = ({ media_type, year, title, poster, tmdb_id }: ExtSearchDataTaleonOnly): RefinedValues<ItemType> => ({
     id: tmdb_id,
-    title,
+    title: `${title} (${year})`,
     poster,
     returnVal: {
         ext_id: tmdb_id,
@@ -58,7 +58,7 @@ const ShelfItemInput = ({ itemsRef, defaultTaleons }: { itemsRef: RefObject<List
                 button={<ShallowShelfItemBar />}
                 buttonTitle="Add Taleons"
             >
-                <section className="p-2 sm:p-4">
+                <section className="px-2">
                     <ListSelector
                         mode="search"
                         alreadySelectedValues={items.map(i => ({ id: i.ext_id, val: i }))}

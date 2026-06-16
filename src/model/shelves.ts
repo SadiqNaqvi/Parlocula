@@ -23,6 +23,7 @@ const shelfModel = new StrictSchema<ShelfModelType>({
   shelfKey: String,
   last_added: Date,
   item_count: numberSchema,
+  last_order: { type: Number, required: true },
   shelf_type: {
     type: String,
     enum: ["custom", "favourite", "recommended", "watched"],

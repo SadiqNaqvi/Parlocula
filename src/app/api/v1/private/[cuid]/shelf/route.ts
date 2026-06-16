@@ -44,12 +44,14 @@ export const POST = postHandler<ShelfSchemaType>({
           user_id,
           shelf_type: "custom",
           item_count: items.length,
+          last_order: items.length,
         }
       ], { session, ordered: true })
     )[0];
 
     const allTaleons = await addItemsInShelf(
       items,
+      1,
       "custom",
       shelf._id,
       user_id,

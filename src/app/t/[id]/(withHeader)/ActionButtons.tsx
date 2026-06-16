@@ -47,7 +47,7 @@ const RoleBasedActionButtons = ({ role, tid }: { tid: string, role: ThreadMember
         </>
     )
 
-    return (
+    else if (role === "moderator") return (
         <Navigate comp="link" type="button" goto={`/t/${tid}/settings`} className="btn secondary col-span-2 sm:col-span-1">
             Settings
         </Navigate>
@@ -73,7 +73,7 @@ const JoinButton = ({ thread, uid }: { thread: MereThread, uid?: string }) => {
 
         const handleClick = (action: AvailableMutations) => {
             if (action === "join_thread")
-                onClick({ notification: true }, action, [thread._id, user_id]);
+                onClick({ notification: true, role: "member" }, action, [thread._id, user_id]);
             else if (action === "leave_thread")
                 onClick(null, action, [thread._id, user_id]);
             else onClick(null, "update_thread_notification", [thread._id, user_id, !state?.notification]);

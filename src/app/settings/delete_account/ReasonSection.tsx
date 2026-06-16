@@ -157,7 +157,7 @@ const listOfReasons: ReasonProps[] = [
                 "Remove older comments or reactions",
                 "Clean your shelves",
             ],
-            postList: "You don't need a brand-new account — just refresh the one you have.",
+            postList: "You don't need a brand-new account - just refresh the one you have.",
         },
         buttonLabel: "Edit Profile",
         href: "/settings/edit"
@@ -185,7 +185,7 @@ const listOfReasons: ReasonProps[] = [
                 "Enable Content Filtering",
                 "Leave Threads or Users who post NSFW content",
             ],
-            postList: "No need to delete your account — just protect your viewing experience.",
+            postList: "No need to delete your account - just protect your viewing experience.",
         },
         buttonLabel: "Filter Content",
         href: "/settings/filter_content"

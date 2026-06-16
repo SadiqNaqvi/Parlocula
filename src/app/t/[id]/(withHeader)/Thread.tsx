@@ -1,6 +1,6 @@
 "use client"
 
-import { FrameIcon, LinkIcon, PostIcon } from "@assets/Icons";
+import { FrameIcon, LinkIcon, PostIcon, VisitIcon } from "@assets/Icons";
 import { BottomSheet, GenericWrapper, Navigate, ObserverHeader } from "@components";
 import { ContentFiltered } from "@components/fallbacks";
 import { OptionalChildren, ParloImage } from "@components/ui";
@@ -80,6 +80,7 @@ const Component = (data: ThreadType, { id, uid, children, filterContent }: Props
                         buttonTitle="View Description"
                     >
                         <ThreadDetailsSheet
+                            _id={_id}
                             connections={connections}
                             createdAt={createdAt}
                             creator={creator}
@@ -91,6 +92,22 @@ const Component = (data: ThreadType, { id, uid, children, filterContent }: Props
                             post_count={post_count}
                         />
                     </BottomSheet>
+
+                    <OptionalChildren condition={connections.length}>
+                        <div className="mt-4">
+                            <h2 className="parloHeading">Connected to:</h2>
+                            <ul className="flex gap-2 overflow-x-auto noScroll">
+                                {connections.map(({ name, extid, type }) => (
+                                    <li key={extid} className="border border-gray20 rounded-md whitespace-nowrap">
+                                        <Navigate className="p-2 flex gap-2 flex-cntr-between" comp="link" goto={`/explore/${type === "person" ? "artist" : type}/${extid}`}>
+                                            <VisitIcon />
+                                            <span className="line-clamp-1">{name}</span>
+                                        </Navigate>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    </OptionalChildren>
                 </section>
 
                 <section className="mt-4">

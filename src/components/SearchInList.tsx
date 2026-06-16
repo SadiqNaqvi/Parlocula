@@ -34,7 +34,7 @@ type SearchInputProps = {
 }
 
 const SearchInput = ({ inputPlaceholder, onUpdate, query, containerClassName, inputClassName, removeAutoFocus }: SearchInputProps) => (
-    <Form submit={onUpdate} className={twMerge("pb-2 bg-primary sticky top-0", containerClassName)}>
+    <Form submit={onUpdate} className={twMerge("pb-2 bg-primary sticky top-0 z-1", containerClassName)}>
         <Input
             defaultValue={query}
             name="query"

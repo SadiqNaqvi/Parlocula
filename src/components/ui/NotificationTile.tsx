@@ -42,7 +42,7 @@ const RequestBar = ({ type, status, request_type, metadata }: Required<Pick<Noti
 
 const NotificationTile = ({ message, type, request_type, status, poster, createdAt, metadata }: Required<NotificationModelType>) => {
     return (
-        <article className="px-2 py-4 space-y-3 wrap-anywhere border border-gray10 rounded-md bg-gray10">
+        <article className="px-2 py-4 my-2 space-y-3 wrap-anywhere border border-gray10 rounded-md bg-gray10">
 
             <div className="flex gap-3">
                 <OptionalChildren condition={poster}>

@@ -277,8 +277,8 @@ export const filterToSort: Record<QueryFilterType, any> = {
     popular: { reaction_count: -1 },
   },
   items: {
+    order: { order: 1 },
     latest: { createdAt: -1 },
-    oldest: { createdAt: 1 },
     year: { year: -1 },
   },
   shelves: {
@@ -474,6 +474,7 @@ export const revalidateTags: Record<AvailableRevalidateTags, string[]> = {
     "post-{pid}",
     "posts-thread-{tid}",
     "posts-user-{uid}",
+    "thread-{tid}"
   ],
   postUpdation_pid: ["post-{pid}"],
   reactionMutation_pid_uid: ["reaction-post-{pid}-user-{uid}"],

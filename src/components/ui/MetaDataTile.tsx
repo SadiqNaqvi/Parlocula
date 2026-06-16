@@ -28,9 +28,9 @@ const MetadataContentTile = ({ children, skipDisc, }: PropsWithChildren<Pick<Pro
     </OptionalChildren>
 )
 
-const commonClassName = "px-2 py-1 text-sm border color-secondary rounded-md text-zinc-100"
-const nsfwClassName = `${commonClassName} bg-purple-500/30 border-purple-500`;
-const spoilerClassName = `${commonClassName} bg-orange-500/30 border-orange-500`;
+const commonClassName = "px-2 py-1 text-sm border rounded-md"
+const nsfwClassName = `${commonClassName} bg-purple-500/30 border-purple-500 text-zinc-100`;
+const spoilerClassName = `${commonClassName} bg-orange-500/30 border-orange-500 text-zinc-100`;
 
 const MetadataTile = ({ children, className, skipDisc, condition, href, nsfw, spoiler }: PropsWithChildren<Props>) => {
 

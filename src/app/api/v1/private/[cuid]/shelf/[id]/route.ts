@@ -73,16 +73,31 @@ export const POST = postHandler<ItemsForShelfSchemaType>({
       (el) => !existingItemsMap.get(el.ext_id)
     );
 
-    await Shelf.findByIdAndUpdate(
+    const shelf = await Shelf.findByIdAndUpdate(
       id,
       {
         $set: { poster: itemsToAdd.at(-1)?.poster, last_added: new Date() },
-        $inc: { item_count: itemsToAdd.length },
+        $inc: {
+          item_count: itemsToAdd.length,
+          last_order: itemsToAdd.length,
+        },
       },
-      { session }
+      { session, old: true }
     );
 
-    await addItemsInShelf(itemsToAdd, shelf_type, id, user_id, session);
+    if (!shelf) return {
+      success: false,
+      errCode: "resource_not_found",
+    }
+
+    await addItemsInShelf(
+      itemsToAdd,
+      shelf.last_order + 1,
+      shelf_type,
+      id,
+      user_id,
+      session
+    );
 
     return {
       success: true,

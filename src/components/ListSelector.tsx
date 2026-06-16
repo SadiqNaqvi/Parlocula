@@ -93,9 +93,7 @@ type ListSelectorBarProps = RefinedValues & {
 export const ListSelectorBar = ({ disable, checked, poster, frameType, className, id, title, defaultChecked, returnVal, onClick }: ListSelectorBarProps) => {
 
     return (
-        <div
-        // onClick={() => onClick(id, returnVal)}
-        >
+        <div>
             <label
                 htmlFor={id}
                 className={twMerge("inline-flex flex-cntr-between w-full capitalize py-2 cursor-pointer", disable ? "brightness-50" : '', className)}

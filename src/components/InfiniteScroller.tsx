@@ -49,6 +49,7 @@ export default function InfiniteScroller({ Loading, showFooter, onSuccess, place
     const { meta, dataSaver, isHydrated } = useCurrentUser();
 
     const updateSearchParams = (page: number) => {
+        if (!paginate) return;
         const params = new URLSearchParams(searchParams);
         params.set("p", page.toString());
         router.replace(`${pathname}?${params.toString()}`, { scroll: false })

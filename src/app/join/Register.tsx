@@ -1,5 +1,6 @@
 "use client";
 
+import { Navigate } from "@components";
 import { DateInput, Form, Input } from "@components/form";
 import UserMutationPage from "@components/form/Mutation/UserMutation";
 import Navbar from "@components/Navbar";
@@ -39,20 +40,29 @@ const Register = ({ email }: { email: string }) => {
         <>
             <Navbar className="p-0 h-fit! mt-4 sm:mt-0 bg-transparent" navTitle="Create Account" />
 
-            <div className="space-y-2 my-4">
+            <div className="space-y-2">
                 <label htmlFor="Date" className="block">Date of birth</label>
                 <DateInput dateRef={dobRef} onComplete={storeDob} />
             </div>
+
+            <p className="text-center text-sm ghostColor mt-2">DOB will not appear on your profile.</p>
 
             <Button
                 id="next-page-button-dob"
                 title="Go Next"
                 onClick={storeDob}
-                className="primary w-full"
+                className="primary w-full my-4"
             >
                 Next
             </Button>
-            <p className="text-center text-sm ghostColor mt-2">DOB will not appear on your profile.</p>
+
+            <p className="mt-4">
+                You are about to create a new account. By continuing, you accept the
+                <Navigate className="mx-1 inline text-sky-500 underline" goto="/app/terms_and_conditions" comp="link">
+                    Terms and Conditions
+                </Navigate>
+                to use Parlocula.
+            </p>
         </>
     )
 
@@ -88,6 +98,7 @@ const Register = ({ email }: { email: string }) => {
                 </Button>
 
             </Form>
+
             <p className="text-center text-sm ghostColor mt-2">You can change them later.</p>
         </>
     )
