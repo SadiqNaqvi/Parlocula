@@ -92,8 +92,8 @@ export const oneKb = 1024;
 export const oneMb = oneKb * oneKb;
 
 export const allowedSizes: Record<string, number> = {
-  image: oneMb * 3,
-  video: oneMb * 10,
+  image: oneMb * 5,
+  video: oneMb * 50,
 };
 
 export const allowedFormats: Record<string, string[]> = {
@@ -251,7 +251,7 @@ export const mediaInputConfig: Record<
   },
   video: {
     accept: ".mp4, .3gp, .mkv, .mov, .m4v",
-    size: { label: "100mb", value: oneMb * 100 },
+    size: { label: "50mb", value: oneMb * 50 },
   },
 };
 

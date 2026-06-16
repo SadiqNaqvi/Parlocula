@@ -4,7 +4,7 @@ import { Post, Shelf, Taleon, Thread, User } from "@model";
 import { StrictModel } from "@type/mongoose";
 import { NextResponse } from "next/server";
 
-export const revalidate = Infinity;
+export const dynamic = "force-static";
 
 const getUrlsForSitemap = async (collection: "users" | "posts" | "shelves" | "threads" | "taleons"): Promise<string[]> => {
 
