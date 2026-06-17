@@ -4,7 +4,8 @@ import { PropsWithChildren } from "react";
 
 export const metadata = generateDynamicMetadata({
     title: "Shelf",
-    description: "Explore the collection of curated movies and shows collected by the die hard fans on Parlocula."
+    description: "Explore the collection of curated movies and shows collected by the die hard fans on Parlocula.",
+    allowRobots: true
 });
 
 const ShelfLayout = async ({ children }: PropsWithChildren) => {

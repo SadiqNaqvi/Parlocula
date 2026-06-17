@@ -8,7 +8,10 @@ import { cookies } from "next/headers";
 import SearchPage from "./SearchPage";
 import { getQueryFnForSearch } from "./utils";
 
-export const metadata = generateDynamicMetadata({ title: "Search" });
+export const metadata = generateDynamicMetadata({ 
+    title: "Search",
+    allowRobots: true
+});
 
 const Page = async ({ searchParams }: ParloPageProps) => {
 

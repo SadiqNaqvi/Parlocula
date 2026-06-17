@@ -1,7 +1,10 @@
 import LoginModal from "@components/fallbacks/LoginModal";
 import { getUserFromToken } from "@lib/auth/utils";
+import generateDynamicMetadata from "@lib/seo/metadata";
 import { cookies } from "next/headers";
 import { PropsWithChildren } from "react";
+
+export const metadata = generateDynamicMetadata({ allowRobots: false });
 
 const ShelfAuthLayout = async ({ children }: PropsWithChildren) => {
     const user = await getUserFromToken(await cookies());

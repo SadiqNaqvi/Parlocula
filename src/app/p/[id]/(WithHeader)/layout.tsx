@@ -14,26 +14,30 @@ import { Metadata } from "next";
 import { cookies } from "next/headers";
 import { PropsWithChildren, Suspense } from "react";
 import PostHeader from "./PostHeader";
+import generateDynamicMetadata from "@lib/seo/metadata";
 
 export const generateMetadata = async ({ params }: ParloPageProps): Promise<Metadata> => {
 
     const id = (await params).id.split('-')[0];
 
-    if (!isValidParloId(id)) return { title: "Parlocula" }
+    const fallbackMetadata = generateDynamicMetadata({});
+
+    if (!isValidParloId(id)) return fallbackMetadata;
 
     const { result, success } = await getPostById(id);
 
-    if (!success || !result) return { title: "Parlocula" }
+    if (!success || !result) return fallbackMetadata;
 
     const { title, username, body, thread_name } = result;
 
     const description = body.replace(/[#>*`]/g, "")
         .slice(0, 150)
 
-    return {
+    return generateDynamicMetadata({
         title: `${title.slice(0, 80)}${title.length > 80 ? "..." : ''}${username ? " - Post by @" + username : ""}`,
-        description: `${description} - Discussion posted in ${thread_name} on Parlocula. Join the conversation and share your thoughts.`
-    }
+        description: `${description} - Discussion posted in ${thread_name} on Parlocula. Join the conversation and share your thoughts.`,
+        allowRobots: true
+    })
 }
 
 const Fetcher = async ({ id, children }: PropsWithChildren<{ id: string }>) => {

@@ -1,10 +1,9 @@
 import { getPopularShelves } from "@lib/helpers/common";
 import { getQueryClient, prefetchInfiniteQuery } from "@lib/providers/queryClient";
-import { getPageParams, getQueryKeys } from "@lib/utils";
+import { getQueryKeys } from "@lib/utils";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
-import ShelfHomePage from "./ShelfHomePage";
 import { ParloPageProps } from "@type/other";
-import { Sidebar } from "@components";
+import ShelfHomePage from "./ShelfHomePage";
 
 const ShelfPage = async ({ searchParams }: ParloPageProps) => {
 

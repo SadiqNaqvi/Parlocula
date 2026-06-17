@@ -9,12 +9,15 @@ import { ParloPageProps } from "@type/other";
 import { Metadata } from "next";
 import JsonLd from "@components/JsonLd";
 import { generateJsonLdForShelf } from "@lib/seo/jsonld";
+import generateDynamicMetadata from "@lib/seo/metadata";
 
 export const generateMetadata = async ({ params, searchParams }: ParloPageProps): Promise<Metadata> => {
     const { id } = await params;
     const lid = id.split('-')[0];
 
-    if (!isValidParloId(lid)) return { title: { absolute: "Parlocula - The Cinematic Planet" } };
+    const fallbackMetadata = generateDynamicMetadata({});
+
+    if (!isValidParloId(lid)) return fallbackMetadata;
 
     const jar = await cookies();
     const user = await getUserFromToken(jar);
@@ -23,14 +26,15 @@ export const generateMetadata = async ({ params, searchParams }: ParloPageProps)
     const key = sp.k || sp.key;
 
     const { success, result } = await getShelf(lid, user?.user_id, key, jar);
-    if (!success || !result) return { title: "Parlocula" };
+    if (!success || !result) return fallbackMetadata;
 
     const { name, item_count, username } = result;
 
-    return {
+    return generateDynamicMetadata({
         title: `${name} - Shelf ${username ? `by @${username} ` : ''}`,
-        description: `${name}${username ? ` by @${username}` : ''}. Explore ${item_count} curated movies and shows collected on Parlocula.`
-    }
+        description: `${name}${username ? ` by @${username}` : ''}. Explore ${item_count} curated movies and shows collected on Parlocula.`,
+        allowRobots: true,
+    })
 
 }
 

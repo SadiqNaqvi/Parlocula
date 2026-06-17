@@ -11,6 +11,7 @@ import { PropsWithChildren, Suspense } from "react";
 import Header from "./Header";
 import JsonLd from "@components/JsonLd";
 import { generateJsonLdForUser } from "@lib/seo/jsonld";
+import generateDynamicMetadata from "@lib/seo/metadata";
 
 export const generateMetadata = async ({ params }: { params: Promise<{ username: string }> }) => {
 
@@ -18,14 +19,15 @@ export const generateMetadata = async ({ params }: { params: Promise<{ username:
 
     const { result, success } = await getUserByUsername(username);
 
-    if (!success || !result) return { title: "Parlocula" }
+    if (!success || !result) return generateDynamicMetadata({})
 
     const { bio, name } = result;
 
-    return {
+    return generateDynamicMetadata({
         title: `${username} - Parlocula`,
-        description: `${bio ? bio.slice(0, 100) + ' - ' : `${name || username}'s profile on Parlocula.`}Explore shelves, posts, discussions, and activity across movies, shows, and communities.`
-    }
+        description: `${bio ? bio.slice(0, 100) + ' - ' : `${name || username}'s profile on Parlocula. `}Explore shelves, posts, discussions, and activity across movies, shows, and communities.`,
+        allowRobots: true,
+    });
 }
 
 const Fetcher = async ({ username, children }: PropsWithChildren<{ username: string }>) => {

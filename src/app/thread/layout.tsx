@@ -2,7 +2,10 @@ import { Sidebar } from "@components";
 import generateDynamicMetadata from "@lib/seo/metadata";
 import { PropsWithChildren } from "react";
 
-export const metadata = generateDynamicMetadata({ title: "Threads" });
+export const metadata = generateDynamicMetadata({
+    title: "Threads",
+    allowRobots: true,
+});
 
 const ThreadHomeLayout = ({ children }: PropsWithChildren) => (
     <>

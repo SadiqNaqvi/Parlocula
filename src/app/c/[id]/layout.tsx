@@ -12,25 +12,29 @@ import { PropsWithChildren, Suspense } from "react";
 import CommentHeader from "./Header";
 import JsonLd from "@components/JsonLd";
 import { generateJsonLdForComment } from "@lib/seo/jsonld";
+import generateDynamicMetadata from "@lib/seo/metadata";
 
 export const generateMetadata = async ({ params }: ParloPageProps): Promise<Metadata> => {
 
     const cid = (await params).id.split('-')[0];
 
+    const fallbackMetadata = generateDynamicMetadata({});
+
     if (!isValidParloId(cid))
-        return { title: "Parlocula" }
+        return fallbackMetadata;
 
     const { success, result } = await getCommentById(cid);
 
     if (!success || !result)
-        return { title: "Parlocula" }
+        return fallbackMetadata;
 
     const { username, content } = result;
 
-    return {
+    return generateDynamicMetadata({
         title: `Comment by ${username || "Parlocula User"}`,
         description: `${content ? content + ' - ' : ''} View this comment and join the discussion. Explore related posts, replies, and community conversations.`,
-    };
+        allowRobots: true,
+    });
 }
 
 const Fetcher = async ({ cid, children }: PropsWithChildren<{ cid: string }>) => {

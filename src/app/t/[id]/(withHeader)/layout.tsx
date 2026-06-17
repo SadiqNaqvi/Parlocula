@@ -12,22 +12,26 @@ import { Metadata } from "next";
 import { cookies } from "next/headers";
 import { PropsWithChildren, Suspense } from "react";
 import Thread from "./Thread";
+import generateDynamicMetadata from "@lib/seo/metadata";
 
 export const generateMetadata = async ({ params }: ParloPageProps): Promise<Metadata> => {
     const thread_id = (await params).id.split('-')[0];
 
+    const fallbackMetadata = generateDynamicMetadata({});
+
     if (!isValidParloId(thread_id))
-        return { title: "Parlocula" }
+        return fallbackMetadata;
 
     const { success, result } = await getThreadById(thread_id);
 
-    if (!success || !result) return { title: "Parlocula" }
+    if (!success || !result) return fallbackMetadata;
 
     const { name, description } = result;
-    return {
+    return generateDynamicMetadata({
         title: `${name} - Thread`,
-        description: `${description.slice(0, 100)} - Join discussions, share posts, discover shelves, and connect with other fans.`
-    };
+        description: `${description.slice(0, 100)} - Join discussions, share posts, discover shelves, and connect with other fans.`,
+        allowRobots: true,
+    });
 }
 
 const Fetcher = async ({ tid, children }: PropsWithChildren<{ tid: string }>) => {

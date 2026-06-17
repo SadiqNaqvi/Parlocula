@@ -6,6 +6,12 @@ import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { ParloPageProps } from "@type/other";
 import { cookies } from "next/headers";
 import FeedPage from "./FeedPage";
+import generateDynamicMetadata from "@lib/seo/metadata";
+
+export const metadata = generateDynamicMetadata({
+    title: "Home",
+    allowRobots: true,
+})
 
 const HomeFeedPage = async ({ searchParams }: ParloPageProps) => {
 
