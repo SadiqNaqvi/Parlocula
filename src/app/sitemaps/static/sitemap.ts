@@ -25,6 +25,21 @@ export default function sitemap(): MetadataRoute.Sitemap {
             changeFrequency:"daily",
         },
         {
+            url: `${app_production_url}/explore`,
+            priority: 0.7,
+            lastModified: new Date().toISOString(),
+        },
+        {
+            url: `${app_production_url}/explore/search`,
+            priority: 0.7,
+            lastModified: new Date().toISOString(),
+        },
+        {
+            url: `${app_production_url}/explore/home`,
+            priority: 0.7,
+            lastModified: new Date().toISOString(),
+        },
+        {
             url: `${app_production_url}/app/about`,
             priority: 0.7,
         },

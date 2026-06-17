@@ -6,7 +6,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { ReactElement, useRef } from "react";
 import BottomSheet from "./BottomSheet";
 import { LoginModal } from "./fallbacks";
-import { Button, OptionalChildren } from "./ui";
+import { OptionalChildren } from "./ui";
 
 type OnClickFunc = <M extends AvailableMutations, T>(newState: T, action: M, args: MutationFunctionAgruments<M>) => void
 

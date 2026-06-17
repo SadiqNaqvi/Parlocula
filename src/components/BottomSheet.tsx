@@ -111,7 +111,7 @@ export type BottomSheetRef = {
   toggle: () => void,
 }
 
-export const BottomSheet = forwardRef(({ children, description, title, state, onClose, snapPoints, allowHandle, button, className, buttonId, buttonTitle }: BottomSheetProps, ref) => {
+export const BottomSheet = forwardRef(({ children, description, title, state, onClose, snapPoints, allowHandle, button, className, buttonId, buttonTitle, containerClassName }: BottomSheetProps, ref) => {
 
   const [open, setOpen] = useState<boolean>(false);
   const sheetId = useRef(Math.random().toString(36));
@@ -174,7 +174,7 @@ export const BottomSheet = forwardRef(({ children, description, title, state, on
           {button}
         </Drawer.Trigger>
       </OptionalChildren>
-      <DrawerPortal title={title} description={description} allowHandle={allowHandle}>
+      <DrawerPortal containerClassName={containerClassName} title={title} description={description} allowHandle={allowHandle}>
         {children}
       </DrawerPortal>
     </Root>

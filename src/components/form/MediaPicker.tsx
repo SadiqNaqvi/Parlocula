@@ -2,9 +2,9 @@
 
 import { AddIcon, GlobeIcon, LeftChevron, MegaIcon, VimeoIcon, XmarkIcon, YoutubeIcon } from "@assets/Icons";
 import BottomSheet, { BottomSheetRef, NestedSheet } from "@components/BottomSheet";
-import { Button, LoadingSpinner, OptionalChildren } from "@components/ui";
+import { Button, OptionalChildren } from "@components/ui";
 import { mediaInputConfig, mediaUrlPattern, numberOfFrames, vimeoLinkPattern, youtubeLinkPattern } from "@lib/constants";
-import { createThumbHash, scaleImage, convertByteIntoSize } from "@lib/helpers/media";
+import { convertByteIntoSize, createThumbHash, scaleImage } from "@lib/helpers/media";
 import appToast from "@lib/providers/toast";
 import { fileSchema, megaFileSchema, urlSchema } from "@lib/schemas";
 import { Frame } from "@type/internal";

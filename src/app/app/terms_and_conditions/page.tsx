@@ -1,8 +1,11 @@
 import { Navbar, Navigate } from "@components";
 import { BlogHeading1, BlogHeading2, BlogHeading3, BlogList, BlogSection, BlogSubSection } from "@components/blog";
 import { ParloFooter } from "@components/ui";
+import generateDynamicMetadata from "@lib/seo/metadata";
 
 export const dynamic = "force-static";
+
+export const metadata = generateDynamicMetadata({ title: "Terms And Conditions" });
 
 const TermsAndConditionsPage = () => {
 

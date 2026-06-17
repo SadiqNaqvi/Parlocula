@@ -80,7 +80,7 @@ const NewRoomSheet = ({ ruser }: { ruser: MereUser }) => {
             </section>
             <footer className="w-stretch sticky bottom-0 px-2 py-4">
                 <OptionalChildren condition={!invitationMessage} fallback={(
-                    <p className="text-center text-sm ghostColor">You have already invited this @{ruser.username}. Please wait for the acceptance your invitation.</p>
+                    <p className="text-center text-sm ghostColor">You have invited @{ruser.username}. Please wait for the acceptance of your invitation.</p>
                 )}>
                     <Form
                         ref={formRef}

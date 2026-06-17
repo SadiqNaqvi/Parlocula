@@ -53,8 +53,6 @@ const Component = (data: RequestedUser, props: Props) => {
         { label: "followers", value: followers },
         { label: "following", value: following },
         { label: "posts", value: posts },
-        // { label: "comments", value: comments },
-        // { label: "shelves", value: publicShelves },
     ];
 
     const handleCopyUsername = () => {

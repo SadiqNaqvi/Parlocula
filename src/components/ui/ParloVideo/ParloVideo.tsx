@@ -70,7 +70,7 @@ const ParloVideo = ({ className, containerClassName, frame, disablePopup, galler
         if (disablePopup || !videoContainer.current) return;
         setPlay(true);
         Fancybox.show([{
-            src: videoContainer.current.id,
+            src: `#${videoContainer.current.id}`,
         }], {
             on: {
                 "close": () => {

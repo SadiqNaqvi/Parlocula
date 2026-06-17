@@ -12,7 +12,6 @@ const robots = (): MetadataRoute.Robots => {
                 "/room/",
                 "/join/",
                 "/invalidate/",
-                "/search",
                 "/guest/",
                 "/new/",
                 "/edit/",

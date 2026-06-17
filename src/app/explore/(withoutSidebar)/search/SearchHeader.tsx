@@ -51,6 +51,7 @@ const SearchHeader = ({ filter }: { filter: string }) => {
                         name="query"
                         defaultValue={searchParams.get("q") || undefined}
                         autoFocus
+                        minLength={4}
                         className="h-full w-full border-0 p-0"
                         containerClasses="w-full h-full"
                         placeholder="What are you looking for?"

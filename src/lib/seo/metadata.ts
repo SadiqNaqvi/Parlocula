@@ -109,7 +109,7 @@ type ParloMetadata = {
     description: string,
     shortDescription: string,
     authors: Metadata["authors"],
-    allowRobots?: boolean,
+    disallowRobots?: boolean,
     url: string,
 }
 
@@ -135,7 +135,7 @@ const generateDynamicMetadata = (config: Partial<ParloMetadata>, root?: boolean)
             title: "Parlocula",
         },
 
-        robots: config.allowRobots ? robotsMeta : undefined,
+        robots: config.disallowRobots ? undefined : robotsMeta,
 
         alternates: { canonical },
 

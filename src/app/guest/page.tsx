@@ -1,4 +1,4 @@
-import { UserIcon } from "@assets/Icons";
+import { UserWithoutCircleIcon } from "@assets/Icons";
 import { Navbar, Navigate, Sidebar } from "@components";
 import UserPageMockup from "@components/ui/mockup/UserPage";
 import { getUserFromToken } from "@lib/auth/utils";
@@ -19,7 +19,7 @@ const GuestProfilePage = async () => {
                 <header className="px-2">
                     <section className="flex gap-4 mb-4 items-center">
                         <div className="size-24 md:size-28 md:min-w-28 m-0 p-6 md:p-8 rounded-full border-2 border-gray-500">
-                            <UserIcon className="size-full" />
+                            <UserWithoutCircleIcon className="size-full" />
                         </div>
                         <div className="space-y-1">
                             <h2 className="text-xl">Guest</h2>

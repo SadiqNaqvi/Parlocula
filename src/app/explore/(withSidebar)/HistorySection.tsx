@@ -20,7 +20,7 @@ const HistoryBar = ({ path, poster, title, image, type }: HistoryStackType) => (
                 frame={poster}
                 frameType={predictFrameType(path)}
                 classNameForFallback="min-w-8 size-8 p-1"
-                className="size-10 min-w-10 object-cover"
+                className="size-12 min-w-12 object-cover"
                 containerClassName="rounded-full overflow-hidden"
                 alt={`Poster Picture of the ${type} - ${title}`}
             />

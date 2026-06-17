@@ -1,9 +1,12 @@
 import { Navbar } from "@components";
 import { BlogHeading1, BlogHeading2, BlogHeading3, BlogList, BlogSection, BlogSubSection } from "@components/blog";
 import { ParloFooter } from "@components/ui";
+import generateDynamicMetadata from "@lib/seo/metadata";
 import Link from "next/link";
 
 export const dynamic = "force-static";
+
+export const metadata = generateDynamicMetadata({ title: "Privacy Policy" });
 
 const PrivacyPolicyPage = () => {
 
@@ -11,7 +14,7 @@ const PrivacyPolicyPage = () => {
         <>
             <Navbar />
 
-            <main className="noPadding p-6">
+            <main className="noPadding px-4 py-6">
 
                 <header className="my-8">
                     <BlogHeading1>Privacy Policy - Parlocula</BlogHeading1>

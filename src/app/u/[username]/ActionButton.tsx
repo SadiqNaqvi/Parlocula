@@ -15,8 +15,8 @@ type Props = {
     username: string;
 }
 
-const primaryButtonClassName = "flex-1 sm:flex-none primary"
-const secondaryButtonClassName = "flex-1 sm:flex-none secondary"
+const primaryButtonClassName = "flex-1 sm:flex-none primary";
+const secondaryButtonClassName = "flex-1 sm:flex-none secondary";
 
 const ActionButton = ({ rid, uid, username }: Props) => {
 
