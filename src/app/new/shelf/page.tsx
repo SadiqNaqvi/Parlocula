@@ -2,6 +2,7 @@ import { ShelfMutation } from "@components/form/Mutation";
 import { getUserFromToken } from "@lib/auth/utils";
 import { fetchCollection } from "@lib/contentFetcher";
 import { getTaleon } from "@lib/helpers/common";
+import generateDynamicMetadata from "@lib/seo/metadata";
 import { ParloPageProps } from "@type/other";
 import { TaleonSchemaType } from "@type/schemas";
 import { cookies } from "next/headers";
@@ -27,6 +28,8 @@ const getTaleonsToStoreInShelf = async ({ clid, extid, type }: Partial<SearchPar
     return [];
 
 }
+
+export const metadata = generateDynamicMetadata({ title: "Create New Shelf" });
 
 const CreateShelfPage = async ({ searchParams }: ParloPageProps<any, SearchParams>) => {
 

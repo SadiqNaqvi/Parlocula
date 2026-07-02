@@ -92,15 +92,17 @@ export const formatTimeAsDuration = (seconds: number): string => {
  * @returns thumbnail or shapshot URL of the provided video at the given time
  */
 
-export const generateSnapshot = async (file: FileAcceptTypes, timeInSeconds = 0.01) => {
+type VideoDurationAndThumbResponse = { thumb: Blob, duration: number };
+
+export const getVideoDurationAndThumbnail = async (file: FileAcceptTypes, timeInSeconds = 0.01, width?: number, height?: number) => {
     const path = getPath(file);
 
-    return new Promise<string>((res, rej) => {
+    return new Promise<VideoDurationAndThumbResponse>((res, rej) => {
         const video = document.createElement("video");
         const canvas = document.createElement("canvas");
         const context = canvas.getContext("2d")!;
 
-        if (!context) rej("Context not found")
+        if (!context) rej("Context not found");
 
         video.setAttribute("crossorigin", "anonymous");
         video.preload = "metadata";
@@ -111,18 +113,24 @@ export const generateSnapshot = async (file: FileAcceptTypes, timeInSeconds = 0.
 
         video.addEventListener("seeked", () => {
 
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
+            canvas.width = width ? Math.min(width, video.videoWidth) : video.videoWidth;
+            canvas.height = height ? Math.min(height, video.videoHeight) : video.videoHeight;
 
             context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
             canvas.toBlob((blob) => {
-                if (!blob) rej("Blob not found while generating snapshot");
-                res(URL.createObjectURL(blob!))
+                if (blob === null) rej("Blob not found while generating thumbnail");
+                res({
+                    thumb: blob as Blob,
+                    duration: video.duration,
+                })
             })
         });
 
-        video.addEventListener("error", () => rej("Unable to load this video!"));
+        video.addEventListener("error", () => {
+            console.error("Error generating thumbnail");
+            rej("Unable to load this video!")
+        });
 
         video.src = path;
         video.load();

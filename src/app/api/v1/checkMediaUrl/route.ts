@@ -1,10 +1,14 @@
-import { oneHourInSeconds } from "@lib/constants";
+import { oneDayInSeconds } from "@lib/constants";
 import { binaryToBase64 } from "@lib/helpers/media";
+import { Frame } from "@type/internal";
+import { InputFrame } from "@type/schemas";
 import { NextRequest, NextResponse } from "next/server";
 import sharp from "sharp";
 import { rgbaToThumbHash } from "thumbhash";
 
-const createThumbHash = async (buffer: ArrayBuffer) => {
+const createThumbHash = async (file: ArrayBuffer | string) => {
+
+    const buffer = typeof file === "string" ? await (await fetch(file)).arrayBuffer() : file;
     const { data, info } = await sharp(buffer)
         .resize(100, 100, { fit: "inside" })
         .ensureAlpha()
@@ -17,17 +21,206 @@ const createThumbHash = async (buffer: ArrayBuffer) => {
 }
 
 const workOnWebMedia = async (resp: Response) => {
-    const body = await resp.blob();
-    const { type, size } = body;
+
+    let size = 0;
+
+    if (resp.status === 206) {
+        const contentRange = resp.headers.get("content-range");
+        // Example: "bytes 0-100/123456789"
+
+        if (contentRange) {
+            const totalSize = contentRange.split("/")[1];
+            size = Number(totalSize);
+        }
+    } else {
+        const contentLength = resp.headers.get("content-length");
+        if (!contentLength) return null;
+
+        size = Number(contentLength);
+    }
+
+    // Fallback
+
+    const body = await resp.blob()
+    const { type } = body;
 
     const [mime, ext] = type.split('/');
 
+    if (mime !== "image" && mime !== "video")
+        return null;
+
     const hash = mime === "image" ? await createThumbHash(await body.arrayBuffer()) : undefined;
 
-    if (mime === "image" || mime === "video")
-        return { size, mime, ext, hash }
+    return { size, mime, ext, hash }
+}
 
-    return null;
+type VimeoResult = {
+    id: string | number,
+    // Example: 357274789
+    title: string,
+    description: string,
+    url: string,
+    // Example: 'https://vimeo.com/357274789',
+    thumbnail_large: string,
+    duration: number,
+    width: number,
+    height: number,
+}
+
+type YoutubeResult = {
+    title: string,
+    type: 'video',
+    thumbnail_height: number,
+    thumbnail_width: number,
+    thumbnail_url: 'https://i.ytimg.com/vi/NGbiNYUrFqA/hqdefault.jpg',
+}
+
+const validateMediaUrls = async (source: string, path: string, searchParams: URLSearchParams): Promise<{
+    success: boolean,
+    error?: string,
+    result?: Omit<Frame, "blob" | "isExternal" | "shouldUpload" | "extSource">
+}> => {
+
+    if (source === "mega") {
+        const key = searchParams.get("key");
+
+        if (!key) return {
+            success: false,
+            error: "Key is required for mega."
+        };
+
+        const url = `${process.env.QCORE_CLOUD_URI}/media/v1/mega/${path}?key=${key}`;
+
+        const resp = await fetch(url, {
+            headers: { range: "bytes=0-100" }
+        });
+
+        console.log(resp);
+
+        if (resp.ok) {
+
+            const headers = new Headers(resp.headers);
+
+            const size = Number(headers.get("Content-Size")) || 0;
+
+            const type = headers.get("Content-type")
+
+            // the header would be like this: "{mime}/{ext}";
+            const [mime] = type?.split('/') || [];
+
+            const hash = mime === "image" ? await createThumbHash(await resp.arrayBuffer()) : undefined;
+
+            if (mime === "image" || mime === "video") return {
+                success: true,
+                result: {
+                    size,
+                    type: mime,
+                    hash,
+                    path: url,
+                    thumb: undefined
+                }
+            };
+
+            console.warn("Response while checking mega file:", resp.status, resp.statusText, resp);
+
+            return {
+                success: false,
+                error: "Invalid Media Type. Only Image and Video is allowed."
+            }
+
+        } else {
+            const response = await resp.text();
+            console.log(response);
+        }
+    } else if (source === "youtube") {
+        const resp = await fetch(`https://youtube.com/oembed?url=${encodeURIComponent(path)}&format=json`)
+
+        if (resp.ok) {
+            const result: YoutubeResult = await resp.json();
+
+            const match = path.match(/^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/);
+
+            const video_id = match && match[7];
+
+            if (!video_id || video_id.length !== 11) return {
+                success: false,
+                error: "Invalid URL. Please enter a valid Youtube URL."
+            }
+
+            return {
+                success: true,
+                result: {
+                    path: `https://youtube.com/watch?v=${video_id}`,
+                    type: "video",
+                    hash: await createThumbHash(result.thumbnail_url),
+                    thumb: result.thumbnail_url,
+                }
+            }
+        }
+
+    } else if (source === "vimeo") {
+
+        const resp = await fetch(`https://vimeo.com/api/v2/video/${path}.json`);
+
+        if (resp.ok) {
+            const [result]: [VimeoResult] = await resp.json();
+
+            return {
+                success: true,
+                result: {
+                    path: result.url,
+                    type: "video",
+                    duration: result.duration,
+                    thumb: result.thumbnail_large,
+                    hash: await createThumbHash(result.thumbnail_large)
+                }
+            }
+        }
+    } else {
+        const url = new URL(path);
+
+        const sp = url.searchParams;
+        const doesSearchHaveSizeParams = sp.size > 0 && (sp.has("w") || sp.has("h") || sp.has("q") || sp.has("width") || sp.has("width") || sp.has("quality"));
+
+        if (!doesSearchHaveSizeParams) {
+            const response = await fetch(path, { headers: { range: "bytes=0-100" } });
+            if (response.ok) {
+                const result = await workOnWebMedia(response);
+                if (result) return {
+                    success: true,
+                    result: {
+                        path,
+                        hash: result.hash,
+                        size: result.size,
+                        type: result.mime as Frame["type"],
+                    }
+                };
+            }
+        } else {
+            const pathWithoutSParams = url.origin + url.pathname;
+
+            const [respWithSp, respWithoutSp] = await Promise.all([
+                fetch(path, { headers: { range: "bytes=0-100" } }),
+                fetch(pathWithoutSParams, { headers: { range: "bytes=0-100" } }),
+            ]);
+
+            const result = respWithoutSp.ok ? await workOnWebMedia(respWithoutSp) : await workOnWebMedia(respWithSp);
+            if (result) return {
+                success: true,
+                result: {
+                    path: respWithoutSp.ok ? pathWithoutSParams : path,
+                    hash: result.hash,
+                    size: result.size,
+                    type: result.mime as Frame["type"],
+                }
+            };
+        }
+    }
+
+    return {
+        success: false,
+        error: "Nothing could be found with the provided URL."
+    }
 }
 
 export const GET = async (req: NextRequest) => {
@@ -50,84 +243,17 @@ export const GET = async (req: NextRequest) => {
 
     const headers = new Headers();
 
-    headers.set("Cache-Control", `public, max-age=${oneHourInSeconds}`);
+    headers.set("Cache-Control", `public, max-age=${oneDayInSeconds}`);
 
     try {
-        if (source === "mega") {
-            const key = searchParams.get("key");
+        const response = await validateMediaUrls(source, path, searchParams);
 
-            if (!key) return NextResponse.json({
-                success: false,
-                error: "Key is required for mega."
-            }, { status: 400 });
-
-            const url = `${process.env.QCORE_CLOUD_URI}/media/v1/mega/${path}?key=${key}`;
-
-            const resp = await fetch(url, { headers: { range: "bytes=0-100" } });
-
-            if (resp.ok) {
-
-                const headers = new Headers(resp.headers);
-
-                const size = Number(headers.get("Content-Size")) || 0;
-
-                // the header would be like this: "{mime}/{ext}";
-                const type = headers.get("Content-type")
-
-                const [mime, ext] = type?.split('/') || ["unknown"];
-
-                const hash = mime === "image" ? await createThumbHash(await fetch(url).then(r => r.arrayBuffer())) : undefined;
-
-                if (mime === "image" || mime === "video")
-                    return NextResponse.json({
-                        success: true,
-                        result: { size, mime, ext, hash }
-                    }, { status: 200, headers });
-
-            }
-
-            console.warn("Response while checking mega file:", resp.status, resp.statusText, resp);
-
-        } else if (source === "youtube") {
-            const resp = await fetch(`https://youtube.com/oembed?url=${encodeURIComponent(path)}&format=json`)
-
-            if (resp.ok) return NextResponse.json({
-                success: true,
-                result: await resp.json()
-            }, { status: 200, headers });
-        } else if (source === "vimeo") {
-            const resp = await fetch(path, { method: "HEAD" });
-
-            if (resp.ok) return NextResponse.json({
-                success: true,
-                result: null
-            }, { status: 200, headers });
-        } else {
-            const url = new URL(path);
-            const pathWithoutSParams = url.origin + url.pathname;
-
-            const [respWithSp, respWithoutSp] = await Promise.all([
-                fetch(path),
-                fetch(pathWithoutSParams),
-            ])
-            if (respWithoutSp.ok) {
-                const result = await workOnWebMedia(respWithoutSp);
-                if (result)
-                    return NextResponse.json({
-                        success: true, result
-                    }, { status: 200, headers });
-            }
-            else if (respWithSp.ok) {
-                const result = await workOnWebMedia(respWithSp);
-                if (result)
-                    return NextResponse.json({
-                        success: true, result
-                    }, { status: 200, headers });
-            }
-
-        }
-
-        return NextResponse.json({ success: false, error: "Nothing could be found" }, { status: 404 });
+        return NextResponse.json(
+            response,
+            response.success
+                ? { status: 200, headers }
+                : { status: 404 }
+        );
 
     } catch (err: any) {
         console.warn("Error occured while checking media url", err.message);

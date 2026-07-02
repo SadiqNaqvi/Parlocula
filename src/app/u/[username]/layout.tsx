@@ -24,7 +24,7 @@ export const generateMetadata = async ({ params }: { params: Promise<{ username:
     const { bio, name } = result;
 
     return generateDynamicMetadata({
-        title: `${username} - Parlocula`,
+        title: username,
         description: `${bio ? bio.slice(0, 100) + ' - ' : `${name || username}'s profile on Parlocula. `}Explore shelves, posts, discussions, and activity across movies, shows, and communities.`,
         allowRobots: true,
     });

@@ -129,6 +129,5 @@ export const proxy = async (req: NextRequest) => {
 };
 
 export const config = {
-  // matcher: ["/((?!_next|login|signup|public|.*\\..*).*)"],
-  matcher: ["/((?!_next|api\/v1\/ably|.*\\..*).*)"]
+  matcher: ["/((?!_next|api\/v1\/ably|sitemap.xml|sitemaps\/*|robots.txt|.*\\..*).*)"]
 };

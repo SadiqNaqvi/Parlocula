@@ -1,11 +1,12 @@
 "use server";
-import { handleArrayForArrayResponse, parseResponse, ParseResponseType, parseUnknownData } from "@lib/utils";
+import { handleArrayForArrayResponse, parseResponse, ParseResponseType } from "@lib/utils";
 import { File as FormidableFile } from "formidable";
 import { promises } from "fs";
 import 'server-only';
 
 type NsfwEnum = "Yes" | "No" | "Possible";
 type MediaType = "image" | "video";
+
 type QCoreCloudResponse<T> = {
     success: false,
     error: string
@@ -19,19 +20,46 @@ type UploadResponse = {
     resource_type: MediaType;
     size: number;
     path: string;
+    thumbnail: string | undefined;
+}
+
+export const uploadThumbnailFromUrl = async (path: string) => {
+
+    const uri = process.env.QCORE_CLOUD_UPLOAD_URI;
+    const apiKey = process.env.QCORE_CLOUD_AUTH_KEY;
+    if (!uri) throw new Error("QCORE_CLOUD_UPLOAD_URI env variable is undefined!");
+    else if (!apiKey) throw new Error("QCORE_CLOUD_AUTH_KEY env variable is undefined!");
+
+    const response = await fetch(`${uri}/thumb?url=${path}`, {
+        method: "POST",
+        headers: {
+            authorization: `Bearer ${apiKey}`,
+        },
+    });
+    const result: QCoreCloudResponse<string> = await response.json();
+    if (!result.success) throw new Error(result.error);
+
+    return result.result;
 }
 
 const getFromDiskAndUpload = async (file: FormidableFile, uri: string, apiKey: string) => {
 
     const fileBuff = (await promises.readFile(file.filepath));
 
+    if(!file.mimetype)
+        throw new Error("File type is not defined.");
+    else if(!(file.mimetype.includes("image") || file.mimetype.includes("video")))
+        throw new Error("File is neither Image nor Video.");
+
+
     const formdata = new FormData();
     formdata.append(
         "files",
-        new Blob([fileBuff], { type: "image/jpeg" }),
-        "filename.jpg");
+        new Blob([fileBuff], { type: file.mimetype }),
+        file.originalFilename || file.newFilename,
+    );
 
-    return await fetch(`${uri}/upload`, {
+    return await fetch(uri, {
         method: "POST",
         headers: {
             authorization: `Bearer ${apiKey}`,
@@ -56,11 +84,12 @@ export const uploadMediaFiles = async <T extends FormidableFile | FormidableFile
 
     try {
         await Promise.all(files.map(file => getFromDiskAndUpload(file, uri, apiKey)
-            .then(({ json, ok, status, text }) => {
+            .then(({ json, ok, text }) => {
 
                 if (!ok || !json) {
                     throw new Error(`Media Upload Failed, Response = ${text}`);
                 }
+                
                 else if (!json.success) {
                     throw new Error(`Media Upload Failed, ${json.error}`);
                 }

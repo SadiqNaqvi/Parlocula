@@ -7,7 +7,7 @@ import { getPoster } from "@lib/utils";
 import { Frame } from "@type/internal";
 
 const className = "sm:rounded-md sm:border border-gray40 object-cover object-center size-full cursor-pointer";
-const containerClassName = "w-full min-w-full h-auto aspect-square sm:w-60 sm:min-h-60 sm:min-w-60";
+const containerClassName = "w-full min-w-full h-auto aspect-square sm:w-60 sm:min-w-60 sm:max-w-60";
 
 const sizes = [
     { maxScreenWidth: 480, imageWidth: "100vw" },

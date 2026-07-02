@@ -83,7 +83,9 @@ type CommanInputFrame = {
   shouldUpload: boolean;
   size?: number;
   hash?: string;
-  extSource?: ExtMediaSource
+  extSource?: ExtMediaSource;
+  thumb: string | undefined;
+  duration: number | undefined;
 };
 
 export type InputFrame = CommanInputFrame &

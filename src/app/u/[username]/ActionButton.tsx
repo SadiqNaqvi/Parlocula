@@ -1,10 +1,10 @@
 import { BellIcon, BellSlashIcon } from "@assets/Icons";
 import { BottomSheetRef, Navigate, OptionMenu, UserBasedButton, UserBasedButtonProps } from "@components";
+import { Button } from "@components/ui";
 import OptionList from "@components/ui/OptionList";
 import { checkUserConnection } from "@lib/helpers/common";
 import { AvailableMutations } from "@lib/providers/mutationStore";
 import { getQueryKeys } from "@lib/utils";
-import { Button } from "@react-email/components";
 import { UserConnectionType } from "@type/internal";
 import { useRef } from "react";
 import { toast } from "sonner";

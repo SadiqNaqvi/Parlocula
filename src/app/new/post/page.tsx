@@ -1,11 +1,14 @@
 import { PostMutation } from "@components/form/Mutation";
 import { getUserFromToken } from "@lib/auth/utils";
 import { getPostById, getThreadById } from "@lib/helpers/common";
+import generateDynamicMetadata from "@lib/seo/metadata";
 import { FullPost, Thread } from "@type/internal";
 import { ParloPageProps } from "@type/other";
 import { cookies } from "next/headers";
 
 type SearchParams = { tid: string, qpid: string }
+
+export const metadata = generateDynamicMetadata({ title: "Create New Post" });
 
 const getThreadAndQuotedPost = async ({ qpid, tid }: Partial<SearchParams>) => {
     let thread: Thread | undefined = undefined;

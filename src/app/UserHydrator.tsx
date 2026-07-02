@@ -139,11 +139,10 @@ const UserHydrator = ({ payload, currentUser }: { payload: TokenPayload | null, 
     }, []);
 
     if (isInAppBrowser) return (
-        <section className="fixed bg-primary z-50 inset-0 flex flex-cntr-all">
-            <AppIcon className="size-12 md:size-24 customSize" />
-            <div className="w-full space-y-4 sticky left-[50%] -translate-x-[50%] bottom-10 px-2">
-
-                <p className="text-center text-sm">Recommended: Open this in browser.</p>
+        <section className="fixed bg-primary z-50 inset-0 flex flex-col">
+            <AppIcon className="size-12 md:size-24 customSize m-auto" />
+            <div className="w-full space-y-4 sticky bottom-10 px-2">
+                <p className="font-semibold text-center text-lg">Recommended: Open this in browser.</p>
                 <p className='text-center'>Click on the options ( ⋮ ) or share icon and open it in browser</p>
             </div>
         </section>

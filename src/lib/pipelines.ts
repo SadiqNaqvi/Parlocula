@@ -864,9 +864,9 @@ export const searchHandler = async ({ r, type, filters }: SearchHandlerProps): P
 
   const sp = r.nextUrl.searchParams;
 
-  const query: string | null = sp.get("q");
-  if (!query || query.length < 4)
-    return { success: false, errCode: "custom_error", customError: "Query must be 4 characters long to search" };
+  const query: string | null = sp.get("q")?.trim();
+  if (!query || query.length < 1)
+    return { success: false, errCode: "custom_error", customError: "Query is empty. Query must be sent under the searchParams 'q'." };
 
   const { page, nsfw } = getSearchParams(r.nextUrl);
 

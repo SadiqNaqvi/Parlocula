@@ -1,6 +1,7 @@
 import { ThreadMutation } from "@components/form/Mutation";
 import { getUserFromToken } from "@lib/auth/utils";
 import { fetchMovie, fetchPerson, fetchShow } from "@lib/contentFetcher";
+import generateDynamicMetadata from "@lib/seo/metadata";
 import { ThreadConnection } from "@type/internal";
 import { ParloPageProps } from "@type/other";
 import { cookies } from "next/headers";
@@ -31,6 +32,8 @@ const getConntection = async ({ cnid, type }: Partial<SearchParams>): Promise<Th
     const { title, tmdb_id } = content;
     return { name: title, extid: tmdb_id, type }
 }
+
+export const metadata = generateDynamicMetadata({ title: "Create New Thread" });
 
 const CreateThreadPage = async ({ searchParams }: ParloPageProps<any, SearchParams>) => {
     const jar = await cookies();

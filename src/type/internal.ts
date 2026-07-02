@@ -85,6 +85,8 @@ export type Frame = {
   hash?: string;
   size?: number;
   extSource?: ExtMediaSource,
+  thumb?: string,
+  duration?: number,
 };
 
 export type ShelfMetaData = {

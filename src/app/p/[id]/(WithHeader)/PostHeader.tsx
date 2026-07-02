@@ -40,7 +40,7 @@ const Component = (data: FullPost, { uid,filterContent }: Props) => {
 
             <Navbar
                 navTitle="Post"
-                titleToShare={`Check out this post by ${username} on Parlocula`}
+                titleToShare={`${title.slice(0,100)} - Check out this post by ${username} on Parlocula`}
                 OptionButton={<OptionsButton post={data} />}
                 className="sticky bg-primary -mt-4 mb-4"
             />

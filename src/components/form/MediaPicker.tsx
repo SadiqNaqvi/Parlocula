@@ -4,19 +4,17 @@ import { AddIcon, GlobeIcon, LeftChevron, MegaIcon, VimeoIcon, XmarkIcon, Youtub
 import BottomSheet, { BottomSheetRef, NestedSheet } from "@components/BottomSheet";
 import { Button, OptionalChildren } from "@components/ui";
 import { mediaInputConfig, mediaUrlPattern, numberOfFrames, vimeoLinkPattern, youtubeLinkPattern } from "@lib/constants";
-import { convertByteIntoSize, createThumbHash, scaleImage } from "@lib/helpers/media";
+import { convertByteIntoSize, createThumbHash, getVideoDurationAndThumbnail, scaleImage } from "@lib/helpers/media";
 import appToast from "@lib/providers/toast";
 import { fileSchema, megaFileSchema, urlSchema } from "@lib/schemas";
 import { Frame } from "@type/internal";
 import { InputManagerType, TypedFunction } from "@type/other";
 import { ExtMediaSource, InputFrame } from "@type/schemas";
 import Image from "next/image";
-import { ChangeEvent, useImperativeHandle, useState } from "react";
+import { ChangeEvent, PropsWithChildren, useImperativeHandle, useState } from "react";
 import { toast } from "sonner";
 import { twMerge } from "tailwind-merge";
 import { Form, Input } from ".";
-
-type FrameToReturn = InputFrame & { thumb?: string }
 
 type Sections = "all" | ExtMediaSource;
 
@@ -24,7 +22,13 @@ const showError = (err: string) => {
     appToast.error(err)
 }
 
-const FrameContainer = ({ path, type, size, thumb, remove, className }: FrameToReturn & { remove?: TypedFunction<string>, className?: string }) => {
+const FrameWrapper = ({ children, className }: PropsWithChildren<{ className: string | undefined }>) => (
+    <div className={twMerge("min-w-60 size-60 border rounded-md overflow-hidden border-gray40 relative", className)}>
+        {children}
+    </div>
+);
+
+const FrameContainer = ({ path, type, size, thumb, remove, className }: InputFrame & { remove?: TypedFunction<string>, className?: string }) => {
 
     const ExtraComponents = () => (
         <>
@@ -43,10 +47,10 @@ const FrameContainer = ({ path, type, size, thumb, remove, className }: FrameToR
                 </span>
             </OptionalChildren>
         </>
-    )
+    );
 
     if (type === "image" || thumb) return (
-        <div className={twMerge("min-w-60 size-60 border rounded-md border-gray40 relative", className)}>
+        <FrameWrapper className={className}>
             <Image
                 className="aspect-square h-full object-contain"
                 src={thumb || path}
@@ -54,11 +58,11 @@ const FrameContainer = ({ path, type, size, thumb, remove, className }: FrameToR
                 width={240} height={240}
             />
             <ExtraComponents />
-        </div>
+        </FrameWrapper>
     )
 
     else return (
-        <div className={twMerge("min-w-60 size-60 border rounded-md border-gray40 relative", className)}>
+        <FrameWrapper className={className}>
             <video
                 height={240}
                 width={240}
@@ -69,7 +73,7 @@ const FrameContainer = ({ path, type, size, thumb, remove, className }: FrameToR
                 <source src={path} />
             </video>
             <ExtraComponents />
-        </div>
+        </FrameWrapper>
     )
 
 }
@@ -191,101 +195,117 @@ const imageUrlUploadOptions: URLUploadOption[] = [
 
 const combineUploadOptions = videoUrlUploadOptions.concat(imageUrlUploadOptions);
 
-type MediaCheckedResponse<T = any> = { success: boolean, error: string, result: T };
-type MegaAndWebResponse = { size: number, mime: "image" | "video", ext: string, hash: string };
+type ValidatedMediaResponse = {
+    success: boolean,
+    error?: string,
+    result?: Omit<Frame, "blob" | "isExternal" | "shouldUpload" | "extSource">
+};
 
-const checkMediaLink = async <T,>(url: string, returnBoolean?: boolean): Promise<T | undefined | boolean> => {
+const checkMediaLink = async (url: string): Promise<ValidatedMediaResponse["result"]> => {
 
     const resp = await fetch(url);
 
-    const { error, result, success } = await resp.json() as MediaCheckedResponse<T>;
+    const { error, result, success } = await resp.json() as ValidatedMediaResponse;
 
-    if (resp.ok && success) return returnBoolean ? true : result as T;
+    if (resp.ok && success) return result;
 
-    else if (resp.status === 404)
-        showError("Nothing could be found! Please check the link and try again.")
-
-    else {
-        console.error("Error while checking link", resp.status, resp.statusText, error);
-        showError("Something went wrong! Please try again.")
-    }
-}
-
-const checkMegaLink = async (url: string) => {
-    const idWithKey = url.split('/').at(-1);
-    const [id, key] = idWithKey?.split('#') || [];
-
-    if (!id || !key) {
-        return showError("Invalid URL! Please provide a valid mega url with key attached");
+    else if (error) {
+        showError(error);
+        return;
     }
 
-    const result = await checkMediaLink<MegaAndWebResponse>(`/api/v1/checkMediaUrl?source=mega&path=${id}&key=${key}`);
-
-    if (result && typeof result !== "boolean") return { path: `${id}?key=${key}`, type: result.mime, size: result.size, hash: result.hash }
+    showError("Nothing could be found! Please check the link and try again.");
 }
 
-export const MediaInputPrompt = ({ type, callback }: { type: "image" | "both", callback: TypedFunction<[FrameToReturn]> }) => {
+const validateLinkAndReadyFrame = async (url: string, section: Sections): Promise<InputFrame | undefined> => {
 
-    const [frame, setFrame] = useState<FrameToReturn | null>(null);
+    let apiPath = `/api/v1/checkMediaUrl?source=${section}`;
+
+    if (section === "mega") {
+        const idWithKey = url.split('/').at(-1);
+        const [id, key] = idWithKey?.split('#') || [];
+
+        if (!id || !key) {
+            showError("Invalid URL! Please provide a valid mega url with key attached");
+            return;
+        }
+        apiPath += `&path=${id}&key=${key}`;
+    } else if (section === "web" || section === "youtube") {
+        apiPath += `&path=${url}`;
+    } else if (section === "vimeo") {
+        const segments = url.split('/');
+        const id = segments[segments.length - 1];
+        if (!id) {
+            showError("Invalid url! Please choose a valid vimeo url");
+            return;
+        }
+        apiPath += `&path=${id}`;
+    } else {
+        showError("Something went wrong. Please go back and try again.");
+        return;
+    }
+
+    const result = await checkMediaLink(apiPath);
+
+    if (!result) {
+        showError("Something went wrong. Please go back and try again.");
+        return;
+    }
+
+    else if (result?.type !== "video" && result?.type !== "image") {
+        showError("Invalid Media Type! Only Images and Videos are allowed.");
+        return;
+    }
+
+    const imageResult: InputFrame = {
+        blob: null,
+        isExternal: true,
+        path: result.path,
+        shouldUpload: false,
+        duration: result.duration,
+        thumb: result.thumb,
+        type: result.type,
+        extSource: section,
+        hash: result.hash,
+        size: result.size
+    }
+
+    if (result.type === "image" || section === "vimeo" || section === "youtube")
+        return imageResult;
+
+    const { duration, thumb } = await getVideoDurationAndThumbnail(result.path);
+    const hash = await createThumbHash(thumb);
+
+    return {
+        ...imageResult,
+        duration,
+        hash,
+        thumb: URL.createObjectURL(thumb),
+    }
+
+}
+
+export const MediaInputPrompt = ({ type, callback }: { type: "image" | "both", callback: TypedFunction<[InputFrame]> }) => {
+
+    const [frame, setFrame] = useState<InputFrame | null>(null);
     const [section, setSection] = useState<Sections>("all");
     const [loading, setLoading] = useState(false);
 
     const handleUploadFromUrl = async (url: string) => {
         setLoading(true);
 
-        let path = '', thumb = '', hash: string | undefined, mediaType: InputFrame["type"] = 'image', size = 0;
-
-        const apiPath = `/api/v1/checkMediaUrl?source=${section}`;
-
         try {
-            if (section === "mega") {
-                const resp = await checkMegaLink(url);
-                if (!resp) return;
+            const frame = await validateLinkAndReadyFrame(url, section);
 
-                path = `https://qcorecloud.vercel.app/media/v1/mega/${resp.path}`;
-                size = resp.size;
-                mediaType = resp.type;
-                hash = resp.hash;
-            } else if (section === "web") {
-                const resp = await checkMediaLink<MegaAndWebResponse>(`${apiPath}&path=${url}`);
-                if (!resp || typeof resp === "boolean") return;
+            if (!frame) return;
 
-                path = url;
-                size = resp.size;
-                mediaType = resp.mime;
-                hash = resp.hash;
-            } else if (section === "youtube") {
-                const resp = await checkMediaLink<{ thumbnail_url: string }>(`${apiPath}&path=${url}`);
-                if (!resp || typeof resp === "boolean") return;
-                const match = url.match(/^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/);
+            else if (type === "image" && frame.type === "video") {
+                return showError("Invalid Media Type! Only Images are allowed.");
+            }
 
-                const video_id = match && match[7];
-
-                if (!video_id || video_id.length !== 11) return showError("Invalid Url!");
-                path = video_id;
-                thumb = resp.thumbnail_url;
-                mediaType = "video";
-            } else if (section === "vimeo") {
-                const id = url.split('/').at(-1);
-                if (!id) return showError("Invalid url! Please choose a valid vimeo url");
-
-                const resp = await checkMediaLink(`${apiPath}&path=${url}`, true);
-                if (!resp) return;
-
-                path = id;
-                thumb = `https://vumbnail.com/${id}.jpg`;
-                mediaType = "video";
-            } else if (section === "all") return;
-
-            if (mediaType !== "video" && mediaType !== "image")
-                return showError("Invalid Media Type! Only Images and Videos are allowed.")
-
-            else if (type === "image" && mediaType === "video")
-                return showError("Invalid Media Type! Only Images are allowed.")
-
-            setFrame({ blob: null, isExternal: true, path: path, hash, shouldUpload: false, type: mediaType, extSource: section, size: size ?? undefined, thumb });
+            setFrame(frame);
         } catch (e: any) {
-            console.warn("Error handling upload from url", e.message);
+            console.warn("Error handling upload from url", e);
             showError("Unstable Internet Connection!");
         } finally {
             setLoading(false);
@@ -309,7 +329,9 @@ export const MediaInputPrompt = ({ type, callback }: { type: "image" | "both", c
         try {
 
             let blob: Blob | null = null,
-                hash: string | undefined = undefined;
+                hash: string | undefined = undefined,
+                thumb: string | undefined,
+                duration: number | undefined;
 
             const fileMime = file.type.split('/')[0]
 
@@ -326,6 +348,9 @@ export const MediaInputPrompt = ({ type, callback }: { type: "image" | "both", c
             } else if (fileMime === "video") {
                 if (type === "image") return showError("Upload an image please!")
 
+                const videoData = await getVideoDurationAndThumbnail(file, 0.01, 640);
+                thumb = URL.createObjectURL(videoData.thumb);
+                duration = videoData.duration;
                 blob = new Blob([file], { type: file.type });
                 if (!blob) return showError("Failed to upload! Please try again.")
             } else return showError("Invalid file type! Only images and videos are allowed to upload.")
@@ -340,7 +365,10 @@ export const MediaInputPrompt = ({ type, callback }: { type: "image" | "both", c
                 isExternal: false,
                 shouldUpload: true,
                 hash,
+                duration,
+                thumb,
             });
+
         } catch (err: any) {
             console.warn("Error occured while handling media upload:", err.message)
             showError("Something went wrong! Please try again.")
@@ -440,7 +468,8 @@ export const MediaInputPrompt = ({ type, callback }: { type: "image" | "both", c
                         onChange={handleDeviceUpload}
                         className="absolute inset-0 opacity-0"
                         title="" type="file"
-                        accept={type === "image" ? mediaInputConfig.image.accept : `${mediaInputConfig.image.accept}, ${mediaInputConfig.video.accept}`}
+                        // accept={type === "image" ? mediaInputConfig.image.accept : `${mediaInputConfig.image.accept}, ${mediaInputConfig.video.accept}`}
+                        accept={mediaInputConfig.image.accept}
                     />
                 </div>
             </div>
@@ -461,95 +490,89 @@ type ManagerProps = {
 const convertFrameToInputFrame = (frame: Frame[] | undefined): InputFrame[] => {
 
     if (!frame) return [];
-    return frame?.map(({ hash, path, size, type }) => ({
+    return frame?.map(({ hash, path, size, type, duration, thumb }) => ({
         blob: null,
         hash,
         isExternal: true,
         path,
         shouldUpload: false,
         size,
-        type
+        type,
+        duration,
+        thumb,
     }))
 }
 
-const
-    MediaInputManager = ({ title, limit = 5, allowBoth, defaultFrames, getterRef, promptRef, className }: ManagerProps) => {
+const MediaInputManager = ({ title, limit = 5, allowBoth, defaultFrames, getterRef, promptRef, className }: ManagerProps) => {
 
-        const [frames, setFrames] = useState<FrameToReturn[]>(convertFrameToInputFrame(defaultFrames));
-        const [frameType, setFrameType] = useState<"image" | "both">(allowBoth ? "both" : "image");
+    const [frames, setFrames] = useState<InputFrame[]>(convertFrameToInputFrame(defaultFrames));
+    const [frameType, setFrameType] = useState<"image" | "both">(allowBoth ? "both" : "image");
 
-        const getFrames = () => {
-            return frames.map(frame => {
-                const { thumb, ...rest } = frame;
-                return rest;
-            })
+    useImperativeHandle(getterRef, () => ({
+        getData: () => frames,
+        length: frames.length,
+    }));
+
+    const getframe = (frame: InputFrame) => {
+
+        if (frames.length >= (limit ?? 1)) return;
+
+        else if (frames.findIndex(f => f.path === frame.path) > -1) {
+            toast.error("Duplicate Frame removed!");
+            return;
         }
 
-        useImperativeHandle(getterRef, () => ({
-            getData: getFrames,
-            length: frames.length,
-        }));
-
-        const getframe = (frame: InputFrame) => {
-
-            if (frames.length >= (limit ?? 1)) return;
-
-            else if (frames.findIndex(f => f.path === frame.path) > -1) {
-                toast.error("Duplicate Frame removed!");
+        else if (frame.type === "video") {
+            const mediaUploadedVideoFramesCount = frames.filter(el => el.type === "video" && !el.isExternal).length;
+            if (mediaUploadedVideoFramesCount + 1 === numberOfFrames.videos)
+                setFrameType("image");
+            else if (mediaUploadedVideoFramesCount + 1 > numberOfFrames.videos) {
+                toast.error("No more media uploaded videos allowed!");
                 return;
             }
-
-            else if (frame.type === "video") {
-                const mediaUploadedVideoFramesCount = frames.filter(el => el.type === "video" && !el.isExternal).length;
-                if (mediaUploadedVideoFramesCount + 1 === numberOfFrames.videos)
-                    setFrameType("image");
-                else if (mediaUploadedVideoFramesCount + 1 > numberOfFrames.videos) {
-                    toast.error("No more media uploaded videos allowed!");
-                    return;
-                }
-            }
-
-            setFrames([...frames, frame]);
         }
 
-        const removeframe = (path: string) => {
-            setFrames(frames.filter(el => el.path !== path));
-        }
-
-        if (!frames.length) return (
-            <NestedSheet ref={promptRef}>
-                <MediaInputPrompt callback={getframe} type={frameType} />
-            </NestedSheet>
-        );
-
-        return (
-            <section className={twMerge("space-y-4", className)}>
-
-                <OptionalChildren condition={title}>
-                    <h4 className="capitalize">{title}</h4>
-                </OptionalChildren>
-
-
-                <div className="flex gap-2 overflow-x-auto noScroll">
-
-                    <OptionalChildren condition={frames.length < (limit || 1)}>
-                        <BottomSheet
-                            ref={promptRef}
-                            className="size-60 rounded-md border-dashed border border-gray40 aspect-square backdrop:brightness-50 flex flex-cntr-all"
-                            button={<AddIcon />}
-                            buttonTitle="Add Frame"
-                            containerClassName="min-h-fit"
-                        >
-                            <MediaInputPrompt callback={getframe} type={frameType} />
-                        </BottomSheet>
-                    </OptionalChildren>
-
-                    {frames.map(frame => (
-                        <FrameContainer {...frame} remove={removeframe} key={frame.path} />
-                    ))}
-                </div>
-            </section>
-        )
+        setFrames([...frames, frame]);
     }
+
+    const removeframe = (path: string) => {
+        setFrames(frames.filter(el => el.path !== path));
+    }
+
+    if (!frames.length) return (
+        <NestedSheet ref={promptRef}>
+            <MediaInputPrompt callback={getframe} type={frameType} />
+        </NestedSheet>
+    );
+
+    return (
+        <section className={twMerge("space-y-4", className)}>
+
+            <OptionalChildren condition={title}>
+                <h4 className="capitalize">{title}</h4>
+            </OptionalChildren>
+
+
+            <div className="flex gap-2 overflow-x-auto noScroll">
+
+                {frames.map(frame => (
+                    <FrameContainer {...frame} remove={removeframe} key={frame.path} />
+                ))}
+
+                <OptionalChildren condition={frames.length < (limit || 1)}>
+                    <BottomSheet
+                        ref={promptRef}
+                        className="size-60 rounded-md border-dashed border border-gray40 aspect-square backdrop:brightness-50 flex flex-cntr-all"
+                        button={<AddIcon />}
+                        buttonTitle="Add Frame"
+                        containerClassName="min-h-fit"
+                    >
+                        <MediaInputPrompt callback={getframe} type={frameType} />
+                    </BottomSheet>
+                </OptionalChildren>
+            </div>
+        </section>
+    )
+}
 
 export default MediaInputManager;

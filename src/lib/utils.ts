@@ -218,14 +218,26 @@ export const makeUrlSafe = (str: string) => {
     .replace(/\s+/g, "-");
 };
 
+export const addProxyForFrames = (url: string) => {
+  if (!url) return url;
+
+  const cloudUrl = process.env.NEXT_PUBLIC_QCORE_CLOUD_URI;
+  const proxyUrl = process.env.NEXT_PUBLIC_PROXY_URL;
+
+  if (!cloudUrl || !proxyUrl)
+    throw new Error("Either Cloud URL or Proxy URL is not defined.");
+
+  else if (url.includes(cloudUrl)) return url;
+
+  return `${proxyUrl}/us?url=${encodeURIComponent(url)}`;
+}
+
 export const getPoster = <T extends ExternalImageType>(config: GetPosterFunctionProps<T>): string => {
   const { path } = config;
 
   if (!path) return placeholder.src;
 
-  else if (path.includes("https")) return path;
-
-  else if ((config.external) && !config.extSource) {
+  else if (config.external && !config.extSource) {
 
     if (!config.size)
       return `${externalImgUrlPrefix}w185${path}`;
@@ -236,6 +248,9 @@ export const getPoster = <T extends ExternalImageType>(config: GetPosterFunction
     return `${externalImgUrlPrefix}${size}${path}`;
   }
 
+  else if (config.extSource === "web")
+    return addProxyForFrames(path);
+  
   else return path;
 };
 
@@ -377,8 +392,9 @@ export const getQueryKeys = <K extends AvailableQueryKeys>(
 };
 
 export const readyFrames = async (
-  input: InputFrame | InputFrame[]
-): Promise<{ files: any[]; filesData: any[] }> => {
+  input: InputFrame | InputFrame[],
+  fileName?: string
+): Promise<{ files: File[]; filesData: Omit<InputFrame, "blob">[] }> => {
 
   const frames = Array.isArray(input) ? input : [input];
 
@@ -388,9 +404,9 @@ export const readyFrames = async (
 
     if (!data.shouldUpload || !blob) return { data };
 
-    const arrayBuffer = await blob.arrayBuffer();
+    // const arrayBuffer = await blob.arrayBuffer();
 
-    const file = new File([new Uint8Array(arrayBuffer)], "Parlocula", {
+    const file = new File([blob], fileName ?? "Parlocula", {
       type: blob.type,
     });
 
@@ -400,7 +416,7 @@ export const readyFrames = async (
 
   const results = await Promise.all(promises);
 
-  const files = results.filter((res) => res.file).map((res) => res.file);
+  const files = results.filter((res) => !!res.file).map((res) => res.file);
   const filesData = results.map((res) => res.data);
 
   return { files, filesData };

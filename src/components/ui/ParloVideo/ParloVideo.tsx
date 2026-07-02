@@ -3,18 +3,24 @@
 import { PlayIcon, VimeoIcon, YoutubeIcon } from "@assets/Icons";
 import { OptionalChildren, VideoPlayer } from "@components/ui";
 import { Fancybox } from "@fancyapps/ui";
-import { formatTimeAsDuration } from "@lib/helpers/media";
-import { getPathForFrame, getVideoPath } from "@lib/utils/frame";
+import { decodeHash, formatTimeAsDuration } from "@lib/helpers/media";
+import { addProxyForFrames } from "@lib/utils";
 import { Frame } from "@type/internal";
 import Image from "next/image";
 import { SyntheticEvent, useRef, useState } from "react";
 import { twMerge } from "tailwind-merge";
 
+const iconClassName = "size-6 showShadow text-zinc-200";
+
 const isEmbeddingFrame = (source: Frame["extSource"]) => {
-    return (source === "youtube" || source === "vimeo")
+    return !!(source === "vimeo" || source === "youtube")
 }
 
-const iconClassName = "size-6 showShadow text-zinc-200";
+const getSource = (path: string, source: Frame["extSource"]) => {
+    if (source === "web")
+        return addProxyForFrames(path);
+    return path;
+}
 
 const SourceIconMap = ({ extSource }: Pick<Frame, "extSource">) => {
     if (extSource === "vimeo")
@@ -37,32 +43,12 @@ type Props = {
 
 const ParloVideo = ({ className, containerClassName, frame, disablePopup, galleryId, alt, skipSourceIcon, hideDuraion }: Props) => {
 
-    const [duration, setDuration] = useState('');
+    const [duration, setDuration] = useState(frame.duration ? formatTimeAsDuration(frame.duration) : '');
     const [play, setPlay] = useState(false);
     const videoContainer = useRef<HTMLDivElement | null>(null);
 
-    if (isEmbeddingFrame(frame.extSource)) return (
-        <div
-            data-frame={disablePopup ? undefined : galleryId || true}
-            data-src={disablePopup ? undefined : getVideoPath(frame.path, frame.extSource)}
-            className={twMerge("relative", containerClassName)}
-            onContextMenu={e => { e.preventDefault() }}>
-            <Image
-                fill
-                src={getPathForFrame(frame.path, frame.extSource, frame.type)}
-                className={className}
-                alt={alt}
-                unoptimized
-            />
-            <div className="absolute bottom-4 right-4 flex gap-1 items-center text-zinc-200">
-                <SourceIconMap extSource={frame.extSource} />
-            </div>
-
-        </div>
-    )
-
     const handleDuration = (e: SyntheticEvent<HTMLVideoElement, Event>) => {
-        if (hideDuraion) return;
+        if (hideDuraion || duration) return;
         setDuration(formatTimeAsDuration((e.target as HTMLVideoElement).duration));
     }
 
@@ -81,22 +67,42 @@ const ParloVideo = ({ className, containerClassName, frame, disablePopup, galler
         })
     }
 
+    const path = getSource(frame.path, frame.extSource);
+
+    const embeddingFrame = isEmbeddingFrame(frame.extSource);
+    const allowAttributePopup = !disablePopup && embeddingFrame;
+    const allowProgramaticallyPopup = !disablePopup && !embeddingFrame;
+
     return (
         <>
             <div
-                className={containerClassName}
-                onClick={disablePopup ? undefined : handleClick}
+                data-frame={allowAttributePopup ? galleryId || true : undefined}
+                data-src={allowAttributePopup ? frame.path : undefined}
+                className={twMerge("relative", containerClassName)}
+                onClick={allowProgramaticallyPopup ? handleClick : undefined}
                 aria-haspopup
                 onContextMenu={e => { e.preventDefault() }}>
-                <video
-                    className={className}
-                    preload="metadata"
-                    onLoadedMetadata={handleDuration}
-                    disablePictureInPicture
-                    title={alt}
-                >
-                    <source src={frame.path} />
-                </video>
+                <OptionalChildren condition={frame.thumb} fallback={(
+                    <video
+                        className={className}
+                        preload="metadata"
+                        onLoadedMetadata={handleDuration}
+                        disablePictureInPicture
+                        title={alt}
+                    >
+                        <source src={path} />
+                    </video>
+                )}>
+                    <Image
+                        fill
+                        src={frame.thumb!}
+                        className={className}
+                        alt={alt}
+                        unoptimized={isEmbeddingFrame(frame.extSource)}
+                        blurDataURL={frame.hash ? decodeHash(frame.hash) : undefined}
+                        placeholder={frame.hash ? "blur" : "empty"}
+                    />
+                </OptionalChildren>
                 <div className="absolute bottom-4 right-4 flex gap-1 items-center text-zinc-200">
                     <OptionalChildren condition={duration && !hideDuraion}>
                         <span className="px-2 py-1 bg-black/50 text-sm rounded-md">{duration}</span>
@@ -106,7 +112,7 @@ const ParloVideo = ({ className, containerClassName, frame, disablePopup, galler
                     </OptionalChildren>
                 </div>
             </div>
-            <OptionalChildren condition={!disablePopup}>
+            <OptionalChildren condition={allowProgramaticallyPopup}>
                 <div
                     style={{ margin: 0, padding: 0, height: "100%", width: "100%" }}
                     className="hidden"
@@ -114,7 +120,7 @@ const ParloVideo = ({ className, containerClassName, frame, disablePopup, galler
                     id={`parloVideoPlayer-${Math.random().toString(32).slice(2)}`}
                     ref={videoContainer}
                 >
-                    <VideoPlayer playState={play} src={frame.path} />
+                    <VideoPlayer poster={frame.thumb} playState={play} src={path} />
                 </div>
             </OptionalChildren >
         </>

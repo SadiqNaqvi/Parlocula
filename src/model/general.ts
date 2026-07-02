@@ -56,5 +56,7 @@ export const frameModel = new Schema<FrameModelType>({
     type: String,
     enum: extMediaSource,
     required: false,
-  }
+  },
+  duration: Number,
+  thumb: String,
 });

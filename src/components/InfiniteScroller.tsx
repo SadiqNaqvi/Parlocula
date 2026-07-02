@@ -114,7 +114,7 @@ export default function InfiniteScroller({ Loading, showFooter, onSuccess, place
 
     if (isLoading) return <LoadingComponent />
 
-    else if (error) return (
+    else if (error && !(data && data.pages.length)) return (
         <ShowError
             retry={refetch}
             errCode={error.message as ErrorCodes}
@@ -153,24 +153,32 @@ export default function InfiniteScroller({ Loading, showFooter, onSuccess, place
                         </li>
                     ))}
             </ol>
-            <OptionalChildren condition={hasNextPage} fallback={showFooter && <ParloFooter className="mt-auto" />}>
-                <OptionalChildren
-                    fallback={(
-                        <div className="w-full flex flex-cntr-all">
-                            <Button
-                                id="manual-load-button"
-                                title="Load More"
-                                className="primary"
-                                onClick={manuallyLoadNextPage}
-                            >
-                                Load More
-                            </Button>
+            <OptionalChildren condition={!error} fallback={(
+                <ShowError
+                    retry={refetch}
+                    errCode={error?.message as ErrorCodes}
+                    heading="Unable to fetch the resource you're looking for"
+                />
+            )}>
+                <OptionalChildren condition={hasNextPage} fallback={showFooter && <ParloFooter className="mt-auto" />}>
+                    <OptionalChildren
+                        fallback={(
+                            <div className="w-full flex flex-cntr-all">
+                                <Button
+                                    id="manual-load-button"
+                                    title="Load More"
+                                    className="primary"
+                                    onClick={manuallyLoadNextPage}
+                                >
+                                    Load More
+                                </Button>
+                            </div>
+                        )}
+                        condition={(isHydrated && !dataSaver) || isFetchingNextPage}>
+                        <div ref={container} className="mt-4 py-2 w-full">
+                            <LoadingComponent />
                         </div>
-                    )}
-                    condition={(isHydrated && !dataSaver) || isFetchingNextPage}>
-                    <div ref={container} className="mt-4 py-2 w-full">
-                        <LoadingComponent />
-                    </div>
+                    </OptionalChildren>
                 </OptionalChildren>
             </OptionalChildren>
         </>

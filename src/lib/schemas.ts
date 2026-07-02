@@ -94,6 +94,8 @@ export const frameDataSchema = z.object({
   size: z.number().optional(),
   hash: z.string().optional(),
   extSource: z.enum(extMediaSource).optional(),
+  thumb: z.string().optional(),
+  duration: z.number().optional(),
 });
 
 export const fileSchema = z
@@ -477,9 +479,9 @@ export const createArrayOfUidsSchema = (limit: number) => z.object({
 export const reportOrSuggestionSchemaClient = z.object({
   page: z.enum(pagesEnumForBugOrSuggestion),
   desc: z.string()
-  .trim()
-  .min(10, "At least 10 characters are required.")
-  .max(5000, "At most 5000 characters are allowed.")
+    .trim()
+    .min(10, "At least 10 characters are required.")
+    .max(5000, "At most 5000 characters are allowed.")
 });
 
 export const reportOrSuggestionSchemaServer = z.object({

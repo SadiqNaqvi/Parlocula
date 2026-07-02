@@ -2,7 +2,7 @@ import WarnTeamParlocula from "@components/EmailTemplates/warnParlocula";
 import { getUserFromToken } from "@lib/auth/utils";
 import { attachedFramesLimit, oneMb } from "@lib/constants";
 import { connectDatabase } from "@lib/database";
-import { deleteMediaFiles, uploadMediaFiles } from "@lib/providers/media";
+import { deleteMediaFiles, uploadMediaFiles, uploadThumbnailFromUrl } from "@lib/providers/media";
 import { getRevalidateTags, parseObject } from "@lib/utils";
 import { render } from "@react-email/components";
 import { Frame, GeneralGetReturn, GeneralPostReturn } from "@type/internal";
@@ -110,15 +110,42 @@ export const getHandler = <T extends any>(handler: GetHandlerFunction<T>) => {
     };
 };
 
-const uploadFiles = async (files: FormidableFile[], filesData: FrameDataSchemaType[], checkNsfw: boolean) => {
+const uploadFiles = async (files: FormidableFile[], filesData: FrameDataSchemaType[], checkNsfw: boolean): Promise<{ frames: Frame[], isNsfw: boolean }> => {
+
     const results = files && files.length ? await uploadMediaFiles(files) : [];
+
+    const thumbnails: (string | undefined)[] = await Promise.all(
+        filesData.map(fileData => {
+            if (fileData.type === "image") return;
+            else if (fileData.extSource === "mega" || fileData.extSource === "web")
+                return uploadThumbnailFromUrl(fileData.path)
+            else return fileData.thumb;
+        })
+    );
+
+    console.log(thumbnails);
 
     let isNsfw = false;
 
-    const frames = filesData
-        .map(({ isExternal, path, type, shouldUpload, hash, size, extSource }) => {
+    const frames: Frame[] = filesData
+        .map(({ isExternal, path, type, shouldUpload, hash, size, extSource, duration }, ind) => {
 
-            if (!shouldUpload || isExternal) return { path, type, isExternal, size, hash, extSource };
+            if (!shouldUpload || isExternal) {
+                if (type === "image" || !thumbnails[ind]) return {
+                    path,
+                    type,
+                    isExternal,
+                    size,
+                    hash,
+                    extSource,
+                    duration,
+                };
+
+                return {
+                    path, type, isExternal, size, hash, extSource, duration,
+                    thumb: thumbnails[ind]
+                };
+            }
 
             const result = results.shift();
 
@@ -129,9 +156,20 @@ const uploadFiles = async (files: FormidableFile[], filesData: FrameDataSchemaTy
                 isNsfw = true;
             }
 
-            return { path: result.path, type, isExternal, size, hash, extSource };
+            return {
+                path: result.path,
+                type,
+                isExternal,
+                size,
+                hash,
+                extSource,
+                duration,
+                thumb: result.thumbnail,
+            };
 
         });
+
+    console.log(frames);
 
     return { frames, isNsfw };
 
@@ -161,7 +199,7 @@ const getDataFromRequest = async <T>(req: NextRequest, schema: ZodSchema | undef
 
     const fd = await formidable({
         multiples: true,
-        maxFileSize: 50 * oneMb,
+        maxFileSize: 100 * oneMb,
         maxFiles: attachedFramesLimit,
         keepExtensions: true,
     }).parse(body as any);
@@ -189,6 +227,7 @@ export const postHandler = <T extends HandlerData>({ handler, preCheck, schema, 
     skipUserCheck?: boolean,
 }) => {
     return async function (req: NextRequest, { params }: { params: Promise<HandlerParamVariable> }) {
+
         console.log("Entered Post handler HOF", "skip user =", skipUserCheck);
         const payload = skipUserCheck ? null : await getUserFromToken(req.cookies);
         const awaitedParams = await params;
