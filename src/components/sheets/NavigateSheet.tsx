@@ -38,9 +38,6 @@ const NavigationSheet = ({ sheetRef, href }: { sheetRef: React.RefObject<BottomS
                         <CopyIcon />
                         <span>Copy Link</span>
                     </OptionList>
-                    <OptionList skipButtonWrapping>
-                        <ShareButton textToShow="Share" title="Parlocula - The Cinematic Planet" url={url} className="w-full" />
-                    </OptionList>
                 </ul>
             </section>
         </BottomSheet>

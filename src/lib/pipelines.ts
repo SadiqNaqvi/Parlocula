@@ -864,7 +864,7 @@ export const searchHandler = async ({ r, type, filters }: SearchHandlerProps): P
 
   const sp = r.nextUrl.searchParams;
 
-  const query: string | null = sp.get("q")?.trim();
+  const query: string | undefined = sp.get("q")?.trim();
   if (!query || query.length < 1)
     return { success: false, errCode: "custom_error", customError: "Query is empty. Query must be sent under the searchParams 'q'." };
 
